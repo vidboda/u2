@@ -1,0 +1,215 @@
+BEGIN {delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV', 'PATH'};}
+
+use strict;
+#use CGI;
+#use DBI;
+#use AppConfig qw(:expand :argcount);
+use U2_modules::U2_users_1;
+use U2_modules::U2_init_1;
+use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_2;
+
+
+#    This program is part of ushvam2, USHer VAriant Manager version 2
+#    Copyright (C) 2012-2016  David Baux
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+#		Home page of U2
+
+
+##Basic init of USHVaM 2 perl scripts: slightly modified with custom js
+#	env variables
+#	get config infos
+#	initialize DB connection
+#	initialize HTML (change page title if needed, as well as CSS files and JS)
+#	Load standard JS, CSS and fixed html
+#	identify users
+#	just copy at the beginning of each script
+
+$CGI::POST_MAX = 1024; #* 100;  # max 1K posts
+$CGI::DISABLE_UPLOADS = 1;
+
+
+
+my $config_file = U2_modules::U2_init_1->getConfFile();
+my $config = U2_modules::U2_init_1->initConfig();
+$config->file($config_file);# or die $!;
+my $DB = $config->DB();
+my $HOST = $config->HOST();
+my $DB_USER = $config->DB_USER();
+my $DB_PASSWORD = $config->DB_PASSWORD();
+my $CSS_PATH = $config->CSS_PATH();
+my $CSS_DEFAULT = $config->CSS_DEFAULT();
+my $JS_PATH = $config->JS_PATH();
+my $JS_DEFAULT = $config->JS_DEFAULT();
+my $HTDOCS_PATH = $config->HTDOCS_PATH();
+
+my @styles = ($CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css');
+
+my $q = new CGI;
+
+my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
+                        $DB_USER,
+                        $DB_PASSWORD,
+                        {'RaiseError' => 1}
+                ) or die $DBI::errstr;
+
+#custom js for home.pl
+my $js = "
+	function info(type) {
+		if (type === 'class') {jAlert('<ul>".U2_modules::U2_subs_2::info_text($q, 'class')."</ul>', 'Information box');}
+		else if (type === 'neg') {jAlert('<ul>".U2_modules::U2_subs_2::info_text($q, 'neg')."</ul>', 'Information box');}
+	}
+
+"; 
+#end custom js
+
+print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
+	$q->start_html(-title=>"USHVaM 2",
+                        -lang => 'en',
+                        -style => {-src => \@styles},
+                        -head => [
+				$q->Link({-rel => 'icon',
+					-type => 'image/gif',
+					-href => $HTDOCS_PATH.'data/img/animated_favicon1.gif'}),
+				$q->Link({-rel => 'search',
+					-type => 'application/opensearchdescription+xml',
+					-title => 'U2 search engine',
+					-href => $HTDOCS_PATH.'u2browserengine.xml'}),
+				$q->meta({-http_equiv => 'Cache-control',
+					-content => 'no-cache'}),
+				$q->meta({-http_equiv => 'Pragma',
+					-content => 'no-cache'}),
+				$q->meta({-http_equiv => 'Expires',
+					-content => '0'})],
+                        -script => [{-language => 'javascript',
+                                -src => $JS_PATH.'jquery-1.7.2.min.js', 'defer' => 'defer'},
+                                {-language => 'javascript',
+                                -src => $JS_PATH.'jquery.fullsize.pack.js', 'defer' => 'defer'},
+				{-language => 'javascript',
+                                -src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
+				{-language => 'javascript',
+				-src => $JS_PATH.'jquery.alerts.js', 'defer' => 'defer'},
+                                {-language => 'javascript',
+                                -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
+				$js,
+                                {-language => 'javascript',
+                                -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                        -encoding => 'ISO-8859-1');
+
+my $user = U2_modules::U2_users_1->new();
+
+
+U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+
+##end of Basic init
+
+
+#1st query to the database - basic statistics
+
+my $query = "SELECT COUNT(nom) as a, COUNT(DISTINCT(nom_gene[1])) as b, COUNT(DISTINCT(nom_gene[2])) as c FROM variant;";
+my $res = $dbh->selectrow_hashref($query);
+
+#my $user = users->new();
+
+print $q->start_div({'align' => 'center'}), $q->img({'src' => $HTDOCS_PATH.'data/img/U2.png', 'alt' => 'U2'}), $q->start_p(), $q->big($user->getName().", Welcome to USHVaM 2. The system currently records $res->{'a'} different variants collected in $res->{'b'} genes corresponding to $res->{'c'} different isoforms."), $q->end_p(), "\n",
+	$q->p("You ".$user->isAnalystToString()." and ".$user->isValidatorToString()." and ".$user->isRefereeToString()), "\n";
+
+$query = "SELECT COUNT(numero) as a FROM patient;";
+$res = $dbh->selectrow_hashref($query);
+
+print $q->start_p(), $q->start_big(), $q->span("These variants are related to $res->{'a'} patients including ");
+
+$query = "SELECT COUNT(numero) as a FROM patient WHERE proband = 't';";
+$res = $dbh->selectrow_hashref($query);
+
+print $q->span($res->{'a'}." probands, and are collected into ");
+
+#$query = "SELECT COUNT(num_pat) as a FROM analyse_moleculaire;";
+#$query = "SELECT COUNT(num_pat) as a FROM analyse_moleculaire WHERE (type_analyse NOT LIKE '454%' AND type_analyse <> 'aCGH' AND type_analyse NOT LIKE 'MiSeq-%');";
+
+$query = "SELECT COUNT(num_pat) as a FROM analyse_moleculaire a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND multiple = 'f';";
+$res = $dbh->selectrow_hashref($query);
+
+
+#$query = "SELECT distinct (num_pat, type_analyse) as a FROM analyse_moleculaire WHERE (type_analyse LIKE '454%' OR type_analyse = 'aCGH' OR type_analyse like 'MiSeq-%');";
+$query = "SELECT COUNT(num_pat) as a FROM analyse_moleculaire a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND multiple = 't';";
+my $sth = $dbh->prepare($query);
+$sth->execute();
+my $rows2 = $sth->rows();
+
+
+print $q->span(($res->{'a'}+$rows2)." analysis, cumulating approximately ");
+
+
+$query = "SELECT COUNT(nom_c) as a FROM variant2patient;";
+#true query would bebut too long
+#$query = "SELECT COUNT(DISTINCT(nom_c, num_pat, id_pat, nom_gene)) as a FROM variant2patient;";
+
+$res = $dbh->selectrow_hashref($query);
+
+print $q->span($res->{'a'}." variants."), $q->end_big(), $q->end_p(), $q->end_div(), "\n",
+	$q->start_div({'align' => 'center'}), "\n",
+		$q->start_form({'action' => '/perl/U2/engine.pl', 'id' => 'main', 'method' => 'POST', 'enctype' => &CGI::URL_ENCODED}), "\n",
+			$q->input({'type' => 'text', 'name' => 'search', 'id' => 'main_engine', 'size' => '50', 'maxlength' => '40', 'placeholder' => ' Ask USHVaM 2:', 'autofocus' => 'autofocus', 'class' => 'homepage'}), "\n", $q->br(), $q->br(),
+			$q->input({'type' => 'submit', 'value' => 'Submit', 'class' => 'gras'}),
+		$q->end_form(), "\n",
+	$q->end_div(), "\n",$q->br(), $q->start_div({'id' => 'farside', 'class' => 'appear center'}), $q->end_div(), "\n",
+	$q->br(), $q->br(), $q->start_div({'align' => 'center'}),
+	#$q->p('At the time, menu:'),
+	#$q->start_ul(),
+	#	$q->start_li(), $q->span('Patients is '), $q->font({'color' => 'green'}, 'active'), $q->end_li(),
+	#	$q->start_li(), $q->span('Genes is '), $q->font({'color' => 'green'}, 'active'), $q->end_li(),
+	#	$q->start_li(), $q->span('Advanced is '), $q->font({'color' => 'green'}, 'active'), $q->end_li(),
+	#	$q->start_li(), $q->span('Search engine is '), $q->font({'color' => 'green'}, 'active'), $q->end_li(),
+	#	$q->start_li(), $q->span('Statistics is '), $q->font({'color' => 'green'}, 'active'), $q->end_li(),
+	#	#$q->start_li(), $q->span('Variants is '), $q->font({'color' => 'red'}, 'inactive'), $q->end_li(),
+	#	
+	#$q->end_ul(),
+	$q->end_div(),
+	$q->start_div(),
+	$q->span('Example research for search engine:'), 
+		$q->start_ul(),
+			$q->li('\'SU1034\', \'su1034\', \'CHM52\', \'chm52\' will look for a patient ID'),
+			$q->li('\'p.(Arg34*)\', \'p.Arg34*\', \'p.R34*\', \'p.R34X\', \'R34X\' will look for variants linked to these protein name'),
+			$q->li('\'chr1:g.216595579G>A\', \'g.6160C>T\', \'c.100C>T\', \'100C>T\', \'IVS15+35G>A\' will look for variants linked to these DNA name'),
+			$q->li('Partial names for variants can be used e.g. \'c.100\' or \'IVS15\' will look for variants begining with c.100 or IVS15'),
+			$q->li('Special: IVSX+3 will look for any \'+3\' variant'),
+			$q->li('Large rearrangements can be found using \'E11-12del\' or \'E11-12\' or \'E11\', however, for diverse reasons e.g. \'E11\' will look for rearrangements beginning or ending in introns 10 to 12 of each gene'),
+			$q->li('\'ROYO\', \'royo\' will look for last name'),
+			$q->li('\'U283\', \'u283\' will look for family ID'),
+			$q->li('And, last but not least, typing a number will seek for patient, family, variants (DNA c. and protein)!'),
+		$q->end_ul(),
+	$q->end_div(),
+	$q->br(), $q->br(),
+	$q->start_div({'align' => 'center'}),
+		$q->start_a({'href' => 'http://perl.apache.org/', 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/mod_perl.png', 'width' => '100', 'height' => '20'}), $q->end_a(),
+		$q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'),
+		$q->start_a({'href' => 'http://www.postgresql.org/', 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/Postgresql.gif', 'width' => '75', 'height' => '50'}), $q->end_a(),
+		$q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'),
+		$q->start_a({'href' => 'http://httpd.apache.org/docs/2.2/mod/mod_ssl.html', 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/mod_ssl.jpg', 'width' => '62', 'height' => '30'}), $q->end_a(),
+	$q->end_div();
+
+
+##Basic end of USHVaM 2 perl scripts:
+
+U2_modules::U2_subs_1::standard_end_html($q);
+
+print $q->end_html();
+
+exit();
+
+##End of Basic end
