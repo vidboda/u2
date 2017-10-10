@@ -263,11 +263,12 @@ my $js = "
 			//Gene must disappear and a Filter menu must appear
 			\$(\"#gene_selection\").hide();
 			\$(\"#illumina_filter_selection\").show();
+			//\$(\"#illumina_filter_selection\").
 		}
 		else if (simple.test(analysis)){
 			//Gene must disappear
 			\$(\"#gene_selection\").hide();
-			\$(\"#illumina_filter_selection\").hide();
+			\$(\"#analysis_form\").attr(\"action\", \"import_nenufaar.pl\");
 		}
 		else {
 			\$(\"#gene_selection\").show();

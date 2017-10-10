@@ -878,7 +878,7 @@ sub segment_canvas {
 }
 
 sub get_js_graph {
-	my ($labels, $data, $color, $id, $width) = @_;
+	my ($labels, $data, $color, $id) = @_;
 	return "\n// Get context with jQuery - using jQuery's .get() method.
 		//Chart.defaults.global.responsive = true; //wether or not the chart should be responsive and resize when the browser does.
 		var ctx = \$(\"#$id\").get(0).getContext(\"2d\");\n
