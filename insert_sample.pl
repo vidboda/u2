@@ -61,7 +61,7 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
-my @styles = ($CSS_DEFAULT, $CSS_PATH.'form.css');
+my @styles = ($CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'w3.css');
 
 
 my $q = new CGI;
@@ -154,12 +154,27 @@ if (($q->param('last_name') && decode($enc,$q->param('last_name')) =~ /([A-Z-\s\
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '') {
 		#print $query."-".$res."-";
-		print $q->p("Sorry, the sample $id$num is already recorded under the name of $res->{'lastname'} $res->{'first_name'}. You can check the page by following this link:"),
-			$q->a({"href" => "patient_file.pl?sample=$id$num"}, $id.$num);
+		print print $q->start_div({"class" => "w3-panel w3-display-container w3-red w3-padding-16"}),
+			$q->start_p(), $q->span("Sorry, the sample $id$num is already recorded under the name of $res->{'lastname'} $res->{'first_name'}. You can check the page by following this link: "),
+			$q->a({"href" => "patient_file.pl?sample=$id$num"}, $id.$num), $q->end_p(), $q->end_div();
 		U2_modules::U2_subs_1::standard_end_html($q);
 		print $q->end_html();
 		exit();
-	}	
+	}
+	#check if family exists
+	$query = "SELECT numero, identifiant FROM patient WHERE famille = '$family';";
+	my $sth = $dbh->prepare($query);
+	$res = $sth->execute();
+	if ($res ne '0E0') {
+		print $q->start_div({"class" => "w3-panel w3-display-container w3-red w3-padding-16"}),
+			$q->span({"class" => "w3-button w3-display-topright", "onclick" => "this.parentElement.style.display='none'"}, 'X'),
+				$q->start_p(), $q->span("This family number is known by U2 in sample(s) ");
+		while (my $results = $sth->fetchrow_hashref()) {
+			print $q->a({"href" => "patient_file.pl?sample=$results->{'identifiant'}.$results->{'numero'}"}, $results->{'identifiant'}.$results->{'numero'}.' ');
+		}
+		print $q->end_p(), $q->end_div();
+	}
+	
 }
 else {&insert_error('last name')}
 
