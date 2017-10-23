@@ -651,10 +651,10 @@ if ($user->isAnalyst() == 1) {
 							$q->end_form(), $q->end_div(), "\n",
 							$q->span('Criteria for FAIL:'), "\n",
 							$q->start_ul(), "\n",
-								$q->li('% Q30 < 80'), "\n",
-								$q->li('% 50X bp < 95'), "\n",
-								$q->li('Ts/Tv ration < 2.5'), "\n",
-								$q->li('mean DOC < 100X'), "\n",
+								$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30), "\n",
+								$q->li('% 50X bp < '.$U2_modules::U2_subs_1::PC50X), "\n",
+								$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV), "\n",
+								$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC), "\n",
 							$q->end_ul(), "\n";
 
 						}

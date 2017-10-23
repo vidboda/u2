@@ -454,10 +454,10 @@ if ($res->{'protein'} ne '') {
 }
 
 #ng name, genomic name, class  clinvarMain=hide&clinvarCnv=dense
-my $ucsc_link = "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr$evs_chr%3A".($evs_pos_start-10)."-".($evs_pos_end+10)."&hgS_doOtherUser=submit&hgS_otherUserName=david.baux&hgS_otherUserSessionName=U2&ruler=full&knownGene=full&refGene=full&pubs=pack&lovd=pack&hgmd=pack&cons100way=full&snp147=dense&ucscGenePfam=full&omimGene2=full&tgpPhase1=dense&tgpPhase3=dense&evsEsp6500=dense&exac=dense&dgvPlus=dense&allHg19RS_BW=full&highlight=hg19.chr$evs_chr%3A$evs_pos_start-$evs_pos_end";
+my $ucsc_link = "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=chr$evs_chr%3A".($evs_pos_start-10)."-".($evs_pos_end+10)."&hgS_doOtherUser=submit&hgS_otherUserName=david.baux&hgS_otherUserSessionName=U2&ruler=full&knownGene=full&refGene=full&pubs=pack&lovd=pack&hgmd=pack&cons100way=full&snp150=dense&ucscGenePfam=full&omimGene2=full&tgpPhase1=dense&tgpPhase3=dense&evsEsp6500=dense&exac=dense&dgvPlus=dense&allHg19RS_BW=full&highlight=hg19.chr$evs_chr%3A$evs_pos_start-$evs_pos_end";
 
 my ($evs_chr_hg38, $evs_pos_start_hg38, $evs_pos_end_hg38) = U2_modules::U2_subs_1::extract_pos_from_genomic($res->{'nom_g_38'}, 'evs');
-my $ucsc_link_hg38 = "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr$evs_chr_hg38%3A".($evs_pos_start_hg38-10)."-".($evs_pos_end_hg38+10)."&hgS_doOtherUser=submit&hgS_otherUserName=david.baux&hgS_otherUserSessionName=U2&ruler=full&knownGene=full&refGene=full&pubs=pack&lovd=pack&hgmd=pack&cons100way=full&snp147=dense&ucscGenePfam=full&omimGene2=full&tgpPhase1=dense&tgpPhase3=dense&evsEsp6500=dense&exac=dense&dgvPlus=dense&allHg19RS_BW=full&highlight=hg38.chr$evs_chr_hg38%3A$evs_pos_start_hg38-$evs_pos_end_hg38";
+my $ucsc_link_hg38 = "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr$evs_chr_hg38%3A".($evs_pos_start_hg38-10)."-".($evs_pos_end_hg38+10)."&hgS_doOtherUser=submit&hgS_otherUserName=david.baux&hgS_otherUserSessionName=U2&ruler=full&knownGene=full&refGene=full&pubs=pack&lovd=pack&hgmd=pack&cons100way=full&snp150=dense&ucscGenePfam=full&omimGene2=full&tgpPhase1=dense&tgpPhase3=dense&evsEsp6500=dense&exac=dense&dgvPlus=dense&allHg19RS_BW=full&highlight=hg38.chr$evs_chr_hg38%3A$evs_pos_start_hg38-$evs_pos_end_hg38";
 
 #http://www.rcsb.org/pdb/chromosome.do?v=hg37&chromosome=chrX&pos=106888516
 #map2pdb

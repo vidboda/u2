@@ -54,7 +54,7 @@ our @LCA = ('LRAT', 'SPATA7', 'TULP1', 'RPE65');
 #= (panel size in kb * enrichment coeff * mean expected doc) / read size
 #= (900000 * 1,3 * 150) / 150 = 1170000
 our $NUM_ONTARGET_READS = 1170000;
-our $TITV = 2.5;
+our $TITV = 2.3;
 our $MDOC = 150;
 our $PC50X = 95;
 our $Q30 = 80;
