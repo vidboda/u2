@@ -61,7 +61,7 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
-my @styles = ($CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'w3.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css');
 
 
 my $q = new CGI;
