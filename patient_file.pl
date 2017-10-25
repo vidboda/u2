@@ -59,7 +59,7 @@ my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
 
 
-my @styles = ($CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.10.3.custom.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.10.3.custom.min.css');
 
 my $q = new CGI;
 
@@ -68,6 +68,32 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         $DB_PASSWORD,
                         {'RaiseError' => 1}
                 ) or die $DBI::errstr;
+
+#my $js = "   #####too many quotes imbricated - put in .js file
+#	function getDefGenVariants(id, num) {
+#		\$.ajax({
+#			type: 'POST',
+#			url: 'ajax.pl',
+#			data: {asked: 'defgen', sample: id+num}
+#			})
+#		.done(function(msg) {
+#			\$('#defgen').html('<div class=\"w3-modal-content w3-card-4\"><header class=\"w3-container w3-teal\"><span onclick=\"\$(\'#defgen\').hide();\" class=\"w3-button w3-display-topright\">&times;</span><h2>Export to DEFGEN:</h2></header><div class=\"w3-container\"><p class=\"w3-large\">\"+msg+\"</p></div></div>');
+#			\$('#defgen').show();
+#			//setDialog(msg);
+#		});	
+#	}
+#	function setDialog(msg, type, nom) {
+#		var \$dialog = \$('<div></div>')
+#			.html(msg)
+#			.dialog({
+#			    autoOpen: false,
+#			    title: \'Export to DEFGEN:\',
+#			    width: 450,
+#			});
+#		\$dialog.dialog(\'open\');
+#		\$(\'.ui-dialog\').zIndex(\'1002\');
+#	}
+#";
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 	$q->start_html(-title=>"U2 patient file",
@@ -102,7 +128,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.autocomplete.min.js'},
 				{-language => 'javascript',
-				-src => $JS_DEFAULT}],		
+				-src => $JS_DEFAULT}],
                         -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -134,6 +160,9 @@ my $SSH_RACKSTATION_PASSWORD = $config->SSH_RACKSTATION_PASSWORD();
 my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
 my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
+
+
+
 
 #get infos for patient, analysis
 
@@ -221,7 +250,7 @@ if ($result) {
 	my $query_filter = "SELECT filter, valid_import FROM miseq_analysis WHERE num_pat IN ($num_list) AND id_pat IN ($id_list) AND filter <> 'ALL';";
 	my $res_filter = $dbh->selectrow_hashref($query_filter);
 	if ($res_filter) {$filter = $res_filter->{'filter'};$valid_import = $res_filter->{'valid_import'}}
-	
+	print $q->start_div({'id' => 'defgen', 'class' => 'w3-modal'}), $q->end_div();
 	print $q->start_div({'class' => 'in_line patient_file_frame'}),
 		#$q->start_p(), $q->start_big(), $q->strong('Investigation summary:'), $q->end_big(), $q->end_p(),
 		$q->p({'class' => 'title'}, 'Investigation summary:'),
@@ -245,7 +274,8 @@ if ($result) {
 			#elsif ($filter eq 'DFN' && $result_important->{'rp'} == 1) {next}
 			my $color = U2_modules::U2_subs_1::color_by_classe($result_important->{'classe'}, $dbh);
 			print $q->start_li(), $q->font({'color' => $color}, $result_important->{'classe'}), $q->span( ", $result_important->{'statut'} variant identified in "), $q->start_em(), $q->a({'href' => "patient_genotype.pl?sample=$id$number&amp;gene=$result_important->{'nom_gene'}", 'target' => '_blank'}, $result_important->{'nom_gene'}), $q->end_em(), $q->end_li(), $q->br();
-		}		
+		}
+		print $q->start_li(), $q->button({'onclick' => "getDefGenVariants('$id', '$number');", 'value' => 'DefGen genotype', 'class' => 'w3-button w3-blue w3-border w3-border-blue'}), $q->end_li(), $q->br();
 	}
 	else {
 		print $q->li('No pathogenic variations reported so far.'), $q->br();
@@ -519,7 +549,7 @@ if ($result) {
 							    return false;
 							});
 						});";
-					print $q->script({'type' => 'text/javascript'}, $js), $q->start_li(), $q->button({'id' => "$analysis", 'value' => "$analysis"});
+					print $q->script({'type' => 'text/javascript'}, $js), $q->start_li(), $q->button({'id' => "$analysis", 'value' => "$analysis", 'class' => 'w3-button w3-teal w3-border w3-border-blue'});
 					
 					if ($raw_filter ne '') {print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $raw_filter, $q->span('&nbsp;*')}
 					if ($valid_import eq '1') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;-&nbsp;&nbsp;IMPORT VALIDATED')}

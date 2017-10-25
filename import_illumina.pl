@@ -1081,6 +1081,10 @@ if ($step && $step == 2) {
 											
 											
 											my $true_version = "";
+											#GPR98 no longer works with mutalyzer
+											#patch 23/10/2017
+											my $gene = $res3->{'gene_name'};
+											if ($gene eq 'GPR98') {$gene = 'ADGRV1'}
 											## Transcript description (submission) get version of isoform
 											if ($call->result->{'transcriptDescriptions'}) {
 												foreach ($call->result->{'transcriptDescriptions'}->{'string'}) {
@@ -1102,7 +1106,7 @@ if ($step && $step == 2) {
 															my ($version, $variant) = ($2, $3);
 															#print $version-$var-$nom-\n";
 															if ($nom =~ /$variant/) {
-																$version =~ /($res3->{'gene_name'})_v(\d{3})/;
+																$version =~ /($gene)_v(\d{3})/;
 																$true_version = $2;
 																#print "\n$true_version\n";
 															}
@@ -1127,15 +1131,17 @@ if ($step && $step == 2) {
 												}
 											}
 											## Protein description
+											
 											if ($call->result->{'proteinDescriptions'}) {
 												foreach ($call->result->{'proteinDescriptions'}->{'string'}) {
 													my $tab_ref;
 													if (ref($_) eq 'ARRAY') {$tab_ref = $_}
 													else {$tab_ref->[0] = $_}
+													#$manual .= $tab_ref->[0]."\n";
 													#if (Dumper($_) =~ /\[/og) { ## multiple results: tab ref
 													foreach(@{$tab_ref}) {
-														if ($_ =~ /($res3->{'gene_name'})_i$true_version\):(p\..+)/) {$nom_prot = $2}
-														if ($res3->{'gene_name'} =~ /(PDE6A|TECTA|CDH23|RPGR)/o) {
+														if ($_ =~ /($gene)_i$true_version\):(p\..+)/) {$nom_prot = $2}
+														if ($gene =~ /(PDE6A|TECTA|CDH23|RPGR)/o) {
 															$to_follow .= "$1 variant to check: $nom\t$_\ttrue version:$true_version\tigd:$gid\tnom_prot:$nom_prot\n"
 														}
 														

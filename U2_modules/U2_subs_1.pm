@@ -871,6 +871,8 @@ sub run_mutalyzer {
 	if ($mutalyzer_acc && $mutalyzer_acc ne '') {$acc_g = $mutalyzer_acc}
 	#if ($mutalyzer_acc && $mutalyzer_acc ne '') {$acc_g = $mutalyzer_acc}
 	#print "$acc_g($gene$mutalyzer_version:$var";
+	#GPR98/ADGRV1 exception
+	if ($gene eq 'GPR98') {$gene = 'ADGRV1'}
 	my $call = $soap->call('runMutalyzer', SOAP::Data->name('variant')->value("$acc_g($gene$mutalyzer_version):$var"));
 	if ($call->fault()) {print "Mutalyzer Fault $var $gene<br/>"}
 	return $call;

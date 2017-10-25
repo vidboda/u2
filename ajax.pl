@@ -52,6 +52,7 @@ my $HOST = $config->HOST();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
+my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $DATABASES_PATH = $config->DATABASES_PATH();
 my $DALLIANCE_DATA_DIR_PATH = $config->DALLIANCE_DATA_DIR_PATH();
 my $EXE_PATH = $config->EXE_PATH();
@@ -804,6 +805,26 @@ if ($q->param('asked') && $q->param('asked') eq 'req_class') {
 	my $user = U2_modules::U2_users_1->new();
 	U2_modules::U2_subs_2::request_variant_classification($user, $variant, $gene);
 	print 'Request done.';
+}
+
+
+if ($q->param('asked') && $q->param('asked') eq 'defgen') {
+	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+	#print $number;
+	my $query = "SELECT a.*, b.*, a.nom_prot as hgvs_prot, c.nom_prot, c.enst FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	my $content = "GENE;VARIANT;GENOME_REFERENCE;NOMENCLATURE_HGVS;NOMPROTEINE;VARIANT_C;CHROMOSOME;SEQUENCE_REF;LOCALISATION;POSITION_GENOMIQUE;NM;VARIANT_P;CLASSESUR3;CLASSESUR5;DOMAINE_FCTL;CONSEQUENCES;RS;COSMIC;ENST;DATEDESAISIE;REFERENCES;COMMENTAIRE\n";
+	if ($res ne '0E0') {
+		while (my $result = $sth->fetchrow_hashref()) {
+			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($result->{nom_g}, 'clinvar');
+			$content .= "$result->{nom_gene}[0];$result->{nom_c};hg19;$result->{nom_g};$result->{nom_prot};$result->{nom_c};chr$chr;;$result->{type_segment} $result->{num_segment};$pos;$result->{nom_gene}[1]\.$result->{acc_version};$result->{hgvs_prot};;;;$result->{type_prot};$result->{snp_id};;$result->{enst};;;$result->{classe}\n";
+		}
+	}
+	open F, '>'.$ABSOLUTE_HTDOCS_PATH.'data/defgen/'.$id.$number.'_defgen.csv' or die $!;
+	print F $content;
+	close F;
+	print '<a href="'.$HTDOCS_PATH.'data/defgen/'.$id.$number.'_defgen.csv" download>Download file for '.$id.$number.'</a>';
 }
 
 
