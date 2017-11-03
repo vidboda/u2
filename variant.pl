@@ -566,7 +566,7 @@ print $q->start_Tr(), $q->td('dbSNP:'), "\n",
 if ($res->{'snp_id'} ne '') {
 	my $snp_common = "SELECT common FROM restricted_snp WHERE rsid = '$res->{'snp_id'}';";
 	my $res_common = $dbh->selectrow_hashref($snp_common);
-	print $q->a({'href' => "http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?rs=$res->{'snp_id'}", 'target' => '_blank'}, $res->{'snp_id'});
+	print $q->a({'href' => "http://www.ncbi.nlm.nih.gov/snp/$res->{'snp_id'}", 'target' => '_blank'}, $res->{'snp_id'});
 	if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP142 variant set (MAF > 0.01)')}
 }
 else {print $q->span("Not reported in dbSNP142")}
