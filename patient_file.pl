@@ -251,10 +251,10 @@ if ($result) {
 	my $res_filter = $dbh->selectrow_hashref($query_filter);
 	if ($res_filter) {$filter = $res_filter->{'filter'};$valid_import = $res_filter->{'valid_import'}}
 	print $q->start_div({'id' => 'defgen', 'class' => 'w3-modal'}), $q->end_div();
-	print $q->start_div({'class' => 'in_line patient_file_frame'}),
+	print $q->start_div({'class' => 'w3-cell-row'}), $q->start_div({'class' => 'w3-border w3-cell w3-padding-16 w3-margin'}),
 		#$q->start_p(), $q->start_big(), $q->strong('Investigation summary:'), $q->end_big(), $q->end_p(),
 		$q->p({'class' => 'title'}, 'Investigation summary:'),
-		$q->start_ul(); #summary of the results => mutations, analysis
+		$q->start_ul({'class' => 'w3-ul w3-hoverable'}); #summary of the results => mutations, analysis
 		
 	#we need to consider filtering options
 		
@@ -273,12 +273,12 @@ if ($result) {
 			#if ($filter eq 'RP' && $result_important->{'dfn'} == 1) {next}
 			#elsif ($filter eq 'DFN' && $result_important->{'rp'} == 1) {next}
 			my $color = U2_modules::U2_subs_1::color_by_classe($result_important->{'classe'}, $dbh);
-			print $q->start_li(), $q->font({'color' => $color}, $result_important->{'classe'}), $q->span( ", $result_important->{'statut'} variant identified in "), $q->start_em(), $q->a({'href' => "patient_genotype.pl?sample=$id$number&amp;gene=$result_important->{'nom_gene'}", 'target' => '_blank'}, $result_important->{'nom_gene'}), $q->end_em(), $q->end_li(), $q->br();
+			print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->font({'color' => $color}, $result_important->{'classe'}), $q->span( ", $result_important->{'statut'} variant identified in "), $q->start_em(), $q->a({'href' => "patient_genotype.pl?sample=$id$number&amp;gene=$result_important->{'nom_gene'}", 'target' => '_blank'}, $result_important->{'nom_gene'}), $q->end_em(), $q->end_li();
 		}
-		print $q->start_li(), $q->button({'onclick' => "getDefGenVariants('$id', '$number');", 'value' => 'DefGen genotype', 'class' => 'w3-button w3-blue w3-border w3-border-blue'}), $q->end_li(), $q->br();
+		print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->button({'onclick' => "getDefGenVariants('$id', '$number');", 'value' => 'DefGen genotype', 'class' => 'w3-button w3-blue w3-border w3-border-blue'}), $q->end_li(), $q->br();
 	}
 	else {
-		print $q->li('No pathogenic variations reported so far.'), $q->br();
+		print $q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, 'No pathogenic variations reported so far.'), $q->br();
 	}
 	#look for unknown fs nonsense or +1+2-1-2 start codon
 	#my $unknown_important = "SELECT DISTINCT(a.nom), a.type_prot, a.nom_gene[1], b.id_pat, b.num_pat, b.statut, d.rp, d.dfn FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.classe = 'unknown' AND ((a.type_prot IN ('frameshift', 'nonsense', 'no protein', 'start codon')) OR (a.nom ~ 'c\..+[\+-][12][ATCGdelins>]+\$'));";    , 'inframe deletion', 'inframe duplication', 'inframe insertion'
@@ -294,7 +294,7 @@ if ($result) {
 	my $sth3 = $dbh->prepare($unknown_important);
 	my $res_unknown = $sth3->execute();
 	if ($res_unknown ne '0E0') {
-		my ($text, $sem) = ($q->start_li().$q->span('You can check the following ').$q->strong('unknown variants').$q->span(':').$q->start_ul(), 0);
+		my ($text, $sem) = ($q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}).$q->span('You can check the following ').$q->strong('unknown variants').$q->span(':').$q->start_ul(), 0);
 		#print $q->start_li(), $q->span('You can check the following '), $q->strong('unknown variants'), $q->span(':'), $q->start_ul();
 		while (my $result_unknown = $sth3->fetchrow_hashref()) {
 			if ($filter eq 'RP' && $result_unknown->{'rp'} == 0) {next}
@@ -317,9 +317,9 @@ if ($result) {
 				#print $q->start_li(), $q->span(ucfirst($result_unknown->{'statut'})." splice variant reported in "), $q->start_em(), $q->a({'href' => "patient_genotype.pl?sample=$result_unknown->{'id_pat'}$result_unknown->{'num_pat'}&amp;gene=$result_unknown->{'nom_gene'}", 'target' => '_blank'}, $result_unknown->{'nom_gene'}), $q->end_em(), $q->end_li()
 			}		
 		}
-		$text .= $q->end_ul().$q->end_li().$q->br()."\n";
+		$text .= $q->end_ul().$q->end_li()."\n";
 		if ($sem == 1) {print $text}
-		else {print $q->li("No notable unknown variant (fs, stop or splice) to check."), $q->br()}
+		else {print $q->li("No notable unknown variant (fs, stop or splice) to check.")}
 		
 		#print $q->end_ul(), $q->end_li(), $q->br();
 	}
@@ -331,7 +331,7 @@ if ($result) {
 	my $sth4 = $dbh->prepare($done);
 	my $res_done = $sth4->execute();
 	if ($res_done ne '0E0') {
-		print $q->start_li(), $q->strong("Analyses: "), $q->start_ul(), "\n";
+		print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->strong("Analyses: "), $q->start_ul(), "\n";
 		my $analysis_count = 0;
 		while (my $result_done = $sth4->fetchrow_hashref()) {
 			my ($analysis, $id_tmp, $num_tmp, $manifest) = ($result_done->{'type_analyse'}, $result_done->{'id_pat'}, $result_done->{'num_pat'}, $result_done->{'manifest_name'});
@@ -555,9 +555,9 @@ if ($result) {
 					if ($valid_import eq '1') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;-&nbsp;&nbsp;IMPORT VALIDATED')}
 					print  $q->end_li(), "\n";#$q->span('&nbsp;&nbsp;,&nbsp;&nbsp;');
 				}
-				else{print $q->li("$result_done->{'type_analyse'}");}
+				else{print $q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "$result_done->{'type_analyse'}");}
 			}
-			else{print $q->li("$result_done->{'type_analyse'}");}
+			else{print $q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "$result_done->{'type_analyse'}");}
 		}
 		print $q->end_ul(), $q->end_li();
 	}
@@ -590,7 +590,7 @@ if ($result) {
 	
 	if ($user->isAnalyst() == 1) {
 		#print $q->start_div({'class' => 'in_line'}), $q->start_p(), $q->start_big(), $q->strong('Validations and negatives shortcuts:'), $q->end_big(), $q->end_p();#,#Validation
-		print $q->start_div({'class' => 'in_line'}), $q->p({'class' => 'title min_height_50'}, 'Validations and negatives shortcuts:');#
+		print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-border'}), $q->p({'class' => 'title min_height_50'}, 'Validations and negatives shortcuts:');#
 		#	$q->start_ul(), "\n";
 		#print U2_modules::U2_subs_1::valid($user, $number, $id, $dbh, $q);
 		print U2_modules::U2_subs_1::valid_table($user, $number, $id, $dbh, $q);
@@ -599,8 +599,8 @@ if ($result) {
 		print $q->end_div(), "\n";
 		
 		if ($illumina_semaph == 1) {
-			print $q->start_div('class' => 'in_line'), $q->br(), $q->span('*NGS raw data must fulfill the following criteria to pass:'), "\n",
-			$q->ul(), "\n",
+			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'}), $q->span('*NGS raw data must fulfill the following criteria to pass:'), "\n",
+			$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
 				$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n",
 				$q->li('% of bp with covearge at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
 				$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n",
@@ -609,6 +609,7 @@ if ($result) {
 		}
 	}
 	else {print $q->end_div(), "\n"}
+	print $q->end_div(), "\n";
 	### frame
 	
 	##Validation
@@ -650,16 +651,23 @@ if ($result) {
 	#print $q->start_div({'class' => 'patient_file_frame mother appear', 'id' => 'tag'}), $q->start_big(), $q->start_strong(), $q->p({'class' => 'title'}, "Jump to the following pages:"), $q->end_strong(), $q->end_big(), $q->br(), "\n";
 	print $q->start_div({'class' => 'patient_file_frame mother appear', 'id' => 'tag'}), $q->p({'class' => 'title'}, "Jump to the following pages:"), $q->br(), "\n";
 	if ($user->isAnalyst() == 1) {
-		print $q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'add_analysis.pl?step=1&sample='.$id.$number.'\');'}, 'Add an analysis'), "\n"
+		#print $q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'add_analysis.pl?step=1&sample='.$id.$number.'\');'}, 'Add an analysis'), "\n"
+		print $q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => '$(location).attr(\'href\', \'add_analysis.pl?step=1&sample='.$id.$number.'\');'}, 'Add an analysis'), "\n"
 	}
 	#print $q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'patient_global.pl?type=analyses&sample='.$id.$number.'\');'}, 'Global analyses view'), "\n",
 	#	$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'patient_global.pl?type=genotype&sample='.$id.$number.'\');'}, 'Global genotype view'), "\n",
 	#	$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'variant_prioritize.pl?type=missense&sample='.$id.$number.'\');'}, 'Prioritize missense'), "\n",
 	#	$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n",
-	print $q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'patient_global.pl?type=analyses&sample='.$id.$number.'\');'}, 'Global analyses view'), "\n",
-		$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'patient_global.pl?type=genotype&sample='.$id.$number.'\');'}, 'Global genotype view'), "\n",
-		$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'variant_prioritize.pl?type=missense&sample='.$id.$number.'\');'}, 'Prioritize missense'), "\n",
-		$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n",
+	#print $q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'patient_global.pl?type=analyses&sample='.$id.$number.'\');'}, 'Global analyses view'), "\n",
+	#	$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'patient_global.pl?type=genotype&sample='.$id.$number.'\');'}, 'Global genotype view'), "\n",
+	#	$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'variant_prioritize.pl?type=missense&sample='.$id.$number.'\');'}, 'Prioritize missense'), "\n",
+	#	$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n",
+	#	$q->end_div(), $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";
+		
+	print $q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'patient_global.pl?type=analyses&sample='.$id.$number.'\');'}, 'Global analyses view'), "\n",
+		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'patient_global.pl?type=genotype&sample='.$id.$number.'\');'}, 'Global genotype view'), "\n",
+		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=missense&sample='.$id.$number.'\');'}, 'Prioritize missense'), "\n",
+		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n",
 		$q->end_div(), $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";
 	
 
@@ -900,7 +908,8 @@ sub create_frame {
 		print $q->start_div({'id' => $name, 'class' => 'patient_file_frame mother hidden'}), $q->start_big(), $q->start_strong(), $q->p({'class' => 'title'}, $name), $q->end_strong(), $q->end_big(), $q->br(), "\n";
 		foreach (@{$tab}) {
 			if (exists $list->{$_}) {
-				print $q->start_strong({'class' => 'patient_file_frame daughter pointer frame_text frame2', 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
+				#print $q->start_strong({'class' => 'patient_file_frame daughter pointer frame_text frame2', 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
+				print $q->start_strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
 			}
 		}
 		print $q->end_div(), "\n";#, $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";
@@ -914,7 +923,9 @@ sub create_group {
 	#foreach (@{$tab}) {$show .= "if (\$('#$_').length){\$('#$_').show('slow');};"; $hide .= "if (\$('#$_').length){\$('#$_').hide('slow');};";} modified 29/08/2014
 	#print $q->strong({'id' => $name}, "&nbsp;&nbsp;&nbsp;$name&nbsp;"), $q->span('('), $q->a({'href' => 'javascript:;', 'onclick' => $show}, 'Show'), $q->span(' / '), $q->a({'href' => 'javascript:;', 'onclick' => $hide}, 'Hide'), $q->span(')');
 	#print $q->start_strong(), $q->span({'id' => "l$name", 'class' => 'pointer', 'onclick' => '$(location).attr(\'href\', \'#'.$name.'\');'}, "&nbsp;&nbsp;&nbsp;$name&nbsp;"), $q->end_strong();
-	print $q->strong({'id' => "l$name", 'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'show_gene_group(\''.$name.'\');'}, $name), "\n";
+	#w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin
+	#print $q->strong({'id' => "l$name", 'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'show_gene_group(\''.$name.'\');'}, $name), "\n";
+	print $q->strong({'id' => "l$name", 'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'show_gene_group(\''.$name.'\');'}, $name), "\n";
 }
 
 
