@@ -184,19 +184,19 @@ else {&insert_error('last name')}
 if ($step == 1) {
 	my %gender = ('M' => 'Male', 'F' => 'Female', 'X' => 'Unknown');
 	my %proband = ('t' => 'Yes', 'f' => 'No');
-	print $q->br(), $q->span("The system understands that you are trying to record the following sample:"),
-		$q->start_ul(),
+	print $q->br(), $q->span({'class' => 'w3-margin'}, "The system understands that you are trying to record the following sample:"),
+		$q->start_ul({'class' => 'w3-margin w3-ul w3-hoverable', 'style' => 'width:30%'}),
 			$q->li("Sample ID: $sample"), "\n",
 			$q->li("Family ID: $family"), "\n",
 			$q->li("Last Name: $last_name"), "\n",
 			$q->li("Name: $first_name"), "\n",
 		$q->end_ul(), $q->br(), "\n",
-		$q->p('I need a couple of additional information. Please fill in the form below.'), $q->br(), "\n",
+		$q->p({'class' => 'w3-margin'}, 'I need a couple of additional information. Please fill in the form below.'), $q->br(), "\n",
 		$q->start_div({'align' => 'center'});
 		#print "<form action = \"insert_sample.pl\" method = \"post\" class = \"u2form\" id = \"patient_form\">";
 		print #$q->start_form(-action => 'insert_sample.pl', -method => 'get', -class => 'u2form', -id => 'patient_form', -enctype => 'multipart/form-data'),
 			#$q->start_form({'action' => 'insert_sample.pl', 'method' => 'post', 'class' => 'u2form', 'id' => 'patient_form', 'enctype' => 'application/x-www-form-urlencoded'}),
-			$q->start_form({'action' => '', 'method' => 'post', 'class' => 'u2form', 'id' => 'patient_form', 'enctype' => &CGI::URL_ENCODED}),
+			$q->start_form({'action' => '', 'method' => 'post', 'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'id' => 'patient_form', 'enctype' => &CGI::URL_ENCODED, 'style' => 'width:50%'}),
 			$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2'}), "\n",
 			$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => $sample}), "\n",
 			$q->input({'type' => 'hidden', 'name' => 'family', 'value' => $family}), "\n",
@@ -207,43 +207,87 @@ if ($step == 1) {
 			#$q->hidden(-name => 'family', -default => $family), "\n",
 			#$q->hidden(-name => 'last_name', -default => $last_name), "\n",
 			#$q->hidden(-name => 'first_name', -default => $first_name), "\n",
-			$q->start_fieldset({'class' => 'w3-card w3-margin'}),
-				$q->legend('Sample details'),
-				$q->start_ol(), "\n",
-					$q->start_li({'class' => 'w3-padding-16'}),
-						$q->label({'for' => 'phenotype'}, 'Phenotype:');
+			
+			
+			#$q->start_fieldset({'class' => 'w3-card w3-margin'}),
+				$q->h2({'class' => 'w3-center w3-padding-32'},'Sample details'),
+				$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}), "\n",
+					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+						$q->span({'for' => 'phenotype', 'class' => 'w3-large'}, 'Phenotype:'),
+					$q->end_div(), "\n",
+					$q->start_div({'class' => 'w3-rest'});
 	U2_modules::U2_subs_1::select_phenotype($q);
-	print 					$q->br(), "\n",
-					$q->end_li(), "\n",
-					$q->start_li({'class' => 'w3-padding-16'}),
-						$q->start_fieldset(),
-							$q->legend('Gender:'),
+	print 				$q->end_div(), "\n",
+				$q->end_div(), "\n",
+				$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}), "\n",
+					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+						$q->span({'class' => 'w3-large'}, 'Gender:'),
+					$q->end_div(), "\n",
+					$q->start_div({'class' => 'w3-rest'}), "\n",
 							$q->radio_group(-name => 'gender', -values => [keys %gender], -labels => \%gender, -columns => 1, -defaults => '', -class => 'w3-radio'),
-						$q->end_fieldset(), $q->br(),
-					$q->end_li(), "\n",
-					$q->start_li({'class' => 'w3-padding-16'}),
-						$q->label({'for' => 'origin'}, 'Geographic origin:');
-	#					$q->start_Select({'id' => 'origin', 'name' => 'origin'}); "\n",
+					$q->end_div(), "\n",
+				$q->end_div(),
+				$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}), "\n",
+					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+						$q->span({'class' => 'w3-large'}, 'Geographic origin:'),
+					$q->end_div(), "\n",
+					$q->start_div({'class' => 'w3-rest'}), "\n";
 	U2_modules::U2_subs_1::select_origin($q);
-	#print					$q->end_Select(),
-	print 					$q->br(), "\n",
-					$q->end_li(), "\n",
-					$q->start_li({'class' => 'w3-padding-16'}),
-						$q->start_fieldset(),
-							$q->legend('Index Case:'),
+	print				$q->end_div(), "\n",
+				$q->end_div(),
+				$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}), "\n",
+					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+						$q->span({'class' => 'w3-large'}, 'Index Case:'),
+					$q->end_div(), "\n",
+					$q->start_div({'class' => 'w3-rest'}), "\n",
 							$q->radio_group(-name => 'proband', -values => [keys %proband], -labels => \%proband, -columns => 1, -defaults => '', -class => 'w3-radio'),
-						$q->end_fieldset(), $q->br(),
-					$q->end_li(), "\n",
-					$q->start_li({'class' => 'w3-padding-16'}),
-						$q->label({'for' => 'comment'}, 'Comments:'),
-						$q->textarea({'name' => 'comment', 'rows' => '7', 'cols' => '30'}), $q->br(), "\n",
-					$q->end_li(), "\n",
-				$q->end_ol(),
-			$q->end_fieldset(),
+					$q->end_div(), "\n",
+				$q->end_div(),
+				$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}), "\n",
+							$q->input({'class' => 'w3-input w3-animate-input', 'type' => 'text', 'style' => 'width:30%', 'placeholder' => 'Comments', 'name' => 'comment'}),
+				$q->end_div(),
+					
+					
+			#$q->end_fieldset(),
+			
+			
+	#		$q->start_fieldset({'class' => 'w3-card w3-margin'}),
+	#			$q->h2({'class' => 'w3-center'},'Sample details'),
+	#			$q->start_ol(), "\n",
+	#				$q->start_li({'class' => 'w3-padding-16'}),
+	#					$q->label({'for' => 'phenotype'}, 'Phenotype:');
+	#U2_modules::U2_subs_1::select_phenotype($q);
+	#print 					$q->br(), "\n",
+	#				$q->end_li(), "\n",
+	#				$q->start_li({'class' => 'w3-padding-16'}),
+	#					$q->start_fieldset(),
+	#						$q->legend('Gender:'),
+	#						$q->radio_group(-name => 'gender', -values => [keys %gender], -labels => \%gender, -columns => 1, -defaults => '', -class => 'w3-radio'),
+	#					$q->end_fieldset(), $q->br(),
+	#				$q->end_li(), "\n",
+	#				$q->start_li({'class' => 'w3-padding-16'}),
+	#					$q->label({'for' => 'origin'}, 'Geographic origin:');
+	##					$q->start_Select({'id' => 'origin', 'name' => 'origin'}); "\n",
+	#U2_modules::U2_subs_1::select_origin($q);
+	##print					$q->end_Select(),
+	#print 					$q->br(), "\n",
+	#				$q->end_li(), "\n",
+	#				$q->start_li({'class' => 'w3-padding-16'}),
+	#					$q->start_fieldset(),
+	#						$q->legend('Index Case:'),
+	#						$q->radio_group(-name => 'proband', -values => [keys %proband], -labels => \%proband, -columns => 1, -defaults => '', -class => 'w3-radio'),
+	#					$q->end_fieldset(), $q->br(),
+	#				$q->end_li(), "\n",
+	#				$q->start_li({'class' => 'w3-padding-16'}),
+	#					$q->label({'for' => 'comment'}, 'Comments:'),
+	#					$q->textarea({'name' => 'comment', 'rows' => '7', 'cols' => '30'}), $q->br(), "\n",
+	#				$q->end_li(), "\n",
+	#			$q->end_ol(),
+	#		$q->end_fieldset(),
 			$q->br(),
-			$q->submit({'value' => 'Perform record', 'class' => 'submit'}), $q->br(), $q->br(), "\n",
-		$q->end_form(), $q->end_div(), "\n",
-		$q->start_div(), $q->p('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.');
+			$q->submit({'value' => 'Perform record', 'class' => 'w3-btn w3-blue'}), $q->br(), $q->br(), "\n",
+		$q->end_form(), $q->end_div(), "\n", $q->br(), $q->br(),
+		$q->start_div(), $q->p({'class' => 'w3-margin'}, 'Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.');
 
 }
 elsif ($step == 2) {
