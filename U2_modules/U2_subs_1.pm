@@ -89,7 +89,7 @@ sub standard_end_html { #prints bottom of the pages
 	my ($q) = shift;
 	#ends main div and prints fix_bot.html , 'src' => $HTDOCS_PATH.'fix_bot.html'
 	print $q->end_div(), $q->br(), $q->start_div({'id' => 'bottom', 'align' => 'right', 'class' => 'print_hidden'}), $q->start_a({'href' => '#page'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/top_arrow.png', 'width' => '23', 'height' => '34', 'border' => '0'}), $q->strong('Go to top'), $q->end_a(), $q->end_div(), "\n",
-	$q->start_div({'id' => 'fixbot'}), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->br(), $q->br(), $q->end_div();
+	$q->start_div({'id' => 'fixbot', 'class' => 'w3-container w3-center'}), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->br(), $q->br(), $q->end_div();
 }
 
 #common header for gene pages in gene.pl, gene_graphs.pl

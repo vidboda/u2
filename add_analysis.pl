@@ -355,9 +355,9 @@ if ($user->isAnalyst() == 1) {
 				$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => $id.$number, form => 'analysis_form'}), "\n",
 				$q->h2({'class' => 'w3-center w3-padding-32'}, 'Analysis details'),
 				$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}), "\n",
-					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+					$q->start_div({'class' => 'w3-col w3-right-align',  'style' => 'width:40%'}),
 						#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
-						$q->span({'for' => 'analysis', 'class' => 'w3-large'}, 'Analysis type:'),
+						$q->span({'for' => 'analysis', 'class' => 'w3-large'}, 'Analysis type:&nbsp;&nbsp;'),
 					$q->end_div(),
 					$q->start_div({'class' => 'w3-rest'});
 	print U2_modules::U2_subs_1::select_analysis($q, $dbh, 'analysis_form');
@@ -365,9 +365,9 @@ if ($user->isAnalyst() == 1) {
 					$q->end_div(),
 				$q->end_div(), "\n",
 				$q->start_div({'class' => 'w3-row w3-section w3-padding-16', 'id' => 'gene_selection'}), "\n",
-					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+					$q->start_div({'class' => 'w3-col w3-right-align',  'style' => 'width:40%'}),
 						#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
-						$q->span({'for' => 'gene', 'class' => 'w3-large'}, 'Gene:'),
+						$q->span({'for' => 'gene', 'class' => 'w3-large'}, 'Gene:&nbsp;&nbsp;'),
 					$q->end_div(),
 					$q->start_div({'class' => 'w3-rest'});
 	U2_modules::U2_subs_1::select_genes_grouped($q, 'genes', 'analysis_form');
@@ -375,9 +375,9 @@ if ($user->isAnalyst() == 1) {
 					$q->end_div(),
 				$q->end_div(), "\n",
 				$q->start_div({'class' => 'w3-row w3-section w3-padding-16', 'id' => 'illumina_filter_selection', 'style' => 'display:none;'}), "\n",
-					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+					$q->start_div({'class' => 'w3-col w3-right-align',  'style' => 'width:40%'}),
 						#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
-						$q->span({'for' => 'filter', 'class' => 'w3-large'}, 'Filter:'),
+						$q->span({'for' => 'filter', 'class' => 'w3-large'}, 'Filter:&nbsp;&nbsp;'),
 					$q->end_div(),
 					$q->start_div({'class' => 'w3-rest'});
 	print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
