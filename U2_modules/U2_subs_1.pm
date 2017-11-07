@@ -208,7 +208,7 @@ sub html2accent {
 # Form subs
 sub select_origin { #insert a list of countries in a pop up menu
 	my ($q) = shift;
-	print $q->popup_menu(-name => 'origin', -id => 'origin', -values => \@COUNTRY);
+	print $q->popup_menu(-name => 'origin', -id => 'origin', -values => \@COUNTRY, -class => 'w3-select w3-border');
 }
 
 sub select_phenotype { #insert a list of phenotypes in a pop up menu
@@ -216,7 +216,7 @@ sub select_phenotype { #insert a list of phenotypes in a pop up menu
 	$PATIENT_PHENOTYPE =~ /^\((.+)\)$/o;
 	my @phenotype_tab = split(/\|/, $1);
 	unshift @phenotype_tab, '';
-	print $q->popup_menu(-name => 'phenotype', -id => 'phenotype', -values => \@phenotype_tab);
+	print $q->popup_menu(-name => 'phenotype', -id => 'phenotype', -values => \@phenotype_tab, -class => 'w3-select w3-border');
 }
 
 sub select_gene { #insert a list of genes in a pop up menu
@@ -225,12 +225,12 @@ sub select_gene { #insert a list of genes in a pop up menu
 	my $sth = $dbh->prepare("SELECT nom[1] as gene FROM gene;");
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {push @gene_list, $result->{'gene'}}
-	print $q->popup_menu(-name => 'gene', -id => 'genes', -values => \@gene_list);
+	print $q->popup_menu(-name => 'gene', -id => 'genes', -values => \@gene_list, -class => 'w3-select w3-border');
 }
 
 sub select_genes_grouped { #insert a list of genes in a pop up menu - group by phenotypes
 	my ($q, $id, $form) = @_;
-	print $q->popup_menu(-name => 'gene', -id => $id, -form => $form,
+	print $q->popup_menu(-name => 'gene', -id => $id, -form => $form, -class => 'w3-select w3-border',
 				-values => [
 					$q->optgroup (-name => 'USH1', -values => \@USH1),
 					$q->optgroup (-name => 'USH2', -values => \@USH2),
@@ -250,8 +250,8 @@ sub select_filter { #insert a list of filter types in a pop up menu
 	$ANALYSIS_MISEQ_FILTER =~ /^\((.+)\)$/o;
 	my @filters = split(/\|/, $1);
 	#my @filters = ('All', 'DFN', 'RP');
-	if(!$default) {return $q->popup_menu(-name => $id, -id => $id, -form => $form, -values => \@filters)}
-	else {return $q->popup_menu(-name => $id, -id => $id, -form => $form, -values => \@filters, -default => $default)}
+	if(!$default) {return $q->popup_menu(-name => $id, -id => $id, -form => $form, -values => \@filters, -class => 'w3-select w3-border')}
+	else {return $q->popup_menu(-name => $id, -id => $id, -form => $form, -values => \@filters, -default => $default, -class => 'w3-select w3-border')}
 }
 #in add_analysis.pl
 sub select_analysis {
@@ -261,7 +261,7 @@ sub select_analysis {
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {push @analysis_list, $result->{'type_analyse'}}
 	@analysis_list = sort(@analysis_list);
-	return $q->popup_menu(-name => 'analysis', -id => 'analysis', -form => $form, -values => \@analysis_list, -onchange => 'associate_gene();');
+	return $q->popup_menu(-name => 'analysis', -id => 'analysis', -form => $form, -values => \@analysis_list, -onchange => 'associate_gene();', -class => 'w3-select w3-border');
 }
 
 

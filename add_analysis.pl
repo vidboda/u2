@@ -69,7 +69,7 @@ my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
 #end
 
-my @styles = ($CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.10.3.custom.min.css', $CSS_PATH.'jquery.alerts.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.10.3.custom.min.css', $CSS_PATH.'jquery.alerts.css');
 
 my $q = new CGI;
 
@@ -356,19 +356,19 @@ if ($user->isAnalyst() == 1) {
 				$q->start_fieldset(),
 					$q->legend('Analysis details'),
 					$q->start_ol(), "\n",
-						$q->start_li(),
+						$q->start_li({'class' => 'w3-padding-16'}),
 							#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
-								$q->label({'for' => 'analysis'}, 'Analysis type:');
+								$q->label({'for' => 'analysis', 'class' => 'w3-padding-16'}, 'Analysis type:');
 		print U2_modules::U2_subs_1::select_analysis($q, $dbh, 'analysis_form');
 		print					#$q->end_fieldset(), $q->br(),
 						$q->end_li(), "\n",
-						$q->start_li({'id' => 'gene_selection'}),
-							$q->label({'for' => 'gene'}, 'Gene:');
+						$q->start_li({'id' => 'gene_selection', 'class' => 'w3-padding-16'}),
+							$q->label({'for' => 'gene', 'class' => 'w3-padding-16'}, 'Gene:');
 		U2_modules::U2_subs_1::select_genes_grouped($q, 'genes', 'analysis_form');
 		print 					$q->br(), "\n",
 						$q->end_li(), "\n",
-						$q->start_li({'id' => 'illumina_filter_selection', 'style' => 'display:none;'}),
-							$q->label({'for' => 'filter'}, 'Filter:');
+						$q->start_li({'id' => 'illumina_filter_selection', 'style' => 'display:none;', 'class' => 'w3-padding-16'}),
+							$q->label({'for' => 'filter', 'class' => 'w3-padding-16'}, 'Filter:');
 		print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
 		print 					$q->br(), "\n",
 						$q->end_li(), "\n",
