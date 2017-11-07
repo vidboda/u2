@@ -70,7 +70,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
 
-my @styles = ($CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.10.3.custom.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.10.3.custom.min.css');
 
 my $q = new CGI;
 
@@ -147,18 +147,24 @@ my $pos_cdna = $1;
 #http://www.ncbi.nlm.nih.gov/nuccore/
 my $ncbi_url = 'http://www.ncbi.nlm.nih.gov/nuccore/';
 
+print $q->br(), $q->start_div({'class' =>'w3-white'}), $q->span({'id' => 'openNav', 'class' =>'w3-button w3-blue w3-xlarge', 'onclick' => 'w3_open()', 'title' => 'Click here to open the menu of useful external links'}, '&#9776;'), $q->end_div(), "\n";
+
 print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' : '),
 				$q->span({'onclick' => "window.open('$ncbi_url$acc.$res->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$acc.$res->{'acc_version'}"), $q->span(":$var"),
 				$q->br(), $q->br(), $q->span("($second_name / "), $q->span({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$res->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}, $res->{'enst'}), $q->span(')'),
-				$q->end_strong(), $q->end_big(), $q->end_p(), "\n", $q->start_ul({'class' => 'menu_left ombre appear', 'id' => 'smart_menu'});
+				$q->end_strong(), $q->end_big(), $q->end_p(), "\n",
+				#$q->start_ul({'class' => 'menu_left ombre appear', 'id' => 'smart_menu'})
+				$q->start_div({'class' => 'w3-sidebar w3-bar-block w3-card w3-animate-left', 'id' => 'smart_menu', 'style' => 'display:none;z-index:1111;'}),
+				$q->span({'class' => 'w3-bar-item w3-button w3-xlarge', 'onclick' => 'w3_close()'}, 'Close &times;');
 	
 
 ##Mutation taster
 if ($res->{'type_adn'} eq 'substitution' && $res->{'type_segment'} eq 'exon') {
 	$var =~ /.+\>(\w)/o;
-	print $q->start_li(),
-		$q->start_a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/mut_taster_button.png'}), $q->end_a(),
-	$q->end_li(), "\n";
+	#print $q->start_li(),
+		#$q->start_a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/mut_taster_button.png'}), $q->end_a(),
+		print $q->a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue'}, 'Mutation taster'), "\n";
+	#$q->end_li(), "\n";
 }
 	
 #HSF removed does not work anymore 27/10/2016
@@ -182,15 +188,17 @@ my $USMA = {
 
 
 if ($res->{'type_prot'} eq 'missense' && exists($USMA->{$gene})) {
-	print $q->start_li(),
-		$q->start_a({'href' => "https://neuro-2.iurc.montp.inserm.fr/cgi-bin/USMA/USMA.fcgi?gene=$gene&variant=".$res->{'protein'}."", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/USMA_button.png'}), $q->end_a(),
-	$q->end_li(), "\n";
+	#print $q->start_li(),
+	print $q->a({'href' => "https://neuro-2.iurc.montp.inserm.fr/cgi-bin/USMA/USMA.fcgi?gene=$gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue'}, 'USMA'), "\n";
+	#$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/USMA_button.png'}), "\n";
+	#$q->end_li(), "\n";
 }
 
 my ($evs_chr, $evs_pos_start, $evs_pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($res->{'nom_g'}, 'evs');
 if ($res->{'taille'} < 50) {
-	print $q->start_li(),
-		$q->start_a({'href' => "http://evs.gs.washington.edu/EVS/PopStatsServlet?searchBy=chromosome&chromosome=$evs_chr&chromoStart=$evs_pos_start&chromoEnd=$evs_pos_end&x=0&y=0", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/EVS_button.png'}), $q->end_a(), $q->end_li(), "\n";
+	#print $q->start_li(),
+	print $q->a({'href' => "http://evs.gs.washington.edu/EVS/PopStatsServlet?searchBy=chromosome&chromosome=$evs_chr&chromoStart=$evs_pos_start&chromoEnd=$evs_pos_end&x=0&y=0", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue'}, 'ESP6500'), "\n";
+	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/EVS_button.png'}, 'ESP6500'), "\n";
 }
 
 #ExAC http://exac.broadinstitute.org/
@@ -199,8 +207,10 @@ if ($res->{'taille'} < 50) {
 if ($res->{'type_adn'} eq 'substitution') {
 	my $exac = U2_modules::U2_subs_1::getExacFromGenoVar($res->{'nom_g'});
 	if ($exac) {
-		print $q->start_li(),
-		$q->start_a({'href' => "http://gnomad.broadinstitute.org/variant/$exac", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/gnomad_button.png'}), $q->end_a(), $q->end_li(), "\n";
+		#print $q->start_li(),
+	print $q->a({'href' => "http://gnomad.broadinstitute.org/variant/$exac", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue'}, 'gnomAD'), "\n";
+	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/gnomad_button.png'}, 'gnomAD'), "\n";
+		#, $q->end_a(), $q->end_li(), "\n";
 	}
 }
 
@@ -209,8 +219,10 @@ if ($res->{'type_adn'} eq 'substitution') {
 if ($res->{'taille'} < 50) {
 	my ($rs, $gts) = ('', '');
 	if ($res->{'snp_id'} ne '') {$rs .= "|$res->{'snp_id'}";$gts = "&gts=$res->{'snp_id'}"}
-	print $q->start_li(),
-		$q->start_a({'href' => "https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=$evs_chr&from=$evs_pos_start&to=$evs_pos_end$gts&mk=$evs_pos_start:$evs_pos_end$rs", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/1kG_button.png'}), $q->end_a(), $q->end_li(), "\n";
+	#print $q->start_li(),
+	print $q->a({'href' => "https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=$evs_chr&from=$evs_pos_start&to=$evs_pos_end$gts&mk=$evs_pos_start:$evs_pos_end$rs", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue'}, '1000 genomes'), "\n";
+	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/1kG_button.png'}, '1000 genomes'), "\n";
+		#, $q->end_a(), $q->end_li(), "\n";
 }
 
 
@@ -221,9 +233,10 @@ if ($res->{'type_adn'} eq 'deletion' && ($res->{'taille'} > 4 && $res->{'taille'
 }
 
 
-print $q->start_li(),
-		$q->start_a({'href' => "http://www.ncbi.nlm.nih.gov/clinvar?term=\"".uri_escape("$acc.$res->{'acc_version'}:$var$added")."\" [Variant name]", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvar_button.png'}), $q->end_a(),
-	$q->end_li(), "\n";
+#print $q->start_li(),
+print	$q->a({'href' => "http://www.ncbi.nlm.nih.gov/clinvar?term=\"".uri_escape("$acc.$res->{'acc_version'}:$var$added")."\" [Variant name]", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue'}, 'Clinvar'), "\n", $q->end_div();
+		#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvar_button.png'}), $q->end_a(),
+	#$q->end_li(), "\n";
 #clinvitae	
 #print $q->start_li(),
 #		$q->start_a({'href' => "http://clinvitae.invitae.com/#q=$gene&f=".uri_escape("$acc.$res->{'acc_version'}:$var$added")."&source=ARUP,Carver,ClinVar,EmvClass,Invitae,kConFab&classification=1,2,3,4,5,6", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvitae_button.png'}), $q->end_a(),
@@ -253,7 +266,7 @@ my $mutalyzer_request = "$res->{'acc_g'}($gene$res->{'mutalyzer_version'}):$var"
 if ($res->{'main'} ne 't') {$mutalyzer_request = "$acc.$res->{'acc_version'}:$var"}
 
 
-print $q->start_div({'class' => 'fitin'}), $q->start_table({'class' => "technical great_table variant"}), $q->caption("Variant information:"),
+print $q->start_div({'class' => 'fitin', 'id' => 'main'}), $q->start_table({'class' => "technical great_table variant"}), $q->caption("Variant information:"),
 			$q->start_Tr(), "\n",
 				$q->th({'width' => '15%'}, 'Features:'), "\n",
 				$q->th('Variant values:'), "\n",
@@ -350,7 +363,7 @@ if ($user->isValidator == 1) {
 			\$dialog_rna_status.dialog('open');
 			\$('.ui-dialog').zIndex('1002');
 		};";
-	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'rna_status_button', 'value' => 'Change RNA status', 'onclick' => 'rnaStatusForm();'}), "\n";
+	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'rna_status_button', 'value' => 'Change RNA status', 'onclick' => 'rnaStatusForm();', 'class' => 'w3-button w3-blue'}), "\n";
 }
 if ($res->{'taille'} < 10 && $res->{'type_adn'} ne 'indel') {
 	if ($res->{'type_adn'} eq 'substitution') {		
@@ -360,9 +373,9 @@ if ($res->{'taille'} < 10 && $res->{'type_adn'} ne 'indel') {
 		#	else {print $q->button({'value' => 'MaxEntScan', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&nom_g=$res->{'nom_g'}')"}), "\n"}
 		#}
 		#else {print $q->button({'value' => 'Splicing predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&retrieve=spidex&nom_g=$res->{'nom_g'}')"}), "\n"}
-		print $q->button({'value' => 'Predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&retrieve=spidex&find=dbscSNV&nom_g=$res->{'nom_g'}')"}), "\n"
+		print $q->button({'value' => 'Predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&retrieve=spidex&find=dbscSNV&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"
 	}
-	else {print $q->button({'value' => 'MaxEntScan', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&nom_g=$res->{'nom_g'}')"}), "\n"}
+	else {print $q->button({'value' => 'MaxEntScan', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"}
 }
 
 
@@ -411,7 +424,7 @@ if ($res->{'protein'} ne '') {
 					\$('#ponps').html('<ul>'+msg+'</ul>');
 				});
 			};";
-		print $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $missense_js), $q->span('&nbsp;&nbsp;&nbsp;'), $q->start_span({'id' => 'ponps'}), $q->button({'value' => 'Get predictors', 'onclick' => 'getPonps();$(\'#ponps\').html("Please wait...");'}), $q->end_span();
+		print $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $missense_js), $q->span('&nbsp;&nbsp;&nbsp;'), $q->start_span({'id' => 'ponps'}), $q->button({'value' => 'Get predictors', 'onclick' => 'getPonps();$(\'#ponps\').html("Please wait...");', 'class' => 'w3-button w3-blue'}), $q->end_span();
 	}
 	print $q->end_td(), $q->td('Protein HGVS nomenclature'), $q->end_Tr(), "\n";
 	
@@ -492,7 +505,7 @@ print $q->start_Tr(), $q->td('NG HGVS:'), $q->start_td(), $q->span({'onclick' =>
 	$q->span("$res->{'nom_g'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link, 'target' => '_blank'}, 'UCSC'), $map2pdb, $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => "/perl/led/engine.pl?research=hg19:$evs_chr:$evs_pos_start", 'target' => '_blank'}, 'LED'), $q->end_td(), $q->td('Absolute genomic HGVS nomenclature (chr), hg19 assembly'), $q->end_Tr(), "\n",
 	$q->start_Tr(), $q->td('hg38 Genomic HGVS: (work in progress)'), "\n", $q->start_td({'id' => 'nom_g_38'}),
 	$q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $map2pdb_hg38, $mutalyzer_hg38_pos_conv, $q->end_td(), $q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'), $q->end_Tr(), "\n",
-	$q->start_Tr(), $q->td('Alternatives:'), "\n", $q->start_td({'id' => 'mutalyzer_place'}), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'all_nomenclature', 'value' => 'Other nomenclatures', 'onclick' => 'getAllNom();$(\'#mutalyzer_place\').html("Please wait while mutalyzer is checking...");'}), $q->end_td(), $q->td('Click to retrieve alternative notations for the variant'), $q->end_Tr(), "\n",
+	$q->start_Tr(), $q->td('Alternatives:'), "\n", $q->start_td({'id' => 'mutalyzer_place'}), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'all_nomenclature', 'value' => 'Other nomenclatures', 'onclick' => 'getAllNom();$(\'#mutalyzer_place\').html("Please wait while mutalyzer is checking...");', 'class' => 'w3-button w3-blue'}), $q->end_td(), $q->td('Click to retrieve alternative notations for the variant'), $q->end_Tr(), "\n",
 	$q->start_Tr(), $q->td('Classification:'), $q->start_td(), $q->span({'id' => 'variant_class', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_classe($res->{'classe'}, $dbh).';'}, $res->{'classe'});
 	
 	#change class
@@ -535,7 +548,7 @@ if ($user->isValidator == 1) {
 			\$dialog_class.dialog('open');
 			\$('.ui-dialog').zIndex('1002');
 		};";
-	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();'})
+	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();', 'class' => 'w3-button w3-blue'})
 	#print $q->start_li(), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();'}), $q->end_li(), $q->br(), "\n";
 }
 
@@ -701,7 +714,7 @@ $js = "
 		\$dialog.dialog('open');
 	};";
 
-print $q->start_Tr(), $q->td('Samples:'), $q->start_td(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'patient_list', 'value' => 'Sample list', 'onclick' => 'getPatients();'}), $q->end_td(), $q->td('Get a list of samples carrying the variant'), "\n";
+print $q->start_Tr(), $q->td('Samples:'), $q->start_td(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'patient_list', 'value' => 'Sample list', 'onclick' => 'getPatients();', 'class' => 'w3-button w3-blue'}), $q->end_td(), $q->td('Get a list of samples carrying the variant'), "\n";
 
 #sequence
 if ($res->{'seq_wt'} ne '') {

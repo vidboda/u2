@@ -59,7 +59,7 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
 #my @styles = ($CSS_DEFAULT, $CSS_PATH.'jquery-bubble-popup-v3.css');
-#my @style_print = ($CSS_PATH.'u2_print.css');
+#my @style_print = ($CSS_PATH.'u2_print.css');$CSS_PATH.'w3.css',
 
 my $q = new CGI;
 
@@ -78,6 +78,10 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				$q->Link({-rel => 'icon',
 					-type => 'image/gif',
 					-href => $HTDOCS_PATH.'data/img/animated_favicon1.gif'}),
+				$q->Link({-rel => 'stylesheet',
+					-type => 'text/css',
+					-href => $CSS_PATH.'w3.css',
+					-media => 'screen'}),
 				$q->Link({-rel => 'stylesheet',
 					-type => 'text/css',
 					-href => $CSS_DEFAULT,

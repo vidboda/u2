@@ -65,7 +65,7 @@ exit();
 
 sub main {
 	
-	my @styles = ($CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css');
+	my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css');
 	
 	my $q = new CGI;
 

@@ -61,7 +61,7 @@ my $EXE_PATH = $config->EXE_PATH();
 
 $ENV{PATH} = $DATABASES_PATH;
 
-my @styles = ($CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'jquery-ui-1.10.3.custom.min.css', $CSS_PATH.'datatables.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'jquery-ui-1.10.3.custom.min.css', $CSS_PATH.'datatables.min.css');
 
 my $q = new CGI;
 

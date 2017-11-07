@@ -58,7 +58,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
 
 
-my @styles = ($CSS_DEFAULT, , $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.10.3.custom.min.css', $CSS_PATH.'datatables.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.10.3.custom.min.css', $CSS_PATH.'datatables.min.css');
 
 my $q = new CGI;
 

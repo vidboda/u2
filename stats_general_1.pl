@@ -55,7 +55,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
 my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
 
-my @styles = ($CSS_DEFAULT, $CSS_PATH.'bootstrap.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'bootstrap.min.css');
 
 my $q = new CGI;
 
