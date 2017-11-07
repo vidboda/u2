@@ -350,32 +350,80 @@ if ($user->isAnalyst() == 1) {
 		print $q->br(), $q->br(), $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->span("Access/create an analysis for "), $q->span({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(" ($res_patho->{'pathologie'}):"), $q->end_strong(), $q->end_big(),
 				$q->end_p(), $q->br(), $q->br(), "\n",
 				$q->start_div({'align' => 'center'}), "\n",
-				$q->start_form({'action' => '', 'method' => 'post', 'class' => 'u2form', 'id' => 'analysis_form', 'enctype' => &CGI::URL_ENCODED}), "\n",
+				$q->start_form({'action' => '', 'method' => 'post', 'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'id' => 'analysis_form', 'enctype' => &CGI::URL_ENCODED, 'style' => 'width:50%'}), "\n",
 				$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', form => 'analysis_form'}), "\n",
 				$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => $id.$number, form => 'analysis_form'}), "\n",
-				$q->start_fieldset(),
-					$q->legend('Analysis details'),
-					$q->start_ol(), "\n",
-						$q->start_li({'class' => 'w3-padding-16'}),
-							#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
-								$q->label({'for' => 'analysis', 'class' => 'w3-padding-16'}, 'Analysis type:');
-		print U2_modules::U2_subs_1::select_analysis($q, $dbh, 'analysis_form');
-		print					#$q->end_fieldset(), $q->br(),
-						$q->end_li(), "\n",
-						$q->start_li({'id' => 'gene_selection', 'class' => 'w3-padding-16'}),
-							$q->label({'for' => 'gene', 'class' => 'w3-padding-16'}, 'Gene:');
-		U2_modules::U2_subs_1::select_genes_grouped($q, 'genes', 'analysis_form');
-		print 					$q->br(), "\n",
-						$q->end_li(), "\n",
-						$q->start_li({'id' => 'illumina_filter_selection', 'style' => 'display:none;', 'class' => 'w3-padding-16'}),
-							$q->label({'for' => 'filter', 'class' => 'w3-padding-16'}, 'Filter:');
-		print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
-		print 					$q->br(), "\n",
-						$q->end_li(), "\n",
-					$q->end_ol(),
-				$q->end_fieldset(),
+				$q->h2({'class' => 'w3-center w3-padding-32'}, 'Analysis details'),
+				$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}), "\n",
+					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+						#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
+						$q->span({'for' => 'analysis', 'class' => 'w3-large'}, 'Analysis type:'),
+					$q->end_div(),
+					$q->start_div({'class' => 'w3-rest'});
+	print U2_modules::U2_subs_1::select_analysis($q, $dbh, 'analysis_form');
+	print					#$q->end_fieldset(), $q->br(),
+					$q->end_div(),
+				$q->end_div(), "\n",
+				$q->start_div({'class' => 'w3-row w3-section w3-padding-16', 'id' => 'gene_selection'}), "\n",
+					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+						#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
+						$q->span({'for' => 'gene', 'class' => 'w3-large'}, 'Gene:'),
+					$q->end_div(),
+					$q->start_div({'class' => 'w3-rest'});
+	U2_modules::U2_subs_1::select_genes_grouped($q, 'genes', 'analysis_form');
+	print					#$q->end_fieldset(), $q->br(),
+					$q->end_div(),
+				$q->end_div(), "\n",
+				$q->start_div({'class' => 'w3-row w3-section w3-padding-16', 'id' => 'illumina_filter_selection', 'style' => 'display:none;'}), "\n",
+					$q->start_div({'class' => 'w3-col w3-left-align',  'style' => 'width:40%'}),
+						#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
+						$q->span({'for' => 'filter', 'class' => 'w3-large'}, 'Filter:'),
+					$q->end_div(),
+					$q->start_div({'class' => 'w3-rest'});
+	print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
+	print					#$q->end_fieldset(), $q->br(),
+					$q->end_div(),
+				$q->end_div(), "\n",
+		#				$q->start_li({'id' => 'gene_selection', 'class' => 'w3-padding-16'}),
+		#					$q->label({'for' => 'gene', 'class' => 'w3-padding-16'}, 'Gene:');
+		#U2_modules::U2_subs_1::select_genes_grouped($q, 'genes', 'analysis_form');
+		#print 					$q->br(), "\n",
+		#				$q->end_li(), "\n",
+		#				$q->start_li({'id' => 'illumina_filter_selection', 'style' => 'display:none;', 'class' => 'w3-padding-16'}),
+		#					$q->label({'for' => 'filter', 'class' => 'w3-padding-16'}, 'Filter:');
+		#print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
+		#print 					$q->br(), "\n",
+		#				$q->end_li(), "\n",
+		#			$q->end_div(),
+		#		$q->end_fieldset(),
+				
+				
+				
+		#		$q->start_fieldset(),
+		#			$q->legend('Analysis details'),
+		#			$q->start_ol(), "\n",
+		#				$q->start_li({'class' => 'w3-padding-16'}),
+		#					#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
+		#						$q->label({'for' => 'analysis', 'class' => 'w3-padding-16'}, 'Analysis type:');
+		#print U2_modules::U2_subs_1::select_analysis($q, $dbh, 'analysis_form');
+		#print					#$q->end_fieldset(), $q->br(),
+		#				$q->end_li(), "\n",
+		#				$q->start_li({'id' => 'gene_selection', 'class' => 'w3-padding-16'}),
+		#					$q->label({'for' => 'gene', 'class' => 'w3-padding-16'}, 'Gene:');
+		#U2_modules::U2_subs_1::select_genes_grouped($q, 'genes', 'analysis_form');
+		#print 					$q->br(), "\n",
+		#				$q->end_li(), "\n",
+		#				$q->start_li({'id' => 'illumina_filter_selection', 'style' => 'display:none;', 'class' => 'w3-padding-16'}),
+		#					$q->label({'for' => 'filter', 'class' => 'w3-padding-16'}, 'Filter:');
+		#print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
+		#print 					$q->br(), "\n",
+		#				$q->end_li(), "\n",
+		#			$q->end_ol(),
+		#		$q->end_fieldset(),
+				
+				
 				$q->br(),
-				$q->submit({'value' => 'Confirm', 'class' => 'submit', form => 'analysis_form'}), $q->br(), $q->br(), "\n",
+				$q->submit({'value' => 'Confirm', 'class' => 'w3-btn w3-blue', form => 'analysis_form'}), $q->br(), $q->br(), "\n", $q->br(),
 			$q->end_form(), $q->end_div(), "\n";
 	}
 	elsif ($step == 2 || $step == 3) {
