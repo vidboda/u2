@@ -59,7 +59,7 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.10.3.custom.min.css', $CSS_PATH.'datatables.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'datatables.min.css');
 
 my $q = new CGI;
 
@@ -120,7 +120,7 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 					{-language => 'javascript',
 					-src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
 					{-language => 'javascript',
-					-src => $JS_PATH.'jquery-ui-1.10.3.custom.min.js', 'defer' => 'defer'},
+					-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
 					{-language => 'javascript',
 					-src => $JS_PATH.'datatables.min.js', 'defer' => 'defer'},
 					$js,

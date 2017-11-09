@@ -55,7 +55,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
 my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'bootstrap.min.css', $CSS_PATH.'jquery-ui-1.10.3.custom.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'bootstrap.min.css', $CSS_PATH.'jquery-ui-1.12.1.min.css');
 
 my $q = new CGI;
 
@@ -102,7 +102,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'jquery-ui-1.10.3.custom.min.js', 'defer' => 'defer'},
+				-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'highcharts.js', 'defer' => 'defer'},
 				 {-language => 'javascript',

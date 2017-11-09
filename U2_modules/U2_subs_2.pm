@@ -114,7 +114,7 @@ sub print_validation_table {
 			if ($gene eq '') {print $q->start_td(), $q->em($result->{'nom_gene'}), $q->end_td(), "\n"}
 			if ($result->{'manifest_name'} eq 'no_manifest') {print $q->td($result->{'type_analyse'}), "\n"}
 			elsif ($class ne 'global') {
-				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM file in IVG', 'onclick' => "igv.browser.loadTrack({url:'$bam_path', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'pointer', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
+				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM file in IVG', 'onclick' => "igv.browser.loadTrack({url:'$bam_path', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 			}
 			else {print $q->td($result->{'type_analyse'}), "\n"}
 			
@@ -129,7 +129,7 @@ sub print_validation_table {
 				$q->td($result->{'validateur'}), "\n";
 			my $step = 3;
 			if ($result->{'form'} == 1 && $result->{'manifest_name'} eq 'no_manifest') {$step = 2}
-			if ($user->isAnalyst() == 1) {print $q->start_td({'class' => 'print_hidden'}), $q->button({'onclick' => "window.location='add_analysis.pl?step=$step&sample=$id$number&gene=".$result->{'nom_gene'}."&analysis=".$result->{'type_analyse'}."'", 'value' => 'modify'}), $q->end_td(), "\n"}
+			if ($user->isAnalyst() == 1) {print $q->start_td({'class' => 'print_hidden'}), $q->button({'onclick' => "window.location='add_analysis.pl?step=$step&sample=$id$number&gene=".$result->{'nom_gene'}."&analysis=".$result->{'type_analyse'}."'", 'value' => 'modify', 'class' => 'w3-button w3-blue'}), $q->end_td(), "\n"}
 			#if ($user->isAnalyst() == 1 && ) {print $q->start_td({'class' => 'print_hidden'}), $q->button({'onclick' => "window.location='add_analysis.pl?step=2&sample=$id$number&gene=".$result->{'nom_gene'}[0]."&analysis=".$result->{'type_analyse'}."'", 'value' => 'modify'}), $q->end_td(), "\n"}
 			#elsif ($user->isAnalyst() == 1 && $result->{'form'} != 1) {print $q->start_td({'class' => 'print_hidden'}), $q->button({'onclick' => "window.location='add_analysis.pl?step=2&sample=$id$number&gene=".$result->{'nom_gene'}[0]."&analysis=".$result->{'type_analyse'}."'", 'value' => 'modify'}), $q->end_td(), "\n"}
 			print $q->end_Tr(), "\n";
@@ -229,8 +229,8 @@ sub get_direction {
 
 sub print_filter {
 	my $q = shift;
-	print $q->start_p({'class' => 'print_hidden'}), $q->strong('Show/Hide neutral/unknown variants according to:'), $q->end_p(),
-	$q->start_ul({'class' => 'print_hidden'}), "\n";
+	print $q->start_p({'class' => 'print_hidden w3-margin'}), $q->strong('Show/Hide neutral/unknown variants according to:'), $q->end_p(),
+	$q->start_ul({'class' => 'print_hidden w3-ul w3-padding-small'}), "\n";
 	if (!$q->param('type')) {&add_filter_button($q, 'neutrals', 'neutral', 'neutral variants')}
 	&add_filter_button($q, 'dbSNP rs ids', 'rs', 'dbSNP variants');
 	&add_filter_button($q, 'dbSNP Common', 'common', 'dbSNP common variants (MAF > 0.01)');
@@ -240,7 +240,7 @@ sub print_filter {
 	&add_filter_button($q, 'After stop codon', 'afterstop', 'variants located 3\' of the stop codon');
 	&add_filter_button($q, 'Deep introns', 'deepintron', 'variants located > 30 bp far from exons');
 	&add_filter_button($q, 'U2 > 3', 'firstseen', 'variants recorded in more than three probands');
-	print $q->start_li(), $q->button({'value' => 'Reset all filters', 'title' => 'Show all filtered variants', 'onclick' => 'reset_filters();'}), $q->end_li();
+	print $q->start_li(), $q->button({'value' => 'Reset all filters', 'title' => 'Show all filtered variants', 'onclick' => 'reset_filters();', 'class' => 'w3-button w3-blue'}), $q->end_li();
 	print $q->end_ul();
 	#removed maf filter, the main page is now loaded without the information (mafs computed by ajax 04/09/2014) - put neutral filter instead
 	#$q->start_li(), $q->span('MAF &gt; 0.01:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->button({'id' => 'maf_hide_button', 'value' => 'Hide'}), $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $q->button({'id' => 'maf_show_button', 'value' => 'Show'}), $q->span('&nbsp;&nbsp;&nbsp;&nbsp;(currently: '), $q->strong({'id' => 'maf_txt'}, 'shown'), $q->span(')'), $q->end_li(), "\n",
@@ -248,8 +248,8 @@ sub print_filter {
 
 sub add_filter_button {
 	my ($q, $category, $tag, $title_tag) = @_;
-	print $q->start_li(), $q->span({'class' => 'width_span_100'}, "$category:"),
-			$q->button({'value' => 'Filter', 'title' => "Hide $title_tag", 'onclick' => "variant_hide('$tag');"}),#'id' => $tag.'_hide_button', 
+	print $q->start_li({'class' => 'w3-padding-small'}), $q->span({'class' => 'width_span_100'}, "$category:"),
+			$q->button({'value' => 'Filter', 'title' => "Hide $title_tag", 'onclick' => "variant_hide('$tag');", 'class' => 'w3-button w3-blue w3-tiny  w3-padding-small'}),#'id' => $tag.'_hide_button', 
 			#$q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'),
 			#$q->button({'value' => 'Show', 'title' => "Show $title_tag", 'onclick' => "variant_show('$tag');"}),#'id' => $tag.'_show_button', 
 			$q->span('&nbsp;&nbsp;&nbsp;&nbsp;(currently: '),
@@ -372,7 +372,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		if ($global ne 't' && $type_analyse =~ /Mi/o) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
 			my $igv_padding = 40;
-			print $q->start_td(), $q->button({'onclick' => "igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')", 'class' => 'pointer', 'title' => 'Click to see in IGV loaded tracks; if no tracks are loaded, click on a NGS analysis type button in the validation table', 'value' => $nom_seg}), $q->end_td(), "\n";
+			print $q->start_td(), $q->button({'onclick' => "igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')", 'class' => 'pointer', 'title' => 'Click to see in IGV loaded tracks; if no tracks are loaded, click on a NGS analysis type button in the validation table', 'value' => $nom_seg, 'class' => 'w3-button w3-blue w3-padding-small w3-tiny'}), $q->end_td(), "\n";
 		}
 		else {print $q->td($nom_seg), "\n";}
 		

@@ -157,7 +157,7 @@ $first_name =~ s/'/''/og;
 
 #reports technical table
 if ($type eq 'analyses') {
-	print $q->p("You will find below a timeline and a global validation table summarising all analyses performed for the patient."), $q->br(), $q->br();
+	print $q->p({'class' => 'w3-margin'}, "You will find below a timeline and a global validation table summarising all analyses performed for the patient."), $q->br(), $q->br();
 	#print $q->start_td({'class' => 'zero_td right_general'});
 	
 	#ok for the timeline we get the analyses, and the result multiple from valid_type_analyse to group e.g. NGS experiments
@@ -331,9 +331,9 @@ if ($type eq 'analyses') {
 }
 else {#reports genotype table	
 	#beginning of  table
-	print $q->p("You will find below a global genotype view, reporting for all genes VUCS class II, III, IV, unknown and pathogenic variants.");
+	print $q->start_div({'class' => 'w3-container w3-margin', 'style' => 'width:50%'}), $q->p("You will find below a global genotype view, reporting for all genes VUCS class II, III, IV, unknown and pathogenic variants.");
 	U2_modules::U2_subs_2::print_filter($q);
-	print $q->br(), $q->start_div({'class' => 'patient_file_frame hidden', 'id' => 'details', 'onmouseover' => "\$(this).hide();\$(this).html(\'<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...\')"}), $q->img({'src' => $HTDOCS_PATH."data/img/loading.gif", 'class' => 'loading'}), $q->span('loading...'), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->start_div({'align' => 'center'}), $q->start_table({'class' => 'geno ombre'}), $q->caption("Global genotype table:"),
+	print $q->end_div(), $q->br(), $q->start_div({'class' => 'patient_file_frame hidden', 'id' => 'details', 'onmouseover' => "\$(this).hide();\$(this).html(\'<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...\')"}), $q->img({'src' => $HTDOCS_PATH."data/img/loading.gif", 'class' => 'loading'}), $q->span('loading...'), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->start_div({'align' => 'center'}), $q->start_table({'class' => 'geno ombre'}), $q->caption("Global genotype table:"),
 		$q->start_Tr(), "\n",
 			$q->th({'width' => '6%'}, 'gene'), "\n",
 			$q->th({'width' => '6%'}, 'Exon/Intron'), "\n",

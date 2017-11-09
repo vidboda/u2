@@ -56,7 +56,7 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.10.3.custom.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
 
 my $q = new CGI;
 
@@ -135,7 +135,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
                                 -src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'jquery-ui-1.10.3.custom.min.js', 'defer' => 'defer'},
+				-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'dalliance_v0.13/build/dalliance-compiled.js', 'defer' => 'defer'},
                                 {-language => 'javascript',

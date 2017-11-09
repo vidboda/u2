@@ -72,7 +72,7 @@ my $q = new CGI;
 if ($q->param('asked') && $q->param('asked') eq 'exons') {
 	print $q->header();
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
-	my $query = "SELECT a.nom as name, a.numero as number FROM segment a, gene b WHERE a.nom_gene = b.nom AND a.nom_gene[1] = '$gene' AND b.main = 't' AND a.type <> 'intron';";
+	my $query = "SELECT a.nom as name, a.numero as number FROM segment a, gene b WHERE a.nom_gene = b.nom AND a.nom_gene[1] = '$gene' AND b.main = 't' AND a.type <> 'intron' ORDER BY a.numero;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my ($labels, @values);
@@ -80,7 +80,7 @@ if ($q->param('asked') && $q->param('asked') eq 'exons') {
 		$labels->{$result->{'number'}} = $result->{'name'};
 		push @values, $result->{'number'};
 	}
-	print $q->popup_menu(-name => 'exons', -id => 'exons', -values => \@values, -labels => $labels);
+	print $q->popup_menu(-name => 'exons', -id => 'exons', -values => \@values, -labels => $labels, -class => 'w3-select w3-border');
 	#print 'ok';
 }
 

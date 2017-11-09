@@ -58,7 +58,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
 
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.10.3.custom.min.css', $CSS_PATH.'datatables.min.css');
+my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'datatables.min.css');
 
 my $q = new CGI;
 
@@ -96,7 +96,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'jquery-ui-1.10.3.custom.min.js', 'defer' => 'defer'},
+				-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'datatables.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
@@ -120,34 +120,40 @@ my $step = U2_modules::U2_subs_1::check_step($q);
 
 if ($step == 1) {
 	#build form
-	print $q->br(), $q->start_p(), $q->span("This function will alow you to select candidates controls based on the following rules:"), $q->start_ul(),
-		$q->li("The patient MUST be a proband AND"),
-		$q->li("MUST have been sequenced either by Sanger or NGS in the specified gene OR"),
-		$q->li("Only by NGS for UTRs AND"),
-		$q->li("The sequencing analyses MUST NOT report variants in the selected exon and flanking introns AND"),
-		$q->li("For genes included in USHVaM (USH genes mainly), the exon MUST NOT be reported as not analysed."),
-		$q->end_ul(), $q->end_p(), "\n",
-		$q->p("Fill in the form below by choosing a gene and an exon:"), $q->br(),
-		$q->start_div({'align' => 'center'}), $q->start_big(), 
-			$q->start_form({'action' => '', 'method' => 'post', 'class' => 'u2form', 'id' => 'exon_form', 'enctype' => &CGI::URL_ENCODED}),
+	print $q->br(), $q->p({'class' => 'w3-margin'}, "This function will alow you to select candidates controls based on the following rules:"),
+	$q->start_div({'class' => 'w3-container', 'style' => 'width:50%'}), $q->start_ul({'class' => 'w3-ul w3-hoverable'}),
+		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The patient MUST be a proband AND"),
+		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "MUST have been sequenced either by Sanger or NGS in the specified gene OR"),
+		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "Only by NGS for UTRs AND"),
+		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The sequencing analyses MUST NOT report variants in the selected exon and flanking introns AND"),
+		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "For genes included in USHVaM (USH genes mainly), the exon MUST NOT be reported as not analysed."),
+		$q->end_ul(), $q->end_div(), "\n",
+		$q->p({'class' => 'w3-margin'}, "Fill in the form below by choosing a gene and an exon:"), $q->br(),
+		$q->start_div({'align' => 'center'}),
+			$q->start_form({'action' => '', 'method' => 'post', 'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin w3-large', 'id' => 'exon_form', 'enctype' => &CGI::URL_ENCODED, 'style' => 'width:50%'}),
 			$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2'}), "\n",
-			$q->start_fieldset(),
-				$q->legend('Please Select:'), $q->br(), $q->br(),
-				$q->start_ol(), "\n",
-					$q->start_li(),
-						$q->label({'for' => 'gene'}, 'Gene:');
-	U2_modules::U2_subs_1::select_genes_grouped($q, 'genes_select', 'exon_form');
-	print 					$q->br(), "\n",
-					$q->end_li(), $q->br(), $q->br(), "\n",
-					$q->start_li(),
-						$q->label({'for' => 'exons'}, 'Exon:'),
-							$q->span({'id' => 'ajax_exons'}),
-						$q->end_fieldset(), $q->br(),
-					$q->end_li(), $q->br(), $q->br(), "\n",
-				$q->end_ol(),
-			$q->end_fieldset(),
-			$q->submit({'value' => 'Search!', 'form' => 'exon_form', 'class' => 'submit'}), "\n",
-		$q->end_form(), $q->end_big(), $q->end_div(), "\n";	
+			#$q->start_fieldset(),
+			$q->h2('Please Select:'), $q->br(),
+			$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}),
+				$q->start_div({'class' => 'w3-col w3-right-align',  'style' => 'width:40%'}),
+					$q->span({'for' => 'gene'}, 'Gene:&nbsp;&nbsp;'),
+				$q->end_div(), "\n",
+				$q->start_div({'class' => 'w3-rest'});
+U2_modules::U2_subs_1::select_genes_grouped($q, 'genes_select', 'exon_form');
+print 				$q->end_div(), "\n",
+			$q->end_div(), "\n",
+
+			$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}),
+				$q->start_div({'class' => 'w3-col w3-right-align',  'style' => 'width:40%'}),
+					$q->span({'for' => 'exons'}, 'Exon:&nbsp;&nbsp;'),
+				$q->end_div(), "\n",
+				$q->start_div({'class' => 'w3-rest'}),
+						$q->span({'id' => 'ajax_exons'}),
+				$q->end_div(), "\n",
+			$q->end_div(), "\n",
+			$q->br(),
+			$q->submit({'value' => 'Search!', 'form' => 'exon_form', 'class' => 'w3-btn w3-blue'}), $q->br(), $q->br(), "\n", $q->br(),
+		$q->end_form(), $q->end_div(), "\n";	
 }
 elsif ($step == 2) {
 	#perform actual search
@@ -164,16 +170,16 @@ elsif ($step == 2) {
 	my $res = $sth->execute();
 	
 	if ($res ne '0E0') {
-		print $q->start_p(), $q->span("Please consider the $res candidate samples below as controls for Amplicon $nom_seg in "), $q->em($gene), $q->end_p(), $q->start_ul(), "\n";
+		print $q->start_p({'class' => 'w3-margin'}), $q->span("Please consider the $res candidate samples below as controls for Amplicon $nom_seg in "), $q->em($gene), $q->end_p(), $q->start_div({'class' => 'w3-container', 'style' => 'width:50%'}), $q->start_ul({'class' => 'w3-ul w3-hoverable'}), "\n";
 		while (my $result = $sth->fetchrow_hashref()) {
-			print $q->start_li, $q->a({'href' => "patient_genotype.pl?sample=".$result->{'identifiant'}.$result->{'numero'}."&amp;gene=$gene", 'target' => '_blank'}, $result->{'identifiant'}.$result->{'numero'}), $q->end_li();
+			print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->a({'href' => "patient_genotype.pl?sample=".$result->{'identifiant'}.$result->{'numero'}."&amp;gene=$gene", 'target' => '_blank'}, $result->{'identifiant'}.$result->{'numero'}), $q->end_li();
 		}
 	}
 	else {
 		print $q->li("Sorry, no candidate sample found.")
 	}
-	print $q->end_ul(), $q->br(), $q->br(),
-		$q->start_p(), $q->span("Try another "), $q->a({'href' => 'search_controls.pl?step=1'}, "exon"), $q->end_p();
+	print $q->end_ul(), $q->end_div(), $q->br(), $q->br(),
+		$q->start_p({'class' => 'w3-margin'}), $q->span("Try another "), $q->a({'href' => 'search_controls.pl?step=1'}, "exon"), $q->end_p();
 	
 	#SELECT numero, identifiant FROM patient WHERE (ROW(numero, identifiant) IN (SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse IN ('SANGER', '454-19', '454-28') AND nom_gene[1] = 'USH2A')) AND (ROW (numero, identifiant) NOT IN (SELECT num_pat, id_pat FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene[1] = 'USH2A' AND b.num_segment = '50' AND b.type_segment = 'exon')) AND (ROW(numero, identifiant) NOT IN (SELECT num_pat, id_pat FROM segment_non_analyse WHERE nom_gene[1] = 'USH2A' and num_segment = '50')) ORDER BY identifiant, numero;
 }

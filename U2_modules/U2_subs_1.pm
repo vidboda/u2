@@ -46,6 +46,7 @@ our @DFNA = ('ACTG1', 'CCDC50', 'CEACAM16', 'COCH', 'COL11A2', 'CRYM', 'DIABLO',
 our @NSRP = ('ABCA4', 'BBS1', 'BEST1', 'C2orf71', 'C8orf37', 'CERKL', 'CNGA1', 'CNGB1', 'CRB1', 'DHDDS', 'EYS', 'FAM161A', 'FLVCR1', 'IDH3B', 'IMPG2', 'MAK', 'MERTK', 'NR2E3', 'NRL', 'PDE6A', 'PDE6B', 'PDE6G', 'PRCD', 'PROM1', 'PRPF31', 'RP1', 'RP2', 'RBP3', 'RGR', 'RHO', 'RLBP1', 'RPE65', 'RPGR', 'SAG', 'TTC8', 'ZNF513');
 our @DFNX = ('POU3F4', 'PRPS1', 'SMPX', 'COL4A6');
 our @LCA = ('LRAT', 'SPATA7', 'TULP1', 'RPE65');
+our @OTHER_NS = ('ABHD12', 'ACOX1', 'ACTB', 'ACY1', 'ALMS1', 'ATP2B2', 'ATP6V0A4', 'ATP6V1B1', 'BSND', 'CACNA1D', 'CATSPER2', 'CHD7', 'CISD2', 'COL11A1', 'COL2A1', 'COL4A1', 'COL4A3', 'COL4A4', 'COL4A5', 'COL9A1', 'COL9A2', 'COL9A3', 'COLEC11', 'ECE1', 'EDN3', 'EDNRA', 'EDNRB', 'ERCC2', 'EYA1', 'FGF3', 'FGFR3', 'GATA3', 'GLMN', 'GSN', 'HARS2', 'HSD17B4', 'HSPG2', 'JAG1', 'KARS', 'KCNE1', 'KCNQ1', 'KIT', 'LARS2', 'MASP1', 'MITF', 'MTAP', 'MYH7', 'MYO1F', 'NDP', 'NF2', 'OPA1', 'PAX1', 'PAX3', 'PAX6', 'PEX1', 'PEX6', 'PHYH', 'PLOD3', 'PLS1', 'PMP22', 'POLR1C', 'POLR1D', 'SEMA3E', 'SIL1', 'SIX1', 'SIX5', 'SLC2A10', 'SLC4A11', 'SMAD3', 'SNAI2', 'SOX10', 'SOX2', 'TAZ', 'TCOF1', 'TFAP2A', 'TIMM8A', 'TNC', 'TSHZ1', 'TWNK');
 #our @NOGROUP = ();
 
 
@@ -96,28 +97,49 @@ sub standard_end_html { #prints bottom of the pages
 sub gene_header {
 	my ($q, $current_tab, $gene) = @_;
 	
-	print $q->start_h2(), $q->em($gene), $q->span(" page:"), $q->end_h2(), "\n",
-		$q->br(), $q->start_div(), "\n";
-	if ($current_tab eq 'general_info') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General features', $q)}
-	else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General info', $q)}
-	if ($current_tab eq 'structure') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exon structure', $q)}
-	else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}	
-	if ($current_tab eq 'var_all') {&print_span('tab tab_current', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
-	else {&print_span('tab tab_other', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
-	if ($current_tab eq 'genotypes') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
-	else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
-	if ($current_tab eq 'graphs') {&print_span('tab tab_current', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
-	else {&print_span('tab tab_other', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
+	print $q->start_div({'class' => 'w3-container'}), $q->start_h2(), $q->em($gene), $q->span(" page:"), $q->end_h2(), "\n",
+		$q->br(), $q->start_div({'class' => 'w3-row'}), "\n";
+	if ($current_tab eq 'general_info') {&print_span(' w3-border-red', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General features', $q)}
+	else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General info', $q)}
+	if ($current_tab eq 'structure') {&print_span(' w3-border-red', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exon structure', $q)}
+	else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}	
+	if ($current_tab eq 'var_all') {&print_span(' w3-border-red', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
+	else {&print_span('', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
+	if ($current_tab eq 'genotypes') {&print_span(' w3-border-red', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
+	else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
+	if ($current_tab eq 'graphs') {&print_span(' w3-border-red', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
+	else {&print_span('', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
 	
 	#"chooseSortingType('$gene');"
 	
-	print $q->end_div(), "\n",
+	print $q->end_div(), $q->end_div(),"\n",
 		$q->div({'class' => 'tab_content', 'style' => 'display:block;'}), "\n";
+		
+		
+		
+		
+	#print $q->start_h2(), $q->em($gene), $q->span(" page:"), $q->end_h2(), "\n",
+	#	$q->br(), $q->start_div(), "\n";
+	#if ($current_tab eq 'general_info') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General features', $q)}
+	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General info', $q)}
+	#if ($current_tab eq 'structure') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exon structure', $q)}
+	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}	
+	#if ($current_tab eq 'var_all') {&print_span('tab tab_current', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
+	#else {&print_span('tab tab_other', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
+	#if ($current_tab eq 'genotypes') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
+	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
+	#if ($current_tab eq 'graphs') {&print_span('tab tab_current', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
+	#else {&print_span('tab tab_other', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
+	#
+	##"chooseSortingType('$gene');"
+	#
+	#print $q->end_div(), "\n",
+	#	$q->div({'class' => 'tab_content', 'style' => 'display:block;'}), "\n";
 }
 #used in gene_header
 sub print_span {
 	my ($class, $id, $action, $title, $q) = @_;
-	print "\t", $q->span({'class' => $class, 'id' => $id, 'onclick' => $action}, $title), "\n";
+	print "\t", $q->span({'class' => "tablink w3-bottombar w3-hover-light-grey w3-padding pointer".$class, 'id' => $id, 'onclick' => $action}, $title), "\n";
 }
 sub accent2html {
 	my ($str) = shift;
@@ -241,6 +263,7 @@ sub select_genes_grouped { #insert a list of genes in a pop up menu - group by p
 					$q->optgroup (-name => 'DFNX', -values => \@DFNX),
 					$q->optgroup (-name => 'NSRP', -values => \@NSRP),
 					$q->optgroup (-name => 'LCA', -values => \@LCA),
+					$q->optgroup (-name => 'OTHER NS', -values => \@OTHER_NS)
 					#$q->optgroup (-name => 'NO GROUP', -values => \@NOGROUP)			    
 					    ]);
 }
@@ -287,7 +310,7 @@ sub valid {
 		if ($res ne '0E0') {
 			while (my $result = $sth->fetchrow_hashref()) {
 				$html .= $q->start_li().$q->em($result->{'nom_gene'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-				$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';"});
+				$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-blue'});
 				$html .= $q->end_li();
 			}		
 		}
@@ -307,7 +330,7 @@ sub valid_table {
 			$html .= $q->start_table({'class' => 'great_table technical'}).$q->start_Tr().$q->th({'class' => 'left_general'}, 'Gene').$q->th({'class' => 'left_general'}, 'Analysis').$q->th({'class' => 'left_general'}, 'Link').$q->end_Tr();
 			while (my $result = $sth->fetchrow_hashref()) {
 				$html .= $q->start_Tr().$q->td({'class' => 'italique'}, $result->{'nom_gene'}).$q->td($result->{'type_analyse'});
-				$html .= $q->start_td().$q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';"}).$q->end_td();
+				$html .= $q->start_td().$q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-blue'}).$q->end_td();
 				$html .= $q->end_Tr();
 				#$html .= $q->start_li().$q->em($result->{'nom_gene'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 				#$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';"});
