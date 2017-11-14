@@ -147,15 +147,15 @@ my $pos_cdna = $1;
 #http://www.ncbi.nlm.nih.gov/nuccore/
 my $ncbi_url = 'http://www.ncbi.nlm.nih.gov/nuccore/';
 
-print $q->br(), $q->start_div({'class' =>'w3-light-grey'}), $q->span({'id' => 'openNav', 'class' =>'w3-button w3-blue w3-xlarge', 'onclick' => 'w3_open()', 'title' => 'Click here to open the menu of useful external links'}, '&#9776;'), $q->end_div(), "\n";
+print $q->br(), $q->start_div({'class' => 'w3-light-grey'}), $q->span({'id' => 'openNav', 'class' =>'w3-button w3-blue w3-xlarge', 'onclick' => 'w3_open()', 'title' => 'Click here to open the menu of useful external links', 'style' => 'visibility:hidden'}, '&#9776;'), $q->end_div(), "\n";
 
 #print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' : '),
 #				$q->span({'onclick' => "window.open('$ncbi_url$acc.$res->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$acc.$res->{'acc_version'}"), $q->span(":$var"),
 #				$q->br(), $q->br(), $q->span("($second_name / "), $q->span({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$res->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}, $res->{'enst'}), $q->span(')'),
 #				$q->end_strong(), $q->end_big(), $q->end_p(), "\n",
-				#$q->start_ul({'class' => 'menu_left ombre appear', 'id' => 'smart_menu'})
-print				$q->start_div({'class' => 'w3-sidebar w3-bar-block w3-card w3-animate-left w3-light-grey', 'id' => 'smart_menu', 'style' => 'display:none;z-index:1111;'}),
-				$q->span({'class' => 'w3-bar-item w3-button w3-xlarge w3-border-bottom', 'onclick' => 'w3_close()'}, 'Close &times;');
+				#$q->start_ul({'class' => 'menu_left ombre appear', 'id' => 'smart_menu'})left:-60px;menu_left
+print				$q->start_div({'class' => 'w3-sidebar w3-bar-block w3-card w3-animate-left w3-light-grey', 'id' => 'smart_menu', 'style' => 'display:block;z-index:1111;width:15%;'}),
+				$q->span({'class' => 'w3-bar-item w3-button w3-large w3-border-bottom', 'onclick' => 'w3_close()'}, 'Close &times;');
 	
 
 ##Mutation taster
@@ -163,7 +163,7 @@ if ($res->{'type_adn'} eq 'substitution' && $res->{'type_segment'} eq 'exon') {
 	$var =~ /.+\>(\w)/o;
 	#print $q->start_li(),
 		#$q->start_a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/mut_taster_button.png'}), $q->end_a(),
-		print $q->a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'Mutation taster'), "\n";
+		print $q->a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'Mutation taster'), "\n";
 	#$q->end_li(), "\n";
 }
 	
@@ -189,7 +189,7 @@ my $USMA = {
 
 if ($res->{'type_prot'} eq 'missense' && exists($USMA->{$gene})) {
 	#print $q->start_li(),
-	print $q->a({'href' => "https://neuro-2.iurc.montp.inserm.fr/cgi-bin/USMA/USMA.fcgi?gene=$gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'USMA'), "\n";
+	print $q->a({'href' => "https://neuro-2.iurc.montp.inserm.fr/cgi-bin/USMA/USMA.fcgi?gene=$gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'USMA'), "\n";
 	#$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/USMA_button.png'}), "\n";
 	#$q->end_li(), "\n";
 }
@@ -197,7 +197,7 @@ if ($res->{'type_prot'} eq 'missense' && exists($USMA->{$gene})) {
 my ($evs_chr, $evs_pos_start, $evs_pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($res->{'nom_g'}, 'evs');
 if ($res->{'taille'} < 50) {
 	#print $q->start_li(),
-	print $q->a({'href' => "http://evs.gs.washington.edu/EVS/PopStatsServlet?searchBy=chromosome&chromosome=$evs_chr&chromoStart=$evs_pos_start&chromoEnd=$evs_pos_end&x=0&y=0", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'ESP6500'), "\n";
+	print $q->a({'href' => "http://evs.gs.washington.edu/EVS/PopStatsServlet?searchBy=chromosome&chromosome=$evs_chr&chromoStart=$evs_pos_start&chromoEnd=$evs_pos_end&x=0&y=0", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'ESP6500'), "\n";
 	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/EVS_button.png'}, 'ESP6500'), "\n";
 }
 
@@ -208,7 +208,7 @@ if ($res->{'type_adn'} eq 'substitution') {
 	my $exac = U2_modules::U2_subs_1::getExacFromGenoVar($res->{'nom_g'});
 	if ($exac) {
 		#print $q->start_li(),
-	print $q->a({'href' => "http://gnomad.broadinstitute.org/variant/$exac", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'gnomAD'), "\n";
+	print $q->a({'href' => "http://gnomad.broadinstitute.org/variant/$exac", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'gnomAD'), "\n";
 	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/gnomad_button.png'}, 'gnomAD'), "\n";
 		#, $q->end_a(), $q->end_li(), "\n";
 	}
@@ -220,7 +220,7 @@ if ($res->{'taille'} < 50) {
 	my ($rs, $gts) = ('', '');
 	if ($res->{'snp_id'} ne '') {$rs .= "|$res->{'snp_id'}";$gts = "&gts=$res->{'snp_id'}"}
 	#print $q->start_li(),
-	print $q->a({'href' => "https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=$evs_chr&from=$evs_pos_start&to=$evs_pos_end$gts&mk=$evs_pos_start:$evs_pos_end$rs", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, '1000 genomes'), "\n";
+	print $q->a({'href' => "https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=$evs_chr&from=$evs_pos_start&to=$evs_pos_end$gts&mk=$evs_pos_start:$evs_pos_end$rs", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, '1000 genomes'), "\n";
 	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/1kG_button.png'}, '1000 genomes'), "\n";
 		#, $q->end_a(), $q->end_li(), "\n";
 }
@@ -234,7 +234,7 @@ if ($res->{'type_adn'} eq 'deletion' && ($res->{'taille'} > 4 && $res->{'taille'
 
 
 #print $q->start_li(),
-print	$q->a({'href' => "http://www.ncbi.nlm.nih.gov/clinvar?term=\"".uri_escape("$acc.$res->{'acc_version'}:$var$added")."\" [Variant name]", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'Clinvar'), "\n";
+print	$q->a({'href' => "http://www.ncbi.nlm.nih.gov/clinvar?term=\"".uri_escape("$acc.$res->{'acc_version'}:$var$added")."\" [Variant name]", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'Clinvar'), "\n";
 
 #define links for dbsnp, ucsc, pdb
 
@@ -259,11 +259,11 @@ if ($res->{'taille'} < 100) {
 	$map2pdb_hg38_url = "http://www.rcsb.org/pdb/chromosome.do?v=hg38&chromosome=$evs_chr_hg38&pos=$evs_pos_start_hg38";
 }
 
-print	$q->a({'href' => $dbsnp_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'dbSNP'), "\n",
-	$q->a({'href' => $ucsc_link, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'hg19 UCSC'), "\n",
-	$q->a({'href' => $ucsc_link_hg38, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'hg38 UCSC'), "\n",
-	$q->a({'href' => $map2pdb_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'hg19 Map2PDB'), "\n",
-	$q->a({'href' => $map2pdb_hg38_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-xlarge w3-hover-blue w3-border-bottom'}, 'hg38 Map2PDB'), "\n",
+print	$q->a({'href' => $dbsnp_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'dbSNP'), "\n",
+	$q->a({'href' => $ucsc_link, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg19 UCSC'), "\n",
+	$q->a({'href' => $ucsc_link_hg38, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 UCSC'), "\n",
+	$q->a({'href' => $map2pdb_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg19 Map2PDB'), "\n",
+	$q->a({'href' => $map2pdb_hg38_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 Map2PDB'), "\n",
 	$q->end_div();
 		#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvar_button.png'}), $q->end_a(),
 	#$q->end_li(), "\n";
@@ -601,7 +601,7 @@ if ($res->{'snp_id'} ne '') {
 	print $q->a({'href' => $dbsnp_url, 'target' => '_blank'}, $res->{'snp_id'});
 	if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP150 variant set (MAF > 0.01)')}
 }
-else {print $q->span("Not reported in dbSNP142")}
+else {print $q->span("Not reported in dbSNP150")}
 print $q->end_td(), $q->td('dbSNP v142 (Oct 14, 2014) related information'), $q->end_Tr(), "\n";
 
 #1000 genomes
