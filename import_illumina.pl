@@ -957,7 +957,7 @@ if ($step && $step == 2) {
 									#print STDERR "Sample $id$number Variant $res3->{'acc_g'}, $res3->{'gene_name'} $nom $genomic_var\n";
 									$call = U2_modules::U2_subs_1::run_mutalyzer($soap, $res3->{'acc_g'}, $res3->{'gene_name'}, $nom, $res3->{'mutalyzer_version'}, $res3->{'mutalyzer_acc'});
 									if ($call->fault()) {$stop = 1;$manual .= "MUTALYZER FAULT$manual_temp";next POSCONV2;}
-									
+									#$to_follow .= "\n\nMutalyzer run: $res3->{'acc_g'}, $res3->{'gene_name'}, $nom, $res3->{'mutalyzer_version'}, $res3->{'mutalyzer_acc'}\n";
 									##10/07/2015
 									##add possibility to use mutalyzer identifier (i.e. for RPGR)
 									my $gid = 'NG';
@@ -1080,7 +1080,7 @@ if ($step && $step == 2) {
 											
 											
 											
-											my $true_version = "";
+											my $true_version = '';
 											#GPR98 no longer works with mutalyzer
 											#patch 23/10/2017
 											my $gene = $res3->{'gene_name'};
@@ -1101,17 +1101,19 @@ if ($step && $step == 2) {
 														#then true_version was reset to uninitialize
 														#if added
 														#see test_mutalyzer_pde6a.pl on 158 for details
-														
+														#$to_follow .= "\nTranscript Description: $_\n";
 														if (/($gid)_\d+\.?\d\((\w+)\):(c\..+)/o) {
 															my ($version, $variant) = ($2, $3);
-															#print $version-$var-$nom-\n";
+															#$to_follow .= "version: $version variant: $variant\n";
+															#print $version-$variant-$nom-\n";
 															if ($nom =~ /$variant/) {
 																$version =~ /($gene)_v(\d{3})/;
 																$true_version = $2;
+																#$to_follow .= "true version: $true_version\n";
 																#print "\n$true_version\n";
 															}
 														}													
-														#print "\nTranscript Description: ", $_, "\n"
+														
 													}
 													#}
 													#else {
@@ -1142,7 +1144,7 @@ if ($step && $step == 2) {
 													foreach(@{$tab_ref}) {
 														if ($_ =~ /($gene)_i$true_version\):(p\..+)/) {$nom_prot = $2}
 														if ($gene =~ /(PDE6A|TECTA|CDH23|RPGR)/o) {
-															$to_follow .= "$1 variant to check: $nom\t$_\ttrue version:$true_version\tigd:$gid\tnom_prot:$nom_prot\n"
+															$to_follow .= "$1 variant to check: $nom\t$_\ttrue version:$true_version\tgid:$gid\tnom_prot:$nom_prot\n"
 														}
 														
 														#print "\nProtein Description: ", $_, "\n"
