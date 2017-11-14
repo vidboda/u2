@@ -238,7 +238,7 @@ if ($res ne '0E0') {
 }
 
 print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(), $q->start_ul(),
-	$q->start_li(), $q->span("Shown: "), $q->start_strong(), $q->span({'id' => 'nb_var'}, $nb_var), $q->span(" / $nb_var variants."), $q->end_li(),
+	$q->start_li(), $q->span("Shown: "), $q->start_strong(), $q->span({'id' => 'nb_var'}, $nb_var), $q->span(" / $nb_var variants."), $q->end_strong(), $q->end_li(),
 	$q->start_li(), $q->strong("Color code:"), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;"),
 		$q->font({'color' => U2_modules::U2_subs_1::color_by_classe('neutral', $dbh)}, "neutral&nbsp;&nbsp;&nbsp;&nbsp;"),
 		$q->font({'color' => U2_modules::U2_subs_1::color_by_classe('VUCS class I', $dbh)}, "VUCS class I&nbsp;&nbsp;&nbsp;&nbsp;"),
