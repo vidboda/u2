@@ -587,7 +587,7 @@ if ($res->{'classe'} eq 'unknown') {
 	};
 ";
 	
-	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->span({'id' => 'request_done'}), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_request', 'value' => 'Request classification', 'onclick' => 'reqclass();'});
+	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->span({'id' => 'request_done'}), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_request', 'value' => 'Request classification', 'onclick' => 'reqclass();', 'class' => 'w3-button w3-blue'});
 }
 	print $q->end_td(), $q->td('U2 variant classification'), $q->end_Tr(), "\n";
 
