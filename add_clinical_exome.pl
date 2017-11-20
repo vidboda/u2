@@ -130,6 +130,9 @@ if ($user->isAnalyst() == 1) {
 	#step 2 => form with possible samples to import per run
 	if ($step == 2) {
 		my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
+		#first get manifets name for validation purpose
+		my ($manifest, $filtered) = U2_modules::U2_subs_2::get_filtering_and_manifest($analysis, $dbh);
+		
 		my $run_hash; #run => [samples]
 		my @run_list = `find $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR -maxdepth 1 -type d -exec basename '{}' \\; | grep -E '^[0-9]{6}_.*'`;
 		my $semaph = 0;
@@ -148,17 +151,20 @@ if ($user->isAnalyst() == 1) {
 				my $link = $q->start_p().$q->a({'href' => "patient_file.pl?sample=$id$number"}, $id.$number).$q->end_p();
 				my  $query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 				my $res = $dbh->selectrow_hashref($query);
-				if ($res) {print $link;U2_modules::U2_subs_1::standard_error('14', $q);}			
+				if ($res) {print $link;U2_modules::U2_subs_1::standard_error('14', $q);}
+				my %patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
+				print U2_modules::U2_subs_2::build_ngs_form($id, $number, $run, $filtered, \%patients, $q);
 			}
 		}
 		if ($semaph == 1) {
 			#we've got at least a run to import => form
 			#but before check if other patients have already a run recorded
 			#my $patients = U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh);
-			my %patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
-			foreach my $patient (keys(%patients)) {
-				print $q->p("$patient--$patients{$patient}");
-			}
+			
+			#foreach my $patient (keys(%patients)) {
+			#	print $q->p("$patient--$patients{$patient}");
+			#}
+
 		}
 		else {
 			print $q->p("Sorry, no Clinical exome to import for $id$number");
