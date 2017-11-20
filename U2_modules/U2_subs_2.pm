@@ -41,6 +41,7 @@ $config->file($config_file);# or die $!;
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
+my $PATIENT_IDS = $config->PATIENT_IDS();
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -1073,6 +1074,42 @@ sub RNA_pie {
 		
 		U2_modules::U2_subs_2::graph_pie('rna-variant-type', 'Variants causing RNA alterations', 'variant_rna_pie_chart', '', $i, "Alteration types causing RNA variations among pathogenic variants<br/>(Total: X variants)", $date, "variant types", $base_url, 'variant', 'false', '', $data, $q, $dbh);
 	}
+}
+
+
+#in add_analysis.pl, add_clinical_exome.pl
+
+sub check_ngs_samples {
+	my ($patients, $analysis, $dbh) = @_;
+	#select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
+	my $query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; #num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
+	my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
+	my $count_hash = 0;
+	foreach my $totest (keys(%{$patients})) {
+		$totest =~ /^$PATIENT_IDS\s*(\d+)$/o;						
+		$query .= "(num_pat = '$2' AND id_pat = '$1') ";
+		$query2 .= "(numero = '$2' AND identifiant = '$1') ";
+		$count_hash++;
+		if ($count_hash < keys(%{$patients})) {$query .= "OR ";$query2 .= "OR ";}								
+	}
+	$query .= ") GROUP BY num_pat, id_pat;";
+	$query2 .= ";";
+	#print $query2;exit;
+	my $sth = $dbh->prepare($query2);
+	my $res = $sth->execute();
+	#modify hash
+	
+	while (my $result = $sth->fetchrow_hashref()) {
+		$patients->{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
+	}
+	$sth = $dbh->prepare($query);
+	$res = $sth->execute();
+	#cleanup hash
+	while (my $result = $sth->fetchrow_hashref()) {
+		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}} = 2} #remove patients with that type of analysis already recorded
+	}
+	return $patients;
+	
 }
 
 #####removed 04/09/2014 old fashioned mafs were computed for each variant, the optimised version does this on demand by AJAX
