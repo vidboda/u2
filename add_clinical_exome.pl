@@ -9,7 +9,7 @@ use Net::OpenSSH;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
-#use U2_modules::U2_subs_2;
+use U2_modules::U2_subs_2;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -129,17 +129,39 @@ if ($user->isAnalyst() == 1) {
 	my $step = U2_modules::U2_subs_1::check_step($q);
 	#step 2 => form with possible samples to import per run
 	if ($step == 2) {
+		my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
+		my $run_hash; #run => [samples]
 		my @run_list = `find $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR -maxdepth 1 -type d -exec basename '{}' \\; | grep -E '^[0-9]{6}_.*'`;
-		#print $q->p($run_list[0]);
+		my $semaph = 0;
+		my %patients;
 		foreach my $run (@run_list) {
 			chomp($run);
 			my @samples = `find $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run -maxdepth 1 -type d -exec basename '{}' \\; | grep -E '^[SR]U?.*'`;
-			if (grep(/$id$number/, @samples)) {
+			my @clean_samples;
+			foreach (@samples) {chomp;push @clean_samples, $_;}
+			if (grep(/$id$number/, @clean_samples)) {
+				$run_hash->{$run} = \@clean_samples;
+				$semaph = 1;
+				%patients = map {$_ => 0} @clean_samples;
 				#we've got a match
-				#print $q->p("$run/$id$number")
-				#build forms to porpose import
-				
+				#if succeeded, we must check whether this run is already recorded for the patient
+				my $link = $q->start_p().$q->a({'href' => "patient_file.pl?sample=$id$number"}, $id.$number).$q->end_p();
+				my  $query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
+				my $res = $dbh->selectrow_hashref($query);
+				if ($res) {print $link;U2_modules::U2_subs_1::standard_error('14', $q);}			
 			}
+		}
+		if ($semaph == 1) {
+			#we've got at least a run to import => form
+			#but before check if other patients have already a run recorded
+			#my $patients = U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh);
+			my %patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
+			foreach my $patient (keys(%patients)) {
+				print $q->p("$patient--$patients{$patient}");
+			}
+		}
+		else {
+			print $q->p("Sorry, no Clinical exome to import for $id$number");
 		}
 	}
 	#step 3 => actual import
