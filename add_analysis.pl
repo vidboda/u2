@@ -450,10 +450,11 @@ if ($user->isAnalyst() == 1) {
 			my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 			if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR}
 			#but first get manifets name for validation purpose
-			my $query = "SELECT manifest_name, filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
-			my $res = $dbh->selectrow_hashref($query);
-			my $manifest = $res->{'manifest_name'};
-			my $filtered = $res->{'filtering_possibility'};
+			my ($manifest, $filtered) = U2_modules::U2_subs_2::get_filtering_and_manifest($analysis, $dbh);
+			#my $query = "SELECT manifest_name, filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
+			#my $res = $dbh->selectrow_hashref($query);
+			#my $manifest = $res->{'manifest_name'};
+			#my $filtered = $res->{'filtering_possibility'};
 			
 			my $ssh = U2_modules::U2_subs_1::nas_connexion($link, $q);
 			
@@ -464,9 +465,9 @@ if ($user->isAnalyst() == 1) {
 			my $run_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR && ls") or die "remote command failed: " . $ssh->error();
 			#create a hash which looks like {"illumina_run_id" => 0}
 			my %runs = map {$_ => '0'} split(/\s/, $run_list);
-			$query = "SELECT * FROM illumina_run;";
+			my $query = "SELECT * FROM illumina_run;";
 			my $sth = $dbh->prepare($query);
-			$res = $sth->execute();
+			my $res = $sth->execute();
 			#print "--$run_list--".$q->br();exit;
 			if ($res) {
 				while (my $result = $sth->fetchrow_hashref()) {#0 if unknown, 2 if complete, 1 otherwise
