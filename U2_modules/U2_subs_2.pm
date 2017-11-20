@@ -1112,6 +1112,93 @@ sub check_ngs_samples {
 	
 }
 
+sub get_filtering_and_manifest {
+	my ($analysis, $dbh) = @_;
+	my $query = "SELECT manifest_name, filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
+	my $res = $dbh->selectrow_hashref($query);
+	my $manifest = $res->{'manifest_name'};
+	my $filtered = $res->{'filtering_possibility'};
+	return ($manifest, $filtered);
+}
+
+sub build_ngs_form {
+	my ($id, $number, $run, $filtered, $patients, $q) = @_;
+	my $form =  $q->p("In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).").$q->start_p().$q->span("Please select those you are interested in")."\n";
+	if ($filtered == '1') {$form .= $q->span(" and specify your filtering options for each of them")}
+	$form .= $q->span(".").$q->end_p();
+	#
+	$form .=  $q->start_p().$q->strong('You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet. In this case, please insert them via the Excel file and reload the page.').$q->end_p();
+	#
+	##Filtering or not?
+	#my $filter = '';
+	#if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
+	#	
+	#
+	#print 					$q->br(), $q->br(), $q->start_div({'align' => 'center'}), "\n",
+	#	$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');"}), $q->br(), $q->br(),
+	#	$q->start_form({'action' => 'import_illumina.pl', 'method' => 'post', 'class' => 'u2form', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED}), "\n",
+	#	$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', form => "illumina_form_$run"}), "\n",
+	#	$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"}), "\n",
+	#	$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"}), "\n",
+	#	$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"}), "\n";
+	#if ($filter ne '') {print $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"}), "\n"}								
+	#	
+	#print					$q->start_fieldset(),
+	#		$q->legend('Import '.ucfirst($instrument).' data'),
+	#		$q->start_ol(), "\n";
+	#		
+	##new implementation to get an idea of the sequencing quality per patient
+	##get last alignment dir
+	##my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+	##$alignment_dir =~ /\\(Alignment\d*)<$/o;
+	##$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
+	#
+	#
+	#my $i = 2;
+	#foreach my $sample (sort keys(%patients)) {
+	#	#$sample =~ s/\n//og;
+	#	if (($sample ne $id.$number) && ($patients{$sample} == 1)) {#other eligible patients
+	#		print 					$q->start_li(), $q->start_div({'class' => 'container_div'}), $q->start_div({'class' => 'fixed'}), $q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, $sample), $q->end_div(), "\n";
+	#		if ($filtered == '1') {
+	#			print $q->start_div({'class' => 'fixed'}), "\n",
+	#				$q->label({'for' => 'filter'}, 'Filter:'), "\n", $q->end_div(), $q->start_div({'class' => 'fixed'}), "\n",;
+	#			print U2_modules::U2_subs_1::select_filter($q, $i.'_filter', "illumina_form_$run");
+	#			print $q->end_div();
+	#		}
+	#		print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), $q->end_div(), "\n";
+	#	}
+	#	elsif (($sample ne $id.$number) && ($patients{$sample} == 0)) {#unknown patient
+	#		print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample not yet recorded in U2. Please proceed if you want to import Illumina data."), "\n";
+	#	}
+	#	elsif (($sample ne $id.$number) && ($patients{$sample} == 2)) {#patient with a run already recorded
+	#		print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample has already a run recorded as $analysis."), "\n";
+	#	}
+	#	else {#original patient									
+	#		print 					$q->start_li(), $q->div({'class' => 'fixed'}, $sample), "\n";
+	#		if ($filtered == '1') {
+	#			print $q->div({'class' => 'fixed'}, "Filter:"), $q->div({'class' => 'fixed'}, $filter), "\n",
+	#		}
+	#		print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), "\n";
+	#	}
+	#	print	$q->end_li(), "\n";
+	#	$i++;
+	#}
+	#
+	#print		$q->end_ol(),
+	#	$q->end_fieldset(),
+	#	$q->br(),
+	#	$q->submit({'value' => 'Import', 'class' => 'submit', form => "illumina_form_$run"}), $q->br(), $q->br(), "\n",
+	#$q->end_form(), $q->end_div(), "\n",
+	#$q->span('Criteria for FAIL:'), "\n",
+	#$q->start_ul(), "\n",
+	#	$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30), "\n",
+	#	$q->li('% 50X bp < '.$U2_modules::U2_subs_1::PC50X), "\n",
+	#	$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV), "\n",
+	#	$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC), "\n",
+	#$q->end_ul(), "\n";
+	return $form;
+}
+
 #####removed 04/09/2014 old fashioned mafs were computed for each variant, the optimised version does this on demand by AJAX
 #sub genotype_line { #prints a line in the genotype table
 #	my ($var, $mini, $maxi, $q, $dbh, $list, $main_acc, $nb, $acc_g, $global) = @_;
