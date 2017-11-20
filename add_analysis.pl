@@ -67,6 +67,7 @@ my $PATIENT_IDS = $config->PATIENT_IDS();
 
 my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
+
 #end
 
 my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'jquery.alerts.css');
@@ -263,6 +264,9 @@ my $js = "
 			//Gene must disappear and a Filter menu must appear
 			\$(\"#gene_selection\").hide();
 			\$(\"#illumina_filter_selection\").show();
+			if (bigger.test(analysis)){
+				\$(\"#analysis_form\").attr(\"action\", \"add_clinical_exome.pl\");
+			}
 			//\$(\"#illumina_filter_selection\").
 		}
 		else if (simple.test(analysis)){
@@ -274,6 +278,9 @@ my $js = "
 			\$(\"#gene_selection\").show();
 			\$(\"#illumina_filter_selection\").hide();
 			\$(\"#genes\").val('');
+		}
+		if (!bigger.test(analysis)){
+			\$(\"#analysis_form\").attr(\"action\", \"\");
 		}
 	 }
 	 function illumina_form_submit() {
