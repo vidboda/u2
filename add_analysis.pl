@@ -605,33 +605,35 @@ if ($user->isAnalyst() == 1) {
 							my $patient_list = $ssh->capture("grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet");
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
-							#select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
-							$query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; #num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
-							my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
-							my $count_hash = 0;
-							foreach my $totest (keys(%patients)) {
-								$totest =~ /^$PATIENT_IDS\s*(\d+)$/o;						
-								$query .= "(num_pat = '$2' AND id_pat = '$1') ";
-								$query2 .= "(numero = '$2' AND identifiant = '$1') ";
-								$count_hash++;
-								if ($count_hash < keys(%patients)) {$query .= "OR ";$query2 .= "OR ";}								
-							}
-							$query .= ") GROUP BY num_pat, id_pat;";
-							$query2 .= ";";
-							#print $query2;exit;
-							$sth = $dbh->prepare($query2);
-							$res = $sth->execute();
-							#modify hash
-							
-							while (my $result = $sth->fetchrow_hashref()) {
-								$patients{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
-							}
-							$sth = $dbh->prepare($query);
-							$res = $sth->execute();
-							#cleanup hash
-							while (my $result = $sth->fetchrow_hashref()) {
-								if (exists($patients{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients{$result->{'id_pat'}.$result->{'num_pat'}} = 2} #remove patients with that type of analysis already recorded
-							}
+							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
+							#above command replaces the whole block below
+							##select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
+							#$query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; #num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
+							#my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
+							#my $count_hash = 0;
+							#foreach my $totest (keys(%patients)) {
+							#	$totest =~ /^$PATIENT_IDS\s*(\d+)$/o;						
+							#	$query .= "(num_pat = '$2' AND id_pat = '$1') ";
+							#	$query2 .= "(numero = '$2' AND identifiant = '$1') ";
+							#	$count_hash++;
+							#	if ($count_hash < keys(%patients)) {$query .= "OR ";$query2 .= "OR ";}								
+							#}
+							#$query .= ") GROUP BY num_pat, id_pat;";
+							#$query2 .= ";";
+							##print $query2;exit;
+							#$sth = $dbh->prepare($query2);
+							#$res = $sth->execute();
+							##modify hash
+							#
+							#while (my $result = $sth->fetchrow_hashref()) {
+							#	$patients{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
+							#}
+							#$sth = $dbh->prepare($query);
+							#$res = $sth->execute();
+							##cleanup hash
+							#while (my $result = $sth->fetchrow_hashref()) {
+							#	if (exists($patients{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients{$result->{'id_pat'}.$result->{'num_pat'}} = 2} #remove patients with that type of analysis already recorded
+							#}
 							
 							
 							
