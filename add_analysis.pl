@@ -287,16 +287,16 @@ my $js = "
 		jAlert('Please wait a few minutes while the run is being imported into U2');
 		return true;
 	 }
-	 function select_toggle(form_id) {
-		if (\$('#select_all_' + form_id).val() === 'Unselect all') {
-			\$('#' + form_id + ' .sample_checkbox').prop('checked', false);
-			\$('#select_all_' + form_id).val('Select all');
-		}
-		else {
-			\$('#' + form_id + ' .sample_checkbox').prop('checked', true);
-			\$('#select_all_' + form_id).val('Unselect all');
-		};
-	 }
+	 //function select_toggle(form_id) {
+	//	if (\$('#select_all_' + form_id).val() === 'Unselect all') {
+	//		\$('#' + form_id + ' .sample_checkbox').prop('checked', false);
+	//		\$('#select_all_' + form_id).val('Select all');
+	//	}
+	//	else {
+	//		\$('#' + form_id + ' .sample_checkbox').prop('checked', true);
+	//		\$('#select_all_' + form_id).val('Unselect all');
+	//	}
+	//}
 	";
 
 
@@ -440,7 +440,7 @@ if ($user->isAnalyst() == 1) {
 		my $link = $q->start_p().$q->a({'href' => "patient_file.pl?sample=$id$number"}, $id.$number).$q->end_p();
 		
 		if ($analysis =~ /Min?i?Seq-\d+/o && $step == 2) {
-			#Illumina experiment
+			#Illumina panel experiment
 			#will ssh to RackStation
 			#check paths and find patient in samplesheet (and check analysis type using valid_type_analysis)
 			#check other patients status in U2 and propose import
@@ -641,79 +641,81 @@ if ($user->isAnalyst() == 1) {
 							#foreach my $keys (sort keys (%patients)) {print $keys.$patients{$keys}.$q->br();}
 							
 							#build form
-							print $q->p("In addition to $id$number, I have found ".(keys(%patients)-1)." other patients eligible for import in U2 for this run ($run)."), $q->start_p(), $q->span("Please select those you are interested in"), "\n";
-							if ($filtered == '1') {print $q->span(" and specify your filtering options for each of them")}
-							print $q->span("."), $q->end_p();
-							
-							print $q->start_p(), $q->strong('You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet. In this case, please insert them via the Excel file and reload the page.'), $q->end_p();
-							
-							#Filtering or not?
-							my $filter = '';
-							if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
-								
-							
-							print 					$q->br(), $q->br(), $q->start_div({'align' => 'center'}), "\n",
-								$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');"}), $q->br(), $q->br(),
-								$q->start_form({'action' => 'import_illumina.pl', 'method' => 'post', 'class' => 'u2form', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED}), "\n",
-								$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', form => "illumina_form_$run"}), "\n",
-								$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"}), "\n",
-								$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"}), "\n",
-								$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"}), "\n";
-							if ($filter ne '') {print $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"}), "\n"}								
-								
-							print					$q->start_fieldset(),
-									$q->legend('Import '.ucfirst($instrument).' data'),
-									$q->start_ol(), "\n";
-									
-							#new implementation to get an idea of the sequencing quality per patient
-							#get last alignment dir
-							#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-							#$alignment_dir =~ /\\(Alignment\d*)<$/o;
-							#$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
-							
-							
-							my $i = 2;
-							foreach my $sample (sort keys(%patients)) {
-								#$sample =~ s/\n//og;
-								if (($sample ne $id.$number) && ($patients{$sample} == 1)) {#other eligible patients
-									print 					$q->start_li(), $q->start_div({'class' => 'container_div'}), $q->start_div({'class' => 'fixed'}), $q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, $sample), $q->end_div(), "\n";
-									if ($filtered == '1') {
-										print $q->start_div({'class' => 'fixed'}), "\n",
-											$q->label({'for' => 'filter'}, 'Filter:'), "\n", $q->end_div(), $q->start_div({'class' => 'fixed'}), "\n",;
-										print U2_modules::U2_subs_1::select_filter($q, $i.'_filter', "illumina_form_$run");
-										print $q->end_div();
-									}
-									print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), $q->end_div(), "\n";
-								}
-								elsif (($sample ne $id.$number) && ($patients{$sample} == 0)) {#unknown patient
-									print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample not yet recorded in U2. Please proceed if you want to import Illumina data."), "\n";
-								}
-								elsif (($sample ne $id.$number) && ($patients{$sample} == 2)) {#patient with a run already recorded
-									print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample has already a run recorded as $analysis."), "\n";
-								}
-								else {#original patient									
-									print 					$q->start_li(), $q->div({'class' => 'fixed'}, $sample), "\n";
-									if ($filtered == '1') {
-										print $q->div({'class' => 'fixed'}, "Filter:"), $q->div({'class' => 'fixed'}, $filter), "\n",
-									}
-									print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), "\n";
-								}
-								print	$q->end_li(), "\n";
-								$i++;
-							}
-
-							print		$q->end_ol(),
-								$q->end_fieldset(),
-								$q->br(),
-								$q->submit({'value' => 'Import', 'class' => 'submit', form => "illumina_form_$run"}), $q->br(), $q->br(), "\n",
-							$q->end_form(), $q->end_div(), "\n",
-							$q->span('Criteria for FAIL:'), "\n",
-							$q->start_ul(), "\n",
-								$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30), "\n",
-								$q->li('% 50X bp < '.$U2_modules::U2_subs_1::PC50X), "\n",
-								$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV), "\n",
-								$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC), "\n",
-							$q->end_ul(), "\n";
+							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, 'import_illumina.pl', '2', $q, $alignment_dir, $ssh, $summary_file, $instrument);
+							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q);
+							#print $q->p("In addition to $id$number, I have found ".(keys(%patients)-1)." other patients eligible for import in U2 for this run ($run)."), $q->start_p(), $q->span("Please select those you are interested in"), "\n";
+							#if ($filtered == '1') {print $q->span(" and specify your filtering options for each of them")}
+							#print $q->span("."), $q->end_p();
+							#
+							#print $q->start_p(), $q->strong('You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet. In this case, please insert them via the Excel file and reload the page.'), $q->end_p();
+							#
+							##Filtering or not?
+							#my $filter = '';
+							#if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
+							#	
+							#
+							#print 					$q->br(), $q->br(), $q->start_div({'align' => 'center'}), "\n",
+							#	$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');"}), $q->br(), $q->br(),
+							#	$q->start_form({'action' => 'import_illumina.pl', 'method' => 'post', 'class' => 'u2form', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED}), "\n",
+							#	$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', form => "illumina_form_$run"}), "\n",
+							#	$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"}), "\n",
+							#	$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"}), "\n",
+							#	$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"}), "\n";
+							#if ($filter ne '') {print $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"}), "\n"}								
+							#	
+							#print					$q->start_fieldset(),
+							#		$q->legend('Import '.ucfirst($instrument).' data'),
+							#		$q->start_ol(), "\n";
+							#		
+							##new implementation to get an idea of the sequencing quality per patient
+							##get last alignment dir
+							##my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+							##$alignment_dir =~ /\\(Alignment\d*)<$/o;
+							##$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
+							#
+							#
+							#my $i = 2;
+							#foreach my $sample (sort keys(%patients)) {
+							#	#$sample =~ s/\n//og;
+							#	if (($sample ne $id.$number) && ($patients{$sample} == 1)) {#other eligible patients
+							#		print 					$q->start_li(), $q->start_div({'class' => 'container_div'}), $q->start_div({'class' => 'fixed'}), $q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, $sample), $q->end_div(), "\n";
+							#		if ($filtered == '1') {
+							#			print $q->start_div({'class' => 'fixed'}), "\n",
+							#				$q->label({'for' => 'filter'}, 'Filter:'), "\n", $q->end_div(), $q->start_div({'class' => 'fixed'}), "\n",;
+							#			print U2_modules::U2_subs_1::select_filter($q, $i.'_filter', "illumina_form_$run");
+							#			print $q->end_div();
+							#		}
+							#		print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), $q->end_div(), "\n";
+							#	}
+							#	elsif (($sample ne $id.$number) && ($patients{$sample} == 0)) {#unknown patient
+							#		print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample not yet recorded in U2. Please proceed if you want to import Illumina data."), "\n";
+							#	}
+							#	elsif (($sample ne $id.$number) && ($patients{$sample} == 2)) {#patient with a run already recorded
+							#		print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample has already a run recorded as $analysis."), "\n";
+							#	}
+							#	else {#original patient									
+							#		print 					$q->start_li(), $q->div({'class' => 'fixed'}, $sample), "\n";
+							#		if ($filtered == '1') {
+							#			print $q->div({'class' => 'fixed'}, "Filter:"), $q->div({'class' => 'fixed'}, $filter), "\n",
+							#		}
+							#		print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), "\n";
+							#	}
+							#	print	$q->end_li(), "\n";
+							#	$i++;
+							#}
+							#
+							#print		$q->end_ol(),
+							#	$q->end_fieldset(),
+							#	$q->br(),
+							#	$q->submit({'value' => 'Import', 'class' => 'submit', form => "illumina_form_$run"}), $q->br(), $q->br(), "\n",
+							#$q->end_form(), $q->end_div(), "\n",
+							#$q->span('Criteria for FAIL:'), "\n",
+							#$q->start_ul(), "\n",
+							#	$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30), "\n",
+							#	$q->li('% 50X bp < '.$U2_modules::U2_subs_1::PC50X), "\n",
+							#	$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV), "\n",
+							#	$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC), "\n",
+							#$q->end_ul(), "\n";
 
 						}
 					}
