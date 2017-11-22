@@ -50,7 +50,7 @@ our @OTHER_NS = ('ABHD12', 'ACOX1', 'ACTB', 'ACY1', 'ALMS1', 'ATP2B2', 'ATP6V0A4
 #our @NOGROUP = ();
 
 
-#values for quality criteria (NGS)
+#values for quality criteria (NGS) panel
 #number of on target reads mini
 #= (panel size in kb * enrichment coeff * mean expected doc) / read size
 #= (900000 * 1,3 * 150) / 150 = 1170000
@@ -59,6 +59,10 @@ our $TITV = 2.3;
 our $MDOC = 150;
 our $PC50X = 95;
 our $Q30 = 80;
+#Clinical exomes
+our $PC20X_CE = 90;
+our $MDOC_CE = 50;
+our $TITV_CE = 3;
 
 #genes for aCGH
 our @ACGH = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'PDZD7', 'CHM', 'OTOF', 'TECTA', 'MYO15A', 'COCH', 'TMC1', 'SLC26A4', 'KCNQ4', 'EYA4', 'TMPRSS3', 'WFS1', 'MYO6', 'EYS', 'GJB2', 'GJB6', 'POU3F4', 'ACTG1');
