@@ -10,6 +10,7 @@ use strict;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_2;
 use Encode qw(encode decode);
 use URI::Encode qw(uri_encode uri_decode);
 use Encode::Guess;
@@ -154,9 +155,10 @@ if (($q->param('last_name') && decode($enc,$q->param('last_name')) =~ /([A-Z-\s\
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '') {
 		#print $query."-".$res."-";
-		print print $q->start_div({"class" => "w3-panel w3-display-container w3-red w3-padding-16"}),
-			$q->start_p({"class" => "w3-large"},), $q->span("Sorry, the sample $id$num is already recorded under the name of $res->{'last_name'} $res->{'first_name'}. You can check the page by following this link: "),
-			$q->a({"class" => "w3-white", "href" => "patient_file.pl?sample=$id$num"}, $id.$num), $q->end_p(), $q->end_div();
+		#print $q->start_div({"class" => "w3-panel w3-display-container w3-red w3-padding-16"}),
+		#	$q->start_p({"class" => "w3-large"},), $q->span("Sorry, the sample $id$num is already recorded under the name of $res->{'last_name'} $res->{'first_name'}. You can check the page by following this link: "),
+		#	$q->a({"class" => "w3-white", "href" => "patient_file.pl?sample=$id$num"}, $id.$num), $q->end_p(), $q->end_div();
+		print U2_modules::U2_subs_2::danger_panel($q->span("Sorry, the sample $id$num is already recorded under the name of $res->{'last_name'} $res->{'first_name'}. You can check the page by following this link: ").$q->a({"class" => "w3-white", "href" => "patient_file.pl?sample=$id$num"}, $id.$num), $q);
 		U2_modules::U2_subs_1::standard_end_html($q);
 		print $q->end_html();
 		exit();
@@ -166,13 +168,15 @@ if (($q->param('last_name') && decode($enc,$q->param('last_name')) =~ /([A-Z-\s\
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	if ($res ne '0E0') {
-		print $q->start_div({"class" => "w3-panel w3-display-container w3-red w3-padding-16"}),
-			$q->span({"class" => "w3-button w3-display-topright w3-xlarge", "onclick" => "this.parentElement.style.display='none'"}, 'X'),
-				$q->start_p({"class" => "w3-large"}), $q->span("This family number is known by U2 in sample(s) ");
+		#print $q->start_div({"class" => "w3-panel w3-display-container w3-red w3-padding-16"}),
+		#	$q->span({"class" => "w3-button w3-display-topright w3-xlarge", "onclick" => "this.parentElement.style.display='none'"}, 'X'),
+		#		$q->start_p({"class" => "w3-large"}),
+		my $text = $q->span("This family number is known by U2 in sample(s) ");
 		while (my $results = $sth->fetchrow_hashref()) {
-			print $q->a({"class" => "w3-white", "href" => "patient_file.pl?sample=$results->{'identifiant'}.$results->{'numero'}"}, $results->{'identifiant'}.$results->{'numero'}.' ');
+			$text.=  $q->a({"class" => "w3-white", "href" => "patient_file.pl?sample=$results->{'identifiant'}.$results->{'numero'}"}, $results->{'identifiant'}.$results->{'numero'}.' ');
 		}
-		print $q->end_p(), $q->end_div();
+		print U2_modules::U2_subs_2::danger_panel($text, $q);
+		#print $q->end_p(), $q->end_div();
 	}
 	
 }
@@ -184,15 +188,15 @@ else {&insert_error('last name')}
 if ($step == 1) {
 	my %gender = ('M' => 'Male', 'F' => 'Female', 'X' => 'Unknown');
 	my %proband = ('t' => 'Yes', 'f' => 'No');
-	print $q->br(), $q->span({'class' => 'w3-margin w3-large'}, "The system understands that you are trying to record the following sample:"),
-		$q->start_ul({'class' => 'w3-margin w3-ul w3-hoverable w3-large', 'style' => 'width:30%'}),
-			$q->li("Sample ID: $sample"), "\n",
-			$q->li("Family ID: $family"), "\n",
-			$q->li("Last Name: $last_name"), "\n",
-			$q->li("Name: $first_name"), "\n",
-		$q->end_ul(), "\n",
-		$q->p({'class' => 'w3-margin w3-large'}, 'I need a couple of additional information. Please fill in the form below:'), $q->br(), "\n",
-		$q->start_div({'align' => 'center'});
+	print U2_modules::U2_subs_2::info_panel($q->span("The system understands that you are trying to record the following sample:").
+		$q->start_ul({'class' => 'w3-ul w3-hoverable', 'style' => 'width:30%'}).
+			$q->li("Sample ID: $sample")."\n".
+			$q->li("Family ID: $family")."\n".
+			$q->li("Last Name: $last_name")."\n".
+			$q->li("Name: $first_name")."\n".
+		$q->end_ul()."\n".
+		$q->span('I need a couple of additional information. Please fill in the form below:'), $q);
+	print $q->br(), $q->start_div({'align' => 'center'});
 		#print "<form action = \"insert_sample.pl\" method = \"post\" class = \"u2form\" id = \"patient_form\">";
 		print #$q->start_form(-action => 'insert_sample.pl', -method => 'get', -class => 'u2form', -id => 'patient_form', -enctype => 'multipart/form-data'),
 			#$q->start_form({'action' => 'insert_sample.pl', 'method' => 'post', 'class' => 'u2form', 'id' => 'patient_form', 'enctype' => 'application/x-www-form-urlencoded'}),
@@ -285,9 +289,10 @@ if ($step == 1) {
 	#			$q->end_ol(),
 	#		$q->end_fieldset(),
 			$q->br(),
-			$q->submit({'value' => 'Perform record', 'class' => 'w3-btn w3-blue'}), $q->br(), $q->br(), "\n",
+			$q->submit({'value' => 'Perform record', 'class' => 'w3-button w3-blue w3-hover-white'}), $q->br(), $q->br(), "\n",
 		$q->end_form(), $q->end_div(), "\n", $q->br(), $q->br(),
-		$q->start_div(), $q->p({'class' => 'w3-margin'}, 'Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.');
+		$q->start_div();
+		print U2_modules::U2_subs_2::cnil_disclaimer($q);
 
 }
 elsif ($step == 2) {
