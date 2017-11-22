@@ -1076,6 +1076,22 @@ sub RNA_pie {
 	}
 }
 
+#sub to display info panel
+
+sub info_panel {
+	my ($text, $q) = @_;
+	return $q->start_div({'class' => 'w3-margin w3-panel w3-sand w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-display-topright w3-large'}, 'X').$q->p($text).$q->end_div()."\n";
+}
+
+sub danger_panel {
+	my ($text, $q) = @_;
+	return $q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-display-topright w3-large'}, 'X').$q->start_p().$q->strong($text).$q->end_p().$q->end_div()."\n";
+}
+
+sub cnil_disclaimer {
+	my $q = shift;
+	return info_panel('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement.'.$q->br().'Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.', $q); 
+}
 
 #in add_analysis.pl, add_clinical_exome.pl
 
@@ -1108,8 +1124,7 @@ sub check_ngs_samples {
 	while (my $result = $sth->fetchrow_hashref()) {
 		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}} = 2} #remove patients with that type of analysis already recorded
 	}
-	return $patients;
-	
+	return $patients;	
 }
 
 sub get_filtering_and_manifest {
@@ -1121,74 +1136,123 @@ sub get_filtering_and_manifest {
 	return ($manifest, $filtered);
 }
 
+sub print_clinical_exome_criteria {
+	my $q = shift;
+	return info_panel($q->start_div({'class' => 'w3-container w3-padding-16'}).
+		$q->span('Criteria for FAIL:')."\n".
+		$q->start_ul({'class' => 'w3-ul w3-hoverable', 'style' => 'width:30%'})."\n".
+			$q->li('% 20X bp < '.$U2_modules::U2_subs_1::PC20X_CE)."\n".
+			$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV_CE)."\n".
+			$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC_CE)."\n".
+		$q->end_ul()."\n", $q);
+}
+
+sub print_panel_criteria {
+	my $q = shift;
+	return info_panel($q->start_div({'class' => 'w3-container w3-padding-16'}).
+		$q->span('Criteria for FAIL:')."\n".
+		$q->start_ul({'class' => 'w3-ul w3-hoverable', 'style' => 'width:30%'})."\n".
+			$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30)."\n".
+			$q->li('% 20X bp < '.$U2_modules::U2_subs_1::PC50X)."\n".
+			$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV)."\n".
+			$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC)."\n".
+		$q->end_ul()."\n", $q);
+}
+
 sub build_ngs_form {
-	my ($id, $number, $run, $filtered, $patients, $q) = @_;
-	my $form =  $q->p("In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).").$q->start_p().$q->span("Please select those you are interested in")."\n";
-	if ($filtered == '1') {$form .= $q->span(" and specify your filtering options for each of them")}
-	$form .= $q->span(".").$q->end_p();
-	#
-	$form .=  $q->start_p().$q->strong('You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet. In this case, please insert them via the Excel file and reload the page.').$q->end_p();
-	#
-	##Filtering or not?
-	#my $filter = '';
-	#if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
-	#	
-	#
-	#print 					$q->br(), $q->br(), $q->start_div({'align' => 'center'}), "\n",
-	#	$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');"}), $q->br(), $q->br(),
-	#	$q->start_form({'action' => 'import_illumina.pl', 'method' => 'post', 'class' => 'u2form', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED}), "\n",
-	#	$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', form => "illumina_form_$run"}), "\n",
-	#	$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"}), "\n",
-	#	$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"}), "\n",
-	#	$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"}), "\n";
-	#if ($filter ne '') {print $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"}), "\n"}								
-	#	
-	#print					$q->start_fieldset(),
-	#		$q->legend('Import '.ucfirst($instrument).' data'),
+	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument) = @_;
+	
+	my $info =  "In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).".$q->br()."Please select those you are interested in";
+	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
+	$info .= ".";	
+	my $form = &info_panel($info, $q);
+		
+	#.$q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-display-topright w3-large'}, 'X').$q->start_p({'class' => 'w3-margin'}).$q->strong().$q->end_p().$q->end_div().$q->br()."\n";
+	$info = 'You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet.'.$q->br().'In this case, please insert them via the Excel file and reload the page.';
+	
+	$form .= &danger_panel($info, $q).$q->br();
+	
+	
+	#Filtering or not?
+	my $filter = '';
+	if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
+	
+	$form .= $q->start_div({'align' => 'center'}).
+		$q->start_div({'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'style' => 'width:50%'}).
+			$q->h3({'class' => 'w3-center w3-padding-16'}, 'Import '.ucfirst($analysis).' data')."\n".
+			$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');", 'class' => 'w3-button w3-blue w3-hover-white'}).$q->br().
+			$q->start_form({'action' => $script, 'method' => 'post', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED})."\n".$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '3', form => "illumina_form_$run"})."\n".$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"})."\n".
+				$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"})."\n".$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"})."\n";
+	if ($filter ne '') {$form .=  $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"})."\n"}								
+		
 	#		$q->start_ol(), "\n";
-	#		
-	##new implementation to get an idea of the sequencing quality per patient
-	##get last alignment dir
-	##my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-	##$alignment_dir =~ /\\(Alignment\d*)<$/o;
-	##$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
-	#
-	#
-	#my $i = 2;
-	#foreach my $sample (sort keys(%patients)) {
-	#	#$sample =~ s/\n//og;
-	#	if (($sample ne $id.$number) && ($patients{$sample} == 1)) {#other eligible patients
-	#		print 					$q->start_li(), $q->start_div({'class' => 'container_div'}), $q->start_div({'class' => 'fixed'}), $q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, $sample), $q->end_div(), "\n";
-	#		if ($filtered == '1') {
-	#			print $q->start_div({'class' => 'fixed'}), "\n",
-	#				$q->label({'for' => 'filter'}, 'Filter:'), "\n", $q->end_div(), $q->start_div({'class' => 'fixed'}), "\n",;
-	#			print U2_modules::U2_subs_1::select_filter($q, $i.'_filter', "illumina_form_$run");
-	#			print $q->end_div();
-	#		}
-	#		print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), $q->end_div(), "\n";
-	#	}
-	#	elsif (($sample ne $id.$number) && ($patients{$sample} == 0)) {#unknown patient
-	#		print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample not yet recorded in U2. Please proceed if you want to import Illumina data."), "\n";
-	#	}
-	#	elsif (($sample ne $id.$number) && ($patients{$sample} == 2)) {#patient with a run already recorded
-	#		print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample has already a run recorded as $analysis."), "\n";
-	#	}
-	#	else {#original patient									
-	#		print 					$q->start_li(), $q->div({'class' => 'fixed'}, $sample), "\n";
-	#		if ($filtered == '1') {
-	#			print $q->div({'class' => 'fixed'}, "Filter:"), $q->div({'class' => 'fixed'}, $filter), "\n",
-	#		}
-	#		print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), "\n";
-	#	}
-	#	print	$q->end_li(), "\n";
-	#	$i++;
-	#}
+			
+	#new implementation to get an idea of the sequencing quality per patient
+	#get last alignment dir
+	#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+	#$alignment_dir =~ /\\(Alignment\d*)<$/o;
+	#$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
+	
+	
+	my $i = 2;
+	foreach my $sample (sort keys(%{$patients})) {
+		#$sample =~ s/\n//og;
+		if (($sample ne $id.$number) && ($patients->{$sample} == 1)) {#other eligible patients
+			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
+					$q->start_div({'class' => 'w3-quarter w3-xlarge w3-left-align'}).
+						$q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample");
+			if ($filtered == '1') {
+				$form .=   $q->end_div().
+						$q->start_div({'class' => 'w3-quarter w3-xlarge'}).
+							$q->span({'for' => 'filter'}, 'Filter:')."\n".
+						$q->end_div()."\n".
+					$q->start_div({'class' => 'w3-quarter'})."\n";
+				$form .=   U2_modules::U2_subs_1::select_filter($q, $i.'_filter', "illumina_form_$run");
+				$form .=   $q->end_div();
+			}
+			else {$form .=   $q->end_div();}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q)}
+			else {$form .=  &get_raw_data_ce($sample, $run, $data_dir, $q)}
+			$form .=   $q->end_div();
+		}
+		elsif (($sample ne $id.$number) && ($patients->{$sample} == 0)) {#unknown patient
+			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
+					$q->start_div({'class' => 'w3-xlarge w3-quarter w3-left-align'}).
+						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
+					$q->end_div().
+					$q->div({'class' => 'w3-rest w3-medium'}, " not yet recorded in U2. Please proceed if you want to import Illumina data.")."\n".
+				$q->end_div();
+		}
+		elsif (($sample ne $id.$number) && ($patients->{$sample} == 2)) {#patient with a run already recorded
+			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
+					$q->start_div({'class' => 'w3-xlarge w3-quarter w3-left-align'}).
+						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
+					$q->end_div().
+					$q->div({'class' => 'w3-rets w3-medium'}, " has already a run recorded as $analysis.")."\n".$q->end_div();
+		}
+		else {#original patient									
+			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
+					$q->div({'class' => 'w3-quarter w3-xlarge w3-left-align'}, $sample)."\n";
+			if ($filtered == '1') {
+				$form .=   $q->div({'class' => 'w3-quarter w3-xlarge'}, "Filter:").
+					$q->div({'class' => 'w3-quarter w3-xlarge w3-left-align'}, "$filter")."\n";
+			}			
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q)}
+			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
+			$form .=   $q->end_div();
+		}
+		#print	$q->end_li(), "\n";
+		$i++;
+	}
 	#
 	#print		$q->end_ol(),
 	#	$q->end_fieldset(),
 	#	$q->br(),
-	#	$q->submit({'value' => 'Import', 'class' => 'submit', form => "illumina_form_$run"}), $q->br(), $q->br(), "\n",
-	#$q->end_form(), $q->end_div(), "\n",
+	$form .= $q->submit({'value' => 'Import', 'class' => 'w3-button w3-blue w3-hover-white', form => "illumina_form_$run"}).
+		$q->br().$q->br()."\n".
+		$q->end_form().
+		$q->end_div().
+		$q->end_div()."\n";
 	#$q->span('Criteria for FAIL:'), "\n",
 	#$q->start_ul(), "\n",
 	#	$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30), "\n",
@@ -1198,6 +1262,82 @@ sub build_ngs_form {
 	#$q->end_ul(), "\n";
 	return $form;
 }
+
+sub get_raw_data_ce {
+	my ($sample, $run,$data_dir, $q) = @_;
+	#we want
+	#Target coverage at 20X:,
+	#SNV Ts/Tv ratio:,
+	#Mean region coverage depth:,
+	
+	my ($x20_expr, $tstv_expr, $doc_expr) = ('PCT_TARGET_BASES_20X', 'known_titv', 'MEAN_TARGET_COVERAGE');
+	
+	my $x20 = &get_raw_detail_ce($data_dir, $run, $sample, $x20_expr, 'multiqc_picard_HsMetrics');
+	my $tstv = &get_raw_detail_ce($data_dir, $run, $sample, $tstv_expr, 'multiqc_gatk_varianteval');
+	my $doc = &get_raw_detail_ce($data_dir, $run, $sample, $doc_expr, 'multiqc_picard_HsMetrics');
+	
+	
+	my $criteria = '';
+	if ($x20 < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
+	if ($tstv < $U2_modules::U2_subs_1::TITV_CE) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_CE.') '}
+	if ($doc < $U2_modules::U2_subs_1::MDOC_CE) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC_CE.') '}
+	if ($criteria ne '') {return $q->div({'class' => 'red w3-quarter'}, "FAILED $criteria")}
+	else {return $q->div({'class' => 'green w3-quarter'}, 'PASS')}
+}
+
+sub get_raw_detail_ce {
+	my ($dir, $run, $sample, $criteria, $file) = @_;
+	my $value;
+	
+	
+	return $value;
+}
+
+#subs for panel, add_analysis.pl
+sub get_raw_data {
+	my ($dir, $sample, $ssh, $file, $instrument, $q) = @_;
+	#we want - miseq
+	#Percent Q30:,
+	#Target coverage at 50X:,
+	#SNV Ts/Tv ratio:,
+	#Mean region coverage depth:,
+	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads);
+	
+	if ($instrument eq 'miseq') {
+		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
+	}
+	elsif ($instrument eq 'miniseq') {
+		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Padded target aligned reads,');
+	}
+	
+	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file);
+	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file);
+	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file);
+	my $doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file);
+	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
+	#return ($q30, $x50, $tstv, $doc);
+	my $criteria = '';
+	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}	
+	if ($x50 < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
+	if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
+	if ($doc < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
+	if ($ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
+	if ($criteria ne '') {return $q->div({'class' => 'fixed_200 red'}, "FAILED $criteria")}
+	else {return $q->div({'class' => 'fixed_200 green'}, 'PASS')}
+}
+
+sub get_raw_detail {
+	my ($dir, $sample, $ssh, $expr, $file) = @_;
+	#print "grep -e \"$expr\" $dir/".$sample."_S*.$file";
+	my $data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file");
+	#print "-$data-<br/>";
+	if ($data =~ /$expr([\d\.]+)[%\s]{0,2}$/) {$data = $1}
+	else {print "pb with $expr:$data:"}
+	#print "_".$data."_<br/>";
+	return $data,;
+}
+
+
 
 #####removed 04/09/2014 old fashioned mafs were computed for each variant, the optimised version does this on demand by AJAX
 #sub genotype_line { #prints a line in the genotype table
