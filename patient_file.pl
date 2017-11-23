@@ -8,6 +8,7 @@ use Net::OpenSSH;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_2;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -887,7 +888,8 @@ else {U2_modules::U2_subs_1::standard_error('11', $q)}
 
 ##Basic end of USHVaM 2 perl scripts:
 
-print $q->start_div(), $q->p('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.');
+#print $q->start_div(), $q->p('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.');
+print U2_modules::U2_subs_2::cnil_disclaimer($q);
 
 U2_modules::U2_subs_1::standard_end_html($q);
 
