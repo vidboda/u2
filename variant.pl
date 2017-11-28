@@ -917,6 +917,7 @@ my $browser = "
 		console.log(\"dalliance initiated\");
 		//setTimeout(highlightRegion(),5000);
 		highlightRegion();
+		\$(window).scrollTop(0);
 	});
 ";
 
