@@ -282,8 +282,11 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 		print $q->p('USHVaM 2 is not currently confident on its own ability to provide accurate data on splicing for variants > 10 bp or for indels');
 	}
 	
-	print $q->start_p(), $q->span('MaxEnt predictions are made with '), $q->a({'href' => 'http://genes.mit.edu/burgelab/maxent/Xmaxentscan_scoreseq.html', 'target' => '_blank'}, 'MaxEntScan'), $q->span('. Sequences are dynamically retrieved by ushvam2, which builds all possible input sequences for maxent given the variant and displays interesting ones as well as natural sites scores for comparison.'), $q->end_p(), "\n"; 
-	
+	#print $q->start_p(), $q->span('MaxEnt predictions are made with '), $q->a({'href' => 'http://genes.mit.edu/burgelab/maxent/Xmaxentscan_scoreseq.html', 'target' => '_blank'}, 'MaxEntScan'), $q->span('. Sequences are dynamically retrieved by ushvam2, which builds all possible input sequences for maxent given the variant and displays interesting ones as well as natural sites scores for comparison.'), $q->end_p(), "\n";
+	my $text = $q->span('MaxEnt predictions are made with ').
+		$q->a({'href' => 'http://genes.mit.edu/burgelab/maxent/Xmaxentscan_scoreseq.html', 'target' => '_blank'}, 'MaxEntScan').
+		$q->span('. ').$q->br().$q->span('Sequences are dynamically retrieved by ushvam2, which builds all possible input sequences for maxent given the variant and displays interesting ones as well as natural sites scores for comparison.');
+	print U2_modules::U2_subs_2::info_panel($text, $q);
 	
 }
 my @hyphen = split(/-/, U2_modules::U2_subs_1::getExacFromGenoVar($var));
@@ -312,12 +315,15 @@ if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
 				$q->td(sprintf('%.2f', $res[4])), "\n",
 				$q->td(sprintf('%.2f', $res[5])), "\n",
 			$q->end_Tr(), "\n",
-			$q->end_table(),$q->end_div(), $q->br(), $q->br(), "\n",
-			$q->start_p(), $q->span('*'), $q->a({'href' => 'http://www.deepgenomics.com/spidex', 'target' => '_blank'}, 'Spidex'), $q->span(' is a dataset which provide access, for all variants in and around 300bp of exons, to '), $q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR'), $q->span(' predictions (percent inclusion ratio (PSI) of the affected exon given the wildtype and the mutant sequence).'), $q->end_p(), "\n",
-			$q->start_ul(),
-				$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).'),
-				$q->li('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP. 0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.'),
-			$q->end_ul(), "\n";
+			$q->end_table(),$q->end_div(), $q->br(), $q->br(), "\n";
+			
+			my $text = $q->span('*').
+				$q->a({'href' => 'http://www.deepgenomics.com/spidex', 'target' => '_blank'}, 'Spidex').$q->span(' is a dataset which provide access, for all variants in and around 300bp of exons, to ').$q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR').$q->span(' predictions').$q->br().$q->span('percent inclusion ratio (PSI) of the affected exon given the wildtype and the mutant sequence).')."\n".
+				$q->start_ul().
+					$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).').
+					$q->li('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP. 0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.').
+				$q->end_ul()."\n";
+				print U2_modules::U2_subs_2::info_panel($text, $q);
 		}		
 	}
 }
@@ -325,7 +331,7 @@ if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
 if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
 	
 	my @dbscsnv = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/dbscSNV/dbscSNV.txt.gz $chr:$pos-$pos`);
-	my ($rf_content, $ada_content) = ('no RF score', 'no ADA score');
+	my ($rf_content, $ada_content) = (U2_modules::U2_subs_2::info_panel('no RF score', $q), U2_modules::U2_subs_2::info_panel('no ADA score', $q));
 	foreach (@dbscsnv) {
 		if (/\t$wt\t$mt\t/) {
 			my @res = split(/\t/, $_);
@@ -344,8 +350,14 @@ if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
 		}
 	}
 	print $q->td($rf_content), $q->td($ada_content), $q->end_Tr(), "\n",
-			$q->end_table(),$q->end_div(), $q->br(), $q->br(), "\n",		
-			$q->start_p(), $q->span('**'), $q->a({'href' => 'http://nar.oxfordjournals.org/content/42/22/13534.full', 'target' => '_blank'}, 'dbscSNV'), $q->span(' is a dataset which provide access, for all variants located into identified intron/exon junctions '), $q->span({'class' => 'gras'}, '(-3 to +8 at the 5\' splice site and -12 to +2 at the 3\' splice site)'), $q->span(' to precomputed splicing alterations likelyhood scores. These scores called Random Forest or ADA depending on the learning machine used rely on both MaxEntScan and Position Weight Matrix (Shapiro) prediction scores.'), $q->br(), $q->span({'class' => 'gras'}, 'The closer to 1, the likely to disrupt splicing.'), $q->end_p(), "\n";
+			$q->end_table(),$q->end_div(), "\n";	
+	my $text .=$q->span('**').
+		$q->a({'href' => 'http://nar.oxfordjournals.org/content/42/22/13534.full', 'target' => '_blank'}, 'dbscSNV').
+		$q->span(' is a dataset which provide access, for all variants located into identified intron/exon junctions ').$q->br().
+		$q->span({'class' => 'gras'}, '(-3 to +8 at the 5\' splice site and -12 to +2 at the 3\' splice site)').
+		$q->span(' to precomputed splicing alterations likelyhood scores. These scores called Random Forest or ADA depending on the learning machine used rely on both MaxEntScan and Position Weight Matrix (Shapiro) prediction scores.').$q->br().
+		$q->span({'class' => 'gras'}, 'The closer to 1, the likely to disrupt splicing.').$q->end_p()."\n";
+	print U2_modules::U2_subs_2::info_panel($text, $q);
 	
 	
 	#my $gene = U2_modules::U2_subs_1::get_gene_from_nom_g($q, $dbh);
