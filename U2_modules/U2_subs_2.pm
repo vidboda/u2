@@ -1181,8 +1181,11 @@ sub build_ngs_form {
 		$q->start_div({'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'style' => 'width:50%'}).
 			$q->h3({'class' => 'w3-center w3-padding-16'}, 'Import '.ucfirst($analysis).' data')."\n".
 			$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');", 'class' => 'w3-button w3-blue w3-hover-white'}).$q->br().
-			$q->start_form({'action' => $script, 'method' => 'post', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED})."\n".$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '3', form => "illumina_form_$run"})."\n".$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"})."\n".
-				$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"})."\n".$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"})."\n";
+			$q->start_form({'action' => $script, 'method' => 'post', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED})."\n".
+			$q->input({'type' => 'hidden', 'name' => 'step', 'value' => $step, form => "illumina_form_$run"})."\n".
+			$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"})."\n".
+			$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"})."\n".
+			$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"})."\n";
 	if ($filter ne '') {$form .=  $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"})."\n"}								
 		
 	#		$q->start_ol(), "\n";
@@ -1199,11 +1202,11 @@ sub build_ngs_form {
 		#$sample =~ s/\n//og;
 		if (($sample ne $id.$number) && ($patients->{$sample} == 1)) {#other eligible patients
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
-					$q->start_div({'class' => 'w3-quarter w3-xlarge w3-left-align'}).
+					$q->start_div({'class' => 'w3-quarter w3-large w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample");
 			if ($filtered == '1') {
 				$form .=   $q->end_div().
-						$q->start_div({'class' => 'w3-quarter w3-xlarge'}).
+						$q->start_div({'class' => 'w3-quarter w3-large'}).
 							$q->span({'for' => 'filter'}, 'Filter:')."\n".
 						$q->end_div()."\n".
 					$q->start_div({'class' => 'w3-quarter'})."\n";
@@ -1217,7 +1220,7 @@ sub build_ngs_form {
 		}
 		elsif (($sample ne $id.$number) && ($patients->{$sample} == 0)) {#unknown patient
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
-					$q->start_div({'class' => 'w3-xlarge w3-quarter w3-left-align'}).
+					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
 					$q->end_div().
 					$q->div({'class' => 'w3-rest w3-medium'}, " not yet recorded in U2. Please proceed if you want to import Illumina data.")."\n".
@@ -1225,17 +1228,17 @@ sub build_ngs_form {
 		}
 		elsif (($sample ne $id.$number) && ($patients->{$sample} == 2)) {#patient with a run already recorded
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
-					$q->start_div({'class' => 'w3-xlarge w3-quarter w3-left-align'}).
+					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
 					$q->end_div().
 					$q->div({'class' => 'w3-rets w3-medium'}, " has already a run recorded as $analysis.")."\n".$q->end_div();
 		}
 		else {#original patient									
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
-					$q->div({'class' => 'w3-quarter w3-xlarge w3-left-align'}, $sample)."\n";
+					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, $sample)."\n";
 			if ($filtered == '1') {
-				$form .=   $q->div({'class' => 'w3-quarter w3-xlarge'}, "Filter:").
-					$q->div({'class' => 'w3-quarter w3-xlarge w3-left-align'}, "$filter")."\n";
+				$form .=   $q->div({'class' => 'w3-quarter w3-large'}, "Filter:").
+					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, "$filter")."\n";
 			}			
 			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q)}
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
@@ -1278,19 +1281,37 @@ sub get_raw_data_ce {
 	
 	
 	my $criteria = '';
-	if ($x20 < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
+	if ($x20*100 < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
 	if ($tstv < $U2_modules::U2_subs_1::TITV_CE) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_CE.') '}
 	if ($doc < $U2_modules::U2_subs_1::MDOC_CE) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC_CE.') '}
-	if ($criteria ne '') {return $q->div({'class' => 'red w3-quarter'}, "FAILED $criteria")}
-	else {return $q->div({'class' => 'green w3-quarter'}, 'PASS')}
+	if ($criteria ne '') {return $q->div({'class' => 'w3-red w3-quarter'}, "FAILED $criteria")}
+	else {return $q->div({'class' => 'w3-green w3-quarter'}, 'PASS')}
 }
 
 sub get_raw_detail_ce {
 	my ($dir, $run, $sample, $criteria, $file) = @_;
 	my $value;
 	
-	
-	return $value;
+	open F, "$dir/$run/multiqc_data/$file.txt" or die "File $dir/$file.txt not found $!";
+	my $index = 0;
+	while (<F>) {
+		chomp;		
+		if (/Sample/o) {#1st line look for good col
+			my @cols = split(/\t/, $_);
+			my $i = 0;
+			foreach(@cols) {
+				#print "-$_-$criteria-<br/>";
+				if ($_ eq $criteria) {$index = $i}
+				$i++
+			}
+		}
+		elsif (/$sample/) {
+			my @values = split(/\t/, $_);
+			return $values[$index];
+		}
+	}
+	close F;
+	return 'undef';
 }
 
 #subs for panel, add_analysis.pl
@@ -1322,8 +1343,8 @@ sub get_raw_data {
 	if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
 	if ($doc < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
 	if ($ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
-	if ($criteria ne '') {return $q->div({'class' => 'fixed_200 red'}, "FAILED $criteria")}
-	else {return $q->div({'class' => 'fixed_200 green'}, 'PASS')}
+	if ($criteria ne '') {return $q->div({'class' => 'w3-red w3-quarter'}, "FAILED $criteria")}
+	else {return $q->div({'class' => 'w3-green w3-quarter'}, 'PASS')}
 }
 
 sub get_raw_detail {

@@ -283,11 +283,11 @@ my $js = "
 			\$(\"#analysis_form\").attr(\"action\", \"\");
 		}
 	 }
-	 function illumina_form_submit() {
-		jAlert('Please wait a few minutes while the run is being imported into U2');
-		return true;
-	 }
-	 //function select_toggle(form_id) {
+	// function illumina_form_submit() {
+	//	jAlert('Please wait a few minutes while the run is being imported into U2');
+	//	return true;
+	// }
+	// function select_toggle(form_id) {
 	//	if (\$('#select_all_' + form_id).val() === 'Unselect all') {
 	//		\$('#' + form_id + ' .sample_checkbox').prop('checked', false);
 	//		\$('#select_all_' + form_id).val('Select all');

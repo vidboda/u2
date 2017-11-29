@@ -60,8 +60,8 @@ our $MDOC = 150;
 our $PC50X = 95;
 our $Q30 = 80;
 #Clinical exomes
-our $PC20X_CE = 90;
-our $MDOC_CE = 50;
+our $PC20X_CE = 75;
+our $MDOC_CE = 30;
 our $TITV_CE = 3;
 
 #genes for aCGH
