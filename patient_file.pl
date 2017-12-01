@@ -697,7 +697,7 @@ if ($result) {
 					}, 1000);
 				}
 				if ($("#"+group).length) {$("#"+group).fadeTo(1000, 1);$("#help_div").html(\'<br/>\')}
-				else {$("#help_div").html(\'<br/><strong>No analyses performed for this group of gene yet</strong>\');}
+				else {$("#help_div").addClass(\'w3-margin w3-panel w3-sand w3-leftbar\');$("#help_div").html(\'No analyses performed for this group of gene yet\');}
 			}';
 	
 	print $q->script({'type' => 'text/javascript'}, $javascript), $q->start_div({'class' => 'patient_file_frame mother appear'}), $q->p({'class' => 'title'}, "Or click on a group to see genes and then on genes to display:"), $q->br(), "\n";
