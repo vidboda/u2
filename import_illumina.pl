@@ -132,7 +132,7 @@ if ($step && $step == 2) {
 	my $res = $dbh->selectrow_hashref($query);
 	my $filtered = $res->{'filtering_possibility'};
 	#sample and filters do not arrive the same way
-	my %sample_hash = &build_sample_hash($q, $analysis, $filtered);
+	my %sample_hash = U2_modules::U2_subs_2::build_sample_hash($q, $analysis, $filtered);
 	
 	#test mutalyzer
 	if (U2_modules::U2_subs_1::test_mutalyzer() != 1) {U2_modules::U2_subs_1::standard_error('23', $q)}
@@ -1277,28 +1277,28 @@ exit();
 
 ##specific subs for current script
 
-sub build_sample_hash {
-	my ($q, $analysis, $filtered) = @_;
-	#samples are grouped under the same name, and are like X_SUXXX
-	#filters arrive independantly, as X_filter
-	#X is the linker between both
-	
-	my @false_list = $q->param('sample');
-	my %list;
-	foreach (@false_list) {
-		if (/(\d+)_(\w+)/o) {$list{join('', U2_modules::U2_subs_1::sample2idnum($2, $q))} = $1;}
-	}
-	if ($filtered == 1) {
-		foreach my $key (keys(%list)) {
-			if ($q->param($list{$key}.'_filter') =~ /^$ANALYSIS_MISEQ_FILTER$/) {$list{$key} = $1}
-			else {U2_modules::U2_subs_1::standard_error('20', $q)}
-		}
-	}
-	else {
-		foreach my $key (keys(%list)) {$list{$key} = 'ALL'}
-	}
-	return %list
-}
+#sub build_sample_hash {
+#	my ($q, $analysis, $filtered) = @_;
+#	#samples are grouped under the same name, and are like X_SUXXX
+#	#filters arrive independantly, as X_filter
+#	#X is the linker between both
+#	
+#	my @false_list = $q->param('sample');
+#	my %list;
+#	foreach (@false_list) {
+#		if (/(\d+)_(\w+)/o) {$list{join('', U2_modules::U2_subs_1::sample2idnum($2, $q))} = $1;}
+#	}
+#	if ($filtered == 1) {
+#		foreach my $key (keys(%list)) {
+#			if ($q->param($list{$key}.'_filter') =~ /^$ANALYSIS_MISEQ_FILTER$/) {$list{$key} = $1}
+#			else {U2_modules::U2_subs_1::standard_error('20', $q)}
+#		}
+#	}
+#	else {
+#		foreach my $key (keys(%list)) {$list{$key} = 'ALL'}
+#	}
+#	return %list
+#}
 
 sub search_position {
 	my ($chr, $pos) = @_;

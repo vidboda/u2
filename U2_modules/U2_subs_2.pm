@@ -42,6 +42,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $PATIENT_IDS = $config->PATIENT_IDS();
+my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -1363,6 +1364,30 @@ sub get_raw_detail {
 	return $data,;
 }
 
+#in add_clinical_exome.pl, import_illumina.pl
+
+sub build_sample_hash {
+	my ($q, $analysis, $filtered) = @_;
+	#samples are grouped under the same name, and are like X_SUXXX
+	#filters arrive independantly, as X_filter
+	#X is the linker between both
+	
+	my @false_list = $q->param('sample');
+	my %list;
+	foreach (@false_list) {
+		if (/(\d+)_(\w+)/o) {$list{join('', U2_modules::U2_subs_1::sample2idnum($2, $q))} = $1;}
+	}
+	if ($filtered == 1) {
+		foreach my $key (keys(%list)) {
+			if ($q->param($list{$key}.'_filter') =~ /^$ANALYSIS_MISEQ_FILTER$/) {$list{$key} = $1}
+			else {U2_modules::U2_subs_1::standard_error('20', $q)}
+		}
+	}
+	else {
+		foreach my $key (keys(%list)) {$list{$key} = 'ALL'}
+	}
+	return %list
+}
 
 
 #####removed 04/09/2014 old fashioned mafs were computed for each variant, the optimised version does this on demand by AJAX
