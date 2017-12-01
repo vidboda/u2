@@ -124,11 +124,13 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
 
 
 if ($user->isAnalyst() == 1) {
-	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+	
 	
 	my $step = U2_modules::U2_subs_1::check_step($q);
+	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
 	#step 2 => form with possible samples to import per run
 	if ($step == 2) {
+		my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 		my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
 		#first get manifets name for validation purpose
 		my ($manifest, $filtered) = U2_modules::U2_subs_2::get_filtering_and_manifest($analysis, $dbh);
@@ -157,18 +159,25 @@ if ($user->isAnalyst() == 1) {
 				print $q->br().U2_modules::U2_subs_2::print_clinical_exome_criteria($q);
 			}
 		}
-		#if ($semaph == 1) {
-			#we've got at least a run to import => form
-			#but before check if other patients have already a run recorded
-			#my $patients = U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh);
-			
-			#foreach my $patient (keys(%patients)) {
-			#	print $q->p("$patient--$patients{$patient}");
-			#}
-
-		#}
 		if ($semaph == 0) {
 			print $q->p("Sorry, no Clinical exome to import for $id$number");
+		}
+	}
+	elsif ($step == 3) {		
+		my $query = "SELECT filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
+		my $res = $dbh->selectrow_hashref($query);
+		my $filtered = $res->{'filtering_possibility'};
+		my %sample_hash = U2_modules::U2_subs_2::build_sample_hash($q, $analysis, $filtered);
+		#sample and filters do not arrive the same way
+		while (my ($sampleid, $filter) = each(%sample_hash)) {
+			#get log's number
+			my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
+			my $run = U2_modules::U2_subs_1::check_illumina_run_id($q);
+			my $nenufaar_log = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/*.log | xargs basename`;
+			$nenufaar_log =~ /_(\d+).log/og;
+			my $nenufaar_id = $1;
+			my $data_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/$id$number/$nenufaar_id/";
+			print $q->p(`ls $data_path`);
 		}
 	}
 	#step 3 => actual import
@@ -179,7 +188,8 @@ if ($user->isAnalyst() == 1) {
 				#$nenufaar_log =~ /_(\d+).log/og;
 				#my $nenufaar_id = $1;
 				#my $data_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/$id$number/$nenufaar_id/";
-				#print `ls $data_path`;		
+				#print `ls $data_path`;
+	
 	
 }
 else {U2_modules::U2_subs_1::standard_error('13', $q)}
