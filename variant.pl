@@ -147,7 +147,7 @@ my $pos_cdna = $1;
 #http://www.ncbi.nlm.nih.gov/nuccore/
 my $ncbi_url = 'http://www.ncbi.nlm.nih.gov/nuccore/';
 
-print $q->br(), $q->start_div({'class' => 'w3-light-grey'}), $q->span({'id' => 'openNav', 'class' =>'w3-button w3-blue w3-xlarge', 'onclick' => 'w3_open()', 'title' => 'Click here to open the menu of useful external links', 'style' => 'visibility:hidden'}, '&#9776;'), $q->end_div(), "\n";
+print $q->start_div({'class' => 'w3-light-grey'}), $q->span({'id' => 'openNav', 'class' =>'w3-button w3-blue w3-xlarge', 'onclick' => 'w3_open()', 'title' => 'Click here to open the menu of useful external links', 'style' => 'visibility:hidden'}, '&#9776;'), $q->end_div(), "\n";
 
 #print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' : '),
 #				$q->span({'onclick' => "window.open('$ncbi_url$acc.$res->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$acc.$res->{'acc_version'}"), $q->span(":$var"),
