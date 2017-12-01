@@ -417,12 +417,14 @@ elsif ($step == 2) { #insert variant and print
 								
 								#correct mutalyzer which places e.g. [16bp] instead of sequence
 								if ($taille > 15) {
+									
 									if ($nom_g =~ /.+[di][nu][sp]$/) {
-										if ($seq_mt =~ /^[ATGC]+\s[ATCG]+\s[bp\[\d\]]+\s[ATCG]+[ATCG]+$/) {$seq_mt =~ s/^([ATGC]+\s[ATCG]+\s)[bp\[\d\]]+(\s[ATCG]+[ATCG]+)$/$1- -$2/}												
+										if ($seq_mt =~ /^[ATGC]+\s[ATCG]+\s[bp\[\d\]]+\s[ATCG]+\s[ATCG]+$/o) {$seq_mt =~ s/^([ATGC]+\s[ATCG]+\s)[bp\[\d\]]+(\s[ATCG]+\s[ATCG]+)$/$1- -$2/}
 									}
 									elsif ($nom_g =~ /.+del$/) {
 										#TTAATGAAATACCATTAAGAGGAAG AATACT [23bp] CTATAT ATTTCTACACTTTATATATATAAAC
-										if ($seq_wt =~ /^[ATGC]+\s[ATCG]+\s[bp\[\d\]]+\s[ATCG]+[ATCG]+$/) {$seq_wt =~ s/^([ATGC]+\s[ATCG]+\s)[bp\[\d\]]+(\s[ATCG]+[ATCG]+)$/$1- -$2/}
+										if ($seq_wt =~ /^[ATGC]+\s[ATCG]+\s[bp\[\d\]]+\s[ATCG]+\s[ATCG]+$/o) {$seq_wt =~ s/^([ATGC]+\s[ATCG]+\s)[bp\[\d\]]+(\s[ATCG]+\s[ATCG]+)$/$1- -$2/}
+										#print $q->start_Tr(), $q->td({'colspan' => '7'}, "-$seq_wt-"), $q->end_Tr();;exit;
 									}
 								}
 								if ($taille > 50) {
@@ -432,7 +434,7 @@ elsif ($step == 2) { #insert variant and print
 									$nom_ng =~ s/\)//og;
 		  
 								}
-								
+								#print $q->start_Tr(), $q->td({'colspan' => '7'}, "-$seq_wt-"), $q->end_Tr();;exit;
 								
 								## Transcript description (submission) get version of isoform
 								my $true_version = "";
