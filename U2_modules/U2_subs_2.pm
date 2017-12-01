@@ -1083,6 +1083,11 @@ sub info_panel {
 	return $q->start_div({'class' => 'w3-margin w3-panel w3-sand w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-display-topright w3-large'}, 'X').$q->p($text).$q->end_div()."\n";
 }
 
+sub mini_info_panel {
+	my ($text, $q) = @_;
+	return $q->start_div({'class' => 'w3-margin w3-panel w3-sand w3-leftbar'}).$q->p($text).$q->end_div()."\n";
+}
+
 sub danger_panel {
 	my ($text, $q) = @_;
 	return $q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-display-topright w3-large'}, 'X').$q->start_p().$q->strong($text).$q->end_p().$q->end_div()."\n";
