@@ -151,9 +151,7 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 			else {$pos = 400-sprintf('%.0f',(($dist_from_exon/$seg_size)*200))}
 		}
 		else {
-			#print $q->p('ok man');
 			if ($segment_type eq 'intron' && $cname =~ /[^\.]-/o) {
-				print $q->p('ok man');
 				my $segplus = &get_neighbouring_nom_seg($segment_num+1, $gene->[0], $gene->[1], $segment_type);
 				#we need exon size not intron
 				$seg_size  = &get_neighbouring_seg_size($segment_num, $gene->[0], $gene->[1], $segment_type);
