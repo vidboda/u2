@@ -1281,9 +1281,9 @@ sub get_raw_data_ce {
 	
 	my ($x20_expr, $tstv_expr, $doc_expr) = ('PCT_TARGET_BASES_20X', 'known_titv', 'MEAN_TARGET_COVERAGE');
 	
-	my $x20 = &get_raw_detail_ce($data_dir, $run, $sample, $x20_expr, 'multiqc_picard_HsMetrics');
-	my $tstv = &get_raw_detail_ce($data_dir, $run, $sample, $tstv_expr, 'multiqc_gatk_varianteval');
-	my $doc = &get_raw_detail_ce($data_dir, $run, $sample, $doc_expr, 'multiqc_picard_HsMetrics');
+	my $x20 = &get_raw_detail_ce($data_dir, $run, $sample, $x20_expr, 'multiqc_data/multiqc_picard_HsMetrics.txt');
+	my $tstv = &get_raw_detail_ce($data_dir, $run, $sample, $tstv_expr, 'multiqc_data/multiqc_gatk_varianteval.txt');
+	my $doc = &get_raw_detail_ce($data_dir, $run, $sample, $doc_expr, 'multiqc_data/multiqc_picard_HsMetrics.txt');
 	
 	
 	my $criteria = '';
@@ -1298,7 +1298,7 @@ sub get_raw_detail_ce {
 	my ($dir, $run, $sample, $criteria, $file) = @_;
 	my $value;
 	
-	open F, "$dir/$run/multiqc_data/$file.txt" or die "File $dir/$file.txt not found $!";
+	open F, "$dir/$run/$file" or die "File $dir/$run/$file not found $!";
 	my $index = 0;
 	while (<F>) {
 		chomp;		
