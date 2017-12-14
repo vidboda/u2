@@ -9,6 +9,7 @@ use List::Util qw(min max);
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_2;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -160,15 +161,27 @@ if ($result) {
 		if ($res2 ne '0E0') {
 			#we have some missense
 			my $filtered_missense = 0;
-			
-			print $q->start_p(), $q->span('You will find below a table ranking all '), $q->strong('unknown'), $q->span(" missense variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5."), $q->end_p(), $q->br(), $q->br(), $q->p('Up to Five items can be considered to prioritize the variants, 3 predictors, EVS MAF and Clinvar annotation. The \'score\' column goes from 0 to 5 (the higher the more probably pathogenic), as well as the \'Pathogenic Ratio\', which is the ratio between the score and the total number of available items. To gain a point in the score column, variants must either:'), "\n",
-			$q->start_ul(),
-				$q->li('have a SIFT prediction below 0.05'),
-				$q->li('have a polyphen prediction being \'possibly_pathogenic\' or \'probably_pathogenic\''),
-				$q->li('have a FATHMM prediction below -1.5'),
-				$q->li('be reported in ClinVar as \'likely pathogenic\' or \'pathogenic\''),
-				$q->li('have a MAX_MAF below 0.005 (same for dominants and recessives), MAX_MAF being the maximum between ExAC, EVS_EA and EVS_AA MAFs.'),
-			$q->end_ul(), $q->br(), $q->br(), "\n"; 
+			my $text = $q->span('You will find below a table ranking all ').$q->strong('unknown').$q->span(" missense variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5.");
+			print U2_modules::U2_subs_2::info_panel($text, $q);
+			$text = $q->span('Up to Five items can be considered to prioritize the variants, 3 predictors, EVS MAF and Clinvar annotation').$q->br().
+					$q->span(' The \'score\' column goes from 0 to 5 (the higher the more probably pathogenic), as well as the \'Pathogenic Ratio\', ').
+					$q->span(' which is the ratio between the score and the total number of available items. To gain a point in the score column, variants must either:')."\n".
+			$q->start_ul().
+				$q->li('have a SIFT prediction below 0.05').
+				$q->li('have a polyphen prediction being \'possibly_pathogenic\' or \'probably_pathogenic\'').
+				$q->li('have a FATHMM prediction below -1.5').
+				$q->li('be reported in ClinVar as \'likely pathogenic\' or \'pathogenic\'').
+				$q->li('have a MAX_MAF below 0.005 (same for dominants and recessives), MAX_MAF being the maximum between ExAC, EVS_EA and EVS_AA MAFs.').
+			$q->end_ul();
+			print U2_modules::U2_subs_2::info_panel($text, $q);
+			#print $q->start_p(), $q->span('You will find below a table ranking all '), $q->strong('unknown'), $q->span(" missense variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5."), $q->end_p(), $q->br(), $q->br(), $q->p('Up to Five items can be considered to prioritize the variants, 3 predictors, EVS MAF and Clinvar annotation. The \'score\' column goes from 0 to 5 (the higher the more probably pathogenic), as well as the \'Pathogenic Ratio\', which is the ratio between the score and the total number of available items. To gain a point in the score column, variants must either:'), "\n",
+			#$q->start_ul(),
+			#	$q->li('have a SIFT prediction below 0.05'),
+			#	$q->li('have a polyphen prediction being \'possibly_pathogenic\' or \'probably_pathogenic\''),
+			#	$q->li('have a FATHMM prediction below -1.5'),
+			#	$q->li('be reported in ClinVar as \'likely pathogenic\' or \'pathogenic\''),
+			#	$q->li('have a MAX_MAF below 0.005 (same for dominants and recessives), MAX_MAF being the maximum between ExAC, EVS_EA and EVS_AA MAFs.'),
+			#$q->end_ul(), $q->br(), $q->br(), "\n"; 
 				
 			print $q->start_div({'class' => 'container'}), $q->start_table({'class' => "technical great_table", 'id' => 'priorisation_table'}), $q->caption("Missense table:"), $q->start_thead(),
 				$q->start_Tr(), "\n",
@@ -331,8 +344,17 @@ if ($result) {
 		if ($res2 ne '0E0') {
 			#we have some candidates
 			my $filtered_missense = 0;
+			my $text = $q->span('You will find below a table ranking all ').
+				$q->strong('unknown').
+				$q->span(" variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5.");
+			print U2_modules::U2_subs_2::info_panel($text, $q);
+			$text = $q->span('They are ranked according to their ability to disturb proper splicing according to ').
+				$q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR').
+				$q->span('.').
+				$q->strong(' WARNING: does not work for variants located > 300 bp from exons AND ONLY CONSIDERS substitutions.')."\n";
+			print U2_modules::U2_subs_2::info_panel($text, $q);
 			
-			print $q->start_p(), $q->span('You will find below a table ranking all '), $q->strong('unknown'), $q->span(" variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5."), $q->end_p(), $q->br(), $q->br(), $q->start_p(), $q->span('They are ranked according to their ability to disturb proper splicing according to '), $q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR'), $q->span('.'), $q->strong(' WARNING: does not work for variants located > 300 bp from exons AND ONLY CONSIDERS substitutions.'), "\n", $q->br(), $q->br(), "\n"; 
+			#print $q->start_p(), $q->span('You will find below a table ranking all '), $q->strong('unknown'), $q->span(" variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5."), $q->end_p(), $q->br(), $q->br(), $q->start_p(), $q->span('They are ranked according to their ability to disturb proper splicing according to '), $q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR'), $q->span('.'), $q->strong(' WARNING: does not work for variants located > 300 bp from exons AND ONLY CONSIDERS substitutions.'), "\n", $q->br(), $q->br(), "\n"; 
 				
 			print $q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'priorisation_table'}), $q->caption("Splicing table:"), $q->start_thead(),
 				$q->start_Tr(), "\n",
@@ -392,11 +414,12 @@ if ($result) {
 				$q->end_Tr(), "\n";
 			}
 			
-			print $q->end_tbody(), $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(),
-				$q->start_ul(),
-				$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).'),
-				$q->li('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP. 0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.'),
-			$q->end_ul(), "\n";
+			print $q->end_tbody(), $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br();
+			$text = $q->start_ul().
+				$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).').
+				$q->start_li().$q->span('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP.').$q->br().$q->span('0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.').
+			$q->end_ul()."\n";
+			print U2_modules::U2_subs_2::info_panel($text, $q);
 			
 		}
 		else {print $q->p('No candidate variant to test.')}
