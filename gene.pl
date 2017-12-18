@@ -148,7 +148,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 my $user = U2_modules::U2_users_1->new();
 
 
-U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of init
 

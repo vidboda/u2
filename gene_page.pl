@@ -130,7 +130,7 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 					-src => $JS_DEFAULT, 'defer' => 'defer'}],		
 				-encoding => 'ISO-8859-1');
 			
-		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 		my @list;
 		if ($sort eq 'ALL') {
 			my $query = 'SELECT DISTINCT(nom[1]) FROM gene ORDER BY nom[1];';

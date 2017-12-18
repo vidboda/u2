@@ -84,11 +84,42 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 # HTML subs
 
 sub standard_begin_html { #prints top of the pages
-	my ($q, $user_name) = @_;
+	my ($q, $user_name, $dbh) = @_;
 	#prints fix_top.html in one div and starts main div , 'src' => $HTDOCS_PATH.'fix_top.shtml'
-	print $q->start_div({'id' => 'page'}), $q->start_div({'id' => 'fixtop'}), $q->end_div(), $q->br(), $q->br(),
-	$q->start_div({'id' => 'internal'}), $q->p({'id' => 'log'}, 'logged in as '.$user_name), $q->br();
+	#print $q->start_div({'id' => 'page'}), $q->start_div({'id' => 'fixtop'}), $q->end_div(), $q->br(), $q->br(),
+	#$q->start_div({'id' => 'internal'}), $q->p({'id' => 'log'}, 'logged in as '.$user_name), $q->br();
 	#$q->start_a({'href' => '#bottom', 'class' => 'print_hidden'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/bottom_arrow.png', 'width' => '23', 'height' => '34', 'border' => '0'}), $q->strong('Go to bottom'), $q->end_a(), $q->br();
+	print $q->start_div({'id' => 'page', 'class' => 'w3-large'}), $q->start_div({'class' => 'w3-top'}),
+		$q->start_div({'id' => 'scroll', 'class' => 'w3-white w3-opacity-min'}),
+			$q->start_div({'id' => 'scroll-bar', 'class' => 'w3-blue', 'style' => 'height:4px;width:0%'}), $q->end_div(),
+		$q->end_div(),
+		$q->start_div({'id' => 'myNavbar', 'class' => 'w3-bar w3-card-2 w3-black w3-opacity-min'}),
+		$q->start_div({'class' => 'w3-dropdown-hover'}),
+			$q->a({'class' => 'w3-button w3-xlarge', 'onclick' => 'window.location="/U2/";'},'Home'),
+			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
+				$q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
+			$q->end_div(),
+		$q->end_div(),
+		$q->start_div({'class' => 'w3-dropdown-hover'}),
+			$q->a({'class' => 'w3-button w3-xlarge'},'Patients'),
+			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'});
+	#get patients' pathologies
+	my $query = "SELECT pathologie FROM valid_pathologie ORDER BY id;";
+	print $q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => '/perl/U2/patients.pl?phenotype=all'}, 'ALL'),
+		$q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => '/perl/U2/patients.pl?phenotype=USHER'}, 'USHER');	
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();	
+	while (my $result = $sth->fetchrow_hashref()) {
+		print $q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => "/perl/U2/patients.pl?phenotype=$result->{'pathologie'}"}, $result->{'pathologie'});
+	}
+		#		$q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
+	print $q->end_div(),
+		$q->end_div(),
+		$q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => '/led/'}, 'Home'),
+		$q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => '/perl/led/engine.pl?patients=1'}, 'Patients'),
+		$q->end_div(), $q->end_div(), $q->br(), $q->br(),
+		$q->start_div({'id' => 'internal'});	
+	
 }
 
 sub standard_end_html { #prints bottom of the pages
