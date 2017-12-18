@@ -181,13 +181,16 @@ elsif ($step == 2) {
 	my $res = $sth->execute();
 	
 	if ($res ne '0E0') {
-		print $q->start_p({'class' => 'w3-margin'}), $q->span("Please consider the $res candidate samples below as controls for Amplicon $nom_seg in "), $q->em($gene), $q->end_p(), $q->start_div({'class' => 'w3-container', 'style' => 'width:50%'}), $q->start_ul({'class' => 'w3-ul w3-hoverable'}), "\n";
+		my $text = $q->span("Please consider the $res candidate samples below as controls for Amplicon $nom_seg in ").$q->em($gene).$q->span(':');
+		print U2_modules::U2_subs_2::info_panel($text, $q);
+		#print $q->start_p({'class' => 'w3-margin'}), $q->span("Please consider the $res candidate samples below as controls for Amplicon $nom_seg in "), $q->em($gene), $q->end_p(),
+		print $q->start_div({'class' => 'w3-container', 'style' => 'width:50%'}), $q->start_ul({'class' => 'w3-ul w3-hoverable'}), "\n";
 		while (my $result = $sth->fetchrow_hashref()) {
 			print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->a({'href' => "patient_genotype.pl?sample=".$result->{'identifiant'}.$result->{'numero'}."&amp;gene=$gene", 'target' => '_blank'}, $result->{'identifiant'}.$result->{'numero'}), $q->end_li();
 		}
 	}
 	else {
-		print $q->li("Sorry, no candidate sample found.")
+		print U2_modules::U2_subs_2::danger_panel("Sorry, no candidate sample found.", $q);
 	}
 	print $q->end_ul(), $q->end_div(), $q->br(), $q->br(),
 		$q->start_p({'class' => 'w3-margin'}), $q->span("Try another "), $q->a({'href' => 'search_controls.pl?step=1'}, "exon"), $q->end_p();
