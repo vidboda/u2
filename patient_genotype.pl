@@ -171,9 +171,10 @@ my ($direction, $main_acc, $acc_g, $acc_v) = U2_modules::U2_subs_2::get_directio
 
 
 #prints filtering options
-
-print $q->start_p(), $q->strong("Default isoform: "), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$main_acc.$acc_v", 'target' => '_blank'}, "$main_acc.$acc_v"), $q->end_p(),
-	$q->start_table({'class' => 'zero_table width_general'}),
+my $text = $q->strong("Default isoform: ").$q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$main_acc.$acc_v", 'target' => '_blank'}, "$main_acc.$acc_v");
+print U2_modules::U2_subs_2::info_panel($text, $q);
+#print $q->start_p(), $q->strong("Default isoform: "), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$main_acc.$acc_v", 'target' => '_blank'}, "$main_acc.$acc_v"), $q->end_p(),
+print 	$q->start_table({'class' => 'zero_table width_general'}),
 		$q->start_Tr(), $q->start_td({'class' => 'zero_td'});
 		
 U2_modules::U2_subs_2::print_filter($q);
