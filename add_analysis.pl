@@ -818,8 +818,12 @@ if ($user->isAnalyst() == 1) {
 				$q->span({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(':'), $q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), $q->br(), "\n";
 				
 			if ($step == 2) {
-				print $q->start_p(), $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants."), $q->end_p(), "\n",
-				$q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
+				my $text =  $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-blue'}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants.")."\n";
+				print U2_modules::U2_subs_2::danger_panel($text, $q);			
+				
+				print $q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
+				#print $q->start_p(), $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants."), $q->end_p(), "\n",
+				#$q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
 			
 						
 			
