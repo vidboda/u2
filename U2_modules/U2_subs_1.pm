@@ -152,7 +152,7 @@ sub standard_begin_html { #prints top of the pages
 		$q->start_a({'class' => 'w3-bar-item w3-button w3-xlarge w3-right', 'href' => '/ushvam2/change_user.php'}), $q->start_i({'class' => 'fa fa-user-times w3-xxlarge'}), $q->end_i(), $q->end_a(),
 		$q->span({'class' => 'w3-bar-item w3-xlarge w3-right'}, "Logged in as $user_name"),
 		$q->end_div(), $q->end_div(), $q->br(), $q->br(),
-		$q->start_div({'id' => 'internal'});	
+		$q->start_div({'id' => 'internal'}), $q->br();	
 	
 }
 
