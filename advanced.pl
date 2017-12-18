@@ -121,8 +121,11 @@ if ($q->param('advanced') && $q->param('advanced') eq 'non-USH') {
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	if ($res ne '0E0') {
-		print $q->start_p(), $q->strong('You will find below the samples that are labelled as \'USHER\' but who carry NO mutations in ANY USHER gene AND who carry mutation(s) (pathogenic, VUCS class III, IV) in NON-USHER genes.'), $q->end_p(), $q->p('Please note that \'USH\' patients carrying only one mutation in a USH gene will be excluded from this list.'), "\n",
-			$q->br(), $q->br(), "\n",
+		my $text = $q->span('You will find below the samples that are labelled as \'USHER\' but who carry NO mutations in ANY USHER gene AND who carry mutation(s) (pathogenic, VUCS class III, IV) in NON-USHER genes.').$q->br().
+			$q->span('Please note that \'USH\' patients carrying only one mutation in a USH gene will be excluded from this list.');
+		print U2_modules::U2_subs_2::info_panel($text, $q);
+		#print $q->start_p(), $q->strong('You will find below the samples that are labelled as \'USHER\' but who carry NO mutations in ANY USHER gene AND who carry mutation(s) (pathogenic, VUCS class III, IV) in NON-USHER genes.'), $q->end_p(), $q->p('Please note that \'USH\' patients carrying only one mutation in a USH gene will be excluded from this list.'), "\n",
+		print	$q->br(), $q->br(), "\n",
 			$q->start_div({'class' => 'container', 'align' => 'center'}),
 			$q->start_table({'class' => 'great_table technical', 'id' => 'ushnonush1'}), $q->caption('Table 1: USH patients exclusively mutated in non-USH genes'), $q->start_thead(), "\n",
 				$q->th({'class' => 'left_general'}, 'Sample'),
@@ -160,8 +163,12 @@ if ($q->param('advanced') && $q->param('advanced') eq 'non-USH') {
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	if ($res ne '0E0') {
-		print $q->br(), $q->br(), $q->start_p(), $q->strong('This second table references ALL patients labelled as \'USHER\' and who carry a mutation in a NON-USHER gene, WHATEVER their situation in USHER genes (excluding patients from the first table).'), $q->end_p(),
-			$q->br(), $q->br(), "\n",
+		print $q->br(), $q->br();
+		#, $q->start_p(), $q->strong('This second table references ALL patients labelled as \'USHER\' and who carry a mutation in a NON-USHER gene, WHATEVER their situation in USHER genes (excluding patients from the first table).'), $q->end_p(),
+		my $text = $q->span('This second table references ALL patients labelled as \'USHER\' and who carry a mutation in a NON-USHER gene, ').$q->br().
+		$q->span('WHATEVER their situation in USHER genes (excluding patients from the first table).');
+		print U2_modules::U2_subs_2::info_panel($text, $q);
+		print	$q->br(), $q->br(), "\n",
 			$q->start_div({'class' => 'container', 'align' => 'center'}),
 			$q->start_table({'class' => 'great_table technical', 'id' => 'ushnonush2'}), $q->caption('Table 2: USH patients mutated in non-USH genes not in Table 1'), $q->start_thead(), "\n",
 				$q->th({'class' => 'left_general'}, 'Sample'),
