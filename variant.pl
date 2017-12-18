@@ -70,7 +70,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
 
 my $q = new CGI;
 

@@ -57,7 +57,7 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css');
 
 my $q = new CGI;
 
@@ -188,22 +188,35 @@ print $q->span({'class' => 'w3-badge w3-xxlarge w3-teal'}, $res->{'a'}), $q->spa
 	#	#$q->start_li(), $q->span('Variants is '), $q->font({'color' => 'red'}, 'inactive'), $q->end_li(),
 	#	
 	#$q->end_ul(),
-	$q->end_div(),
-	$q->start_div(),
-	$q->span('Example research for search engine:'), 
-		$q->start_ul(),
-			$q->li('\'SU1034\', \'su1034\', \'CHM52\', \'chm52\' will look for a patient ID'),
-			$q->li('\'p.(Arg34*)\', \'p.Arg34*\', \'p.R34*\', \'p.R34X\', \'R34X\' will look for variants linked to these protein name'),
-			$q->li('\'chr1:g.216595579G>A\', \'g.6160C>T\', \'c.100C>T\', \'100C>T\', \'IVS15+35G>A\' will look for variants linked to these DNA name'),
-			$q->li('Partial names for variants can be used e.g. \'c.100\' or \'IVS15\' will look for variants begining with c.100 or IVS15'),
-			$q->li('Special: IVSX+3 will look for any \'+3\' variant'),
-			$q->li('Large rearrangements can be found using \'E11-12del\' or \'E11-12\' or \'E11\', however, for diverse reasons e.g. \'E11\' will look for rearrangements beginning or ending in introns 10 to 12 of each gene'),
-			$q->li('\'ROYO\', \'royo\' will look for last name'),
-			$q->li('\'U283\', \'u283\' will look for family ID'),
-			$q->li('And, last but not least, typing a number will seek for patient, family, variants (DNA c. and protein)!'),
-		$q->end_ul(),
-	$q->end_div(),
-	$q->br(), $q->br(),
+	$q->end_div();
+	#$q->start_div(),
+	my $text = $q->span('Example research for search engine:').
+		$q->start_ul().
+			$q->li('\'SU1034\', \'su1034\', \'CHM52\', \'chm52\' will look for a patient ID').
+			$q->li('\'p.(Arg34*)\', \'p.Arg34*\', \'p.R34*\', \'p.R34X\', \'R34X\' will look for variants linked to these protein name').
+			$q->li('\'chr1:g.216595579G>A\', \'g.6160C>T\', \'c.100C>T\', \'100C>T\', \'IVS15+35G>A\' will look for variants linked to these DNA name').
+			$q->li('Partial names for variants can be used e.g. \'c.100\' or \'IVS15\' will look for variants begining with c.100 or IVS15').
+			$q->li('Special: IVSX+3 will look for any \'+3\' variant').
+			$q->li('Large rearrangements can be found using \'E11-12del\' or \'E11-12\' or \'E11\', however, for diverse reasons e.g. \'E11\' will look for rearrangements beginning or ending in introns 10 to 12 of each gene').
+			$q->li('\'ROYO\', \'royo\' will look for last name').
+			$q->li('\'U283\', \'u283\' will look for family ID').
+			$q->li('And, last but not least, typing a number will seek for patient, family, variants (DNA c. and protein)!').
+		$q->end_ul()."\n";
+	print U2_modules::U2_subs_2::info_panel($text, $q);
+	#$q->span('Example research for search engine:'), 
+	#	$q->start_ul(),
+	#		$q->li('\'SU1034\', \'su1034\', \'CHM52\', \'chm52\' will look for a patient ID'),
+	#		$q->li('\'p.(Arg34*)\', \'p.Arg34*\', \'p.R34*\', \'p.R34X\', \'R34X\' will look for variants linked to these protein name'),
+	#		$q->li('\'chr1:g.216595579G>A\', \'g.6160C>T\', \'c.100C>T\', \'100C>T\', \'IVS15+35G>A\' will look for variants linked to these DNA name'),
+	#		$q->li('Partial names for variants can be used e.g. \'c.100\' or \'IVS15\' will look for variants begining with c.100 or IVS15'),
+	#		$q->li('Special: IVSX+3 will look for any \'+3\' variant'),
+	#		$q->li('Large rearrangements can be found using \'E11-12del\' or \'E11-12\' or \'E11\', however, for diverse reasons e.g. \'E11\' will look for rearrangements beginning or ending in introns 10 to 12 of each gene'),
+	#		$q->li('\'ROYO\', \'royo\' will look for last name'),
+	#		$q->li('\'U283\', \'u283\' will look for family ID'),
+	#		$q->li('And, last but not least, typing a number will seek for patient, family, variants (DNA c. and protein)!'),
+	#	$q->end_ul(),
+	#$q->end_div(),
+	print $q->br(), $q->br(),
 	$q->start_div({'align' => 'center'}),
 		$q->start_a({'href' => 'http://perl.apache.org/', 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/mod_perl.png', 'width' => '100', 'height' => '20'}), $q->end_a(),
 		$q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'),

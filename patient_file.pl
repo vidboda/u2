@@ -60,7 +60,7 @@ my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
 
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
 
 my $q = new CGI;
 

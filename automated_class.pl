@@ -59,7 +59,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $DATABASES_PATH = $config->DATABASES_PATH();
 my $DALLIANCE_DATA_DIR_PATH = $config->DALLIANCE_DATA_DIR_PATH();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT);
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT);
 
 my $q = new CGI;
 
