@@ -1287,7 +1287,7 @@ sub get_raw_data_ce {
 	
 	
 	my $criteria = '';
-	if ($x20*100 < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
+	if ($x20 < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
 	if ($tstv < $U2_modules::U2_subs_1::TITV_CE) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_CE.') '}
 	if ($doc < $U2_modules::U2_subs_1::MDOC_CE) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC_CE.') '}
 	if ($criteria ne '') {return $q->div({'class' => 'w3-red w3-quarter'}, "FAILED $criteria")}
@@ -1313,7 +1313,32 @@ sub get_raw_detail_ce {
 		}
 		elsif (/$sample/) {
 			my @values = split(/\t/, $_);
-			return $values[$index];
+			if ($criteria =~ /UQ_/o) {
+				my $value = 1-($values[$index]*100);
+				return sprintf('%.1f', $value)
+			}
+			elsif ($criteria =~ /PCT_/o) {return sprintf('%.1f', $values[$index]*100)}
+			elsif ($criteria =~ /BASES/o) {return sprintf('%u', $values[$index])}
+			elsif ($criteria =~ /MEAN_/o) {return sprintf('%u', $values[$index])}
+			elsif ($criteria =~ /titv/o) {return sprintf('%.1f', $values[$index])}
+			else {return $values[$index]}
+		}
+	}
+	close F;
+	return 'undef';
+}
+
+sub get_raw_detail_ce_qualimap {
+	my ($dir, $run, $sample, $criteria, $file) = @_;
+	my $value;
+	open F, "$dir/$run/$file" or die "File $dir/$run/$file not found $!";
+	my $index = 0;
+	while (<F>) {
+		chomp;
+		if (/$criteria\s=\s([\d,]+)/) {
+			my $value = $1;
+			$value =~ s/,//og;
+			return $value;
 		}
 	}
 	close F;
