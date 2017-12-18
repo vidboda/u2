@@ -7,6 +7,7 @@ use strict;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_2;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -108,7 +109,7 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 
-print $q->p('You will find below some help concerning USHVaM 2 usage:'), $q->start_ul();
+print U2_modules::U2_subs_2::info_panel('You will find below some help concerning USHVaM 2 usage:', $q), $q->start_ul();
 
 my $dirname = $ABSOLUTE_HTDOCS_PATH.'data/resources';
 
