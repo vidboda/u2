@@ -65,7 +65,7 @@ exit();
 
 sub main {
 	
-	my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css');
+	my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css');
 	
 	my $q = new CGI;
 
@@ -112,7 +112,7 @@ sub main {
 	
 	
 	
-	#U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+	#U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 	
 	
 	
@@ -265,7 +265,7 @@ sub main {
 		
 		if ($query eq '' && $motif ne 'LR') {
 			&header($q, \@styles);
-			U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+			U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 			print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 			print $q->start_p(), $q->strong("Sorry, I did not find anything matching your query in U2 (query: '$recherche'). If you believe I should have found something, please contact David."), $q->end_p();
 		}
@@ -275,7 +275,7 @@ sub main {
 	}
 	else {
 		&header($q, \@styles);
-		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 		print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 		print "--".$q->param('search')."--";
 		U2_modules::U2_subs_1::standard_error('10', $q);
@@ -313,7 +313,7 @@ sub print_results {
 		else {#multiple result
 			if ($call != 3) {
 				&header($q, $style);
-				U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+				U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 				#print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 			}
 			if ($motif eq 'patient_name' || $motif eq 'familyID') {
@@ -371,7 +371,7 @@ sub print_results {
 		}
 		if ($call != 3) {
 			&header($q, , $style);
-			U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+			U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 			#print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 		}		
 		print $q->start_p(), $q->strong("Unknown value as $motif: $recherche."), $q->end_p();

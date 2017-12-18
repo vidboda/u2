@@ -52,6 +52,7 @@ my $HOST = $config->HOST();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
 my $CSS_DEFAULT = $config->CSS_DEFAULT();
+my $CSS_PATH = $config->CSS_PATH();
 my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
@@ -59,7 +60,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $DATABASES_PATH = $config->DATABASES_PATH();
 my $DALLIANCE_DATA_DIR_PATH = $config->DALLIANCE_DATA_DIR_PATH();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT);
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT);
 
 my $q = new CGI;
 
@@ -105,7 +106,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 my $user = U2_modules::U2_users_1->new();
 
 
-U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Basic init
 

@@ -59,7 +59,7 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'datatables.min.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'datatables.min.css');
 
 my $q = new CGI;
 
@@ -130,7 +130,7 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 					-src => $JS_DEFAULT, 'defer' => 'defer'}],		
 				-encoding => 'ISO-8859-1');
 			
-		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 		my @list;
 		if ($sort eq 'ALL') {
 			my $query = 'SELECT DISTINCT(nom[1]) FROM gene ORDER BY nom[1];';

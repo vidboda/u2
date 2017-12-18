@@ -84,11 +84,76 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 # HTML subs
 
 sub standard_begin_html { #prints top of the pages
-	my ($q, $user_name) = @_;
+	my ($q, $user_name, $dbh) = @_;
 	#prints fix_top.html in one div and starts main div , 'src' => $HTDOCS_PATH.'fix_top.shtml'
-	print $q->start_div({'id' => 'page'}), $q->start_div({'id' => 'fixtop'}), $q->end_div(), $q->br(), $q->br(),
-	$q->start_div({'id' => 'internal'}), $q->p({'id' => 'log'}, 'logged in as '.$user_name), $q->br();
+	#print $q->start_div({'id' => 'page'}), $q->start_div({'id' => 'fixtop'}), $q->end_div(), $q->br(), $q->br(),
+	#$q->start_div({'id' => 'internal'}), $q->p({'id' => 'log'}, 'logged in as '.$user_name), $q->br();
 	#$q->start_a({'href' => '#bottom', 'class' => 'print_hidden'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/bottom_arrow.png', 'width' => '23', 'height' => '34', 'border' => '0'}), $q->strong('Go to bottom'), $q->end_a(), $q->br();
+	print $q->start_div({'id' => 'page', 'class' => 'w3-medium'}), $q->start_div({'class' => 'w3-top', 'style' => 'z-index:1002'}),
+		$q->start_div({'id' => 'scroll', 'class' => 'w3-white w3-opacity-min'}),
+			$q->start_div({'id' => 'scroll-bar', 'class' => 'w3-blue', 'style' => 'height:4px;width:0%'}), $q->end_div(),
+		$q->end_div(),
+		$q->start_div({'id' => 'myNavbar', 'class' => 'w3-bar w3-card-2 w3-black'}),
+		$q->start_div({'class' => 'w3-dropdown-hover'}),
+			$q->start_a({'class' => 'w3-button w3-black', 'onclick' => 'window.location="/U2/";'}),$q->start_i({'class' => 'fa fa-home w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
+			$q->end_div(),
+		$q->end_div(),
+		$q->start_div({'class' => 'w3-dropdown-hover'}),
+			$q->start_a({'class' => 'w3-button w3-black'}),$q->start_i({'class' => 'fa fa-stethoscope w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			#$q->a({'class' => 'w3-button w3-large'},'Patients'),
+			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'});
+	#get patients' pathologies
+	my $query = "SELECT pathologie FROM valid_pathologie ORDER BY id;";
+	print $q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/patients.pl?phenotype=all'}, 'ALL'),
+		$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/patients.pl?phenotype=USHER'}, 'USHER');	
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();	
+	while (my $result = $sth->fetchrow_hashref()) {
+		print $q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => "/perl/U2/patients.pl?phenotype=$result->{'pathologie'}"}, $result->{'pathologie'});
+	}
+		#		$q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
+	print 		$q->end_div(),
+		$q->end_div(),
+		$q->start_div({'class' => 'w3-dropdown-hover'}),
+			#$q->start_a({'class' => 'w3-button w3-black'}),$q->start_i({'class' => 'fa fa-dna w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			$q->a({'class' => 'w3-button w3-xlarge'},'Genes'),
+			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=ALL'}, 'ALL'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=USHER'}, 'USHER'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNB'}, 'DFNB'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNA'}, 'DFNA'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNX'}, 'DFNX'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NSRP'}, 'NSRP'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=CHM'}, 'CHM'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=LCA'}, 'LCA'),
+			$q->end_div(),
+		$q->end_div(),
+		$q->start_div({'class' => 'w3-dropdown-hover'}),
+			$q->start_a({'class' => 'w3-button w3-black'}),$q->start_i({'class' => 'fa fa-pie-chart w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			#$q->a({'class' => 'w3-button w3-large'},'Statistics'),
+			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/stats_ngs.pl'}, 'Illumina runs'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/dbsnp_info.pl'}, 'dbSNP'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/stats_general_1.pl'}, 'General Stats'),
+			$q->end_div(),
+		$q->end_div(),
+		$q->start_div({'class' => 'w3-dropdown-hover'}),
+			#$q->a({'class' => 'w3-button w3-large'},'Advanced'),
+			$q->start_a({'class' => 'w3-button w3-black'}),$q->start_i({'class' => 'fa fa-gears w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/automated_class.pl?class=1', 'onclick' => 'info(\'class\');'}, 'Automatic Classification'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/automated_class.pl?neg=1', 'onclick' => 'info(\'neg\');'}, 'Automatic Negative'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/search_controls.pl?step=1'}, 'Search Controls'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/advanced.pl?advanced=non-USH'}, 'USH non-USH'),
+			$q->end_div(),
+		$q->end_div(),		
+		$q->start_a({'class' => 'w3-bar-item w3-button w3-xlarge w3-right', 'href' => '/ushvam2/change_user.php'}), $q->start_i({'class' => 'fa fa-user-times w3-xxlarge'}), $q->end_i(), $q->end_a(),
+		$q->span({'class' => 'w3-bar-item w3-xlarge w3-right'}, "Logged in as $user_name"),
+		$q->end_div(), $q->end_div(), $q->br(), $q->br(),
+		$q->start_div({'id' => 'internal'});	
+	
 }
 
 sub standard_end_html { #prints bottom of the pages

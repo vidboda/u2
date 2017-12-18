@@ -58,7 +58,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
 
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'datatables.min.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'datatables.min.css');
 
 my $q = new CGI;
 
@@ -106,7 +106,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 my $user = U2_modules::U2_users_1->new();
 
 
-U2_modules::U2_subs_1::standard_begin_html($q, $user->getName());
+U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Basic init
 
