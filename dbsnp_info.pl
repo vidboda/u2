@@ -134,8 +134,12 @@ $query = 'SELECT COUNT(DISTINCT(nom[1])) as a FROM gene;';
 $res = $dbh->selectrow_hashref($query);
 my $nb_genes = $res->{'a'};
 
-
-print $q->br(), $q->start_p(), $q->span('When UshVam2 encounters a new variant, it checks in this parallel database of SNP restricted to our regions of interest whether a rs id exists. Until May, 2015, the version of dbSNP used in U2 was 137.'), $q->p('As of May, 2015, we have version 142, then december 2016 version 146 and october 2017 version 150.'), $q->br(), $q->p("U2 uses a local database build from dbSNP but restricted to our regions of interest ($nb_genes genes).");
+my $text = $q->span('When UshVam2 encounters a new variant, it checks in this parallel database of SNP restricted to our regions of interest whether a rs id exists.').
+	$q->br().$q->span('Until May, 2015, the version of dbSNP used in U2 was 137.').
+	$q->br().$q->span('As of May, 2015, we have version 142, then december 2016 version 146 and october 2017 version 150.').
+	$q->br().$q->span("U2 uses a local database build from dbSNP but restricted to our regions of interest ($nb_genes genes).");
+	print U2_modules::U2_subs_2::info_panel($text, $q);
+	#print $q->br(), $q->start_p(), $q->span('When UshVam2 encounters a new variant, it checks in this parallel database of SNP restricted to our regions of interest whether a rs id exists. Until May, 2015, the version of dbSNP used in U2 was 137.'), $q->p('As of May, 2015, we have version 142, then december 2016 version 146 and october 2017 version 150.'), $q->br(), $q->p("U2 uses a local database build from dbSNP but restricted to our regions of interest ($nb_genes genes).");
 
 
 print $q->start_div({'class' => 'container'}), $q->start_table({'class' => 'great_table center technical'}),
