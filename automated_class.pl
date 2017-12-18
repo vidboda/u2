@@ -52,6 +52,7 @@ my $HOST = $config->HOST();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
 my $CSS_DEFAULT = $config->CSS_DEFAULT();
+my $CSS_PATH = $config->CSS_PATH();
 my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
