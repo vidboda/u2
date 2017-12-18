@@ -143,9 +143,11 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 		elsif ($sort eq 'CHM') {@list = @U2_modules::U2_subs_1::CHM}
 		elsif ($sort eq 'LCA') {@list = @U2_modules::U2_subs_1::LCA}
 		elsif ($sort eq 'NSRP') {@list = @U2_modules::U2_subs_1::NSRP}		
-		print $q->start_p({'class' => 'center title'}), $q->start_big(), $q->strong("Gene group: $sort (".($#list+1)." genes)"), $q->end_big(), $q->end_p(), "\n",
-			$q->p('Click on a link to go to the detailed page:');
+		print $q->start_p({'class' => 'center title'}), $q->start_big(), $q->strong("Gene group: $sort (".($#list+1)." genes)"), $q->end_big(), $q->end_p(), "\n";
+		#	$q->p('Click on a link to go to the detailed page:');
 		#	$q->start_ul(), "\n";
+		my $text = $q->span('Click on a link to go to the detailed page:');
+		print U2_modules::U2_subs_2::mini_info_panel($text, $q);
 		
 		print $q->start_div({'class' => 'fitin container'}), $q->start_table({'class' => 'great_table technical', 'id' => 'gene_table', 'data-page-length' => '25'}), $q->caption("Genes table:"), $q->start_thead(),
 					$q->start_Tr(), "\n",
