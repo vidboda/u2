@@ -71,7 +71,7 @@ my $CLINICAL_EXOME_METRICS_SOURCES = $config->CLINICAL_EXOME_METRICS_SOURCES();
 
 #end
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css');
 
 my $q = new CGI;
 
