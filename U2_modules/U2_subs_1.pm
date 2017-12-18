@@ -89,11 +89,11 @@ sub standard_begin_html { #prints top of the pages
 	#print $q->start_div({'id' => 'page'}), $q->start_div({'id' => 'fixtop'}), $q->end_div(), $q->br(), $q->br(),
 	#$q->start_div({'id' => 'internal'}), $q->p({'id' => 'log'}, 'logged in as '.$user_name), $q->br();
 	#$q->start_a({'href' => '#bottom', 'class' => 'print_hidden'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/bottom_arrow.png', 'width' => '23', 'height' => '34', 'border' => '0'}), $q->strong('Go to bottom'), $q->end_a(), $q->br();
-	print $q->start_div({'id' => 'page', 'class' => 'w3-large'}), $q->start_div({'class' => 'w3-top'}),
+	print $q->start_div({'id' => 'page', 'class' => 'w3-large'}), $q->start_div({'class' => 'w3-top', 'style' => 'z-index:1002'}),
 		$q->start_div({'id' => 'scroll', 'class' => 'w3-white w3-opacity-min'}),
 			$q->start_div({'id' => 'scroll-bar', 'class' => 'w3-blue', 'style' => 'height:4px;width:0%'}), $q->end_div(),
 		$q->end_div(),
-		$q->start_div({'id' => 'myNavbar', 'class' => 'w3-bar w3-card-2 w3-black w3-opacity-min'}),
+		$q->start_div({'id' => 'myNavbar', 'class' => 'w3-bar w3-card-2 w3-black'}),
 		$q->start_div({'class' => 'w3-dropdown-hover'}),
 			$q->a({'class' => 'w3-button w3-large', 'onclick' => 'window.location="/U2/";'},'Home'),
 			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
@@ -144,9 +144,9 @@ sub standard_begin_html { #prints top of the pages
 				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/search_controls.pl?step=1'}, 'Search Controls'),
 				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/advanced.pl?advanced=non-USH'}, 'USH non-USH'),
 			$q->end_div(),
-		$q->end_div(),
+		$q->end_div(),		
+		$q->start_a({'class' => 'w3-bar-item w3-button w3-xlarge w3-right', 'href' => '/ushvam2/change_user.php'}), $q->start_i({'class' => 'fa fa-user-times w3-xlarge'}), $q->end_i(), $q->end_a(),
 		$q->span({'class' => 'w3-bar-item w3-large w3-right'}, "Logged in as $user_name"),
-		$q->start_a({'class' => 'w3-bar-item w3-button w3-large w3-right', 'href' => '/ushvam2/change_user.php'}), $q->start_i({'class' => 'fa fa-user-times'}), $q->end_i(), $q->end_a(),
 		$q->end_div(), $q->end_div(), $q->br(), $q->br(),
 		$q->start_div({'id' => 'internal'});	
 	
