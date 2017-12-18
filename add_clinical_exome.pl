@@ -163,34 +163,75 @@ if ($user->isAnalyst() == 1) {
 			print $q->p("Sorry, no Clinical exome to import for $id$number");
 		}
 	}
-	elsif ($step == 3) {		
+	elsif ($step == 3) {	#step 3 => actual import	
 		my $query = "SELECT filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
 		my $res = $dbh->selectrow_hashref($query);
 		my $filtered = $res->{'filtering_possibility'};
 		my %sample_hash = U2_modules::U2_subs_2::build_sample_hash($q, $analysis, $filtered);
+		my $run = U2_modules::U2_subs_1::check_illumina_run_id($q);
+		my $insert_run = "INSERT INTO illumina_run (id) VALUES ('$run');";
+		
+		#$dbh->do($insert_run);
+		
+		print $q->p($insert_run);
+		
 		#sample and filters do not arrive the same way
 		while (my ($sampleid, $filter) = each(%sample_hash)) {
 			#get log's number
-			my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
-			my $run = U2_modules::U2_subs_1::check_illumina_run_id($q);
+			my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);			
 			my $nenufaar_log = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/*.log | xargs basename`;
 			$nenufaar_log =~ /_(\d+).log/og;
 			my $nenufaar_id = $1;
 			my $data_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/$id$number/$nenufaar_id/";
-			print $q->p(`ls $data_path`);
+			my $global_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/";
+			#print $q->p(`ls $data_path`);
+			#get all metrics
+			my ($aligned_bases, $ontarget_bases, $aligned_reads, $insert_size_median, $mean_doc, $twentyx_doc, $fiftyx_doc, $snp_num, $indel_num, $duplicates, $snp_tstv, $insert_size_sd);
+			my $metrics = {#u2label => [file_name, filelabel, u2table, value]
+				'aligned_bases' => ['multiqc_data/multiqc_picard_HsMetrics.txt', 'PF_BASES_ALIGNED', 'miseq_analysis', ''],
+				'ontarget_bases' => ['multiqc_data/multiqc_picard_HsMetrics.txt', 'ON_TARGET_BASES', 'miseq_analysis', ''],
+				'aligned_reads' => ["$id$number/$nenufaar_id/genome_results.txt", 'number of mapped reads', 'miseq_analysis', ''],
+				'insert_size_median' => ["$id$number/$nenufaar_id/genome_results.txt", 'median insert size', 'miseq_analysis', ''],
+				'mean_doc' => ['multiqc_data/multiqc_picard_HsMetrics.txt', 'MEAN_TARGET_COVERAGE', 'miseq_analysis', ''],
+				'twentyx_doc' => ['multiqc_data/multiqc_picard_HsMetrics.txt', 'PCT_TARGET_BASES_20X', 'miseq_analysis', ''],
+				'fiftyx_doc' => ['multiqc_data/multiqc_picard_HsMetrics.txt', 'PCT_TARGET_BASES_50X', 'miseq_analysis', ''],
+				'snp_num' => ['multiqc_data/multiqc_gatk_varianteval.txt', 'snps', 'miseq_analysis', ''],
+				'duplicates' => ['multiqc_data/multiqc_picard_HsMetrics.txt', 'PCT_PF_UQ_READS', 'miseq_analysis', ''],
+				'snp_tstv' => ['multiqc_data/multiqc_gatk_varianteval.txt', 'known_titv', 'miseq_analysis', ''],
+				#'insert_size_sd' => ["$id$number/$nenufaar_id/genome_results.txt", 'std insert size', 'miseq_analysis', ''], résultats très surprenants de qualimap
+			};
+			my $insert_metrics = "INSERT INTO miseq_analysis('num_pat', 'id_pat', 'type_analyse', 'run_id, 'filter', ";
+			my ($col, $val);
+			foreach my $u2_key (sort keys (%{$metrics})) {				
+				$col .= "'$u2_key', ";
+				if ($metrics->{$u2_key}->[0] =~ /multiqc/o) {
+					$val .= "'".U2_modules::U2_subs_2::get_raw_detail_ce($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0])."', ";
+					#$metrics->{$u2_key}->[3] = U2_modules::U2_subs_2::get_raw_detail_ce($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0]);	
+				}
+				else {
+					$val .= "'".U2_modules::U2_subs_2::get_raw_detail_ce_qualimap($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0])."', ";
+					#$metrics->{$u2_key}->[3] = U2_modules::U2_subs_2::get_raw_detail_ce_qualimap($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0]);
+				}
+				#print $q->p($u2_key.'-'.$metrics->{$u2_key}->[1].'-'.$metrics->{$u2_key}->[3]);
+			}
+			chop($col);chop($col);
+			chop($val);chop($val);
+			$insert_metrics .= "$col) VALUES ('$number', '$id', '$analysis', '$run', '$filter', $val.');";
+			
+			#$dbh->do($insert_metrics);
+			
+			print $q->p($insert_metrics);
+			
+			#now get left normed vcf and treat it
+			open F, $data_path."$id$number.final.vcf.norm.vcf" or die "can't find normalised vcf for $id$number $!";
+			while (<F>) {
+				#print $_;
+			}
+			close F;
+			
+			
 		}
-	}
-	#step 3 => actual import
-	
-	#to do in part 3
-				#get log's number
-				#my $nenufaar_log = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/*.log | xargs basename`;
-				#$nenufaar_log =~ /_(\d+).log/og;
-				#my $nenufaar_id = $1;
-				#my $data_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/$id$number/$nenufaar_id/";
-				#print `ls $data_path`;
-	
-	
+	}	
 }
 else {U2_modules::U2_subs_1::standard_error('13', $q)}
 
