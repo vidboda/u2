@@ -8,6 +8,7 @@ use URI::Escape::XS qw/uri_escape uri_unescape/;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_2;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -120,16 +121,26 @@ my $step = U2_modules::U2_subs_1::check_step($q);
 
 if ($step == 1) {
 	#build form
-	print $q->br(), $q->p({'class' => 'w3-margin'}, "This function will alow you to select candidates controls based on the following rules:"),
-	$q->start_div({'class' => 'w3-container', 'style' => 'width:50%'}), $q->start_ul({'class' => 'w3-ul w3-hoverable'}),
-		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The patient MUST be a proband AND"),
-		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "MUST have been sequenced either by Sanger or NGS in the specified gene OR"),
-		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "Only by NGS for UTRs AND"),
-		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The sequencing analyses MUST NOT report variants in the selected exon and flanking introns AND"),
-		$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "For genes included in USHVaM (USH genes mainly), the exon MUST NOT be reported as not analysed."),
-		$q->end_ul(), $q->end_div(), "\n",
-		$q->p({'class' => 'w3-margin'}, "Fill in the form below by choosing a gene and an exon:"), $q->br(),
-		$q->start_div({'align' => 'center'}),
+	my $text = $q->span('This function will alow you to select candidates controls based on the following rules:').$q->br().
+		$q->start_ul({'class' => 'w3-ul w3-hoverable'}).
+				$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The patient MUST be a proband AND").
+				$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "MUST have been sequenced either by Sanger or NGS in the specified gene OR").
+				$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "Only by NGS for UTRs AND").
+				$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The sequencing analyses MUST NOT report variants in the selected exon and flanking introns AND").
+				$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "For genes included in USHVaM (USH genes mainly), the exon MUST NOT be reported as not analysed.").
+		$q->end_ul().$q->br().
+		$q->span('Fill in the form below by choosing a gene and an exon:');
+	print $q->start_div({'style' => 'width:70%'}).U2_modules::U2_subs_2::info_panel($text, $q).$q->end_div();
+	#print $q->br(), $q->p({'class' => 'w3-margin'}, "This function will alow you to select candidates controls based on the following rules:"),
+	#$q->start_div({'class' => 'w3-container', 'style' => 'width:50%'}), $q->start_ul({'class' => 'w3-ul w3-hoverable'}),
+	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The patient MUST be a proband AND"),
+	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "MUST have been sequenced either by Sanger or NGS in the specified gene OR"),
+	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "Only by NGS for UTRs AND"),
+	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The sequencing analyses MUST NOT report variants in the selected exon and flanking introns AND"),
+	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "For genes included in USHVaM (USH genes mainly), the exon MUST NOT be reported as not analysed."),
+	#	$q->end_ul(), $q->end_div(), "\n",
+	#	$q->p({'class' => 'w3-margin'}, "Fill in the form below by choosing a gene and an exon:"), $q->br(),
+	print 	$q->start_div({'align' => 'center'}),
 			$q->start_form({'action' => '', 'method' => 'post', 'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin w3-large', 'id' => 'exon_form', 'enctype' => &CGI::URL_ENCODED, 'style' => 'width:50%'}),
 			$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2'}), "\n",
 			#$q->start_fieldset(),
