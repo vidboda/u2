@@ -163,7 +163,7 @@ my ($gene, $second) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 my ($first_name, $last_name) = U2_modules::U2_subs_2::get_patient_name($id, $number, $dbh);
 
 
-print $q->start_p({'class' => 'center'}), $q->start_big(), $q->span("Sample "), $q->strong({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(": Results for "), $q->strong("$first_name $last_name"), $q->span(" in "), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(" ($second)"), $q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), $q->br(), "\n";
+print $q->start_p({'class' => 'center'}), $q->start_big(), $q->span("Sample "), $q->strong({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(": Results for "), $q->strong("$first_name $last_name"), $q->span(" in "), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(" ($second)"), $q->end_strong(), $q->end_big(), $q->end_p(), "\n";
 
 #defines gene strand
 
@@ -174,7 +174,7 @@ my ($direction, $main_acc, $acc_g, $acc_v) = U2_modules::U2_subs_2::get_directio
 my $text = $q->strong("Default isoform: ").$q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$main_acc.$acc_v", 'target' => '_blank'}, "$main_acc.$acc_v");
 print U2_modules::U2_subs_2::info_panel($text, $q);
 #print $q->start_p(), $q->strong("Default isoform: "), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$main_acc.$acc_v", 'target' => '_blank'}, "$main_acc.$acc_v"), $q->end_p(),
-print 	$q->start_table({'class' => 'zero_table width_general'}),
+print 	$q->start_table({'class' => 'zero_table width_general w3-small'}),
 		$q->start_Tr(), $q->start_td({'class' => 'zero_td'});
 		
 U2_modules::U2_subs_2::print_filter($q);
@@ -198,7 +198,7 @@ my ($mini, $maxi) = U2_modules::U2_subs_2::get_interval($first_name, $last_name,
 #print $q->p('Click on an exon/intron number and watch IGV move!!!');
 #begin table
 
-print $q->br(), $q->start_div({'class' => 'patient_file_frame hidden print_hidden', 'id' => 'details', 'onmouseover' => "\$(this).hide();\$(this).html(\'<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...\')"}), $q->img({'src' => $HTDOCS_PATH."data/img/loading.gif", 'class' => 'loading'}), $q->span('loading...'), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->start_div({'align' => 'center'}), $q->start_table({'class' => 'geno'}), $q->caption("Genotype table:"),
+print $q->br(), $q->start_div({'class' => 'patient_file_frame hidden print_hidden w3-small', 'id' => 'details', 'onmouseover' => "\$(this).hide();\$(this).html(\'<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...\')"}), $q->img({'src' => $HTDOCS_PATH."data/img/loading.gif", 'class' => 'loading'}), $q->span('loading...'), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->start_div({'align' => 'center'}), $q->start_table({'class' => 'geno w3-small'}), $q->caption("Genotype table:"),
 	$q->start_Tr(), "\n",
 		$q->th({'width' => '6%'}, 'Exon/Intron'), "\n",
 		$q->th({'width' => '23%'}, 'Allele 1'), "\n",
