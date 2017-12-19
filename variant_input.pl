@@ -156,7 +156,11 @@ if ($step == 1) { #insert form and possibility to create variants.
 		$q->start_li(), "\n",
 			$q->label({'for' => 'allele'}, 'Allele:'), "\n",
 			$q->popup_menu(-name => 'allele', -id => 'allele', -values => \@alleles, -default => $default_allele, required => 'required'), "\n",
-		$q->end_li(), "\n",		
+		$q->end_li(), "\n", $q->br(),
+		$q->start_li(), "\n",
+			$q->label({'for' => 'denovo'}, 'De novo:'), "\n",
+			$q->input({'type' => 'checkbox', 'name' => 'denovo', 'id' => 'denovo'}), "\n",
+		$q->end_li(), "\n",	
 		$q->end_ol(), $q->end_fieldset(), $q->end_form();
 }
 elsif ($step == 2) { #insert variant and print
@@ -174,6 +178,7 @@ elsif ($step == 2) { #insert variant and print
 		$cdna = lcfirst($cdna);
 		my $status = U2_modules::U2_subs_1::check_status($q);
 		my $allele = U2_modules::U2_subs_1::check_allele($q);
+		my $denovo = U2_modules::U2_subs_1::check_denovo($q);
 		
 		###1st check variant does not exist
 		my $query = "SELECT nom FROM variant WHERE nom = '$cdna' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc_no';";
@@ -555,7 +560,7 @@ elsif ($step == 2) { #insert variant and print
 								#print $insert;exit;
 								$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";
 								
-								$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele) VALUES ('$variant', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele');\n";
+								$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$variant', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";
 								
 								#print $insert;
 								$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
@@ -582,7 +587,18 @@ elsif ($step == 2) { #insert variant and print
 				#print "NEW VARIANT $variant, $status, allele: $allele";
 				if ($semaph_error == 0) {
 					#print $q->span("Added: ".ucfirst($type_segment)." $nom: $variant, $status, allele: $allele, class: ").$q->span({'style' => 'color:#969696;'}, "unknown&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"});
-					print $q->td("Added: ".ucfirst($type_segment)." ".$nom).$q->td($variant).$q->td({'id' => "wstatus$j"}, $status).$q->td({'id' => "wallele$j"}, $allele).$q->td({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($classe, $dbh).";"}, $classe).$q->start_td().$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"}).$q->end_td().$q->start_td().$q->a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($variant)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');"}, 'Modify').$q->end_td();
+					if ($denovo eq 'true') {$denovo = '_denovo'}
+					else {$denovo = ''}
+					print $q->td("Added: ".ucfirst($type_segment)." ".$nom).
+						$q->td($variant).$q->td({'id' => "wstatus$j"}, $status).
+						$q->td({'id' => "wallele$j"}, $allele.$denovo).
+						$q->td({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($classe, $dbh).";"}, $classe).
+						$q->start_td().
+							$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"}).
+						$q->end_td().
+						$q->start_td().
+							$q->a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($variant)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');"}, 'Modify').
+						$q->end_td();
 					#print $q->span("Added: ".ucfirst($type_segment)." $nom: $variant, ").$q->span({'id' => "w$j"}, "$status, allele: $allele, class: ").$q->span({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($classe, $dbh).";"}, "$classe&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($variant)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');\$(\"#dialog-form-status\").dialog(\"open\");"}).$q->span({'class' => 'list'}, "Status&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a();
 				}
 			}
@@ -598,21 +614,33 @@ elsif ($step == 2) { #insert variant and print
 		my $cdna = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
 		my $status = U2_modules::U2_subs_1::check_status($q);
 		my $allele = U2_modules::U2_subs_1::check_allele($q);
+		my $denovo = U2_modules::U2_subs_1::check_denovo($q);
 		my $query = "SELECT nom_c FROM variant2patient WHERE nom_c = '$cdna' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc_no' AND num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$technique';";
 		my $res = $dbh->selectrow_hashref($query);
 		if (!$res->{'nom_c'}) {
-			my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele) VALUES ('$cdna', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$technique', '$status', '$allele');";
+			my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$cdna', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');";
 			my $query = "SELECT classe FROM variant WHERE nom = '$cdna' AND nom_gene[1] = '$gene';";
 			my $res_classe = $dbh->selectrow_hashref($query);
 			$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
 			##update 05/12/2015 add allele and status should modifiy existing e.g. if allele already exists as 'unknown' post to miseq sequencing and we here add an allele 1 by Sanger, should change miseq allele
 			## not relevant by definition when creating new variants above
-			my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND nom_gene[1] = '$gene';";
+			my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele', denovo = '$denovo' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND nom_gene[1] = '$gene';";
 			$dbh->do($update) or die "Error when updating the analysis, there must be a mistake somewhere $!";	
 			
 			if ($type !~ /on/o) {$type = ''}
 			#print $q->span("Added: ".ucfirst($type)." $nom: $cdna, $status, allele: $allele, class: ").$q->span({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($res_classe->{'classe'}, $dbh).";"}, $res_classe->{'classe'}."&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($cdna)."', 'v$j');"});
-			print $q->td("Added: ".ucfirst($type)." ".$nom).$q->td($cdna).$q->td({'id' => "wstatus$j"}, $status).$q->td({'id' => "wallele$j"}, $allele).$q->td({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($res_classe->{'classe'}, $dbh).";"}, $res_classe->{'classe'}).$q->start_td().$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($cdna)."', 'v$j');"}).$q->end_td().$q->start_td().$q->a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($cdna)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');"}, 'Modify').$q->end_td();
+			if ($denovo eq 'true') {$denovo = '_denovo'}
+			else {$denovo = ''}
+			print $q->td("Added: ".ucfirst($type)." ".$nom).
+				$q->td($cdna).$q->td({'id' => "wstatus$j"}, $status).
+				$q->td({'id' => "wallele$j"}, $allele.$denovo).
+				$q->td({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($res_classe->{'classe'}, $dbh).";"}, $res_classe->{'classe'}).
+				$q->start_td().
+					$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($cdna)."', 'v$j');"}).
+				$q->end_td().
+				$q->start_td().
+					$q->a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($cdna)."', '$gene', '$id$number', '$technique', 'v$j');"}, 'Modify').
+				$q->end_td();
 			#print $q->span("Added: ".ucfirst($type)." $nom: $cdna, ").$q->span({'id' => "w$j"}, "$status, allele: $allele, class: ").$q->span({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($res_classe->{'classe'}, $dbh).";"}, $res_classe->{'classe'}."&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($cdna)."', 'v$j');"}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($cdna)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');"}).$q->span({'class' => 'list'}, "Status&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a();
 		}		
 	}

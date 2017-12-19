@@ -513,10 +513,8 @@ sub genotype_line_optimised { #prints a line in the genotype table
 				$q->td({'bgcolor' => $allele1}, '&nbsp;'), $q->td('&nbsp;'), "\n",			
 				$q->td({'bgcolor' => $allele2}, '&nbsp;'), "\n";
 		}
-			
-		print $q->td(lc($type_analyse));
-		
-		
+		my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($var->{'denovo'});
+		print $q->start_td().$q->span(lc($type_analyse)).$q->strong($denovo_txt).$q->end_td();		
 		if ($var->{'snp_id'}) {print $q->start_td(), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?rs=$var->{'snp_id'}", 'target' => '_blank'}, $var->{'snp_id'}), $q->end_td()}
 		else {print $q->td()}
 		

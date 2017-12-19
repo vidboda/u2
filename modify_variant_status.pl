@@ -80,9 +80,11 @@ my $step = U2_modules::U2_subs_1::check_step($q);
 
 
 if ($step == 1) { #insert form
-	my $query = "SELECT statut, allele FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$technique' AND nom_gene[1] = '$gene' AND nom_c = '$cdna';";
+	my $query = "SELECT statut, allele, denovo FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$technique' AND nom_gene[1] = '$gene' AND nom_c = '$cdna';";
 	my $res = $dbh->selectrow_hashref($query);
-	my ($status, $allele) = ($res->{'statut'}, $res->{'allele'});
+	my ($status, $allele, $denovo) = ($res->{'statut'}, $res->{'allele'}, $res->{'denovo'});
+	my $checked = '';
+	if ($denovo == 1) {$checked = 'checked'}
 	print $q->p({'class' => 'title'}, "$id$number $gene $cdna");	
 	my @status = ('heterozygous', 'homozygous', 'hemizygous');
 	my @alleles = ('unknown', 'both', '1', '2');
@@ -102,19 +104,29 @@ if ($step == 1) { #insert form
 						$q->start_li(), "\n",
 							$q->label({'for' => 'allele'}, 'Allele:'), "\n",
 							$q->popup_menu(-name => 'allele_modify', -id => 'allele_modify', -values => \@alleles, -default => $allele, required => 'required'), "\n",
-						$q->end_li(), "\n",		
+						$q->end_li(), $q->br(), $q->br(),  "\n",
+						$q->start_li(), "\n",
+							$q->label({'for' => 'denovo'}, 'De novo:'), "\n",
+							$q->start_input({'type' => 'checkbox', 'name' => 'denovo_modify', 'id' => 'denovo_modify', $checked}), $q->end_input(), "\n",
+						$q->end_li(), "\n",	
 						$q->end_ol(), $q->end_fieldset(), $q->end_form();
 }
 elsif ($step == 2) {
 
 	my $status = U2_modules::U2_subs_1::check_status_modify($q);
 	my $allele = U2_modules::U2_subs_1::check_allele_modify($q);
+	my $denovo = U2_modules::U2_subs_1::check_denovo_modify($q);
+	#my $denovo = $q->param('denovo');
 	#my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$technique';";
 	#changed 05/12/2015 Update of allele and status must be done whatever the analysis - add also the gene to avoid changing anothe variant in another gene with the same name
-	my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND nom_gene[1] = '$gene';";
+	#we lack analysis for other sample of same patient
+	my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele', denovo = '$denovo' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND nom_gene[1] = '$gene';";
+	
 	$dbh->do($update) or die "Error when updating the analysis, there must be a mistake somewhere $!";
+	if ($denovo eq 'true') {$denovo = '_denovo'}
+	else {$denovo = ''}
 	#print "$status, allele: $allele, class: ";
-	print "$status-$allele";
+	print "$status-$allele$denovo";
 }
 
 

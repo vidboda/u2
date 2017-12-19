@@ -512,6 +512,11 @@ sub check_allele {
 	if ($q->param('allele') =~ /(1|2|both|unknown)/o) {return $1}
 	else {&standard_error('16', $q)}
 }
+sub check_denovo {
+	my ($q) = shift;
+	if ($q->param('denovo') =~ /(true)/o) {return $1}
+	else {return 'false'}
+}
 sub check_status_modify {
 	my ($q) = shift;
 	if ($q->param('status_modify') =~ /(homozygous|heterozygous|hemizygous)/o) {return $1}
@@ -521,6 +526,11 @@ sub check_allele_modify {
 	my ($q) = shift;
 	if ($q->param('allele_modify') =~ /(1|2|both|unknown)/o) {return $1}
 	else {&standard_error('16', $q)}
+}
+sub check_denovo_modify {
+	my ($q) = shift;
+	if ($q->param('denovo_modify') =~ /(true)/o) {return $1}
+	else {return 'false'}
 }
 #used in add_analysis.pl, ajax.pl
 sub check_analysis {
@@ -1008,6 +1018,12 @@ sub translate_boolean_class {
 	if (defined($boolean) && $boolean == 1) {return 'yes'}
 	elsif(defined($boolean)) {return 'no'}
 	else {return 'undefined'}
+}
+
+sub translate_boolean_denovo {
+	my ($boolean) = shift;
+	if (defined($boolean) && $boolean == 1) {return '_denovo'}
+	else {return ''}
 }
 
 sub translate_valide_human {

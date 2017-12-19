@@ -107,7 +107,7 @@ my $js = "
 				       \$.ajax({
 					       type: \"POST\",
 					       url: \"variant_input.pl\",
-					       data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, sample: \$(\"#sample\").val(), analysis: \$(\"#technique\").val(), existing_variant: \$(\"#existing_variant\").val(), new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, status: \$(\"#status\").val(), allele: \$(\"#allele\").val(), ng_accno: \$(\"#ng_accno\").val(), j: j}
+					       data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, sample: \$(\"#sample\").val(), analysis: \$(\"#technique\").val(), existing_variant: \$(\"#existing_variant\").val(), new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, status: \$(\"#status\").val(), allele: \$(\"#allele\").val(), ng_accno: \$(\"#ng_accno\").val(), j: j, denovo: \$(\"#denovo\").prop('checked')}
 					       })
 				       .done(function(msg) {
 						if (msg !== '') {\$(\"#genotype tr:last\").after('<tr id=\"v'+j+'\" class=\"var\">'+msg+'</tr>')};
@@ -143,7 +143,7 @@ my $js = "
 				       \$.ajax({
 					       type: \"POST\",
 					       url: \"modify_variant_status.pl\",
-					       data: {nom_c: \$(\"#nom_c\").val(), gene: \$(\"#gene\").val(), step: 2, sample: \$(\"#sample\").val(), analysis: \$(\"#technique\").val(), status_modify: \$(\"#status_modify\").val(), allele_modify: \$(\"#allele_modify\").val(), j: \$(\"#j\").val()}
+					       data: {nom_c: \$(\"#nom_c\").val(), gene: \$(\"#gene\").val(), step: 2, sample: \$(\"#sample\").val(), analysis: \$(\"#technique\").val(), status_modify: \$(\"#status_modify\").val(), allele_modify: \$(\"#allele_modify\").val(), j: j, denovo_modify: \$(\"#denovo_modify\").prop('checked')}
 					       })
 				       .done(function(msg) {
 					       //alert(j);
@@ -180,7 +180,7 @@ my $js = "
 		//\$(\"#fill_in\").text(type+\" - \"+nom+\" - \"+acc_no);
 		setDialogForm();
 	 }
-	 function createFormStatus(nom_c, gene, sample, technique, html_id, status, allele) {
+	 function createFormStatus(nom_c, gene, sample, technique, html_id) {
 		\$.ajax({
 			type: \"POST\",
 			url: \"modify_variant_status.pl\",
@@ -354,8 +354,8 @@ if ($user->isAnalyst() == 1) {
 	if ($step == 1) {#form to create analysis
 		my $query = "SELECT pathologie FROM patient WHERE numero = '$number' and identifiant = '$id';";
 		my $res_patho = $dbh->selectrow_hashref($query);
-		print $q->br(), $q->br(), $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->span("Access/create an analysis for "), $q->span({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(" ($res_patho->{'pathologie'}):"), $q->end_strong(), $q->end_big(),
-				$q->end_p(), $q->br(), $q->br(), "\n",
+		print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->span("Access/create an analysis for "), $q->span({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(" ($res_patho->{'pathologie'}):"), $q->end_strong(), $q->end_big(),
+				$q->end_p(), "\n",
 				$q->start_div({'align' => 'center'}), "\n",
 				$q->start_form({'action' => '', 'method' => 'post', 'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'id' => 'analysis_form', 'enctype' => &CGI::URL_ENCODED, 'style' => 'width:50%'}), "\n",
 				$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', form => 'analysis_form'}), "\n",
@@ -750,8 +750,16 @@ if ($user->isAnalyst() == 1) {
 				#$to_fill_table = $q->start_div({'class' => 'fented_noleft container'}).$q->start_table({'class' => 'great_table technical', 'id' => 'genotype'});
 				#if ($res->{'analyste'} ne '') {$to_fill = $q->li("$analysis by $res->{'analyste'}, $res->{'date_analyse'}");$to_fill_table .= $q->caption("$analysis by $res->{'analyste'}, $res->{'date_analyse'}")."\n";}
 				if ($res->{'analyste'} ne '') {$to_fill_table .= $q->caption("$analysis by $res->{'analyste'}, $res->{'date_analyse'}")."\n"}
-				$to_fill_table .= $q->start_Tr().$q->th({'class' => 'left_general'}, 'Position').$q->th({'class' => 'left_general'}, 'Variant').$q->th({'class' => 'left_general'}, 'Status').$q->th({'class' => 'left_general'}, 'Allele').$q->th({'class' => 'left_general'}, 'Class').$q->th({'class' => 'left_general'}, 'Delete').$q->th({'class' => 'left_general'}, 'Status Link').$q->end_Tr()."\n";
-				$query = "SELECT a.nom_c, a.statut, a.allele, b.type_segment, b.classe, c.nom FROM variant2patient a, variant b, segment c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene = c.nom_gene AND b.num_segment = c.numero AND b.type_segment = c.type AND a.num_pat = '$number' AND a.id_pat = '$id' AND a.nom_gene[1] = '$gene' AND a.type_analyse = '$analysis' ORDER by b.nom_g $order;";	
+				$to_fill_table .= $q->start_Tr().
+							$q->th({'class' => 'left_general'}, 'Position').
+							$q->th({'class' => 'left_general'}, 'Variant').
+							$q->th({'class' => 'left_general'}, 'Status').
+							$q->th({'class' => 'left_general'}, 'Allele').
+							$q->th({'class' => 'left_general'}, 'Class').
+							$q->th({'class' => 'left_general'}, 'Delete').
+							$q->th({'class' => 'left_general'}, 'Status Link').
+						$q->end_Tr()."\n";
+				$query = "SELECT a.nom_c, a.statut, a.allele, a.denovo, b.type_segment, b.classe, c.nom FROM variant2patient a, variant b, segment c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene = c.nom_gene AND b.num_segment = c.numero AND b.type_segment = c.type AND a.num_pat = '$number' AND a.id_pat = '$id' AND a.nom_gene[1] = '$gene' AND a.type_analyse = '$analysis' ORDER by b.nom_g $order;";	
 				my $sth = $dbh->prepare($query);
 				my $res2 = $sth->execute();
 				my $j;
@@ -762,7 +770,21 @@ if ($user->isAnalyst() == 1) {
 					#if ($result->{'type_segment'} =~ /on/o) {$to_fill .= $q->span(ucfirst($result->{'type_segment'}));$to_fill_table .= $q->span(ucfirst($result->{'type_segment'}));}
 					if ($result->{'type_segment'} =~ /on/o) {$to_fill_table .= $q->span(ucfirst($result->{'type_segment'}));}
 					#$to_fill .= $q->span(" $result->{'nom'}: $result->{'nom_c'}, ").$q->span({'id' => "w$j"}, "$result->{'statut'}, allele: $result->{'allele'}, class: ").$q->span({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh).";"}, $result->{'classe'}."&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$analysis', '".uri_encode($result->{'nom_c'})."', 'v$j');"}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($result->{'nom_c'})."', '$gene', '$id$number', '$analysis', 'v$j', '$result->{'statut'}', '$result->{'allele'}');"}).$q->span({'class' => 'list'}, "Status&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_li()."\n";
-					$to_fill_table .= $q->span(" $result->{'nom'}").$q->end_td().$q->td($result->{'nom_c'}).$q->td({'id' => "wstatus$j"}, $result->{'statut'}).$q->td({'id' => "wallele$j"}, $result->{'allele'}).$q->td({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh).";"}, $result->{'classe'}).$q->start_td().$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$analysis', '".uri_encode($result->{'nom_c'})."', 'v$j');"}).$q->end_td().$q->start_td().$q->a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($result->{'nom_c'})."', '$gene', '$id$number', '$analysis', 'v$j', '$result->{'statut'}', '$result->{'allele'}');"}, "Modify").$q->end_td().$q->end_Tr()."\n";
+					my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
+					#if ($result->{'denovo'} == 1) {$denovo_txt = '_denovo'}
+					$to_fill_table .= $q->span(" $result->{'nom'}").
+						$q->end_td().
+						$q->td($result->{'nom_c'}).
+						$q->td({'id' => "wstatus$j"}, $result->{'statut'}).
+						$q->td({'id' => "wallele$j"}, $result->{'allele'}.$denovo_txt).
+						$q->td({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh).";"}, $result->{'classe'}).
+						$q->start_td().
+							$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$analysis', '".uri_encode($result->{'nom_c'})."', 'v$j');"}).
+						$q->end_td().
+						$q->start_td().
+							$q->a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($result->{'nom_c'})."', '$gene', '$id$number', '$analysis', 'v$j');"}, "Modify").
+						$q->end_td().
+					$q->end_Tr()."\n";
 				}
 				#$to_fill .= $q->br();
 				$to_fill_table .= $q->end_table().$q->end_div();
@@ -811,11 +833,19 @@ if ($user->isAnalyst() == 1) {
 				$result_ana_class = U2_modules::U2_subs_1::translate_boolean_class();
 				$bio_val = U2_modules::U2_subs_1::translate_boolean('0');
 				$bio_val_class = U2_modules::U2_subs_1::translate_boolean_class('0');
-				$to_fill_table .= $q->start_Tr().$q->th({'class' => 'left_general'}, 'Position').$q->th({'class' => 'left_general'}, 'Variant').$q->th({'class' => 'left_general'}, 'Status').$q->th({'class' => 'left_general'}, 'Allele').$q->th({'class' => 'left_general'}, 'Class').$q->th({'class' => 'left_general'}, 'Delete').$q->th({'class' => 'left_general'}, 'Status Link').$q->end_Tr()."\n";
+				$to_fill_table .= $q->start_Tr().
+							$q->th({'class' => 'left_general'}, 'Position').
+							$q->th({'class' => 'left_general'}, 'Variant').
+							$q->th({'class' => 'left_general'}, 'Status').
+							$q->th({'class' => 'left_general'}, 'Allele').
+							$q->th({'class' => 'left_general'}, 'Class').
+							$q->th({'class' => 'left_general'}, 'Delete').
+							$q->th({'class' => 'left_general'}, 'Status Link').
+						$q->end_Tr()."\n";
 			}
 				
-			print $q->br(), $q->br(), $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em($gene), $q->span(" $analysis for "),
-				$q->span({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(':'), $q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), $q->br(), "\n";
+			print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em($gene), $q->span(" $analysis for "),
+				$q->span({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(':'), $q->end_strong(), $q->end_big(), $q->end_p(), "\n";
 				
 			if ($step == 2) {
 				my $text =  $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-blue'}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants.")."\n";
@@ -824,11 +854,7 @@ if ($user->isAnalyst() == 1) {
 				print $q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
 				#print $q->start_p(), $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants."), $q->end_p(), "\n",
 				#$q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
-			
-						
-			
-			
-			
+				
 				my @js_params = ('createForm', $id.$number, $analysis);
 				my ($js, $map) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
 			
