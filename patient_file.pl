@@ -696,7 +696,7 @@ if ($result) {
 						scrollTop: tagtop
 					}, 1000);
 				}
-				if ($("#"+group).length) {$("#"+group).fadeTo(1000, 1);$("#help_div").html(\'<br/>\')}
+				if ($("#"+group).length) {$("#"+group).fadeTo(1000, 1);$("#help_div").html(\'<br/>\');$("#help_div").removeClass(\'w3-margin w3-panel w3-sand w3-leftbar\');}
 				else {$("#help_div").addClass(\'w3-margin w3-panel w3-sand w3-leftbar\');$("#help_div").html(\'No analyses performed for this group of gene yet\');}
 			}';
 	
