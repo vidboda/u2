@@ -153,7 +153,7 @@ if ($result) {
 	
 	if ($analysis eq 'Missense') {	
 		#my $query_missense = "SELECT a.nom, a.nom_gene, a.nom_prot, a.nom_g, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND b.num_pat IN ($num_list) AND b.id_pat IN ($id_list) AND a.type_prot = 'missense' AND a.classe = 'unknown' AND (a.nom_gene[1], a.num_segment) NOT IN (('DSPP', '5')) GROUP BY a.nom, a.nom_gene, b.statut, d.rp, d.dfn, d.usher ORDER BY a.nom_gene, a.nom_g;";
-		my $query_missense = "SELECT a.nom, a.nom_gene, a.nom_prot, a.nom_g, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.type_prot = 'missense' AND a.classe = 'unknown' AND (a.nom_gene[1], a.num_segment) NOT IN (('DSPP', '5')) GROUP BY a.nom, a.nom_gene, b.statut, d.rp, d.dfn, d.usher ORDER BY a.nom_gene, a.nom_g;";
+		my $query_missense = "SELECT a.nom, a.nom_gene, a.nom_prot, a.nom_g, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.type_prot = 'missense' AND a.classe = 'unknown' AND (a.nom_gene[1], a.num_segment) NOT IN (('DSPP', '5')) GROUP BY a.nom, a.nom_gene, a.nom_prot, a.nom_g, b.statut, d.rp, d.dfn, d.usher ORDER BY a.nom_gene, a.nom_g;";
 		#print $query_missense;
 		$sth2 = $dbh->prepare($query_missense);
 		$res2 = $sth2->execute();
@@ -336,7 +336,7 @@ if ($result) {
 		else {print $q->p('No unknown missense to test for this patient');}#$query_missense;}
 	}	
 	elsif ($analysis eq 'Splicing') {
-		my $query_splicing = "SELECT a.nom, a.nom_ivs, a.nom_prot, a.nom_gene, a.nom_g, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.classe = 'unknown' AND (a.nom_gene[1], a.num_segment) NOT IN (('DSPP', '5')) GROUP BY a.nom, a.nom_gene, b.statut, d.rp, d.dfn, d.usher ORDER BY a.nom_gene, a.nom_g;";
+		my $query_splicing = "SELECT a.nom, a.nom_ivs, a.nom_prot, a.nom_gene, a.nom_g, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.classe = 'unknown' AND (a.nom_gene[1], a.num_segment) NOT IN (('DSPP', '5')) GROUP BY a.nom, a.nom_ivs, a.nom_prot, a.nom_gene, a.nom_g, b.statut, d.rp, d.dfn, d.usher ORDER BY a.nom_gene, a.nom_g;";
 		#print $query_missense;
 		$sth2 = $dbh->prepare($query_splicing);
 		$res2 = $sth2->execute();
