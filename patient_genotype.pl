@@ -198,7 +198,7 @@ my ($mini, $maxi) = U2_modules::U2_subs_2::get_interval($first_name, $last_name,
 #print $q->p('Click on an exon/intron number and watch IGV move!!!');
 #begin table
 
-print $q->br(), $q->start_div({'class' => 'patient_file_frame hidden print_hidden w3-small', 'id' => 'details', 'onmouseover' => "\$(this).hide();\$(this).html(\'<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...\')"}), $q->img({'src' => $HTDOCS_PATH."data/img/loading.gif", 'class' => 'loading'}), $q->span('loading...'), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->start_div({'align' => 'center'}), $q->start_table({'class' => 'geno w3-small'}), $q->caption("Genotype table:"),
+print $q->br(), $q->start_div({'class' => 'patient_file_frame hidden print_hidden w3-small', 'id' => 'details', 'onmouseover' => "\$(this).hide();\$(this).html(\'<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...\')"}), $q->img({'src' => $HTDOCS_PATH."data/img/loading.gif", 'class' => 'loading'}), $q->span('loading...'), $q->end_div(), $q->br(), $q->start_div({'align' => 'center'}), $q->start_table({'class' => 'geno w3-small'}), $q->caption("Genotype table:"),
 	$q->start_Tr(), "\n",
 		$q->th({'width' => '6%'}, 'Exon/Intron'), "\n",
 		$q->th({'width' => '23%'}, 'Allele 1'), "\n",
