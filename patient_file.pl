@@ -259,7 +259,7 @@ if ($result) {
 		
 	#we need to consider filtering options
 		
-	my $important = "SELECT DISTINCT(a.nom_c), a.statut, b.classe, b.nom_gene[1], d.rp, d.dfn, d.usher FROM variant2patient a, variant b, patient c, gene d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND a.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND b.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";	
+	my $important = "SELECT DISTINCT(a.nom_c), a.statut, a.denovo, b.classe, b.nom_gene[1], d.rp, d.dfn, d.usher FROM variant2patient a, variant b, patient c, gene d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND a.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND (b.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') OR a.denovo = 't');";	
 	my $sth3 = $dbh->prepare($important);
 	my $res_important = $sth3->execute();
 	if ($res_important ne '0E0') {
@@ -269,12 +269,20 @@ if ($result) {
 			elsif ($filter eq 'USH' && $result_important->{'usher'} == 0) {next}
 			elsif ($filter eq 'DFN-USH' && ($result_important->{'dfn'} == 0 && $result_important->{'usher'} == 0)) {next}
 			elsif ($filter eq 'RP-USH' && ($result_important->{'rp'} == 0 && $result_important->{'usher'} == 0)) {next}
-			elsif ($filter eq 'CHM' && $result_important->{'nom_gene'} ne 'CHM') {next}
-			
+			elsif ($filter eq 'CHM' && $result_important->{'nom_gene'} ne 'CHM') {next}			
 			#if ($filter eq 'RP' && $result_important->{'dfn'} == 1) {next}
 			#elsif ($filter eq 'DFN' && $result_important->{'rp'} == 1) {next}
+			my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result_important->{'denovo'});
 			my $color = U2_modules::U2_subs_1::color_by_classe($result_important->{'classe'}, $dbh);
-			print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->font({'color' => $color}, $result_important->{'classe'}), $q->span( ", $result_important->{'statut'} variant identified in "), $q->start_em(), $q->a({'href' => "patient_genotype.pl?sample=$id$number&amp;gene=$result_important->{'nom_gene'}", 'target' => '_blank'}, $result_important->{'nom_gene'}), $q->end_em(), $q->end_li();
+			print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}),
+				$q->font({'color' => $color}, $result_important->{'classe'}),
+				$q->span( ", $result_important->{'statut'} ");
+			if ($denovo_txt ne '') {print $q->em($denovo_txt)}
+			print 	$q->span(' variant identified in '),
+				$q->start_em(),
+					$q->a({'href' => "patient_genotype.pl?sample=$id$number&amp;gene=$result_important->{'nom_gene'}", 'target' => '_blank'}, $result_important->{'nom_gene'}),
+				$q->end_em(),
+			$q->end_li();
 		}
 		print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->button({'onclick' => "getDefGenVariants('$id', '$number');", 'value' => 'DefGen genotype', 'class' => 'w3-button w3-blue w3-border w3-border-blue'}), $q->end_li(), $q->br();
 	}

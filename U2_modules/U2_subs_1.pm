@@ -1022,7 +1022,7 @@ sub translate_boolean_class {
 
 sub translate_boolean_denovo {
 	my ($boolean) = shift;
-	if (defined($boolean) && $boolean == 1) {return '_denovo'}
+	if (defined($boolean) && $boolean == 1) {return ' denovo'}
 	else {return ''}
 }
 

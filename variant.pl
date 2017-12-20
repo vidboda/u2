@@ -668,7 +668,7 @@ if ($maf_miseq ne 'NA') {
 
 
 
-$query = "SELECT DISTINCT(num_pat), id_pat, statut FROM variant2patient WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' ORDER BY num_pat;";
+$query = "SELECT DISTINCT(num_pat), id_pat, statut, denovo FROM variant2patient WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' ORDER BY num_pat;";
 my $sth = $dbh->prepare($query);
 my $res_seen = $sth->execute();
 
@@ -679,10 +679,11 @@ while (my $result = $sth->fetchrow_hashref()) {
 	if ($result->{'statut'} eq 'homozygous') {$hom += 2}
 	#if ($result->{'filter'} eq 'RP' && $result->{'dfn'} == 1) {next}
 	#elsif ($result->{'filter'} eq 'DFN' && $result->{'rp'} == 1) {next}
-	$seen .= $q->start_div().$q->span("-$result->{'id_pat'}$result->{'num_pat'} ($result->{'statut'})&nbsp;&nbsp;").$q->start_a({'href' => "patient_file.pl?sample=$result->{'id_pat'}$result->{'num_pat'}", 'target' => '_blank'}).$q->span('patient&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->span('&nbsp;&nbsp;&nbsp;').$q->start_a({'href' => "patient_genotype.pl?sample=$result->{'id_pat'}$result->{'num_pat'}&gene=$gene", 'target' => '_blank'}).$q->span('genotype&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_div();	
+	my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
+	$seen .= $q->start_div().$q->span("-$result->{'id_pat'}$result->{'num_pat'} ($result->{'statut'}$denovo_txt)&nbsp;&nbsp;").$q->start_a({'href' => "patient_file.pl?sample=$result->{'id_pat'}$result->{'num_pat'}", 'target' => '_blank'}).$q->span('patient&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->span('&nbsp;&nbsp;&nbsp;').$q->start_a({'href' => "patient_genotype.pl?sample=$result->{'id_pat'}$result->{'num_pat'}&gene=$gene", 'target' => '_blank'}).$q->span('genotype&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_div();	
 }
 
-$query = "SELECT DISTINCT(a.num_pat), a.id_pat, a.statut, b.filter, c.rp, c.dfn, c.usher, c.nom FROM variant2patient a, miseq_analysis b, gene c WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND a.nom_gene = c.nom AND a.nom_gene[1] = '$gene' AND a.nom_gene[2] = '$acc' AND a.nom_c = '$var' AND b.filter <> 'ALL' ORDER BY a.num_pat;";
+$query = "SELECT DISTINCT(a.num_pat), a.id_pat, a.statut, a.denovo, b.filter, c.rp, c.dfn, c.usher, c.nom FROM variant2patient a, miseq_analysis b, gene c WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND a.nom_gene = c.nom AND a.nom_gene[1] = '$gene' AND a.nom_gene[2] = '$acc' AND a.nom_c = '$var' AND b.filter <> 'ALL' ORDER BY a.num_pat;";
 $sth = $dbh->prepare($query);
 my $res_filter = $sth->execute();
 while (my $result = $sth->fetchrow_hashref()) {
@@ -694,7 +695,8 @@ while (my $result = $sth->fetchrow_hashref()) {
 	elsif ($result->{'filter'} eq 'RP-USH' && ($result->{'rp'} == 1 || $result->{'usher'} == 1)) {next}
 	elsif ($result->{'filter'} eq 'CHM' && $result->{'nom_gene'} eq 'CHM') {next}
 	else {
-		$seen =~ s/<div><span>-$result->{'id_pat'}$result->{'num_pat'} \($result->{'statut'}\)&nbsp;&nbsp;<\/span><a target="_blank" href="patient_file\.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}"><span>patient&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small.png" border="0" \/><\/a><span>&nbsp;&nbsp;&nbsp;<\/span><a target="_blank" href="patient_genotype.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}&amp;gene=$result->{'nom'}[0]"><span>genotype&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small\.png" border="0" \/><\/a><\/div>/<div>-filtered patient<\/div>/g;
+		my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
+		$seen =~ s/<div><span>-$result->{'id_pat'}$result->{'num_pat'} \($result->{'statut'}$denovo_txt\)&nbsp;&nbsp;<\/span><a target="_blank" href="patient_file\.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}"><span>patient&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small.png" border="0" \/><\/a><span>&nbsp;&nbsp;&nbsp;<\/span><a target="_blank" href="patient_genotype.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}&amp;gene=$result->{'nom'}[0]"><span>genotype&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small\.png" border="0" \/><\/a><\/div>/<div>-filtered patient<\/div>/g;
 		#print "2-$result->{'id_pat'}$result->{'num_pat'}-$result->{'statut'}-$seen-<br/>";
 	}
 }
