@@ -416,7 +416,12 @@ if ($step && $step == 2) {
 				chomp;
 				$k++;
 				my @list = split(/\t/);
-				#if rs and in U2 => ok insert into v2p => impossible a same rs can pooint 2 variants or more
+				
+				#################################sub begins
+				#my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'VF', $dbh);
+				##################################
+				
+				#if rs and in U2 => ok insert into v2p => impossible a same rs can point 2 variants or more
 				#if rs and not in U2 => mutalyzer snp_conv => genomic nom => mutalyzer deprecated takes too much time to get getdbSNPDescriptions results case 2 becomes case3
 				#case 2bis if not case 1 but in U2 => ok insert direct for subs into v2p, after mutalyzer correction for indels
 				#if not rs => built genom nom; if in U2 insert into v2p
@@ -529,7 +534,7 @@ if ($step && $step == 2) {
 					
 					#we try to invert wt & mut
 					
-					if ($genomic_var =~ /(chr[\dXY]+:g\..+\d+)([ATGC])>([ATCG])/o) {
+					if ($genomic_var =~ /(chr[\dXYM]+:g\..+\d+)([ATGC])>([ATCG])/o) {
 						my $inv_genomic_var = $1.$3.">".$2;
 						$insert = &direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 						if ($insert ne '') {
@@ -1350,8 +1355,8 @@ sub get_detailed_pos {
 
 sub get_start_end_pos {
 	my $var = shift;
-	if ($var =~ /chr[\dXY]+:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
-	elsif ($var =~ /chr[\dXY]+:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
+	if ($var =~ /chr[\dXYM]+:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
+	elsif ($var =~ /chr[\dXYM]+:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
 }
 
 
