@@ -140,7 +140,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	my $network = 'offline';
 	#my $version = 78;
 	my $chr = my $position = my $ref = my $alt = '';
-	if ($variant =~ /chr([\dXY]+):g\.(\d+)([ATGC])>([ATGC])/o) {print $tempfile "$1 $2 $2 $3/$4 +\n";$chr = $1; $position = $2; $ref = $3;$alt = $4;}
+	if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {print $tempfile "$1 $2 $2 $3/$4 +\n";$chr = $1; $position = $2; $ref = $3;$alt = $4;}
 	elsif ($variant =~ /chr(.+)$/o) {print $tempfile "$1\n";$network = 'port 3337';}
 	else {print "pb with variant $variant with VEP"}
 	#my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);
@@ -201,7 +201,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		}
 		else {$text .= $q->li("$res->{'acc'} not matching.");$semaph = 1;}
 		#MCAP results for missense
-		#if ($variant =~ /chr([\dXY]+):g\.(\d+)([ATGC])>([ATGC])/o) {
+		#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
 		#	my ($chr, $pos, $ref, $alt) = ($1, $2, $3, $4);
 		#	my @mcap =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/mcap/mcap_v1_0.txt.gz $chr:$pos-$pos`);
 		#	foreach (@mcap) {
@@ -363,7 +363,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 	print $q->header();
 	#my ($variant, $main, $nom_c);
 	my $i = 0;
-	#if ($q->param('nom_g') =~ /(chr[\dXY]+:g\..+)/o) {$variant = $1}
+	#if ($q->param('nom_g') =~ /(chr[\dXYM]+:g\..+)/o) {$variant = $1}
 	#if ($q->param('main_acc') =~ /(N[MR]_\d+)/o) {$main = $1}
 	#my $nom_c;
 	#if ($q->param('nom_c') =~ /(c\..+)/o) {$nom_c = $1}
@@ -538,7 +538,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 	my ($i, $j) = (0, 0);
 	
 	my $var_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
-	if ($var_g =~ /chr([\dXY]+):g\.(\d+)([ATGC])>([ATGC])/o) {
+	if ($var_g =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
 		my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);
 		#my $tempfile = File::Temp->new(UNLINK => 0);
 		my $tempfile = File::Temp->new();

@@ -211,7 +211,7 @@ if ($result) {
 				
 				#ok we're done with boring stuff let's do some new things
 				#my $tempfile = File::Temp->new(UNLINK => 1);
-				$result2->{'nom_g'} =~ /chr([\dXY]+):g\.(\d+)([ATGC])>([ATGC])/o;
+				$result2->{'nom_g'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
 				my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);
 				$hash->{$result2->{'nom_gene'}[0]."_".$chr."_".$pos1."_".$wt."/".$mt} = [$result2->{'nom_gene'}[1], $result2->{'nom'}, $result2->{'nom_prot'}, $result2->{'statut'}, 'no SIFT', 'no polyphen', 'no FATHMM', 'no M-CAP', 'no CLINSIG', 'no MAF', 0, 0];#[NM_, DAN, Prot, status, SIFT, polyphen, FATHMM, Clinvar, points, total points] points being number of 'causative' item (i.e. SIFT < 0.05), total points = total items
 				print $tempfile "$chr $pos1 $pos1 $wt/$mt +\n";
