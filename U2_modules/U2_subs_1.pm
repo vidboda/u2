@@ -965,6 +965,7 @@ sub test_mutalyzer {
 	#http://mutalyzer.nl/2.0/services
 	my $request = $ua->get('https://mutalyzer.nl/services');
 	my $content = $request->content();
+	#print "$content<br/>";
 	if ($content !~ /soap/o) {return 0}
 	else {return 1}
 }

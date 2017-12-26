@@ -11,6 +11,7 @@ use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
+use U2_modules::U2_subs_3;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -225,7 +226,9 @@ if ($step && $step == 2) {
 	my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf") or die $!;
 	if ($success != 1) {U2_modules::U2_subs_1::standard_error('22', $q)}
 	
-	
+	#################################UNCOMMENT when sub
+	#create roi hash
+	my $interval = U2_modules::U2_subs_3::build_roi($dbh);
 	my ($manual, $not_inserted, $general, $mutalyzer_no_answer, $sample_end, $to_follow) = ('', '', '', '', '', '');#$manual will contain variants that cannot be delt automatically i.e. PTPRQ (at least in hg19), NR_, non mappable; $notinserted variants wt homozygous, $general global data for final email, $sample_end last treated patient for redirection $to_follow is to get info on certain variants that were buggy
 	#my $inf = 100; #coverage limits #was used to generate bed but replaced with bedgraphs (but which do not deal with colors...)
 	#my $sup = 150;
@@ -404,6 +407,8 @@ if ($step && $step == 2) {
 		undef $new_tsv;
 		
 		print STDERR "Done gaps file...";
+	
+		
 		
 		#vcf
 		$insert = '';
@@ -418,7 +423,13 @@ if ($step && $step == 2) {
 				my @list = split(/\t/);
 				
 				#################################sub begins
-				#my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'VF', $dbh);
+				#my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'VF', $dbh, $instrument, $number, $id, $analysis, $interval, $soap, $date);
+				#if ($variant_input eq '1') {$i++;next VCF}#variant added
+				#elsif ($variant_input eq '2') {next VCF}#variant in unknown region
+				#elsif ($variant_input =~ /^MANUAL/o) {$manual .= $variant_input;next VCF}
+				#elsif ($variant_input =~ /^NOTINSERTED/o) {$not_inserted .= $variant_input;next VCF}
+				#elsif ($variant_input =~ /^FOLLOW/o) {$to_follow .= $variant_input;$i++;next VCF}
+				#elsif ($variant_input =~ /^MUTALYZERNOANSWER/o) {$mutalyzer_no_answer .= $variant_input;next VCF}
 				##################################
 				
 				#if rs and in U2 => ok insert into v2p => impossible a same rs can point 2 variants or more
@@ -525,24 +536,24 @@ if ($step && $step == 2) {
 					#print "First Control $genomic_var<br/>";
 					#my $control = length($insert);
 					#$insert = &direct_submission('nom_g', $genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh); #direct submission is now always nom_g 2014/09/30
-					$insert = &direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+				$insert = &direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+				if ($insert ne '') {
+					$dbh->do($insert);
+					$i++;
+					next VCF;
+				}
+					
+				#we try to invert wt & mut
+				
+				if ($genomic_var =~ /(chr[\dXYM]+:g\..+\d+)([ATGC])>([ATCG])/o) {
+					my $inv_genomic_var = $1.$3.">".$2;
+					$insert = &direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					if ($insert ne '') {
 						$dbh->do($insert);
 						$i++;
 						next VCF;
 					}
-					
-					#we try to invert wt & mut
-					
-					if ($genomic_var =~ /(chr[\dXYM]+:g\..+\d+)([ATGC])>([ATCG])/o) {
-						my $inv_genomic_var = $1.$3.">".$2;
-						$insert = &direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-						if ($insert ne '') {
-							$dbh->do($insert);
-							$i++;
-							next VCF;
-						}
-					}
+				}
 					
 					
 					
@@ -1239,7 +1250,7 @@ if ($step && $step == 2) {
 				}
 				### end gsdot2u2.cgi
 				
-				
+				##################END sub U2_modules::U2_subs_3
 				
 				
 				

@@ -6,10 +6,12 @@ use strict;
 #use AppConfig qw(:expand :argcount);
 use URI::Encode qw(uri_encode uri_decode);
 use Net::OpenSSH;
+use SOAP::Lite;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
+use U2_modules::U2_subs_3;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -71,7 +73,7 @@ my $CLINICAL_EXOME_METRICS_SOURCES = $config->CLINICAL_EXOME_METRICS_SOURCES();
 
 #end
 
-my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery.alerts.css');
 
 my $q = new CGI;
 
@@ -106,6 +108,8 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                         -src => $JS_PATH.'jquery-1.7.2.min.js', 'defer' => 'defer'},
 			 {-language => 'javascript',
                         -src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
+			 {-language => 'javascript',
+                        -src => $JS_PATH.'jquery.alerts.js', 'defer' => 'defer'},
                         {-language => 'javascript',
                         -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
                         {-language => 'javascript',
@@ -169,16 +173,47 @@ if ($user->isAnalyst() == 1) {
 		my $filtered = $res->{'filtering_possibility'};
 		my %sample_hash = U2_modules::U2_subs_2::build_sample_hash($q, $analysis, $filtered);
 		my $run = U2_modules::U2_subs_1::check_illumina_run_id($q);
-		my $insert_run = "INSERT INTO illumina_run (id) VALUES ('$run');";
+		#check if known
+		$query = "SELECT id FROM illumina_run WHERE id ='$run';";
+		my $res = $dbh->selectrow_hashref($query);
+		if (!$res) {#unknown run
+			my $insert_run = "INSERT INTO illumina_run (id) VALUES ('$run');";		
+			################## UNCOMMENT
+			$dbh->do($insert_run);
+			################## UNCOMMENT			
+			#print $q->p($insert_run);
+		}	
 		
-		#$dbh->do($insert_run);
 		
-		print $q->p($insert_run);
+		#create roi hash
+		my $interval = U2_modules::U2_subs_3::build_roi($dbh);
+		#test mutalyzer
+		if (U2_modules::U2_subs_1::test_mutalyzer() != 1) {U2_modules::U2_subs_1::standard_error('23', $q)}
+		my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
+		my ($manual, $not_inserted, $general, $mutalyzer_no_answer, $sample_end, $to_follow) = ('', '', '', '', '', '');#$manual will contain variants that cannot be delt automatically i.e. PTPRQ (at least in hg19), NR_, non mappable; $notinserted variants wt homozygous, $general global data for final email, $sample_end last treated patient for redirection $to_follow is to get info on certain variants that were buggy
+		my $date = U2_modules::U2_subs_1::get_date();
+		
+		
 		
 		#sample and filters do not arrive the same way
 		while (my ($sampleid, $filter) = each(%sample_hash)) {
 			#get log's number
-			my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);			
+			my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
+			$sample_end = $sampleid;
+			print STDERR "\nInitiating $id$number...";
+			#loop  genes
+			my $insert_analysis;
+			$query = "SELECT nom FROM gene WHERE \"$analysis\" = 't' ORDER BY nom[1];";
+			my $sth = $dbh->prepare($query);
+			my $res = $sth->execute();			
+			while (my $result = $sth->fetchrow_hashref()) {
+				$insert_analysis .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, nom_gene, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '{\"$result->{'nom'}[0]\",\"$result->{'nom'}[1]\"}', '$analysis', '$date', '".$user->getName()."','t');";
+			}
+			#print "$insert_analysis<br/>";
+			#######UNCOMMENT WHEN DONE!!!!!!!
+			$dbh->do($insert_analysis);
+			
+			
 			my $nenufaar_log = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/*.log | xargs basename`;
 			$nenufaar_log =~ /_(\d+).log/og;
 			my $nenufaar_id = $1;
@@ -200,10 +235,10 @@ if ($user->isAnalyst() == 1) {
 				'snp_tstv' => ['multiqc_data/multiqc_gatk_varianteval.txt', 'known_titv', 'miseq_analysis', ''],
 				#'insert_size_sd' => ["$id$number/$nenufaar_id/genome_results.txt", 'std insert size', 'miseq_analysis', ''], résultats très surprenants de qualimap
 			};
-			my $insert_metrics = "INSERT INTO miseq_analysis('num_pat', 'id_pat', 'type_analyse', 'run_id, 'filter', ";
+			my $insert_metrics = "INSERT INTO miseq_analysis (num_pat, id_pat, type_analyse, run_id, filter, ";
 			my ($col, $val);
 			foreach my $u2_key (sort keys (%{$metrics})) {				
-				$col .= "'$u2_key', ";
+				$col .= "$u2_key, ";
 				if ($metrics->{$u2_key}->[0] =~ /multiqc/o) {
 					$val .= "'".U2_modules::U2_subs_2::get_raw_detail_ce($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0])."', ";
 					#$metrics->{$u2_key}->[3] = U2_modules::U2_subs_2::get_raw_detail_ce($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0]);	
@@ -216,21 +251,49 @@ if ($user->isAnalyst() == 1) {
 			}
 			chop($col);chop($col);
 			chop($val);chop($val);
-			$insert_metrics .= "$col) VALUES ('$number', '$id', '$analysis', '$run', '$filter', $val.');";
+			$insert_metrics .= "$col) VALUES ('$number', '$id', '$analysis', '$run', '$filter', $val);";
+			#print $q->p($insert_metrics);
+			################## UNCOMMENT
+			$dbh->do($insert_metrics);
+			################## UNCOMMENT
 			
-			#$dbh->do($insert_metrics);
 			
-			print $q->p($insert_metrics);
+			
+			#foreach my $key (keys %{$interval}) {print "$key<br/>"}
 			
 			#now get left normed vcf and treat it
 			open F, $data_path."$id$number.final.vcf.norm.vcf" or die "can't find normalised vcf for $id$number $!";
-			while (<F>) {
+			my ($i, $j, $k) = (0, 0, 0);
+			VCF: while (<F>) {
 				#print $_;
+				#mutalyzer
+				if ($_ !~ /^#/o) {
+					chomp;
+					$k++;
+					my @list = split(/\t/);
+					
+					my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'AB', $dbh, 'nextseq', $number, $id, $analysis, $interval, $soap, $date);
+					if ($variant_input eq '1') {$i++;next VCF}#variant added
+					elsif ($variant_input eq '2') {next VCF}#variant in unknown region
+					elsif ($variant_input eq '3') {$i++;$j++;next VCF}#variant created and added
+					elsif ($variant_input =~ /^MANUAL/o) {$manual .= $variant_input;next VCF}
+					elsif ($variant_input =~ /^NOTINSERTED/o) {$not_inserted .= $variant_input;next VCF}
+					elsif ($variant_input =~ /^FOLLOW/o) {$to_follow .= $variant_input;$i++;$j++;next VCF}
+					elsif ($variant_input =~ /^MUTALYZERNOANSWER/o) {$mutalyzer_no_answer .= $variant_input;next VCF}			
+				}
 			}
 			close F;
 			
-			
+			$general .= "Insertion for $id$number:\n\n- $i/$k variants (".(sprintf('%.2f', ($i/$k)*100))."%) have been automatically inserted,\nincluding $j new variants that have been successfully created\n\n";
+			my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
+			#print "$valid<br/>";
+			########UNCOMMENT WHEN READY
+			$dbh->do($valid);			
 		}
+		########UNCOMMENT WHEN READY
+		U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run, $general, $mutalyzer_no_answer, $to_follow);
+		$q->redirect("patient_file.pl?sample=$sample_end");
+		#print "$general<br/>$manual<br/>$not_inserted<br/>$mutalyzer_no_answer<br/>$to_follow<br/>";
 	}	
 }
 else {U2_modules::U2_subs_1::standard_error('13', $q)}
