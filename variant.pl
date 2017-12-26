@@ -618,7 +618,7 @@ if ($maf eq '') {
 	#MAF SANGER
 	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'SANGER');
 	#MAF MISEQ
-	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'Min?i?Seq-\d+');
+	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'Min?i?Seq-[[:digit:]]+');
 	$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";	
 }
 else {
