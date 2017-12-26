@@ -868,7 +868,6 @@ sub maf {
 	my ($dbh, $gene, $acc, $var, $analyse) = @_;
 	my $maf = 'NA';
 	my $query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient b, patient c WHERE b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.type_analyse ~ '$analyse' AND b.nom_gene[1] = '$gene'  AND b.nom_gene[2] = '$acc' AND nom_c = '$var' AND b.statut <> 'homozygous' AND c.proband = 't';";
-	print $query;
 	my $res_1 = $dbh->selectrow_hashref($query);
 	$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient b, patient c WHERE b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.type_analyse ~ '$analyse' AND b.nom_gene[1] = '$gene'  AND b.nom_gene[2] = '$acc' AND nom_c = '$var' AND b.statut = 'homozygous' AND c.proband = 't';";
 	my $res_2 = $dbh->selectrow_hashref($query);
