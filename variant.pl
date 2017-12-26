@@ -642,13 +642,13 @@ if ($maf_454 ne 'NA') {
 		$q->end_td(), $q->td('Metrics related to all occurences within 454 sequencing'), $q->end_Tr(), "\n";
 }
 if ($maf_miseq ne 'NA') {
-	my $query_miseq = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-.*' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+	my $query_miseq = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-[[:digit:]]+' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
 	my $res_miseq = $dbh->selectrow_hashref($query_miseq);
 	print $q->start_Tr(), $q->td('MiSeq mean values:'), $q->start_td(), $q->span("Seen $res_miseq->{'c'} times in Illumina sequencing"),
 		$q->start_ul(),
 			$q->li("depth: ".sprintf('%.2f', $res_miseq->{'a'})), "\n",
 			$q->li("frequency: ".sprintf('%.2f', $res_miseq->{'b'})), "\n";
-	$query_miseq = "SELECT msr_filter, num_pat, id_pat FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-.*' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";	
+	$query_miseq = "SELECT msr_filter, num_pat, id_pat FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-[[:digit:]]+' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";	
 	my $sth = $dbh->prepare($query_miseq);
 	$res_miseq = $sth->execute();
 	my $pass = 0;
@@ -709,11 +709,11 @@ $query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WH
 my $hom_454 = $dbh->selectrow_hashref($query);
 
 #$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient WHERE type_analyse LIKE 'MiSeq-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) as a FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-.*' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) as a FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-[[:digit:]]+' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
 my $res_seen_miseq = $dbh->selectrow_hashref($query);
 
 #$query = "SELECT COUNT(DISTINCT(num_pat))*2 as a FROM variant2patient WHERE type_analyse LIKE 'MiSeq-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
-$query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-.*' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
+$query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-[[:digit:]]+' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
 my $hom_miseq = $dbh->selectrow_hashref($query);
 
 print $q->start_Tr(), $q->td('U2 occurences:'), $q->start_td(), $q->span("Seen in ".($res_seen+($hom/2))." alleles in total (including $hom homozygous) (homozygous = 2 alleles)"),
