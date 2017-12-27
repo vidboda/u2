@@ -432,6 +432,7 @@ if ($step && $step == 2) {
 				elsif ($variant_input =~ /^NOTINSERTED/o) {$not_inserted .= $variant_input;next VCF}
 				elsif ($variant_input =~ /^FOLLOW/o) {$to_follow .= $variant_input;$i++;next VCF}
 				elsif ($variant_input =~ /^MUTALYZERNOANSWER/o) {$mutalyzer_no_answer .= $variant_input;next VCF}
+				else {print "$variant_input<br/>"}
 				##################################
 				
 				##if rs and in U2 => ok insert into v2p => impossible a same rs can point 2 variants or more

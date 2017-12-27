@@ -271,8 +271,7 @@ if ($user->isAnalyst() == 1) {
 				if ($_ !~ /^#/o) {
 					chomp;
 					$k++;
-					my @list = split(/\t/);
-					
+					my @list = split(/\t/);					
 					my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'AB', $dbh, 'nextseq', $number, $id, $analysis, $interval, $soap, $date);
 					if ($variant_input eq '1') {$i++;next VCF}#variant added
 					elsif ($variant_input eq '2') {next VCF}#variant in unknown region
@@ -280,7 +279,8 @@ if ($user->isAnalyst() == 1) {
 					elsif ($variant_input =~ /^MANUAL/o) {$manual .= $variant_input;next VCF}
 					elsif ($variant_input =~ /^NOTINSERTED/o) {$not_inserted .= $variant_input;next VCF}
 					elsif ($variant_input =~ /^FOLLOW/o) {$to_follow .= $variant_input;$i++;$j++;next VCF}
-					elsif ($variant_input =~ /^MUTALYZERNOANSWER/o) {$mutalyzer_no_answer .= $variant_input;next VCF}			
+					elsif ($variant_input =~ /^MUTALYZERNOANSWER/o) {$mutalyzer_no_answer .= $variant_input;next VCF}
+					else {print "$variant_input<br/>"}
 				}
 			}
 			close F;
@@ -293,7 +293,7 @@ if ($user->isAnalyst() == 1) {
 		}
 		########UNCOMMENT WHEN READY
 		U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run, $general, $mutalyzer_no_answer, $to_follow);
-		$q->redirect($PERL_SCRIPTS_HOME."patient_file.pl?sample=$sample_end");
+		#$q->redirect($PERL_SCRIPTS_HOME."patient_file.pl?sample=$sample_end");
 		#print "$general<br/>$manual<br/>$not_inserted<br/>$mutalyzer_no_answer<br/>$to_follow<br/>";
 	}	
 }
