@@ -1312,8 +1312,8 @@ sub get_raw_detail_ce {
 		elsif (/$sample/) {
 			my @values = split(/\t/, $_);
 			if ($criteria =~ /UQ_/o) {
-				my $value = 1-($values[$index]*100);
-				return sprintf('%.1f', $value)
+				#my $value = (100-($values[$index]*100));
+				return sprintf('%.1f', (100-($values[$index]*100)))
 			}
 			elsif ($criteria =~ /PCT_/o) {return sprintf('%.1f', $values[$index]*100)}
 			elsif ($criteria =~ /BASES/o) {return sprintf('%u', $values[$index])}
