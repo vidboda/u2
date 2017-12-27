@@ -215,9 +215,10 @@ if ($user->isAnalyst() == 1) {
 			$dbh->do($insert_analysis);
 			
 			
-			my $nenufaar_log = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/*.log | xargs basename`;
-			$nenufaar_log =~ /_(\d+).log/og;
-			my $nenufaar_id = $1;
+			#my $nenufaar_log = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/*.log | xargs basename`;
+			#$nenufaar_log =~ /_(\d+).log/og;
+			#my $nenufaar_id = $1;
+			my $nenufaar_id = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run");
 			my $data_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/$id$number/$nenufaar_id/";
 			my $global_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/";
 			#print $q->p(`ls $data_path`);

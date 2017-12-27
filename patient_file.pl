@@ -9,6 +9,7 @@ use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
+use U2_modules::U2_subs_3;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -58,6 +59,8 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
+my $CLINICAL_EXOME_SHORT_BASE_DIR = $config->CLINICAL_EXOME_SHORT_BASE_DIR();
+my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
@@ -152,6 +155,7 @@ $HOME_IP = $1;
 #specific args for remote login to RS
 my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
+my $SSH_RACKSTATION_NEXTSEQ_BASE_DIR = $config->SSH_RACKSTATION_NEXTSEQ_BASE_DIR();
 #my $SSH_RACKSTATION_IP = $config->SSH_RACKSTATION_IP();
 #my $validator = U2_modules::U2_users_1::isValidator($user);
 #SSH style params for remote ftp
@@ -160,8 +164,10 @@ my $SSH_RACKSTATION_LOGIN = $config->SSH_RACKSTATION_LOGIN();
 my $SSH_RACKSTATION_PASSWORD = $config->SSH_RACKSTATION_PASSWORD();
 my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+my $SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR();
 my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
-
+#for nenufarised only analysis
+my $NENUFAAR_ANALYSIS = $config->NENUFAAR_ANALYSIS();
 
 
 
@@ -344,16 +350,18 @@ if ($result) {
 		my $analysis_count = 0;
 		while (my $result_done = $sth4->fetchrow_hashref()) {
 			my ($analysis, $id_tmp, $num_tmp, $manifest) = ($result_done->{'type_analyse'}, $result_done->{'id_pat'}, $result_done->{'num_pat'}, $result_done->{'manifest_name'});
+			my $nenufaar = 0;
+			if ($NENUFAAR_ANALYSIS =~ /$analysis/) {$nenufaar = 1}
 			if (grep(/$analysis/, @eligible) || $manifest ne 'no_manifest') {
-				if (-d $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp) {
+				if (-d $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp || $nenufaar == 1) {
 					#reinitialize in case of changed because of MiniSeq analysis
 					$SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 					$SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
-					my $partial_path = $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp;
+					my $partial_path = $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp;		
 					my ($raw_data, $bam_file, $bam_file_suffix, $bam_ftp);
 					my $width = '500';
 					my $raw_filter = '';
-					if ($manifest eq 'no_manifest') {
+					if ($manifest eq 'no_manifest') {#454
 						$width = '1250';
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).$q->a({'href' => $partial_path.'_AliInfo.txt', 'target' => '_blank'}, 'Get AliInfo file').$q->end_li().
@@ -372,6 +380,11 @@ if ($result) {
 						$analysis_count ++; #only for analysis which can be filtered
 						my $query_manifest = "SELECT * FROM miseq_analysis WHERE num_pat = '$num_tmp' AND id_pat = '$id_tmp' AND type_analyse = '$analysis';";
 						my $res_manifest = $dbh->selectrow_hashref($query_manifest);
+						my $nenufaar_id;
+						if ($nenufaar == 1) {
+							$nenufaar_id = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}");
+							$partial_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp.final";
+							}
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 									$q->span('Run id: ').$q->a({'href' => "stats_ngs.pl?run=$res_manifest->{'run_id'}", 'target' => '_blank'}, $res_manifest->{'run_id'}).
@@ -422,6 +435,11 @@ if ($result) {
 						#MINISEQ change get instrument type
 						my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 						if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
+						elsif ($nenufaar == 1) {
+							if ($analysis =~ /NextSeq/o) {
+								$instrument = 'nextseq';$instrument_path = 'NextSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_NEXTSEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR;
+							}
+						}
 						
 						my ($alignment_dir, $ftp_dir);
 						if ($instrument eq 'miseq'){
@@ -441,6 +459,10 @@ if ($result) {
 							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/$alignment_dir";
 							$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/$alignment_dir";						
 						}
+						elsif($instrument eq 'nextseq'){
+							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}";
+							$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}";
+						}
 						
 						#OLD fashioned 03/08/2016
 						#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml");
@@ -457,44 +479,56 @@ if ($result) {
 						#old fashioned replaced with autofs 21/12/2016
 						#my $bam_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error();
 						#print $res_manifest->{'run_id'};
-						#create a hash which looks like {"illumina_run_id" => 0}
-						my %files = map {$_ => '0'} split(/\s/, $bam_list);
-						foreach my $file_name (keys(%files)) {
-							if ($file_name =~ /$id_tmp$num_tmp(_S\d+\.bam)/) {
-								$bam_file_suffix = $1;
-								#$bam_file = "/Data/Intensities/BaseCalls/$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
-								$bam_file = "$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
-								$bam_ftp = "$ftp_dir/$id_tmp$num_tmp$bam_file_suffix";
-							}								
-						}	
+						my $bai_suffix = '.bam';
+						if ($nenufaar == 0) {
+							#create a hash which looks like {"illumina_run_id" => 0}
+							my %files = map {$_ => '0'} split(/\s/, $bam_list);
+							foreach my $file_name (keys(%files)) {
+								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.bam/) {
+									$bam_file_suffix = $1;
+									#$bam_file = "/Data/Intensities/BaseCalls/$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
+									$bam_file = "$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
+									$bam_ftp = "$ftp_dir/$id_tmp$num_tmp$bam_file_suffix";
+								}								
+							}
+						}
+						else {
+							$bai_suffix = '';
+							$bam_file = "$alignment_dir/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp";
+							$bam_ftp = "$ftp_dir/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp";
+						}
 						$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Aligned bases: $res_manifest->{'aligned_bases'}").
 								$q->li({'class' => 'w3-padding-small'}, "Ontarget bases: $res_manifest->{'ontarget_bases'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_bases'}/$res_manifest->{'aligned_bases'})*100))."%)").
-								$q->li({'class' => 'w3-padding-small'}, "Aligned reads: $res_manifest->{'aligned_reads'}").
-								$q->li({'class' => 'w3-padding-small'}, "Ontarget reads: $res_manifest->{'ontarget_reads'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_reads'}/$res_manifest->{'aligned_reads'})*100))."%) ").
-								$q->li({'class' => 'w3-padding-small'}, "Duplicate reads: $res_manifest->{'duplicates'}%").
+								$q->li({'class' => 'w3-padding-small'}, "Aligned reads: $res_manifest->{'aligned_reads'}");
+						if ($nenufaar == 0) {
+								$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Ontarget reads: $res_manifest->{'ontarget_reads'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_reads'}/$res_manifest->{'aligned_reads'})*100))."%) ")
+						}
+						$raw_data .= 		$q->li({'class' => 'w3-padding-small'}, "Duplicate reads: $res_manifest->{'duplicates'}%").
 								$q->li({'class' => 'w3-padding-small'}, "Median insert size: $res_manifest->{'insert_size_median'} bp").
 								$q->li({'class' => 'w3-padding-small'}, "Mean Doc: $res_manifest->{'mean_doc'}").
 								$q->li({'class' => 'w3-padding-small'}, "Doc > 20X: $res_manifest->{'twentyx_doc'} % bp").
 								$q->li({'class' => 'w3-padding-small'}, "Doc > 50X: $res_manifest->{'fiftyx_doc'} % bp").
 								$q->li({'class' => 'w3-padding-small'}, "Ts/Tv: $res_manifest->{'snp_tstv'}").
-								$q->li({'class' => 'w3-padding-small'}, "# of identified SNVs: $res_manifest->{'snp_num'}").
-								$q->li({'class' => 'w3-padding-small'}, "# of identified indels: $res_manifest->{'indel_num'}");
-						if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp.'.report.pdf') {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.report.pdf', 'target' => '_blank'}, 'Get Illumina sample summary').$q->end_li()
-						}
-						if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$res_manifest->{'run_id'}.'/aggregate.report.pdf') {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$res_manifest->{'run_id'}.'/aggregate.report.pdf', 'target' => '_blank'}, 'Get Illumina run summary').$q->end_li()
-						}
-						$raw_data .= 	
+								$q->li({'class' => 'w3-padding-small'}, "# of identified SNVs: $res_manifest->{'snp_num'}");
+						if ($nenufaar == 0) {
+							$raw_data .= $q->li({'class' => 'w3-padding-small'}, "# of identified indels: $res_manifest->{'indel_num'}");
+							if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp.'.report.pdf') {
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.report.pdf', 'target' => '_blank'}, 'Get Illumina sample summary').$q->end_li()
+							}
+							if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$res_manifest->{'run_id'}.'/aggregate.report.pdf') {
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$res_manifest->{'run_id'}.'/aggregate.report.pdf', 'target' => '_blank'}, 'Get Illumina run summary').$q->end_li()
+							}
+							$raw_data .= 	
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.coverage.tsv', 'target' => '_blank'}, 'Get coverage file').$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.enrichment_summary.csv', 'target' => '_blank'}, 'Get enrichment summary file').$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.gaps.tsv', 'target' => '_blank'}, 'Get gaps file').$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.'.$analysis.'.bedgraph', 'target' => '_blank'}, 'Get coverage bedgraph file (use as UCSC track)').$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.vcf', 'target' => '_blank'}, 'Get original vcf file').$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.'.$analysis.'.bedgraph', 'target' => '_blank'}, 'Get coverage bedgraph file (use as UCSC track)').$q->end_li();
+						}
+						$raw_data .= 	$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.vcf', 'target' => '_blank'}, 'Get original vcf file').$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$partial_path.'.vcf&genome=hg19'}, 'Open VCF in IGV (on configurated computers only)').
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$bam_ftp.'&genome=hg19'}, 'Open BAM in IGV (on configurated computers only)').
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp", 'target' => '_blank'}, 'Download BAM file').
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp.bai", 'target' => '_blank'}, 'Download indexed BAM file');
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$bam_ftp.'.bam&genome=hg19'}, 'Open BAM in IGV (on configurated computers only)').
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp.bam", 'target' => '_blank'}, 'Download BAM file').
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp$bai_suffix.bai", 'target' => '_blank'}, 'Download indexed BAM file');
 								#$q->start_li().$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$SSH_RACKSTATION_FTP_BASE_DIR$res_manifest->{'run_id'}$bam_file", 'target' => '_blank'}, 'Download BAM file');
 								#$q->start_li().$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$SSH_RACKSTATION_FTP_BASE_DIR$res_manifest->{'run_id'}$bam_file.bai", 'target' => '_blank'}, 'Download indexed BAM file');
 								#$q->start_li().$q->a({'href' => 'http://localhost:60151/load?file=~/Downloads/'.$id_tmp.$num_tmp.$bam_file_suffix.'&genome=hg19'}, 'Open BAM in IGV (on configurated computers only -- TEST)').
