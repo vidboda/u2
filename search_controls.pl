@@ -248,7 +248,6 @@ sub get_patient_table {
 	my ($id, $num, $run_id) = @_;
 	#my $query_snp = "SELECT DISTINCT(a.nom_c), a.nom_gene, a.statut FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.nom_gene) NOT IN (SELECT a.nom_c, a.nom_gene FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id = '$run_id' AND CONCAT(b.id_pat, b.num_pat) <> '$id$num') ORDER BY a.nom_gene, a.nom_c;"; postgresql compatibility betwwen 158 (9.1) and 137 (9.3??? does not know concat), removed concat
 	my $query_snp = "SELECT DISTINCT(a.nom_c), a.nom_gene, a.statut FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.nom_gene) NOT IN (SELECT a.nom_c, a.nom_gene FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id = '$run_id' AND (b.id_pat || b.num_pat) <> '$id$num') ORDER BY a.nom_gene, a.nom_c;";
-	print $query_snp;
 	my $sth_snp = $dbh->prepare($query_snp);
 	my $res_snp = $sth_snp->execute();
 	
