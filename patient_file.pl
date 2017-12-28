@@ -61,6 +61,7 @@ my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $CLINICAL_EXOME_SHORT_BASE_DIR = $config->CLINICAL_EXOME_SHORT_BASE_DIR();
 my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
+my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
 
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
@@ -361,6 +362,7 @@ if ($result) {
 					my ($raw_data, $bam_file, $bam_file_suffix, $bam_ftp);
 					my $width = '500';
 					my $raw_filter = '';
+					my $library = '';
 					if ($manifest eq 'no_manifest') {#454
 						$width = '1250';
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
@@ -380,9 +382,10 @@ if ($result) {
 						$analysis_count ++; #only for analysis which can be filtered
 						my $query_manifest = "SELECT * FROM miseq_analysis WHERE num_pat = '$num_tmp' AND id_pat = '$id_tmp' AND type_analyse = '$analysis';";
 						my $res_manifest = $dbh->selectrow_hashref($query_manifest);
-						my $nenufaar_id;
+						my ($nenufaar_ana, $nenufaar_id);
 						if ($nenufaar == 1) {
-							$nenufaar_id = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}");
+							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}");
+							if ($nenufaar_ana =~ /$CLINICAL_EXOME_ANALYSES/) {$library = $nenufaar_ana}
 							$partial_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp.final";
 						}
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
@@ -544,7 +547,7 @@ if ($result) {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report');
 							#my @nenuf_id = split (/\s/,`ls $panel_nenufaar_path/$id_tmp$num_tmp/`);
 							#$nenuf_id[0] =~ s/\s//g;
-							$nenufaar_id = U2_modules::U2_subs_3::get_nenufaar_id($panel_nenufaar_path);
+							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id($panel_nenufaar_path);
 							#my $nenuf_id;
 							#print "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenuf_id[0]/".$id_tmp.$num_tmp."_poor_coverage.txt";
 							if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx") {
@@ -602,7 +605,7 @@ if ($result) {
 								.html('$raw_data')
 								.dialog({
 								    autoOpen: false,
-								    title: 'Raw data for $analysis ($id_tmp$num_tmp):',
+								    title: 'Raw data for $analysis $library ($id_tmp$num_tmp):',
 								    width: $width
 								});					
 							\$('#$analysis').click(function() {

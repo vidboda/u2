@@ -747,8 +747,8 @@ sub build_roi {
 sub get_nenufaar_id {#get nenufaar id of the analysis => needs path to log file ($ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run)
 	my $path = shift;
 	my $nenufaar_log = `ls $path/*.log | xargs basename`;
-	$nenufaar_log =~ /_(\d+).log/og;
-	return $1;
+	$nenufaar_log =~ /(.+)_(\d+).log/og;
+	return ($1, $2);
 }
 
 1;
