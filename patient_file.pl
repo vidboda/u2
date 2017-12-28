@@ -590,13 +590,20 @@ if ($result) {
 						$filter = $res_manifest->{'filter'}; #in case of bug of code l190 we rebuild $filter
 						$raw_filter = $q->span({'class' => 'green'}, 'PASS');
 						my $criteria = '';
-						if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
-						if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
-						if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
-						if ($res_manifest->{'ontarget_reads'} < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
-						if ($criteria ne '') {$raw_filter = $q->span({'class' => 'red'}, "FAILED $criteria")}						
-						$illumina_semaph = 1;
-						
+						if ($nenufaar == 0) {
+							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
+							if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
+							if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
+							if ($res_manifest->{'ontarget_reads'} < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
+							$illumina_semaph = 1;#gene panel
+						}
+						else {
+							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC_CE) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC_CE.') '}
+							if ($res_manifest->{'twentyx_doc'} < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
+							if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV_CE) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_CE.') '}
+							$illumina_semaph = 2;#clinical exome
+						}
+						if ($criteria ne '') {$raw_filter = $q->span({'class' => 'red'}, "FAILED $criteria")}					
 						
 					}
 					#my $raw_data = $q->start_ul().$q->start_li().$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp.'_AliInfo.txt', 'target' => '_blank'}, 'Get AliInfo file').$q->end_li().$q->start_li().$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp.'_vcf.vcf', 'target' => '_blank'}, 'Get variant VCF file').$q->end_li().$q->start_li().$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp.'_coverage.bed', 'target' => '_blank'}, 'Get coverage BED file').$q->end_li().$q->end_ul().$q->start_table({'class' => 'zero_table'}).$q->start_Tr().$q->start_td().$q->img({'src' => $partial_path."_graph1.png"}).$q->end_td().$q->start_td().$q->img({'src' => $partial_path."_graph2.png"}).$q->end_td().$q->end_Tr.$q->end_table();
@@ -616,7 +623,11 @@ if ($result) {
 						});";
 					print $q->script({'type' => 'text/javascript'}, $js), $q->start_li(), $q->button({'id' => "$analysis", 'value' => "$analysis", 'class' => 'w3-button w3-teal w3-border w3-border-blue'});
 					
-					if ($raw_filter ne '') {print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $raw_filter, $q->span('&nbsp;*')}
+					if ($raw_filter ne '') {
+						my $star = '*';
+						if ($illumina_semaph == 2) {$star = '**'}#clinical exomes
+						print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $raw_filter, $q->span("&nbsp;$star");
+					}
 					if ($valid_import eq '1') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;-&nbsp;&nbsp;IMPORT VALIDATED')}
 					print  $q->end_li(), "\n";#$q->span('&nbsp;&nbsp;,&nbsp;&nbsp;');
 				}
@@ -662,16 +673,26 @@ if ($result) {
 		
 		#print $q->end_ul(), $q->end_div(), "\n";
 		print $q->end_div(), "\n";
-		
-		if ($illumina_semaph == 1) {
-			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'}), $q->span('*NGS raw data must fulfill the following criteria to pass:'), "\n",
-			$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
-				$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n",
-				$q->li('% of bp with covearge at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
-				$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n",
-				$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
-			$q->end_ul(), $q->end_div(), "\n"
-		}
+		if ($illumina_semaph >= 1) {
+			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'});
+			if ($illumina_semaph == 1) {
+				print $q->span('*Gene panel raw data must fulfill the following criteria to pass:'), "\n",
+				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
+					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n",
+					$q->li('% of bp with covearge at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
+					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n",
+					$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n";
+				
+			}
+			elsif ($illumina_semaph == 2) {
+				print $q->span('**Clinical Exome raw data must fulfill the following criteria to pass:'), "\n",
+				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
+					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC_CE.','), "\n",
+					$q->li('% of bp with covearge at least 20X &ge; '.$U2_modules::U2_subs_1::PC20X_CE.','), "\n",
+					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_CE.','), "\n";
+			}
+			print $q->end_ul(), $q->end_div(), "\n";
+		}		
 	}
 	else {print $q->end_div(), "\n"}
 	print $q->end_div(), "\n";
