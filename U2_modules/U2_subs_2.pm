@@ -2,6 +2,7 @@ package U2_modules::U2_subs_2;
 
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_3;
 #use Apache::Reload;
 #remove above line for production!!!
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
@@ -43,6 +44,7 @@ my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $PATIENT_IDS = $config->PATIENT_IDS();
 my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
+my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -106,9 +108,11 @@ sub print_validation_table {
 		if ($display == 1) {
 			($id, $number) = ($result->{'id_pat'}, $result->{'num_pat'});
 			#illumina
+			my $addin = '';
 			if ($result->{'manifest_name'} ne 'no_manifest' && $class ne 'global') {
 				#get bam path
 				$bam_path = &get_bam_path($result->{'identifiant'}, $result->{'numero'}, $result->{'type_analyse'}, $dbh);
+				if ($result->{'type_analyse'} =~ /Mi/o) {$addin = '.bam'}
 				#print $bam_path;
 			}
 			print $q->start_Tr(), "\n",
@@ -116,7 +120,7 @@ sub print_validation_table {
 			if ($gene eq '') {print $q->start_td(), $q->em($result->{'nom_gene'}), $q->end_td(), "\n"}
 			if ($result->{'manifest_name'} eq 'no_manifest') {print $q->td($result->{'type_analyse'}), "\n"}
 			elsif ($class ne 'global') {
-				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM file in IVG', 'onclick' => "igv.browser.loadTrack({url:'$bam_path', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
+				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$bam_path.bam', indexURL:'$bam_path$addin.bai', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 			}
 			else {print $q->td($result->{'type_analyse'}), "\n"}
 			
@@ -170,34 +174,46 @@ sub get_bam_path {
 	my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
 	my $res_manifest = $dbh->selectrow_hashref($query_manifest);
 	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq'}
-	
+	elsif ($analysis =~ /NextSeq-.+/o) {$instrument = 'nextseq';$instrument_path = $CLINICAL_EXOME_BASE_DIR}
 	my ($alignment_dir);
-	if ($instrument eq 'miseq'){
+	if ($instrument eq 'miseq') {
 		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
 		#print $alignment_dir;
 		$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = "/Data/Intensities/BaseCalls/$1";
 		#print $alignment_dir;
 	}
-	elsif($instrument eq 'miniseq'){
+	elsif($instrument eq 'miniseq') {
 		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
 		$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 		$alignment_dir = $1;
 		$alignment_dir =~ s/\\/\//og;					
 	}
-	#print $alignment_dir;
-	my $bam_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir`;
-	#print "ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir -- $bam_list";
-	#print $res_manifest->{'run_id'};
-	#create a hash which looks like {"illumina_run_id" => 0}
-	my %files = map {$_ => '0'} split(/\s/, $bam_list);
+	#elsif($instrument eq 'nextseq') {
+	#	my ($ana, $ana_id) = U2_modules::U2_subs_3::get_nenufaar_id($ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id');
+	#	#$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run
+	#	$alignment_dir = $id.$number.$ana;
+	#}
+	##print $alignment_dir;
+	
 	my $bam_file;
-	foreach my $file_name (keys(%files)) {
-		#print $file_name;
-		if ($file_name =~ /$id$number(_S\d+\.bam)/) {
-			my $bam_file_suffix = $1;
-			$bam_file = "$alignment_dir/$id$number$bam_file_suffix";
-			#$bam_ftp = "$ftp_dir/$id$number$bam_file_suffix";
-		}								
+	if ($instrument ne 'nextseq') {
+		my $bam_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir`;
+		#print "ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir -- $bam_list";
+		#print $res_manifest->{'run_id'};
+		#create a hash which looks like {"illumina_run_id" => 0}
+		my %files = map {$_ => '0'} split(/\s/, $bam_list);		
+		foreach my $file_name (keys(%files)) {
+			#print $file_name;
+			if ($file_name =~ /$id$number(_S\d+)\.bam/) {
+				my $bam_file_suffix = $1;
+				$bam_file = "$alignment_dir/$id$number$bam_file_suffix";
+				#$bam_ftp = "$ftp_dir/$id$number$bam_file_suffix";
+			}								
+		}
+	}
+	else {
+		my ($ana, $ana_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}");
+		$bam_file = "$id$number/$ana_id/$id$number";
 	}
 	return "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$bam_file";
 }
@@ -371,7 +387,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		#my ($direction, $main_acc, $acc_g, $acc_v) = U2_modules::U2_subs_2::get_direction($gene, $dbh);
 		#my ($igv_start, $igv_end) = ($var->{'start_g'}-10, $var->{'end_g'}+10);
 		#if ($direction eq 'DESC') {($igv_start, $igv_end) = ($var->{'end_g'}-10, $var->{'start_g'}+10)}
-		if ($global ne 't' && $type_analyse =~ /Mi/o) {
+		if ($global ne 't' && $type_analyse =~ /Mi/o || $type_analyse =~ /Next/o) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
 			my $igv_padding = 40;
 			print $q->start_td(), $q->button({'onclick' => "igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')", 'class' => 'pointer', 'title' => 'Click to see in IGV loaded tracks; if no tracks are loaded, click on a NGS analysis type button in the validation table', 'value' => $nom_seg, 'class' => 'w3-button w3-blue w3-padding-small w3-tiny'}), $q->end_td(), "\n";

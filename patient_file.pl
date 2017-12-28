@@ -770,6 +770,7 @@ if ($result) {
 				if ($("#DFNX").length) {$("#DFNX").hide();}
 				if ($("#LCA").length) {$("#LCA").hide();}
 				if ($("#CHM").length) {$("#CHM").hide();}
+				if ($("#OTHER_NS").length) {$("#OTHER_NS").hide();}
 				
 				//$(location).attr(\'href\', \'#tag\');
 				var screentop = $(\'html\').offset().top;
@@ -797,6 +798,7 @@ if ($result) {
 		&create_group(\@U2_modules::U2_subs_1::DFNX, 'DFNX');
 		&create_group(\@U2_modules::U2_subs_1::NSRP, 'NSRP');
 		&create_group(\@U2_modules::U2_subs_1::LCA, 'LCA');
+		&create_group(\@U2_modules::U2_subs_1::OTHER_NS, 'OTHER_NS');
 	}
 	elsif ($filter eq 'RP') {
 		&create_group(\@U2_modules::U2_subs_1::NSRP, 'NSRP');
@@ -939,6 +941,7 @@ if ($result) {
 	&create_frame(\@U2_modules::U2_subs_1::DFNX, 'DFNX', $list);
 	&create_frame(\@U2_modules::U2_subs_1::NSRP, 'NSRP', $list);
 	&create_frame(\@U2_modules::U2_subs_1::LCA, 'LCA', $list);
+	&create_frame(\@U2_modules::U2_subs_1::OTHER_NS, 'OTHER_NS', $list);
 	print $q->end_div(), $q->start_div({'class' => 'invisible'}), $q->end_div(), "\n";
 	#######end new
 		
