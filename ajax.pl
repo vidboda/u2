@@ -437,15 +437,15 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 	#MAF SANGER
 	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, 'SANGER');
 	#MAF MiSeq
-	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, 'MiSeq-\d+');
-	my $maf_url = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";
+	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '(Min?i?Seq-\d+|NextSeq-.+)');
+	#my $maf_url = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";
 	#$MAF = "MAF 454: <strong>$maf_454</strong> / MAF Sanger: <strong>$maf_sanger</strong><br/>MAF MiSeq: <strong>$maf_miseq</strong>";
-	$MAF = $q->start_li().$q->span("MAF 454: ").$q->strong($maf_454).$q->end_li().$q->start_li().$q->span("MAF Sanger: ").$q->strong($maf_sanger).$q->end_li().$q->start_li().$q->span("MAF MiSeq: ").$q->strong($maf_miseq).$q->end_li();
+	$MAF = $q->start_li().$q->span("MAF 454: ").$q->strong($maf_454).$q->end_li().$q->start_li().$q->span("MAF Sanger: ").$q->strong($maf_sanger).$q->end_li().$q->start_li().$q->span("MAF Illumina: ").$q->strong($maf_miseq).$q->end_li();
 	#454-USH2A for only a few patients
 	my $maf_454_ush2a = '';
 	if ($gene eq 'USH2A' && $analyses =~ /454-USH2A/o) {
 		$maf_454_ush2a = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '454-USH2A');
-		$maf_url = "MAF 454-USH2A: $maf_454_ush2a / $maf_url";
+		#$maf_url = "MAF 454-USH2A: $maf_454_ush2a / $maf_url";
 		#$MAF = "MAF 454-USH2A: <strong>$maf_454_ush2a</strong><br/>$MAF";
 		$MAF .= $q->li("MAF 454-USH2A: $maf_454_ush2a");
 	}
@@ -471,7 +471,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 			}
 			
 		}
-		if ($current_analysis =~ /Min?i?Seq-/o) {
+		if ($current_analysis =~ /(Min?i?Seq-\d+|NextSeq-.+)/o) {
 			#$print_ngs = "DOC MiSeq: <strong>$depth</strong> Freq: <strong>$frequency</strong><br/>MSR filter:<strong>$msr_filter</strong><br/>";
 			$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($depth).$q->span(" Freq: ").$q->strong($frequency).$q->end_li().$q->start_li().$q->span("MSR filter: ").$q->strong($msr_filter).$q->end_li().$q->end_ul().$q->end_li();
 			my @matches = $analyses =~ /(Min?i?Seq-\d+)/og;
