@@ -249,6 +249,7 @@ if ($type eq 'analyses') {
 		if ($result->{'type_analyse'} =~ /454/o) {($picture, $thumbnail) = ('junior.jpg', 'junior_thumb.jpg')}
 		elsif ($result->{'type_analyse'} =~ /MiSeq/o) {($picture, $thumbnail) = ('miseq.jpg', 'miseq_thumb.jpg')}
 		elsif ($result->{'type_analyse'} =~ /MiniSeq/o) {($picture, $thumbnail) = ('miniseq.jpg', 'miniseq_thumb.jpg')}
+		elsif ($result->{'type_analyse'} =~ /NextSeq/o) {($picture, $thumbnail) = ('nextseq.jpg', 'nextseq_thumb.jpg')}
 		elsif ($result->{'type_analyse'} =~ /CGH/o) {($picture, $thumbnail) = ('cgh.jpg', 'cgh_thumb.jpg')}
 		$dates .= "			
 			{
