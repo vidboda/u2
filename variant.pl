@@ -614,12 +614,12 @@ print $q->start_Tr(), $q->td('MAFs & databases:'), $q->start_td(), $q->span({'id
 my ($maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA');
 if ($maf eq '') {	
 	#MAF 454
-	$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '454-\d+');
+	$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '454-[[:digit:]]+');
 	#MAF SANGER
 	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'SANGER');
 	#MAF MISEQ
-	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'Min?i?Seq-[[:digit:]]+');
-	$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";	
+	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '(Min?i?Seq-[[:digit:]]+|NextSeq-.+)');
+	$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF Illumina: $maf_miseq";	
 }
 else {
 	$maf =~ /MAF\s454:\s([\w\.]+)\s\/.+/o;
@@ -642,15 +642,15 @@ if ($maf_454 ne 'NA') {
 		$q->end_td(), $q->td('Metrics related to all occurences within 454 sequencing'), $q->end_Tr(), "\n";
 }
 if ($maf_miseq ne 'NA') {
-	my $query_miseq = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-[[:digit:]]+' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-	my $res_miseq = $dbh->selectrow_hashref($query_miseq);
-	print $q->start_Tr(), $q->td('MiSeq mean values:'), $q->start_td(), $q->span("Seen $res_miseq->{'c'} times in Illumina sequencing"),
+	my $query_illu = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ '(Min?i?Seq-[[:digit:]]+|NextSeq-.+)' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+	my $res_illu = $dbh->selectrow_hashref($query_illu);
+	print $q->start_Tr(), $q->td('MiSeq mean values:'), $q->start_td(), $q->span("Seen $res_illu->{'c'} times in Illumina sequencing"),
 		$q->start_ul(),
-			$q->li("depth: ".sprintf('%.2f', $res_miseq->{'a'})), "\n",
-			$q->li("frequency: ".sprintf('%.2f', $res_miseq->{'b'})), "\n";
-	$query_miseq = "SELECT msr_filter, num_pat, id_pat FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-[[:digit:]]+' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";	
-	my $sth = $dbh->prepare($query_miseq);
-	$res_miseq = $sth->execute();
+			$q->li("depth: ".sprintf('%.2f', $res_illu->{'a'})), "\n",
+			$q->li("frequency: ".sprintf('%.2f', $res_illu->{'b'})), "\n";
+	$query_illu = "SELECT msr_filter, num_pat, id_pat FROM variant2patient WHERE type_analyse ~ '(Min?i?Seq-[[:digit:]]+|NextSeq-.+)' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";	
+	my $sth = $dbh->prepare($query_illu);
+	$res_illu = $sth->execute();
 	my $pass = 0;
 	my $other;
 	while (my $result = $sth->fetchrow_hashref()) {

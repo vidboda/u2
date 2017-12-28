@@ -437,7 +437,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 	#MAF SANGER
 	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, 'SANGER');
 	#MAF MiSeq
-	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '(Min?i?Seq-\d+|NextSeq-.+)');
+	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '(Min?i?Seq-[[:digit:]]+|NextSeq-.+)');
 	#my $maf_url = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";
 	#$MAF = "MAF 454: <strong>$maf_454</strong> / MAF Sanger: <strong>$maf_sanger</strong><br/>MAF MiSeq: <strong>$maf_miseq</strong>";
 	$MAF = $q->start_li().$q->span("MAF 454: ").$q->strong($maf_454).$q->end_li().$q->start_li().$q->span("MAF Sanger: ").$q->strong($maf_sanger).$q->end_li().$q->start_li().$q->span("MAF Illumina: ").$q->strong($maf_miseq).$q->end_li();
@@ -458,9 +458,9 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 		if ($current_analysis =~ /454-/o) {
 			#$print_ngs = "DOC 454: <strong>$depth</strong> Freq: <strong> $frequency</strong><br/>wt f: $wt_f, wt r: $wt_r<br/>mt f: $mt_f, mt r: $mt_r<br/>";
 			$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($depth).$q->span(" Freq: ").$q->strong($frequency).$q->end_li().$q->start_li().$q->span("wt f: ").$q->strong($wt_f).$q->span(", wt r: ").$q->strong($wt_r).$q->end_li().$q->start_li().$q->span("mt f: ").$q->strong($mt_f).$q->span(", mt r: ").$q->strong($mt_r).$q->end_li().$q->end_ul().$q->end_li();
-			#check if MiSeq also??
-			if ($analyses =~ /Min?i?Seq-\d+/o) {
-				my @matches = $analyses =~ /(Min?i?Seq-\d+)/og;
+			#check if Illumina also??
+			if ($analyses =~ /(Min?i?Seq-\d+|NextSeq-.+)/o) {
+				my @matches = $analyses =~ /(Min?i?Seq-\d+|NextSeq-.+)/og;
 				foreach (@matches) {
 					$info .= &miseq_details($_, $first_name, $last_name, $gene, $acc, $nom_c);
 					#my $query_ngs = "SELECT depth, frequency, msr_filter FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND  nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$nom_c' AND type_analyse = '$_';";
