@@ -108,7 +108,7 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Basic init
 
-
+my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 #1st specific page with mean values for a run
 
 if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o){
@@ -375,7 +375,7 @@ else {
 	my $query = 'SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse ORDER BY a.type_analyse DESC, a.run_id;';
 	my $dates = "\"date\": [
 	";
-	my ($i, $j, $k, $l, $m, $n, $o, $p) = (0, 0, 0, 0, 0, 0, 0, 0);
+	my ($i, $j, $k, $l, $m, $n, $o, $p, $r) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
@@ -394,6 +394,7 @@ else {
 		elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$m++;$text .= "<br/>Run Number: $m";$title = "Run $m";$thumbnail = 'miniseq_thumb.jpg';}
 		elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$n++;$text .= "<br/>Run Number: $n";$title = "Run $n";$thumbnail = 'miniseq_thumb.jpg';}
 		elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$p++;$text .= "<br/>Run Number: $p";$title = "Run $p";$thumbnail = 'miniseq_thumb.jpg';}
+		elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$r++;$text .= "<br/>Run Number: $r";$title = "Run $r";$thumbnail = 'nextseq_thumb.jpg';}
 		$text .= "<br/><a href='search_controls.pl?step=3&iv=1&run=$result->{'run_id'}'>Sample tracking</a>";
 		
 		
@@ -434,6 +435,8 @@ else {
 		elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$new_style .= $q->td("Run $m")}
 		elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$new_style .= $q->td("Run $n")}
 		elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$new_style .= $q->td("Run $p")}
+		elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$new_style .= $q->td("Run $r")}
+		
 		#$ul .= $q->end_li();
 		$new_style .= $q->end_Tr()
 	}
@@ -522,14 +525,6 @@ sub get_data_mean {
 	return sprintf('%.'.$num.'f', $res->{'a'});
 }
 
-#sub get_data_mean_cluster {
-#	my $type = shift;
-#	my $query = "SELECT AVG(($type/noc_raw)*100) AS a FROM illumina_run;";
-#	#my $query = "SELECT AVG($type) AS a FROM illumina_run;";
-#	my $res = $dbh->selectrow_hashref($query);
-#	return sprintf('%.2f', $res->{'a'}).' %';
-#}
-#'global', 'noc_raw', '', '0', 'cluster'
 sub get_data {
 	my ($run, $type, $math, $num, $cluster) = @_;
 	my ($query, $data);
@@ -556,50 +551,8 @@ sub get_data {
 	return $data;
 }
 
-#sub get_data_cluster {
-#	my $type = shift;
-#	my ($query, $data);
-#	#$query = "SELECT (($type/noc_raw)*100) AS a FROM illumina_run GROUP BY id;";
-#	$query = "SELECT $type AS a FROM illumina_run GROUP BY id;";
-#	my $sth = $dbh->prepare($query);
-#	my $res = $sth->execute();
-#	while (my $result = $sth->fetchrow_hashref()) {
-#		$data .= sprintf('%.2f', $result->{'a'}).', ';
-#	}
-#	chop($data);
-#	chop($data);
-#	return $data;
-#}
-
-#in U2_modules::U2_subs_2
-#sub get_js_graph {
-#	my ($labels, $data, $color, $id) = @_;
-#	return "\n// Get context with jQuery - using jQuery's .get() method.
-#		//Chart.defaults.global.responsive = true; //wether or not the chart should be responsive and resize when the browser does.
-#		var ctx = \$(\"#$id\").get(0).getContext(\"2d\");\n
-#		// This will get the first returned node in the jQuery collection.
-#		//var myNewChart = new Chart(ctx);
-#		var data = {
-#			labels: [$labels],
-#			datasets: [
-#				{
-#					//label: \"On target reads\",
-#					fillColor: \"rgba($color,0.5)\",
-#					strokeColor: \"rgba($color,0.8)\",
-#					highlightFill: \"rgba($color,0.75)\",
-#					highlightStroke: \"rgba($color,1)\",
-#					data: [$data]
-#				}
-#			]
-#		};\n
-#		var chart_$id = new Chart(ctx).Bar(data, {
-#			scaleBeginAtZero: false,
-#			animation: false
-#		});\n";
-#}
-
 sub get_total_samples {
-	my $query = 'SELECT COUNT(DISTINCT(num_pat, id_pat)) AS a FROM analyse_moleculaire WHERE type_analyse ~ \'Min?i?Seq-.+\';';
+	my $query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) AS a FROM analyse_moleculaire WHERE type_analyse ~ \'$ANALYSIS_ILLUMINA_PG_REGEXP\';";
 	my $res = $dbh->selectrow_hashref($query);
 	return "$res->{'a'} samples";
 }

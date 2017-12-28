@@ -125,6 +125,8 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Basic init
 
+my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
+
 my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 
 my $acc = U2_modules::U2_subs_1::check_acc($q, $dbh);
@@ -618,7 +620,7 @@ if ($maf eq '') {
 	#MAF SANGER
 	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'SANGER');
 	#MAF MISEQ
-	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '(Min?i?Seq-[[:digit:]]+|NextSeq-.+)');
+	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, $ANALYSIS_ILLUMINA_PG_REGEXP);
 	$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF Illumina: $maf_miseq";	
 }
 else {
@@ -642,13 +644,13 @@ if ($maf_454 ne 'NA') {
 		$q->end_td(), $q->td('Metrics related to all occurences within 454 sequencing'), $q->end_Tr(), "\n";
 }
 if ($maf_miseq ne 'NA') {
-	my $query_illu = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ '(Min?i?Seq-[[:digit:]]+|NextSeq-.+)' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+	my $query_illu = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
 	my $res_illu = $dbh->selectrow_hashref($query_illu);
 	print $q->start_Tr(), $q->td('MiSeq mean values:'), $q->start_td(), $q->span("Seen $res_illu->{'c'} times in Illumina sequencing"),
 		$q->start_ul(),
 			$q->li("depth: ".sprintf('%.2f', $res_illu->{'a'})), "\n",
 			$q->li("frequency: ".sprintf('%.2f', $res_illu->{'b'})), "\n";
-	$query_illu = "SELECT msr_filter, num_pat, id_pat FROM variant2patient WHERE type_analyse ~ '(Min?i?Seq-[[:digit:]]+|NextSeq-.+)' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";	
+	$query_illu = "SELECT msr_filter, num_pat, id_pat FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";	
 	my $sth = $dbh->prepare($query_illu);
 	$res_illu = $sth->execute();
 	my $pass = 0;
@@ -709,16 +711,16 @@ $query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WH
 my $hom_454 = $dbh->selectrow_hashref($query);
 
 #$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient WHERE type_analyse LIKE 'MiSeq-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) as a FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-[[:digit:]]+' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) as a FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
 my $res_seen_miseq = $dbh->selectrow_hashref($query);
 
 #$query = "SELECT COUNT(DISTINCT(num_pat))*2 as a FROM variant2patient WHERE type_analyse LIKE 'MiSeq-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
-$query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WHERE type_analyse ~ 'Min?i?Seq-[[:digit:]]+' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
+$query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
 my $hom_miseq = $dbh->selectrow_hashref($query);
 
 print $q->start_Tr(), $q->td('U2 occurences:'), $q->start_td(), $q->span("Seen in ".($res_seen+($hom/2))." alleles in total (including $hom homozygous) (homozygous = 2 alleles)"),
 	$q->start_ul(), $q->li("including ".($res_seen_454->{'a'}+($hom_454->{'a'}/2))." alleles in 454 context ($hom_454->{'a'} homozygous)"),
-	$q->li("including ".($res_seen_miseq->{'a'}+($hom_miseq->{'a'}/2))." alleles in MiSeq/MiniSeq context ($hom_miseq->{'a'} homozygous)"), $q->end_ul(), $q->end_td(), $q->td('Number of observation in Ushvam2 with details'), $q->end_Tr(), "\n";
+	$q->li("including ".($res_seen_miseq->{'a'}+($hom_miseq->{'a'}/2))." alleles in Illumina context ($hom_miseq->{'a'} homozygous)"), $q->end_ul(), $q->end_td(), $q->td('Number of observation in Ushvam2 with details'), $q->end_Tr(), "\n";
 
 #patient list
 
