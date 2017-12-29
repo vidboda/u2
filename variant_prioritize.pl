@@ -183,7 +183,7 @@ if ($result) {
 			#	$q->li('have a MAX_MAF below 0.005 (same for dominants and recessives), MAX_MAF being the maximum between ExAC, EVS_EA and EVS_AA MAFs.'),
 			#$q->end_ul(), $q->br(), $q->br(), "\n"; 
 				
-			print $q->start_div({'class' => 'container'}), $q->start_table({'class' => "technical great_table", 'id' => 'priorisation_table'}), $q->caption("Missense table:"), $q->start_thead(),
+			print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => "technical great_table", 'id' => 'priorisation_table'}), $q->caption("Missense table:"), $q->start_thead(),
 				$q->start_Tr(), "\n",
 					$q->th({'class' => 'left_general'}, 'gene'), "\n",
 					$q->th({'class' => 'left_general'}, 'DNA'), "\n",
@@ -356,7 +356,7 @@ if ($result) {
 			
 			#print $q->start_p(), $q->span('You will find below a table ranking all '), $q->strong('unknown'), $q->span(" variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5."), $q->end_p(), $q->br(), $q->br(), $q->start_p(), $q->span('They are ranked according to their ability to disturb proper splicing according to '), $q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR'), $q->span('.'), $q->strong(' WARNING: does not work for variants located > 300 bp from exons AND ONLY CONSIDERS substitutions.'), "\n", $q->br(), $q->br(), "\n"; 
 				
-			print $q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'priorisation_table'}), $q->caption("Splicing table:"), $q->start_thead(),
+			print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'priorisation_table'}), $q->caption("Splicing table:"), $q->start_thead(),
 				$q->start_Tr(), "\n",
 					$q->th({'class' => 'left_general'}, 'gene'), "\n",
 					$q->th({'class' => 'left_general'}, 'DNA'), "\n",
