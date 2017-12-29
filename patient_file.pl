@@ -679,7 +679,7 @@ if ($result) {
 				print $q->span('*Gene panel raw data must fulfill the following criteria to pass:'), "\n",
 				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
 					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n",
-					$q->li('% of bp with covearge at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
+					$q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
 					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n",
 					$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n";
 				
@@ -688,7 +688,7 @@ if ($result) {
 				print $q->span('**Clinical Exome raw data must fulfill the following criteria to pass:'), "\n",
 				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
 					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC_CE.','), "\n",
-					$q->li('% of bp with covearge at least 20X &ge; '.$U2_modules::U2_subs_1::PC20X_CE.','), "\n",
+					$q->li('% of bp with coverage at least 20X &ge; '.$U2_modules::U2_subs_1::PC20X_CE.','), "\n",
 					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_CE.','), "\n";
 			}
 			print $q->end_ul(), $q->end_div(), "\n";
