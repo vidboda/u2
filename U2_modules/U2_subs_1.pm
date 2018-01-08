@@ -554,7 +554,7 @@ sub check_filter {
 #used in import_illumina.pl
 sub check_illumina_run_id {
 	my ($q) = shift;
-	if ($q->param('run_id') =~ /^(\d{6}_[A-Z]\d{5}_\d{4}_0{9}-[A-Z0-9]{5})$/o || $q->param('run_id') =~ /^(\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10})$/o) {return $1}
+	if ($q->param('run_id') =~ /^(\d{6}_[A-Z]\d{5}_\d{4}_0{9}-[A-Z0-9]{5})$/o || $q->param('run_id') =~ /^(\d{6}_[A-Z]{2}\d{5,6}_\d{4}_[A-Z0-9]{10})$/o) {return $1}
 	else {&standard_error('21', $q)}	
 }
 
