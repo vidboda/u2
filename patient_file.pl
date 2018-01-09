@@ -760,7 +760,7 @@ if ($result) {
 		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=missense&sample='.$id.$number.'\');'}, 'Prioritize missense'), "\n",
 		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n";
 	if ($illumina_semaph > 1) {
-		print $q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'ngs_poor_coverage.pl?type=ce&sample='.$id.$number.'&run='.$ce_run_id.'\');'}, 'Clinical Exome poor coverage'), "\n";
+		print $q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'ngs_poor_coverage.pl?type=ce&sample='.$id.$number.'&run_id='.$ce_run_id.'\');'}, 'Clinical Exome poor coverage'), "\n";
 	}
 	print	$q->end_div(), $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";
 	
