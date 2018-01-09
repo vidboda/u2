@@ -346,7 +346,7 @@ if ($result) {
 	my $done  = "SELECT DISTINCT(a.type_analyse), a.num_pat, a.id_pat, c.manifest_name FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name';";
 	my $sth4 = $dbh->prepare($done);
 	my $res_done = $sth4->execute();
-	my $ce_run_id = '';
+	my ($ce_run_id, $ce_id, $ce_num) = ('', '', '');
 	if ($res_done ne '0E0') {
 		print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->strong("Analyses: "), $q->start_ul(), "\n";
 		my $analysis_count = 0;
@@ -464,7 +464,7 @@ if ($result) {
 							$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/$alignment_dir";						
 						}
 						elsif($instrument eq 'nextseq'){
-							$ce_run_id = $res_manifest->{'run_id'};
+							($ce_run_id, $ce_id, $ce_num) = ($res_manifest->{'run_id'}, $id_tmp, $num_tmp);
 							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}";
 							$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}";
 						}
@@ -566,7 +566,8 @@ if ($result) {
 							#}
 						}
 						if ($nenufaar == 1) {
-							my ($ce_nenufaar_path, $link_ce_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/ns/ClinicalExome/nenufarised/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/ns/ClinicalExome/nenufarised/$res_manifest->{'run_id'}");
+							#my ($ce_nenufaar_path, $link_ce_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/ns/ClinicalExome/nenufarised/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/ns/ClinicalExome/nenufarised/$res_manifest->{'run_id'}");
+							my ($ce_nenufaar_path, $link_ce_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}");
 							if (-e "$ce_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View Clinical Exome MultiQC run report');
 							}
@@ -760,7 +761,7 @@ if ($result) {
 		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=missense&sample='.$id.$number.'\');'}, 'Prioritize missense'), "\n",
 		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n";
 	if ($illumina_semaph > 1) {
-		print $q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'ngs_poor_coverage.pl?type=ce&sample='.$id.$number.'&run_id='.$ce_run_id.'\');'}, 'Clinical Exome poor coverage'), "\n";
+		print $q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'ngs_poor_coverage.pl?type=ce&sample='.$ce_id.$ce_num.'&run_id='.$ce_run_id.'\');'}, 'Clinical Exome poor coverage'), "\n";
 	}
 	print	$q->end_div(), $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";
 	
