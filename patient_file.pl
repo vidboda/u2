@@ -601,7 +601,8 @@ if ($result) {
 							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC_CE) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC_CE.') '}
 							if ($res_manifest->{'twentyx_doc'} < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
 							if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV_CE) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_CE.') '}
-							$illumina_semaph = 2;#clinical exome
+							if ($illumina_semaph == 0) {$illumina_semaph = 2}#clinical exome
+							else {$illumina_semaph = 3}
 						}
 						if ($criteria ne '') {$raw_filter = $q->span({'class' => 'red'}, "FAILED $criteria")}					
 						
@@ -675,23 +676,25 @@ if ($result) {
 		print $q->end_div(), "\n";
 		if ($illumina_semaph >= 1) {
 			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'});
-			if ($illumina_semaph == 1) {
+			if ($illumina_semaph == 1 || $illumina_semaph == 3) {
 				print $q->span('*Gene panel raw data must fulfill the following criteria to pass:'), "\n",
 				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
 					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n",
 					$q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
 					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n",
-					$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n";
+					$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
+				$q->end_ul();
 				
 			}
-			elsif ($illumina_semaph == 2) {
-				print $q->span('**Clinical Exome raw data must fulfill the following criteria to pass:'), "\n",
+			if ($illumina_semaph > 1) {
+				print $q->br(), $q->span('**Clinical Exome raw data must fulfill the following criteria to pass:'), "\n",
 				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
 					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC_CE.','), "\n",
 					$q->li('% of bp with coverage at least 20X &ge; '.$U2_modules::U2_subs_1::PC20X_CE.','), "\n",
-					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_CE.','), "\n";
+					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_CE.','), "\n",
+				$q->end_ul();
 			}
-			print $q->end_ul(), $q->end_div(), "\n";
+			print $q->end_div(), "\n";
 		}		
 	}
 	else {print $q->end_div(), "\n"}
