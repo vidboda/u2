@@ -70,7 +70,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
-	$q->start_html(-title=>"USH non-USH",
+	$q->start_html(-title=>"Advanced options",
                         -lang => 'en',
                         -style => {-src => \@styles},
                         -head => [
