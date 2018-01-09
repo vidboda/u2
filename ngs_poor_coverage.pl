@@ -8,6 +8,7 @@ use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
+use U2_modules::U2_subs_3;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -56,6 +57,14 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
+my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
+my $RS_BASE_DIR = $config->RS_BASE_DIR();
+my $CLINICAL_EXOME_SHORT_BASE_DIR = $config->CLINICAL_EXOME_SHORT_BASE_DIR();
+my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
+my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
+my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
+my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'datatables.min.css');
 
 my $q = new CGI;
@@ -69,7 +78,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
-	$q->start_html(-title=>"USH non-USH",
+	$q->start_html(-title=>"NGS poor coverage",
                         -lang => 'en',
                         -style => {-src => \@styles},
                         -head => [
@@ -109,6 +118,137 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Basic init
 
+#hg38 transition variable for postgresql 'start_g' segment field
+my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
+
+#we get a sample as param
+my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+
+my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
+my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id);
+if ($q->param('type') && $q->param('type') eq 'ce') {
+	#1st get poor coverage file
+	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
+	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+	#create roi hash
+	$interval = U2_modules::U2_subs_3::build_roi($dbh);
+}
+elsif ($q->param('type') && $q->param('type') =~ /(MiSeq-\d+)/o) {
+	#1st get poor coverage file
+	#MiSeq
+	my $nenufaar_ana_tmp = $1;
+	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
+	$nenufaar_ana = $nenufaar_ana_tmp;
+	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+}
+elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
+	#1st get poor coverage file
+	#MiSeq
+	my $nenufaar_ana_tmp = $1;
+	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
+	$nenufaar_ana = $nenufaar_ana_tmp;
+	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+}
+else {
+	U2_modules::U2_subs_1::standard_error ('16', $q);
+}
+
+
+my $text = $q->span('You will find below a table ranking all ').
+			$q->strong('genomic regions').
+			$q->span(" poorly covered during the $nenufaar_ana NGS experiment for $id$number.");
+print U2_modules::U2_subs_2::info_panel($text, $q);
+
+print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'gene_table'}), $q->caption("Poorly covered regions table:"), $q->start_thead(),
+			$q->start_Tr(), "\n",
+				$q->th({'class' => 'left_general'}, 'Chr'), "\n",
+				$q->th({'class' => 'left_general'}, 'Start'), "\n",
+				$q->th({'class' => 'left_general'}, 'End'), "\n",
+				$q->th({'class' => 'left_general'}, 'Region'), "\n",
+				$q->th({'class' => 'left_general'}, 'Size (bp)'), "\n",
+				$q->th({'class' => 'left_general'}, 'Type'), "\n",
+				$q->th({'class' => 'left_general'}, 'UCSC link'), "\n",
+				$q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";	
+
+open F, $poor_coverage_absolute_path or die $poor_coverage_absolute_path, $!;
+
+
+
+while (<F>) {
+	if ($_ !~ /^#/o) {
+		#print "$_<br/>";
+		my @line = split(/\t/);
+		my $region;		
+		$line[0] =~ /chr([\dXY]{1,2})/o;
+		my $u2_chr = $1;
+		if ($q->param('type') eq 'ce') {
+			my $interest = 0;
+			foreach my $key (keys %{$interval}) {
+				$key =~ /(\d+)-(\d+)/o;
+				if ($line[1] >= $1 && $line[2] <= $2) {#good interval, check good chr
+					if ($line[0] eq "chr$interval->{$key}") {
+						$interest = 1;
+						#$line[0] = /chr([\dXY]{1,2})/o;
+						last;
+					}
+				}
+			}
+			if ($interest == 0) {next}
+		}
+		my $query = "SELECT a.nom_gene, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.chr = '$u2_chr' AND b.main = 't' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
+		my $sth = $dbh->prepare($query);
+		my $res = $sth->execute();
+		my ($gene, $nm, @type, @nom);
+		if ($res ne '0E0') {
+			while (my $result = $sth->fetchrow_hashref()) {
+				($gene, $nm) = ($result->{'nom_gene'}[0], $result->{'nom_gene'}[1]);
+				if ($#type > 0 && ($result->{'nom'} eq $nom[0] && $result->{'type'} eq $type[0])) {last}
+				push @type, $result->{'type'};
+				if ($result->{'nom'} !~ /UTR/o) {push @nom, $result->{'nom'}}
+				else {push @nom, ''}
+				
+			}
+		}
+		else {
+			$query = "SELECT a.nom_gene, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.chr = '$u2_chr' AND b.main = 'f' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
+			$sth = $dbh->prepare($query);
+			$res = $sth->execute();
+			while (my $result = $sth->fetchrow_hashref()) {
+				($gene, $nm) = ($result->{'nom_gene'}[0], $result->{'nom_gene'}[1]);
+				if ($#type > 0 && ($result->{'nom'} eq $nom[0] && $result->{'type'} eq $type[0])) {last}
+				push @type, $result->{'type'};
+				if ($result->{'nom'} !~ /UTR/o) {push @nom, $result->{'nom'}}
+				else {push @nom, ''}
+				if ($#type > 1) {last}
+			}
+		}
+		$region = "$gene:$nm:".shift(@type)." ".shift(@nom)." - ".shift(@type)." ".shift(@nom);
+		#}
+		#else {
+		#	$region = $line[3];
+		#}
+		print $q->start_Tr(), "\n",
+				$q->td($line[0]), "\n",
+				$q->td($line[1]), "\n",
+				$q->td($line[2]), "\n",
+				$q->td($region), "\n",
+				$q->td($line[4]), "\n",
+				$q->td($line[5]), "\n",
+				$q->start_td(), $q->a({'href' => "$line[6]", 'target' => '_blank'}, 'UCSC'), $q->end_td(), "\n",
+				$q->end_Tr();
+		#print "$line[6]<br/>";
+	}
+}
+close F;
+print $q->end_tbody(), $q->end_table(), $q->end_div();
+
+#my $interest = 0;
+#foreach my $key (keys %{$intervals}) {
+#	$key =~ /(\d+)-(\d+)/o;
+#	if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr			
+#		if ($var_chr eq $intervals->{$key}) {$interest = 1;last;}
+#	}
+#}
 
 
 
