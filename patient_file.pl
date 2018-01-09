@@ -568,7 +568,7 @@ if ($result) {
 						if ($nenufaar == 1) {
 							#my ($ce_nenufaar_path, $link_ce_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/ns/ClinicalExome/nenufarised/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/ns/ClinicalExome/nenufarised/$res_manifest->{'run_id'}");
 							my ($ce_nenufaar_path, $link_ce_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}");
-							if (-e "$ce_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
+							if (-e "$ce_nenufaar_path/multiqc_report.html") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View Clinical Exome MultiQC run report');
 							}
 							if (-e "$ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx") {
