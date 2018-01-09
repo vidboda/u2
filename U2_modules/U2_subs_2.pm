@@ -390,7 +390,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		if ($global ne 't' && ($type_analyse =~ /Mi/o || $type_analyse =~ /Next/o)) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
 			my $igv_padding = 40;
-			print $q->start_td(), $q->button({'onclick' => "igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')", 'class' => 'pointer', 'title' => 'Click to see in IGV loaded tracks; if no tracks are loaded, click on a NGS analysis type button in the validation table', 'value' => $nom_seg, 'class' => 'w3-button w3-blue w3-padding-small w3-tiny'}), $q->end_td(), "\n";
+			print $q->start_td(), $q->button({'onclick' => "igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')", 'class' => 'pointer', 'title' => 'Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table', 'value' => $nom_seg, 'class' => 'w3-button w3-blue w3-padding-small w3-tiny'}), $q->end_td(), "\n";
 		}
 		else {print $q->td($nom_seg), "\n";}
 		
