@@ -626,6 +626,10 @@ if ($result) {
 							    // prevent the default action, e.g., following a link
 							    return false;
 							});
+							\$('.ui-dialog').hover(
+								function() {\$(this).css('z-index', '2000');},
+								function() {\$(this).css('z-index', '100');}
+							);
 						});";
 					print $q->script({'type' => 'text/javascript'}, $js), $q->start_li(), $q->button({'id' => "$analysis", 'value' => "$analysis", 'class' => 'w3-button w3-teal w3-border w3-border-blue'});
 					
