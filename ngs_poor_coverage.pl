@@ -164,7 +164,8 @@ else {
 
 my $text = $q->span('You will find below a table ranking all ').
 			$q->strong('genomic regions').
-			$q->span(" poorly covered during the $nenufaar_ana NGS experiment for $id$number.");
+			$q->span(" poorly covered during the $nenufaar_ana NGS experiment for $id$number.").
+			$q->br().$q->span('Click on a blue square to load the region in IGV.');
 print U2_modules::U2_subs_2::info_panel($text, $q);
 
 print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'gene_table'}), $q->caption("Poorly covered regions table:"), $q->start_thead(),
