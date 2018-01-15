@@ -64,8 +64,9 @@ my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
 my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+my $REF_GENE_URI = $config->REF_GENE_URI();
 
-my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'datatables.min.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'datatables.min.css', $CSS_PATH.'igv-1.0.5.css', $CSS_PATH.'jquery-ui-1.12.1.min.css');
 
 my $q = new CGI;
 
@@ -107,6 +108,10 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				-src => $JS_PATH.'datatables.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
+				{-language => 'javascript',
+				-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
+				{-language => 'javascript',
+				-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
                                 -src => $JS_DEFAULT}],		
                         -encoding => 'ISO-8859-1', 'defer' => 'defer');
@@ -125,11 +130,12 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 
 my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
-my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id);
+my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id, $bam_path);
 if ($q->param('type') && $q->param('type') eq 'ce') {
 	#1st get poor coverage file
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+	$bam_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number;
 	#create roi hash
 	$interval = U2_modules::U2_subs_3::build_roi($dbh);
 }
@@ -140,6 +146,7 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiSeq-\d+)/o) {
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
 	$nenufaar_ana = $nenufaar_ana_tmp;
 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+	$bam_path = "$HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 }
 elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 	#1st get poor coverage file
@@ -148,6 +155,7 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
 	$nenufaar_ana = $nenufaar_ana_tmp;
 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+	$bam_path = "$HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 }
 else {
 	U2_modules::U2_subs_1::standard_error ('16', $q);
@@ -172,13 +180,13 @@ print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 't
 
 open F, $poor_coverage_absolute_path or die $poor_coverage_absolute_path, $!;
 
-
+my $igv_padding = 0;
 
 while (<F>) {
 	if ($_ !~ /^#/o) {
 		#print "$_<br/>";
 		my @line = split(/\t/);
-		my $region;		
+		my ($region, $size);		
 		$line[0] =~ /chr([\dXY]{1,2})/o;
 		my $u2_chr = $1;
 		if ($q->param('type') eq 'ce') {
@@ -223,6 +231,7 @@ while (<F>) {
 			}
 		}
 		$region = "$gene:$nm:".shift(@type)." ".shift(@nom)." - ".shift(@type)." ".shift(@nom);
+		$size = $q->button({'onclick' => "igv.browser.search('$line[0]:".($line[1]-$igv_padding)."-".($line[2]+$igv_padding)."')", 'class' => 'pointer', 'title' => 'Click to see in IGV track', 'value' => $line[4], 'class' => 'w3-button w3-blue w3-padding-small w3-tiny'});
 		#}
 		#else {
 		#	$region = $line[3];
@@ -232,7 +241,7 @@ while (<F>) {
 				$q->td($line[1]), "\n",
 				$q->td($line[2]), "\n",
 				$q->td($region), "\n",
-				$q->td($line[4]), "\n",
+				$q->start_td(), $size, $q->end_td(), "\n",
 				$q->td($line[5]), "\n",
 				$q->start_td(), $q->a({'href' => "$line[6]", 'target' => '_blank'}, 'UCSC'), $q->end_td(), "\n",
 				$q->end_Tr();
@@ -240,7 +249,43 @@ while (<F>) {
 	}
 }
 close F;
-print $q->end_tbody(), $q->end_table(), $q->end_div();
+print $q->end_tbody(), $q->end_table(), $q->end_div(), $q->br(), $q->br();
+
+my $igv_script = '
+$(document).ready(function () {
+	var div = $("#igv_div"),
+	options = {
+	    showNavigation: true,
+	    showRuler: true,
+	    genome: "hg19",
+	    tracks: [
+		{
+		    name: "Genes",
+		    type: "annotation",
+		    format: "bed",
+		    sourceType: "file",
+		    url: "'.$REF_GENE_URI.'",
+		    indexURL: "'.$REF_GENE_URI.'.tbi",
+		    order: Number.MAX_VALUE,
+		    visibilityWindow: 300000000,
+		    displayMode: "EXPANDED"
+		},
+		{
+		    name: "'.$id.$number.' '.$nenufaar_ana.' BAM file",
+		    type: "alignment",
+		    format: "bam",
+		    sourceType: "file",
+		    url: "'.$bam_path.'.bam",
+		    indexURL: "'.$bam_path.'.bai",
+		}
+	    ]
+	};
+
+	igv.createBrowser(div, options);
+
+    });
+';
+print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
 
 #my $interest = 0;
 #foreach my $key (keys %{$intervals}) {
