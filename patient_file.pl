@@ -406,7 +406,7 @@ if ($result) {
 									$q->span({'class' => 'w3padding-small w3-col', 'style' => 'width:15%'},"Filter: &nbsp;&nbsp;").$q->start_div({'class' => 'w3padding-small w3-col', 'style' => 'width:50%'}).
 									U2_modules::U2_subs_1::select_filter($q, 'filter', "run_filter_form$analysis_count", $res_manifest->{'filter'}).$q->end_div().
 									$q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").
-									$q->submit({'value' => 'Change', 'class' => 'w3-button w3-tiny w3padding-small w3-blue w3-rest w3-hover-light-grey', 'form' => "run_filter_form$analysis_count"}).$q->end_div().
+									$q->submit({'value' => 'Change', 'class' => 'w3-button w3-tiny w3-blue w3-rest w3-hover-light-grey', 'form' => "run_filter_form$analysis_count"}).$q->end_div().
 									$q->end_form().
 									$q->end_li();
 							$raw_data =~ s/$\///og;
