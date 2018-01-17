@@ -126,8 +126,7 @@ my $sam = $dbh->selectrow_hashref($query1);
 my $pat = $dbh->selectrow_hashref($query2);
 my $pro = $dbh->selectrow_hashref($query3);
 
-my $info = $q->start_big().$q->p("$text samples ($sam->{'a'}) registered in U2 ($pat->{'a'} patients including $pro->{'a'} proband):").
-	$q->end_big().
+my $info = $q->p({'class' => 'w3-large'}, "$text samples ($sam->{'a'}) registered in U2 ($pat->{'a'} patients including $pro->{'a'} proband):").
 	$q->span('(').
 		$q->a({'href' => '#', 'onclick' => '$(\'.hidden\').show(\'slow\')'}, 'Show all').
 		$q->span(' / ').
