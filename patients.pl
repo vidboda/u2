@@ -4,6 +4,7 @@ use strict;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_2;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -125,7 +126,15 @@ my $sam = $dbh->selectrow_hashref($query1);
 my $pat = $dbh->selectrow_hashref($query2);
 my $pro = $dbh->selectrow_hashref($query3);
 
-print $q->start_big(), $q->p("$text samples ($sam->{'a'}) registered in U2 ($pat->{'a'} patients including $pro->{'a'} proband):"), $q->end_big(),
+my $info = $q->start_big().$q->p("$text samples ($sam->{'a'}) registered in U2 ($pat->{'a'} patients including $pro->{'a'} proband):").
+	$q->end_big().
+	$q->span('(').
+		$q->a({'href' => '#', 'onclick' => '$(\'.hidden\').show(\'slow\')'}, 'Show all').
+		$q->span(' / ').
+		$q->a({'href' => '#', 'onclick' => '$(\'.hidden\').hide(\'slow\')'}, 'Hide all').
+	$q->span(').');
+print U2_modules::U2_subs_2::info_panel($info, $q);
+#print $q->start_big(), $q->p("$text samples ($sam->{'a'}) registered in U2 ($pat->{'a'} patients including $pro->{'a'} proband):"), $q->end_big(),
 	$q->span('('), $q->a({'href' => '#', 'onclick' => '$(\'.hidden\').show(\'slow\')'}, 'Show all'), $q->span(' / '), $q->a({'href' => '#', 'onclick' => '$(\'.hidden\').hide(\'slow\')'}, 'Hide all'),$q->span(').');
 
 
