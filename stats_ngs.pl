@@ -53,6 +53,7 @@ my $CSS_DEFAULT = $config->CSS_DEFAULT();
 my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
+my $ANALYSIS_ILLUMINA_REGEXP = $config->ANALYSIS_ILLUMINA_REGEXP();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'datatables.min.css');
 
@@ -63,6 +64,40 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         $DB_PASSWORD,
                         {'RaiseError' => 1}
                 ) or die $DBI::errstr;
+
+my $loading = U2_modules::U2_subs_2::info_panel('Loading...', $q);
+chomp($loading);
+$loading =~ s/'/\\'/og;
+
+my $js = "
+	function show_run_table(analysis_value) {
+		\$(\'#run_table\').html('$loading');
+		\$.ajax({
+			type: \"POST\",
+			url: \"ajax.pl\",
+			data: {run_table: 1, analysis: analysis_value}
+		})
+		.done(function(content) {
+			\$(\'#run_table\').html(content);
+			\$(\'#illumina_runs_table\').DataTable({
+				aaSorting:[[ 0, \"desc\" ]],
+				lengthMenu: [ [25, 50, 100, -1], [25, 50, 100, \"All\"] ]
+			 });
+		});
+	}
+	function show_run_graphs(analysis_value) {
+		\$(\'#run_graphs\').html('$loading');
+		\$.ajax({
+			type: \"POST\",
+			url: \"ajax.pl\",
+			data: {run_graphs: 1, analysis: analysis_value}
+		})
+		.done(function(content) {
+			\$(\'#run_graphs\').html(content);
+		});
+	}
+";
+
 
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
@@ -93,10 +128,11 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 -src => $JS_PATH.'Chart.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.alerts.js', 'defer' => 'defer'},
-				{-language => 'javascript',
-				-src => $JS_PATH.'timeline/js/storyjs-embed.js', 'defer' => 'defer'},
+				#{-language => 'javascript',
+				#-src => $JS_PATH.'timeline/js/storyjs-embed.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
+				$js,
                                 {-language => 'javascript',
                                 -src => $JS_DEFAULT, 'defer' => 'defer'}],		
                         -encoding => 'ISO-8859-1');
@@ -360,127 +396,133 @@ if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o){
 	}
 	print $q->end_ul(), "\n";	
 }
+#elsif ($q->param('analysis') && $q->param('time') && $q->param('time') == 1) {
+#	my $analysis;
+#	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
+#	else {$analysis = 'all'}
+#	
+#	my ($total_runs, $total_samples) = (&get_total_runs(), &get_total_samples());
+#	print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong("Illumina runs stats page: ($total_runs - $total_samples)"), $q->end_big(), $q->end_p(), "\n";
+#	#my $ul = $q->p('please click a run id below or click \'global\' for an overview of all runs.').$q->ul().$q->start_li().$q->a({'href' => 'stats_ngs.pl?run=global'}, 'global analysis').$q->end_li();#deprecated
+#	#, 'data-order' => '[[ 0, "desc" ]]' defined in js
+#	my $new_style = $q->start_div({'class' => 'container'}).$q->start_table({'class' => 'great_table technical', 'id' => 'illumina_runs_table'}).$q->start_caption().$q->span('Illumina runs table (').$q->a({'href' => 'stats_ngs.pl?run=global', 'target' => '_blank'}, 'See all runs analysis').$q->span('):').$q->start_thead().
+#		$q->start_Tr()."\n".
+#			$q->th({'class' => 'left_general'}, 'Run ID')."\n".
+#			$q->th({'class' => 'left_general'}, 'Analysis type')."\n".
+#			$q->th({'class' => 'left_general'}, 'Run number')."\n".
+#		$q->end_Tr().$q->end_thead().$q->start_tbody()."\n";
+#	
+#	my $query = 'SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse ORDER BY a.type_analyse DESC, a.run_id;';
+#	my $dates = "\"date\": [
+#	";
+#	my ($i, $j, $k, $l, $m, $n, $o, $p, $r) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
+#	my $sth = $dbh->prepare($query);
+#	my $res = $sth->execute();
+#	while (my $result = $sth->fetchrow_hashref()) {
+#		#timeline
+#		my $title = '';
+#		my $thumbnail = 'miseq_thumb.jpg';
+#
+#		my $analysis_date = U2_modules::U2_subs_1::date_pg2tjs(U2_modules::U2_subs_1::get_run_date($result->{'run_id'}));
+#		my $text = "Run ID: <a href = 'stats_ngs.pl?run=$result->{'run_id'}' target = '_blank'>$result->{'run_id'}</a>";
+#		
+#		if ($result->{'type_analyse'} eq 'MiSeq-28') {$i++;$text .= "<br/>Run Number: $i";$title = "Run $i";}
+#		elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$j++;$text .= "<br/>Run Number: $j";$title = "Run $j";}
+#		elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$k++;$text .= "<br/>Run Number: $k";$title = "Run $k";}
+#		elsif ($result->{'type_analyse'} eq 'MiSeq-3') {$l++;$text .= "<br/>Run Number: $l";$title = "Run $l";}
+#		elsif ($result->{'type_analyse'} eq 'MiSeq-132') {$o++;$text .= "<br/>Run Number: $o";$title = "Run $o";}
+#		elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$m++;$text .= "<br/>Run Number: $m";$title = "Run $m";$thumbnail = 'miniseq_thumb.jpg';}
+#		elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$n++;$text .= "<br/>Run Number: $n";$title = "Run $n";$thumbnail = 'miniseq_thumb.jpg';}
+#		elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$p++;$text .= "<br/>Run Number: $p";$title = "Run $p";$thumbnail = 'miniseq_thumb.jpg';}
+#		elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$r++;$text .= "<br/>Run Number: $r";$title = "Run $r";$thumbnail = 'nextseq_thumb.jpg';}
+#		$text .= "<br/><a href='search_controls.pl?step=3&iv=1&run=$result->{'run_id'}'>Sample tracking</a>";
+#		
+#		
+#		
+#		#my $text = "<br/>Analyst: ".ucfirst($result->{'analyste'})."<br/> Run: <a href = 'stats_ngs.pl?run=$result->{'run_id'}' target = '_blank'>$result->{'run_id'}</a>";
+#		$dates .= "			
+#			{
+#			    \"startDate\":\"$analysis_date\",
+#			    \"endDate\":\"$analysis_date\",
+#			    \"headline\":\"$result->{'type_analyse'} $title\",
+#			    //\"tag\":\"$result->{'type_analyse'}\",
+#			    \"text\":\"<p>$text</p>\",
+#			    \"asset\": {
+#				//\"media\":\"".$HTDOCS_PATH."data/img/$thumbnail\",
+#				\"thumbnail\":\"".$HTDOCS_PATH."data/img/$thumbnail\",
+#			    }
+#			},
+#		";	
+#		
+#		#text
+#		#my $subst = '6';
+#		#if ($result->{'type_analyse'} =~ /Mini/o) {$subst = '8'}
+#		
+#		$new_style .= $q->start_Tr().$q->start_td().$q->a({'href' => "stats_ngs.pl?run=$result->{'run_id'}"}, $result->{'run_id'}).$q->end_td().
+#				$q->td($result->{'type_analyse'}." genes");
+#				#$q->td(substr($result->{'type_analyse'}, $subst)." genes");
+#		#$ul .= $q->start_li().$q->a({'href' => "stats_ngs.pl?run=$result->{'run_id'}"}, $result->{'run_id'}).$q->span(" - ".substr($result->{'type_analyse'}, 6)." genes");
+#		#if ($result->{'type_analyse'} eq 'MiSeq-28') {$ul .= " - Run $i";$new_style .= $q->td("Run $i");}
+#		#elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$ul .= " - Run $j";$new_style .= $q->td("Run $j");}
+#		#elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$ul .= " - Run $k";$new_style .= $q->td("Run $k");}
+#		#elsif ($result->{'type_analyse'} eq 'MiSeq-3') {$ul .= " - Run $l";$new_style .= $q->td("Run $l");}
+#		#elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$ul .= " - Run $m";$new_style .= $q->td("Run $m");}
+#		if ($result->{'type_analyse'} eq 'MiSeq-28') {$new_style .= $q->td("Run $i")}
+#		elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$new_style .= $q->td("Run $j")}
+#		elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$new_style .= $q->td("Run $k")}
+#		elsif ($result->{'type_analyse'} eq 'MiSeq-3') {$new_style .= $q->td("Run $l")}
+#		elsif ($result->{'type_analyse'} eq 'MiSeq-132') {$new_style .= $q->td("Run $o")}
+#		elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$new_style .= $q->td("Run $m")}
+#		elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$new_style .= $q->td("Run $n")}
+#		elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$new_style .= $q->td("Run $p")}
+#		elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$new_style .= $q->td("Run $r")}
+#		
+#		#$ul .= $q->end_li();
+#		$new_style .= $q->end_Tr()
+#	}
+#	#$ul .= $q->end_ul();
+#	$new_style .= $q->end_tbody().$q->end_table().$q->end_div();
+#	
+#	$dates .= "
+#	],";
+#	my $timeline = "
+#	storyjs_jsonp_data = {
+#		\"timeline\":
+#		{
+#		    \"headline\":\"Illumina Analysis\",
+#		    \"type\":\"default\",
+#		    \"text\":\"<p>$total_runs, $total_samples</p>\",
+#		    \"asset\": {
+#			\"media\":\"$HTDOCS_PATH/data/img/U2.png\",
+#			//\"credit\":\"Credit Name Goes Here\",
+#			\"caption\":\"USHVaM 2 using Timeline JS\"
+#		    },
+#		    $dates	    
+#		}
+#	};
+#	\$(document).ready(function() {
+#                createStoryJS({
+#                    type:       'timeline',
+#                    width:      '100%',
+#                    height:     '400',
+#                    source:     storyjs_jsonp_data,
+#                    embed_id:   'patient-timeline',
+#		    font:	'NixieOne-Ledger',
+#		    start_zoom_adjust:	'-1',
+#		    start_at_end:	'true'
+#                });
+#            });
+#	";
+#	
+#	
+#	print $q->script($timeline), $q->start_div({'id' => 'patient-timeline', 'defer' => 'defer'}), $q->end_div(), $q->br(), $q->br(), $new_style;
+#		
+#}
+elsif ($q->param('graph') && $q->param('graph') == 1) {
+	&display_page_header('awesome graphs', 'show_run_graphs', 'run_graphs')
+}
 else {
-	my ($total_runs, $total_samples) = (&get_total_runs(), &get_total_samples());
-	print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong("Illumina runs stats page: ($total_runs - $total_samples)"), $q->end_big(), $q->end_p(), "\n";
-	#my $ul = $q->p('please click a run id below or click \'global\' for an overview of all runs.').$q->ul().$q->start_li().$q->a({'href' => 'stats_ngs.pl?run=global'}, 'global analysis').$q->end_li();#deprecated
-	#, 'data-order' => '[[ 0, "desc" ]]' defined in js
-	my $new_style = $q->start_div({'class' => 'container'}).$q->start_table({'class' => 'great_table technical', 'id' => 'illumina_runs_table'}).$q->start_caption().$q->span('Illumina runs table (').$q->a({'href' => 'stats_ngs.pl?run=global', 'target' => '_blank'}, 'See all runs analysis').$q->span('):').$q->start_thead().
-		$q->start_Tr()."\n".
-			$q->th({'class' => 'left_general'}, 'Run ID')."\n".
-			$q->th({'class' => 'left_general'}, 'Analysis type')."\n".
-			$q->th({'class' => 'left_general'}, 'Run number')."\n".
-		$q->end_Tr().$q->end_thead().$q->start_tbody()."\n";
-	
-	my $query = 'SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse ORDER BY a.type_analyse DESC, a.run_id;';
-	my $dates = "\"date\": [
-	";
-	my ($i, $j, $k, $l, $m, $n, $o, $p, $r) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
-	my $sth = $dbh->prepare($query);
-	my $res = $sth->execute();
-	while (my $result = $sth->fetchrow_hashref()) {
-		#timeline
-		my $title = '';
-		my $thumbnail = 'miseq_thumb.jpg';
-
-		my $analysis_date = U2_modules::U2_subs_1::date_pg2tjs(U2_modules::U2_subs_1::get_run_date($result->{'run_id'}));
-		my $text = "Run ID: <a href = 'stats_ngs.pl?run=$result->{'run_id'}' target = '_blank'>$result->{'run_id'}</a>";
-		
-		if ($result->{'type_analyse'} eq 'MiSeq-28') {$i++;$text .= "<br/>Run Number: $i";$title = "Run $i";}
-		elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$j++;$text .= "<br/>Run Number: $j";$title = "Run $j";}
-		elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$k++;$text .= "<br/>Run Number: $k";$title = "Run $k";}
-		elsif ($result->{'type_analyse'} eq 'MiSeq-3') {$l++;$text .= "<br/>Run Number: $l";$title = "Run $l";}
-		elsif ($result->{'type_analyse'} eq 'MiSeq-132') {$o++;$text .= "<br/>Run Number: $o";$title = "Run $o";}
-		elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$m++;$text .= "<br/>Run Number: $m";$title = "Run $m";$thumbnail = 'miniseq_thumb.jpg';}
-		elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$n++;$text .= "<br/>Run Number: $n";$title = "Run $n";$thumbnail = 'miniseq_thumb.jpg';}
-		elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$p++;$text .= "<br/>Run Number: $p";$title = "Run $p";$thumbnail = 'miniseq_thumb.jpg';}
-		elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$r++;$text .= "<br/>Run Number: $r";$title = "Run $r";$thumbnail = 'nextseq_thumb.jpg';}
-		$text .= "<br/><a href='search_controls.pl?step=3&iv=1&run=$result->{'run_id'}'>Sample tracking</a>";
-		
-		
-		
-		#my $text = "<br/>Analyst: ".ucfirst($result->{'analyste'})."<br/> Run: <a href = 'stats_ngs.pl?run=$result->{'run_id'}' target = '_blank'>$result->{'run_id'}</a>";
-		$dates .= "			
-			{
-			    \"startDate\":\"$analysis_date\",
-			    \"endDate\":\"$analysis_date\",
-			    \"headline\":\"$result->{'type_analyse'} $title\",
-			    //\"tag\":\"$result->{'type_analyse'}\",
-			    \"text\":\"<p>$text</p>\",
-			    \"asset\": {
-				//\"media\":\"".$HTDOCS_PATH."data/img/$thumbnail\",
-				\"thumbnail\":\"".$HTDOCS_PATH."data/img/$thumbnail\",
-			    }
-			},
-		";	
-		
-		#text
-		#my $subst = '6';
-		#if ($result->{'type_analyse'} =~ /Mini/o) {$subst = '8'}
-		
-		$new_style .= $q->start_Tr().$q->start_td().$q->a({'href' => "stats_ngs.pl?run=$result->{'run_id'}"}, $result->{'run_id'}).$q->end_td().
-				$q->td($result->{'type_analyse'}." genes");
-				#$q->td(substr($result->{'type_analyse'}, $subst)." genes");
-		#$ul .= $q->start_li().$q->a({'href' => "stats_ngs.pl?run=$result->{'run_id'}"}, $result->{'run_id'}).$q->span(" - ".substr($result->{'type_analyse'}, 6)." genes");
-		#if ($result->{'type_analyse'} eq 'MiSeq-28') {$ul .= " - Run $i";$new_style .= $q->td("Run $i");}
-		#elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$ul .= " - Run $j";$new_style .= $q->td("Run $j");}
-		#elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$ul .= " - Run $k";$new_style .= $q->td("Run $k");}
-		#elsif ($result->{'type_analyse'} eq 'MiSeq-3') {$ul .= " - Run $l";$new_style .= $q->td("Run $l");}
-		#elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$ul .= " - Run $m";$new_style .= $q->td("Run $m");}
-		if ($result->{'type_analyse'} eq 'MiSeq-28') {$new_style .= $q->td("Run $i")}
-		elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$new_style .= $q->td("Run $j")}
-		elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$new_style .= $q->td("Run $k")}
-		elsif ($result->{'type_analyse'} eq 'MiSeq-3') {$new_style .= $q->td("Run $l")}
-		elsif ($result->{'type_analyse'} eq 'MiSeq-132') {$new_style .= $q->td("Run $o")}
-		elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$new_style .= $q->td("Run $m")}
-		elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$new_style .= $q->td("Run $n")}
-		elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$new_style .= $q->td("Run $p")}
-		elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$new_style .= $q->td("Run $r")}
-		
-		#$ul .= $q->end_li();
-		$new_style .= $q->end_Tr()
-	}
-	#$ul .= $q->end_ul();
-	$new_style .= $q->end_tbody().$q->end_table().$q->end_div();
-	
-	$dates .= "
-	],";
-	my $timeline = "
-	storyjs_jsonp_data = {
-		\"timeline\":
-		{
-		    \"headline\":\"Illumina Analysis\",
-		    \"type\":\"default\",
-		    \"text\":\"<p>$total_runs, $total_samples</p>\",
-		    \"asset\": {
-			\"media\":\"$HTDOCS_PATH/data/img/U2.png\",
-			//\"credit\":\"Credit Name Goes Here\",
-			\"caption\":\"USHVaM 2 using Timeline JS\"
-		    },
-		    $dates	    
-		}
-	};
-	\$(document).ready(function() {
-                createStoryJS({
-                    type:       'timeline',
-                    width:      '100%',
-                    height:     '400',
-                    source:     storyjs_jsonp_data,
-                    embed_id:   'patient-timeline',
-		    font:	'NixieOne-Ledger',
-		    start_zoom_adjust:	'-1',
-		    start_at_end:	'true'
-                });
-            });
-	";
-	
-	
-	print $q->script($timeline), $q->start_div({'id' => 'patient-timeline', 'defer' => 'defer'}), $q->end_div(), $q->br(), $q->br(), $new_style;
-	
-	
-	
-	
-	
+	&display_page_header('details', 'show_run_table', 'run_table')
 }
 
 
@@ -496,6 +538,29 @@ exit();
 
 
 ##specific subs
+
+sub display_page_header {
+	my ($txt, $js_fn, $div_id) = @_;
+	my $text = 'Please choose some kind of NGS experiment below to display '.$txt;
+	print U2_modules::U2_subs_2::info_panel($text, $q);
+	
+	print $q->start_div({'class' => 'w3-container'}), "\n";
+	
+	my @colors = ('sand', 'khaki', 'yellow', 'amber', 'orange', 'deep-orange', 'red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue');
+	
+	my $query = "SELECT type_analyse FROM valid_type_analyse WHERE manifest_name <> 'no_manifest' ORDER BY type_analyse;";
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	while (my $result = $sth->fetchrow_hashref()) {
+		#print $q->strong({'class' => 'w3-button w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-32 w3-margin w3-round', 'onclick' => 'window.open(\'stats_ngs.pl?analysis='.$result->{'type_analyse'}.'&amp;time=1\');'}, $result->{'type_analyse'}), "\n";
+		print $q->strong({'class' => 'w3-button w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-32 w3-margin w3-round', 'onclick' => ''.$js_fn.'(\''.$result->{'type_analyse'}.'\');'}, $result->{'type_analyse'}), "\n";
+	}
+	#print $q->strong({'class' => 'w3-button w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-32 w3-margin w3-round', 'onclick' => 'window.open(\'stats_ngs.pl?analysis=all&amp;time=1\');'}, 'All analyses'), "\n",
+	print $q->strong({'class' => 'w3-button w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-32 w3-margin w3-round', 'onclick' => ''.$js_fn.'(\'all\');'}, 'All analyses'), "\n",
+		$q->end_div(), $q->br(), $q->start_div({'style' => 'height:7px;overflow:hidden;', 'class' => 'w3-margin w3-deep-orange'}), $q->end_div(), "\n",
+			$q->div({'id' => $div_id});
+}
+
 
 sub get_labels {
 	my $run = shift;

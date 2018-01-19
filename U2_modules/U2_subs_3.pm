@@ -2,10 +2,14 @@ package U2_modules::U2_subs_3;
 
 use strict;
 use warnings;
-
+use U2_modules::U2_init_1;
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
+my $config_file = U2_modules::U2_init_1->getConfFile();
+my $config = U2_modules::U2_init_1->initConfig();
+$config->file($config_file);# or die $!;
+my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 
 sub insert_variant {
 	my ($list, $vf_tag, $dbh, $instrument, $number, $id, $analysis, $intervals, $soap, $date) = @_;
@@ -749,6 +753,87 @@ sub get_nenufaar_id {#get nenufaar id of the analysis => needs path to log file 
 	my $nenufaar_log = `ls $path/*.log | xargs basename`;
 	$nenufaar_log =~ /(.+)_(\d+).log/og;
 	return ($1, $2);
+}
+
+sub get_total_samples {
+	my ($analysis, $dbh) = @_;	
+	my $query;
+	if ($analysis eq 'all') {$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) AS a FROM analyse_moleculaire WHERE type_analyse ~ \'$ANALYSIS_ILLUMINA_PG_REGEXP\';"}
+	else {$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) AS a FROM analyse_moleculaire WHERE type_analyse = '$analysis';"}
+	my $res = $dbh->selectrow_hashref($query);
+	return "$res->{'a'} samples";
+}
+sub get_total_runs {
+	my ($analysis, $dbh) = @_;	
+	my $query;
+	if ($analysis eq 'all') {$query = "SELECT COUNT(DISTINCT(id)) AS id FROM illumina_run a, miseq_analysis b WHERE a.id = b.run_id AND b.type_analyse ~ \'$ANALYSIS_ILLUMINA_PG_REGEXP\';"}
+	else {$query = "SELECT COUNT(DISTINCT(id)) AS id FROM illumina_run a, miseq_analysis b WHERE a.id = b.run_id AND b.type_analyse = '$analysis';"}
+	my $res = $dbh->selectrow_hashref($query);
+	return "$res->{'id'} runs";
+}
+
+sub get_labels {
+	my ($tag, $dbh) = @_;
+	my ($query, $labels, $run_id, $run_type);
+	if ($tag eq 'global' || $tag eq 'all') {$query = "SELECT DISTINCT(run_id), type_analyse FROM miseq_analysis ORDER BY run_id DESC;";$run_type = '';}# type_analyse DESC,
+	#if ($run eq 'global') {$query = "SELECT DISTINCT(run_id), type_analyse FROM miseq_analysis ORDER BY type_analyse DESC, run_id DESC;"}# type_analyse DESC, 
+	elsif ($tag =~ /$ANALYSIS_ILLUMINA_PG_REGEXP/) {$query = "SELECT DISTINCT(run_id), type_analyse FROM miseq_analysis WHERE type_analyse = '$tag' ORDER BY run_id DESC;"}
+	else {$query = "SELECT id_pat, num_pat, type_analyse FROM miseq_analysis WHERE run_id = '$tag' ORDER BY id_pat, num_pat;"}
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	while (my $result = $sth->fetchrow_hashref()) {
+		if ($result->{'id_pat'} && $result->{'id_pat'} ne '') {$labels .= "\"$result->{'id_pat'}$result->{'num_pat'}\", ";$run_id = '';$run_type = $result->{'type_analyse'};}
+		elsif ($result->{'run_id'} =~ /^(\d+)_\w+-(\w+)$/o) {$labels .= "\"$1_$2";$result->{'type_analyse'} =~ /-(\d+)/o;$labels .= "_$1\", ";$run_id .= "$result->{'run_id'},"}
+		elsif ($result->{'run_id'} =~ /^(\d+)_\w+_\d+_(\w+)$/o) {$labels .= "\"$1_$2";$result->{'type_analyse'} =~ /-(\d+)/o;$labels .= "_$1\", ";$run_id .= "$result->{'run_id'},"}	
+	}
+	chop($labels);
+	chop($labels);
+	chop($run_id);
+	return $labels, $run_id, $run_type;
+}
+
+sub get_data_mean {
+	my ($run, $type, $num, $table, $dbh) = @_;
+	my $query;
+	if ($run eq 'global') {$query = "SELECT AVG($type) AS a FROM $table"}
+	elsif ($run =~ /$ANALYSIS_ILLUMINA_PG_REGEXP/) {
+		$query = "SELECT AVG($type) AS a FROM $table WHERE type_analyse = '$run';";
+		if ($table eq 'illumina_run') {$query = "SELECT AVG($type) AS a FROM $table a, miseq_analysis b WHERE a.id = b.run_id AND b.type_analyse = '$run';"}
+	}
+	else {$query = "SELECT AVG($type) AS a FROM $table WHERE run_id = '$run';"}
+	my $res = $dbh->selectrow_hashref($query);
+	return sprintf('%.'.$num.'f', $res->{'a'});
+}
+
+sub get_data {
+	my ($run, $type, $math, $num, $cluster, $dbh) = @_;
+	my ($query, $data);
+	if (!$num) {$num = '0'}
+	if ($run eq 'global') {
+		if ($cluster eq 'cluster') {$query = "SELECT $type AS a FROM illumina_run ORDER BY id DESC;";}##### BEWARE OF THE ORDER COMPARING TO LABELS!!!!!!!!!
+		#else {$query = "SELECT $math($type) AS a FROM miseq_analysis GROUP BY run_id, type_analyse ORDER BY type_analyse DESC, run_id DESC;"}
+		else {$query = "SELECT $math($type) AS a FROM miseq_analysis GROUP BY run_id, type_analyse ORDER BY run_id DESC;"}#type_analyse DESC, 
+	}
+	elsif ($run =~ /$ANALYSIS_ILLUMINA_PG_REGEXP/) {
+		if ($cluster eq 'cluster') {$query = "SELECT DISTINCT($type) AS a, a.id FROM illumina_run a, miseq_analysis b WHERE a.id = b.run_id AND b.type_analyse = '$run' ORDER BY a.id DESC;";}##### BEWARE OF THE ORDER COMPARING TO LABELS!!!!!!!!!
+		else {$query = "SELECT $math($type) AS a FROM miseq_analysis WHERE type_analyse = '$run' GROUP BY run_id, type_analyse ORDER BY run_id DESC;"}#type_analyse DESC, 
+	}
+	else {
+		if ($cluster eq 'cluster') {$query = "SELECT $type FROM illumina_run WHERE id = '$run';"}
+		else {$query = "SELECT $type AS a FROM miseq_analysis WHERE run_id = '$run' ORDER BY id_pat, num_pat;"}
+	}
+	#print $query;
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	while (my $result = $sth->fetchrow_hashref()) {
+		if ($run ne 'global' && $run !~ /$ANALYSIS_ILLUMINA_PG_REGEXP/ && $cluster eq 'cluster') {
+			$data .= $result->{'noc_raw'}.', '.$result->{'noc_pf'}.', '.$result->{'nodc'}.', '.$result->{'nouc'}.', '.$result->{'nouc_pf'}.', '.$result->{'nouic'}.', '.$result->{'nouic_pf'}.', '.$result->{'a'}.', ';
+		}
+		else {$data .= sprintf('%.'.$num.'f', $result->{'a'}).', '}
+	}
+	chop($data);
+	chop($data);
+	return $data;
 }
 
 1;
