@@ -56,7 +56,7 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
 
-my @styles = ($CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
 
 my $q = new CGI;
 
@@ -325,8 +325,14 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	my $order = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 	my @js_params = ('showVariants', 'NULL', 'NULL');
 	my ($js, $map) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
-	print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'), $q->br(), $q->br(), $q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}), $q->end_div(), "\n", $q->script({'type' => 'text/javascript'}, $js), "\n",
-			$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}), $q->p({'id' => 'fill_in'}), $q->end_div(), "\n";
+	print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'),
+		$q->br(), $q->br(),
+		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}),
+		$q->end_div(), "\n",
+		$q->script({'type' => 'text/javascript'}, $js), "\n",
+		$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}),
+			$q->p({'id' => 'fill_in'}),
+		$q->end_div(), "\n";
 }
 elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
