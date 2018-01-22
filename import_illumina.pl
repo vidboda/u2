@@ -230,7 +230,7 @@ if ($step && $step == 2) {
 	#################################UNCOMMENT when sub
 	#create roi hash
 	my $interval = U2_modules::U2_subs_3::build_roi($dbh);
-	my ($manual, $not_inserted, $general, $mutalyzer_no_answer, $sample_end, $to_follow) = ('', '', '', '', '', '');#$manual will contain variants that cannot be delt automatically i.e. PTPRQ (at least in hg19), NR_, non mappable; $notinserted variants wt homozygous, $general global data for final email, $sample_end last treated patient for redirection $to_follow is to get info on certain variants that were buggy
+	my ($manual, $not_inserted, $general, $mutalyzer_no_answer, $sample_end, $to_follow, $new_var) = ('', '', '', '', '', '', '');#$manual will contain variants that cannot be delt automatically i.e. PTPRQ (at least in hg19), NR_, non mappable; $notinserted variants wt homozygous, $general global data for final email, $sample_end last treated patient for redirection $to_follow is to get info on certain variants that were buggy
 	#my $inf = 100; #coverage limits #was used to generate bed but replaced with bedgraphs (but which do not deal with colors...)
 	#my $sup = 150;
 	while (my ($sampleid, $filter) = each(%sample_hash)) {
@@ -432,6 +432,7 @@ if ($step && $step == 2) {
 				elsif ($variant_input =~ /^NOTINSERTED/o) {$not_inserted .= $variant_input;next VCF}
 				elsif ($variant_input =~ /^FOLLOW/o) {$to_follow .= $variant_input;$i++;next VCF}
 				elsif ($variant_input =~ /^MUTALYZERNOANSWER/o) {$mutalyzer_no_answer .= $variant_input;next VCF}
+				elsif ($variant_input =~ /^NEWVAR/o) {$new_var .= $variant_input;next VCF}
 				else {print "$variant_input<br/>"}
 				##################################
 				

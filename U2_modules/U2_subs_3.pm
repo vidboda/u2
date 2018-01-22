@@ -575,7 +575,7 @@ sub insert_variant {
 											if (/($gid)_\d+\.?\d\((\w+)\):(c\..+)/o) {
 												my ($version, $variant) = ($2, $3);
 												#$to_follow .= "version: $version variant: $variant\n";
-												#print $version-$variant-$nom-\n";
+												#$tmp .= "$version-$variant-$nom-$gene\n";
 												if ($nom =~ /$variant/) {
 													$version =~ /($gene)_v(\d{3})/;
 													$true_version = $2;
@@ -649,6 +649,7 @@ sub insert_variant {
 								#print "$insert<br/>";
 								###########UNCOMMENT WHEN READY
 								$dbh->do($insert);
+								$tmp .= "NEWVAR $insert\n";
 								
 								$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$nom', '$number', '$id', '{\"$res3->{'gene_name'}\", \"$acc\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
 								#print "$insert<br/>";

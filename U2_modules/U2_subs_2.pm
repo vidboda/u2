@@ -602,7 +602,7 @@ sub info_text {
 #send email in import_illumina.pl
 
 sub send_manual_mail {
-	my ($user, $text, $text2, $run, $general, $mutalyzer_no_answer, $to_follow) = @_;
+	my ($user, $text, $text2, $run, $general, $mutalyzer_no_answer, $to_follow, $new_var) = @_;
 	my $config_file = U2_modules::U2_init_1->getConfFile();
 	my $config = U2_modules::U2_init_1->initConfig();
 	$config->file($config_file);# or die $!;
@@ -641,6 +641,10 @@ sub send_manual_mail {
 	if ($text2 ne '') {
 		$mailer->datasend("\n\nThe following variants have not been considered:\n\n");
 		$mailer->datasend($text2);
+	}
+	if ($new_var ne '') {
+		$mailer->datasend("\n\nThe following variants have been created:\n\n");
+		$mailer->datasend($new_var);
 	}
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
 	$mailer->dataend();
