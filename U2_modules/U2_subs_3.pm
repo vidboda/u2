@@ -182,7 +182,7 @@ sub insert_variant {
 								#example
 								#Sequence "T" at position 43035 was given, however, the HGVS notation prescribes that on the forward strand it should be "T" at position 43051.
 								#Sequence "AAGAAG" at position 13252_13257 was given, however, the HGVS notation prescribes that on the forward strand it should be "AAGAAG" at position 13273_13278.
-								if ($message =~ /Sequence\s"([ATGC]+)"\sat\sposition\s([\d_]+)\swas\sgiven,\showever,\sthe\sHGVS\snotation\sprescribes\sthat\son\sthe\sforward\sstrand\sit\sshould\sbe\s"([ATGC]+)"\sat\sposition\s([\d_]+)\./o) {
+								if ($message =~ /Sequence\s"([ATGC\[\]\dbp\s]+)"\sat\sposition\s([\d_]+)\swas\sgiven,\showever,\sthe\sHGVS\snotation\sprescribes\sthat\son\sthe\sforward\sstrand\sit\sshould\sbe\s"([ATGC\[\]\dbp\s]+)"\sat\sposition\s([\d_]+)\./o) {
 									my ($pos1, $pos2, $old_del, $new_del) = ($2, $4, $1, $3);
 									my $diff;
 									if ($pos1 !~ /_/o) {
@@ -230,7 +230,7 @@ sub insert_variant {
 									#Insertion of GA at position 354072_354073 was given, however, the HGVS notation prescribes that it should be a duplication of GA at position 354072_354073.
 									#Insertion of G at position 47570_47571 was given, however, the HGVS notation prescribes that it should be a duplication of G at position 47570_47570.
 									#Insertion of CGCAGC at position 25621_25622 was given, however, the HGVS notation prescribes that it should be a duplication of CGCAGC at position 25621_25626.
-									if ($message =~ /Insertion\sof\s([ATGC]+)\sat\sposition\s([\d_]+)\swas\sgiven,\showever,\sthe\sHGVS\snotation\sprescribes\sthat\sit\sshould\sbe\sa\sduplication\sof\s([ATGC]+)\sat\sposition\s([\d_]+)\./o) {
+									if ($message =~ /Insertion\sof\s([ATGC\[\]\dbp\s]+)\sat\sposition\s([\d_]+)\swas\sgiven,\showever,\sthe\sHGVS\snotation\sprescribes\sthat\sit\sshould\sbe\sa\sduplication\sof\s([ATGC\[\]\dbp\s]+)\sat\sposition\s([\d_]+)\./o) {
 										my ($old_ins, $new_ins) = ($1, $3);
 										my ($pos11, $pos12, $pos21, $pos22) = &get_detailed_pos($2, $4);
 										if (($pos11 == $pos21) && ($pos12 == $pos22) && ($old_ins eq $new_ins)) {
@@ -317,7 +317,7 @@ sub insert_variant {
 										#}
 										
 									}
-									elsif ($message =~ /Insertion\sof\s([ATGC]+)\sat\sposition\s([\d_]+)\swas\sgiven,\showever,\sthe\sHGVS\snotation\sprescribes\sthat\son\sthe\sforward\sstrand\sit\sshould\sbe\san\sinsertion\sof\s([ATGC]+)\sat\sposition\s([\d_]+)\./o) {
+									elsif ($message =~ /Insertion\sof\s([ATGC\[\]\dbp\s]+)\sat\sposition\s([\d_]+)\swas\sgiven,\showever,\sthe\sHGVS\snotation\sprescribes\sthat\son\sthe\sforward\sstrand\sit\sshould\sbe\san\sinsertion\sof\s([ATGC\[\]\dbp\s]+)\sat\sposition\s([\d_]+)\./o) {
 										#print 'case3<br/>';
 										my ($old_ins, $new_ins) = ($1, $3);
 										my ($pos11, $pos12, $pos21, $pos22) = &get_detailed_pos($2, $4);
