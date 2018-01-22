@@ -665,15 +665,17 @@ sub insert_variant {
 					#else {$manual .= "UNUSUAL ACC_NO\t$manual_temp";}
 				}
 				elsif (/NR_.+/) {#deal with NR for NR, a number conversion should be enough
-					return "MANUAL NR_variant\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n";
+					$tmp .= "MANUAL NR_variant\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n";
 				}
 			}		
 			if ($main == 0) {return "MANUAL UNUSUAL ACC_NO\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n$nr"}#$treated is not mandatory here
+			if ($treated == 0) {if ($tmp && $tmp ne '') {return $tmp}}
 		}
 	}
 	else {
 		return "MANUAL MUTALYZER NO RESULT $genomic_var\n"
 	}
+	
 	### end gsdot2u2.cgi
 	
 	#return 1;
