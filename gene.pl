@@ -457,7 +457,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 					$het_count = 0;
 				}
 				elsif ($het_count == 2) { #het/hemi
-					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0), $gene;
+					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
 					$het_count = 0;			}				
 			}
 			else {
