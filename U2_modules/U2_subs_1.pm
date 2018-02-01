@@ -89,7 +89,7 @@ sub standard_begin_html { #prints top of the pages
 	#print $q->start_div({'id' => 'page'}), $q->start_div({'id' => 'fixtop'}), $q->end_div(), $q->br(), $q->br(),
 	#$q->start_div({'id' => 'internal'}), $q->p({'id' => 'log'}, 'logged in as '.$user_name), $q->br();
 	#$q->start_a({'href' => '#bottom', 'class' => 'print_hidden'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/bottom_arrow.png', 'width' => '23', 'height' => '34', 'border' => '0'}), $q->strong('Go to bottom'), $q->end_a(), $q->br();
-	print $q->start_div({'id' => 'page', 'class' => 'w3-medium'}), $q->start_div({'class' => 'w3-top', 'style' => 'z-index:1002'}),
+	print $q->start_div({'id' => 'page', 'class' => 'w3-medium'}), $q->start_div({'class' => 'w3-top', 'style' => 'z-index:1112'}),
 		$q->start_div({'id' => 'scroll', 'class' => 'w3-white w3-opacity-min'}),
 			$q->start_div({'id' => 'scroll-bar', 'class' => 'w3-blue', 'style' => 'height:4px;width:0%'}), $q->end_div(),
 		$q->end_div(),
@@ -652,6 +652,15 @@ sub get_gene_from_nom_g {
 		else {&standard_error('9', $q)}
 	}
 	else {&standard_error('8', $q)}
+}
+
+sub get_ng_accno {
+	my ($gene, $acc, $dbh, $q) = @_;
+	#gene, acc must have been checked before
+	my $query = "SELECT acc_g FROM gene WHERE nom[1] = '$gene' AND nom[2] = '$acc';";
+	my $res = $dbh->selectrow_hashref($query);
+	if ($res) {return $res->{'acc_g'}}
+	else {&standard_error('5', $q)}
 }
 
 # Variants subs
