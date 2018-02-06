@@ -1168,7 +1168,7 @@ sub print_clinical_exome_criteria {
 			$q->li('% 20X bp < '.$U2_modules::U2_subs_1::PC20X_CE)."\n".
 			$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV_CE)."\n".
 			$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC_CE)."\n".
-		$q->end_ul()."\n", $q);
+		$q->end_ul().$q->end_div()."\n", $q);
 }
 
 sub print_panel_criteria {
