@@ -56,7 +56,7 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
 
-my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'form.css', $CSS_PATH.'jquery.alerts.css');
 
 my $q = new CGI;
 
@@ -66,50 +66,72 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         {'RaiseError' => 1}
                 ) or die $DBI::errstr;
 
-my $js = '
-	function showVariants(type, nom, numero, gene, acc_no, order) {
-		$.ajax({
-			type: "POST",
-			url: "ajax.pl",
+my $js = "
+	function showVariants(type, nom, numero, gene, acc_no, order, nulle) {
+		\$.ajax({
+			type: 'POST',
+			url: 'ajax.pl',
 			data: {type: type, nom: nom, numero: numero, gene: gene, accession: acc_no, order: order, asked: \'var_list\'}
 			})
 		.done(function(msg) {
+			\$(\"#fill_in\").html(msg);
 			setDialog(msg, type, nom);
 		});		
 	}
 	function setDialog(msg, type, nom) {
-		var $dialog = $(\'<div></div>\')
-			.html(msg)
-			.dialog({
+		\$(\"#dialog-form\").dialog({
+		//var \$dialog = \$(\'<div></div>\')
+		//	.html(msg)
+		//	.dialog({
 			    autoOpen: false,
-			    title: \'Variants lying in \' + type + \' \' + nom + \':\',
-			    width: 450,
-			});
-		$dialog.dialog(\'open\');
-		$(\'.ui-dialog\').zIndex(\'1002\');
+			    title: \'Variants lying in \' + type + \' \' + nom + \':\' + \$(\"#new_variant\").val(),
+			    width: 650,
+			    buttons: {
+			       \"Create a variant\": function() {
+				       var nom_c = \$(\"#new_variant\").val();
+				       \$(\"#title_form_var\").append(\"&nbsp;&nbsp;&nbsp;&nbsp;PLEASE WAIT WHILE CREATING VARIANT\");
+				       \$(\"#creation_form :input\").prop(\"disabled\", true);
+				       \$.ajax({
+					       type: \"POST\",
+					       url: \"variant_input.pl\",
+					       data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, ng_accno: \$(\"#ng_accno\").val()}
+					       })
+				       .done(function(msg) {
+						if (msg !== '') {\$(\"#created_variant\").append(msg)};
+						\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS		
+				       });
+			       },
+			       Cancel: function() {
+				       \$(this).dialog(\"close\");			       		       
+			       }
+		       }
+		});
+		\$(\"#dialog-form\").dialog(\'open\');
+		//\$(\'.ui-dialog\').zIndex(\'1002\');
+		//}
 	}
 	function chooseSortingType(gene) {
-		var $dialog = $(\'<div></div>\')
-			.html("<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=classe\' target = \'_self\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_adn\' target = \'_self\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_prot\' target = \'_self\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_arn\' target = \'_self\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=taille\' target = \'_self\'>Variant size (get only large rearrangements)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research="+gene+"\' target = \'_blank\'>LED rare variants</a></li></ul>")
+		var \$dialog = \$(\'<div></div>\')
+			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=classe\' target = \'_self\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_adn\' target = \'_self\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_prot\' target = \'_self\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_arn\' target = \'_self\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=taille\' target = \'_self\'>Variant size (get only large rearrangements)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
 			.dialog({
 			    autoOpen: false,
 			    title: \'U2 choice\',
 			    width: 450,
 			});
-		$dialog.dialog(\'open\');
-		$(\'.ui-dialog\').zIndex(\'1002\');
+		\$dialog.dialog(\'open\');
+		\$(\'.ui-dialog\').zIndex(\'1002\');
 	}
 	function showAllVariants(gene, sort_value, sort_type, freq, dynamic) {
-		$.ajax({
-			type: "POST",
-			url: "ajax.pl",
+		\$.ajax({
+			type: 'POST',
+			url: 'ajax.pl',
 			data: {gene: gene, sort_value: sort_value, sort_type: sort_type, freq: freq, asked: \'var_all\', css_class: dynamic}
 			})
 		.done(function(msg) {
-			$(\'#vars\').html(msg);
-			if (dynamic) {$("." + dynamic).css(\'background-color\', \'#FFFF66\');}
+			\$(\'#vars\').html(msg);
+			if (dynamic) {\$("." + dynamic).css(\'background-color\', \'#FFFF66\');}
 		});
-	}';
+	}";
 
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
@@ -136,6 +158,8 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 -src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
+				{-language => 'javascript',
+				-src => $JS_PATH.'jquery.alerts.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'dalliance_v0.13/build/dalliance-compiled.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
@@ -332,12 +356,14 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 		$q->script({'type' => 'text/javascript'}, $js), "\n",
 		$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}),
 			$q->p({'id' => 'fill_in'}),
-		$q->end_div(), "\n";
+		$q->end_div(), "\n",
+		$q->div({'id' => 'created_variant', 'class' => 'fented_noleft w3-container container'}), "\n";
+		#$q->start_div(), $q->start_ul({'id' => 'created_variant'}), $q->end_div(), "\n";
 }
 elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	my ($sort, $css_class) = ('', '');
-	if ($q->param('sort') && $q->param('sort') =~ /(classe|type_adn|type_arn|type_prot|taille)/o) {
+	if ($q->param('sort') && $q->param('sort') =~ /(classe|type_adn|type_arn|type_prot|taille|orphan)/o) {#orphans are varaints not linked to any sample
 		$sort = $1;
 		if ($sort eq 'type_arn') {
 			if ($q->param('dynamic') && $q->param('dynamic') =~ /([\w\s]+)/o) {$css_class = $1;$css_class =~ s/ /_/og;}#$js = "\$('.$1').css('background-color', '#FFFF66');";}
@@ -366,6 +392,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		
 		my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a WHERE a.nom_gene[1] = '$gene')
 				SELECT COUNT(DISTINCT(a.nom)) as var, a.$sort as sort, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND a.$sort <> '' GROUP BY a.$sort ORDER BY a.$sort;";
+		
 		#old fashion not rigourous with analysis_type in variant2patient
 		#my $query = "SELECT COUNT(DISTINCT(a.nom)) as var, a.$sort as sort, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND a.$sort <> '' GROUP BY a.$sort ORDER BY a.$sort;";
 		my $sth = $dbh->prepare($query);
@@ -388,6 +415,23 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 				$q->end_Tr(), "\n",
 				$q->end_table(), $q->end_div();
 		}
+	}
+	elsif ($sort eq 'orphan') {
+		my $query = "SELECT a.nom_g, a.nom, a.nom_gene[2] as acc FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL AND a.nom_gene[1] = '$gene' ORDER BY a.nom_g;";
+		my $sth = $dbh->prepare($query);
+		my $res = $sth->execute();
+		if ($res ne '0E0') {
+			print $q->start_ul();
+			while (my $result = $sth->fetchrow_hashref()) {
+				print $q->start_li(), $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, $result->{'nom'}), $q->end_li();
+			}
+			print $q->end_ul();
+		}
+		else {
+			my $text = 'No orphan variant to display';
+			print U2_modules::U2_subs_2::info_panel($text);
+		}
+		
 	}
 	elsif ($sort eq 'taille') {
 		print $q->p("All large rearrangements recorded for $gene are listed in the table below.");

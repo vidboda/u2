@@ -12,6 +12,7 @@ use SOAP::Lite;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
+use U2_modules::U2_subs_2;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -72,10 +73,13 @@ my $user = U2_modules::U2_users_1->new();
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 
 #get params
-
-my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);	
-my $step = U2_modules::U2_subs_1::check_step($q);
 my ($type, $nom, $num_seg, $technique);
+my ($id, $number) = ('', '');
+my $step = U2_modules::U2_subs_1::check_step($q);
+if ($step == 1 || $q->param('sample')) {
+	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+	$technique = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
+}
 if ($q->param('type') && $q->param('type') =~ /(exon|intron|5UTR|3UTR)/o) {$type = $1}
 else {print 1;U2_modules::U2_subs_1::standard_error(15, $q)}
 if ($q->param('nom') && $q->param('nom') =~ /(\w+)/o || $q->param('nom') == '0') {$nom = '0';if ($1) {$nom = $1}}
@@ -86,7 +90,7 @@ my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 my $acc_no = U2_modules::U2_subs_1::check_acc($q, $dbh);
 #if ($q->param('acc_no') && $q->param('acc_no') =~ /(NM_\d+)/o) {$acc_no = $1}
 #else {print $q->param('acc_no');U2_modules::U2_subs_1::standard_error(15, $q)}
-$technique = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
+
 
 #if ($q->param('technique') && $q->param('technique') =~ /(MLPA|QMPSF|SANGER|aCGH)/o) {$technique = $1}
 #else {print 5;U2_modules::U2_subs_1::standard_error(15, $q)}
@@ -176,13 +180,18 @@ elsif ($step == 2) { #insert variant and print
 		my $cdna = $1;
 		$cdna =~ tr/atgc/ATGC/;
 		$cdna = lcfirst($cdna);
-		my $status = U2_modules::U2_subs_1::check_status($q);
-		my $allele = U2_modules::U2_subs_1::check_allele($q);
-		my $denovo = U2_modules::U2_subs_1::check_denovo($q);
+		
+		my ($denovo, $status, $allele);
+		if ($id ne '') {
+			$denovo = U2_modules::U2_subs_1::check_denovo($q);
+			$status = U2_modules::U2_subs_1::check_status($q);
+			$allele = U2_modules::U2_subs_1::check_allele($q);
+		}
 		
 		###1st check variant does not exist
 		my $query = "SELECT nom FROM variant WHERE nom = '$cdna' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc_no';";
 		my $res = $dbh->selectrow_hashref($query);
+		#print $cdna;
 		if (!$res->{'nom'}) {			
 			my $ng_accno;
 			if ($q->param('ng_accno') &&  $q->param('ng_accno') =~ /(NG_\d+\.\d)/o) {$ng_accno = $1}
@@ -322,7 +331,8 @@ elsif ($step == 2) { #insert variant and print
 							
 							if ($call->fault()) {
 								#print $q->span("$ng_accno(".$gene."_v002):$cdna");
-								print $q->start_strong(), $q->span("WARNING: Sorry, mutalyzer runMutalyzer method failed, I cannot create any variant, please report."), $q->end_strong();
+								my $danger_text = $q->start_strong().$q->span("WARNING: Sorry, mutalyzer runMutalyzer method failed, I cannot create any variant, please report.").$q->end_strong();
+								print U2_modules::U2_subs_2::danger_panel($danger_text, $q);
 								exit;
 							}
 							
@@ -358,10 +368,10 @@ elsif ($step == 2) { #insert variant and print
 
 									foreach (@{$tab_ref}) {
 										#print "\nMessage: ", $_->{'message'},"\n";
-										if ($_->{'message'} =~ /HGVS/o && $cdna !~ /c\.\d+-\?_\d+\+?\w+/o) {$stop = 1;$not_done .= "HGVS error $cdna";last;}
-										elsif ($_->{'message'} =~ /identical/o) {$stop = 1;$not_done .= "Identical variant to reference $cdna";last;}
-										elsif ($_->{'message'} =~ /Position.+range/o) {$stop = 1;$not_done .= "out of range $cdna";next;}
-										elsif ($_->{'message'} =~ /position.+instead/o) {$stop = 1;$not_done .= "bad wild type nucleotide $cdna";last;}
+										if ($_->{'message'} =~ /HGVS/o && $cdna !~ /c\.\d+-\?_\d+\+?\w+/o) {$stop = 1;$not_done .= "HGVS error $cdna $type $nom";last;}
+										elsif ($_->{'message'} =~ /identical/o) {$stop = 1;$not_done .= "Identical variant to reference $cdna $type $nom";last;}
+										elsif ($_->{'message'} =~ /Position.+range/o) {$stop = 1;$not_done .= "out of range $cdna $type $nom";next;}
+										elsif ($_->{'message'} =~ /position.+instead/o) {$stop = 1;$not_done .= "bad wild type nucleotide $cdna $type $nom";last;}
 										if ($_->{'errorcode'}) {
 											#deal with tolerated error codes
 											#if ($tolerated_errors->{$_} == 1) {
@@ -560,18 +570,21 @@ elsif ($step == 2) { #insert variant and print
 								#print $insert;exit;
 								$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";
 								
-								$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$variant', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";
+								if ($id ne '') {
+									$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$variant', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";
 								
-								#print $insert;
-								$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
+									#print $insert;
+									$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
+								}
 							}
 							else {
 								$semaph_error = 1;
 								$not_done .= $q->end_strong();
 								$http_mutalyzer = "https://mutalyzer.nl/check?name=$ng_accno($gene$mutalyzer_version):$cdna&standalone=1";
 								#if ($gene eq 'USH1C') {$http_mutalyzer = "https://mutalyzer.nl/check?name=$ng_accno(".$gene."_v002):$cdna&standalone=1"}
-								$not_done .= $q->span("&nbsp;&nbsp"), $q->a({'href' => $http_mutalyzer, 'target' => '_blank'}, 'Launch Mutalyzer');
-								print $q->start_Tr(), $q->td({'colspan' => '7'}, $not_done), $q->end_Tr();
+								$not_done .= $q->span("&nbsp;&nbsp").$q->a({'href' => $http_mutalyzer, 'target' => '_blank'}, 'Launch Mutalyzer');
+								if ($id ne '') {print $q->start_Tr(), $q->td({'colspan' => '7'}, U2_modules::U2_subs_2::danger_panel($not_done, $q)), $q->end_Tr()}
+								else {print U2_modules::U2_subs_2::danger_panel($not_done, $q)}
 							}
 						}
 					}
@@ -580,30 +593,39 @@ elsif ($step == 2) { #insert variant and print
 						$not_done .= "HGVS ERROR for $cdna".$q->end_strong();
 						$http_mutalyzer = "https://mutalyzer.nl/check?name=$ng_accno($gene$mutalyzer_version):$cdna&standalone=1";
 						#if ($gene eq 'USH1C') {$http_mutalyzer = "https://mutalyzer.nl/check?name=$ng_accno(".$gene."_v002):$cdna&standalone=1"}
-						$not_done .= $q->span("&nbsp;&nbsp"), $q->a({'href' => $http_mutalyzer, 'target' => '_blank'}, 'Launch Mutalyzer');
-						print $q->start_Tr(), $q->td({'colspan' => '7'}, $not_done), $q->end_Tr();;
+						$not_done .= $q->span("&nbsp;&nbsp").$q->a({'href' => $http_mutalyzer, 'target' => '_blank'}, 'Launch Mutalyzer');
+						if ($id ne '') {print $q->start_Tr(), $q->td({'colspan' => '7'}, $not_done), $q->end_Tr()}
+						else {print U2_modules::U2_subs_2::danger_panel($not_done, $q)}
+						
 					}				
 				}
 				#print "NEW VARIANT $variant, $status, allele: $allele";
 				if ($semaph_error == 0) {
 					#print $q->span("Added: ".ucfirst($type_segment)." $nom: $variant, $status, allele: $allele, class: ").$q->span({'style' => 'color:#969696;'}, "unknown&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"});
-					if ($denovo eq 'true') {$denovo = '_denovo'}
-					else {$denovo = ''}
-					print $q->td("Added: ".ucfirst($type_segment)." ".$nom).
-						$q->td($variant).$q->td({'id' => "wstatus$j"}, $status).
-						$q->td({'id' => "wallele$j"}, $allele.$denovo).
-						$q->td({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($classe, $dbh).";"}, $classe).
-						$q->start_td().
-							$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"}).
-						$q->end_td().
-						$q->start_td().
-							$q->a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($variant)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');"}, 'Modify').
-						$q->end_td();
+					if ($id ne '') {
+						if ($denovo eq 'true') {$denovo = '_denovo'}
+						else {$denovo = ''}
+						print $q->td("Added: ".ucfirst($type_segment)." ".$nom).
+							$q->td($variant).$q->td({'id' => "wstatus$j"}, $status).
+							$q->td({'id' => "wallele$j"}, $allele.$denovo).
+							$q->td({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($classe, $dbh).";"}, $classe).
+							$q->start_td().
+								$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"}).
+							$q->end_td().
+							$q->start_td().
+								$q->a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($variant)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');"}, 'Modify').
+							$q->end_td();
+					}
+					else {
+						my $text = $q->span('Newly created variant: ').$q->a({'href' => "variant.pl?gene=$gene&amp;accession=$acc_no&nom_c=".uri_encode($variant)}, $variant);
+						print U2_modules::U2_subs_2::info_panel($text, $q);
+					}
 					#print $q->span("Added: ".ucfirst($type_segment)." $nom: $variant, ").$q->span({'id' => "w$j"}, "$status, allele: $allele, class: ").$q->span({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($classe, $dbh).";"}, "$classe&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($variant)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');\$(\"#dialog-form-status\").dialog(\"open\");"}).$q->span({'class' => 'list'}, "Status&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a();
 				}
 			}
 			else {
-				print $q->start_strong().$q->span("WARNING: Sorry, mutalyzer is not available, I cannot create any variant today.").$q->end_strong();
+				my $danger_text = $q->start_strong().$q->span("WARNING: Sorry, mutalyzer is not available, I cannot create any variant today.").$q->end_strong();
+				print U2_modules::U2_subs_2::danger_panel($danger_text, $q);
 			}
 		}
 		else {
