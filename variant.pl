@@ -945,7 +945,12 @@ $js = "jQuery(document).ready(function(){
    \$(\"[name='name']\").val('".$user->getName()."');
 });";
 
-print $q->end_div(), $q->br(), $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->start_div({'id' => $valid_id, 'class' => 'comments decale'}), $q->end_div(), $q->start_div(), $q->p('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.');
+print $q->end_div(), $q->br(), $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->start_div({'id' => $valid_id, 'class' => 'comments decale'}), $q->end_div();
+my $text = 'Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.';
+
+print U2_modules::U2_subs_2::info_panel($text, $q);
+
+#$q->start_div(), $q->p('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.');
 
 
 
