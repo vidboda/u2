@@ -86,7 +86,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 
 my $js = "
 	//\$(function() {
-	 function setDialogForm() {
+	function setDialogForm() {
 		//allFields = \$([]).add(\$(\"#fill_in\")),
 		\$(\"#dialog-form\").dialog({
 		       autoOpen: false,
@@ -127,8 +127,8 @@ my $js = "
 		       }
 		});
 		\$(\"#dialog-form\").dialog(\"open\");
-	 }
-	 function setDialogFormStatus() {
+	}
+	function setDialogFormStatus() {
 		//allFields = \$([]).add(\$(\"#fill_in_status\")),
 		\$(\"#dialog-form-status\").dialog({
 		       autoOpen: false,
@@ -168,7 +168,7 @@ my $js = "
 		\$(\"#dialog-form-status\").dialog(\"open\");
 	}
 	//});
-	 function createForm(type, nom, numero, gene, acc_no, sample, technique) {
+	function createForm(type, nom, numero, gene, acc_no, sample, technique) {
 		\$.ajax({
 			type: \"POST\",
 			url: \"variant_input.pl\",
@@ -179,8 +179,8 @@ my $js = "
 		});
 		//\$(\"#fill_in\").text(type+\" - \"+nom+\" - \"+acc_no);
 		setDialogForm();
-	 }
-	 function createFormStatus(nom_c, gene, sample, technique, html_id) {
+	}
+	function createFormStatus(nom_c, gene, sample, technique, html_id) {
 		\$.ajax({
 			type: \"POST\",
 			url: \"modify_variant_status.pl\",
@@ -190,8 +190,8 @@ my $js = "
 			\$(\"#fill_in_status\").html(msg);
 		});
 		setDialogFormStatus();		
-	 }
-	 function delete_var(sample, gene, technique, variant, html_id) {
+	}
+	function delete_var(sample, gene, technique, variant, html_id) {
 		\$.ajax({
 			type: \"POST\",
 			url: \"variant_input.pl\",
@@ -202,8 +202,8 @@ my $js = "
 			//\$(\"#\"+html_id).text(msg);
 			\$(\"#\"+html_id).hide();
 		});
-	 }
-	 function delete_analysis(sample, analysis, gene) {
+	}
+	function delete_analysis(sample, analysis, gene) {
 		\$(\"#dialog-confirm\").dialog({
 			resizable: false,
 			height: 200,
@@ -226,8 +226,8 @@ my $js = "
 				}
 			}
 		});
-	 }
-	 function validate(sample, gene, analysis, type) {
+	}
+	function validate(sample, gene, analysis, type) {
 		\$.ajax({
 			type: \"POST\",
 			url: \"validate_analysis.pl\",
@@ -241,8 +241,8 @@ my $js = "
 			\$(\"#\"+type).html(msg);
 			\$(\"#\"+type+\"_2\").hide();
 		});
-	 }
-	 function associate_gene() {
+	}
+	function associate_gene() {
 		var gjb2 = /DFNB1/;
 		var gjb6 = /GJB6/;
 		var filtered = /Min?i?Seq-1./;
@@ -282,7 +282,7 @@ my $js = "
 		if (!bigger.test(analysis)){
 			\$(\"#analysis_form\").attr(\"action\", \"\");
 		}
-	 }
+	}
 	// function illumina_form_submit() {
 	//	jAlert('Please wait a few minutes while the run is being imported into U2');
 	//	return true;

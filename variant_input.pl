@@ -76,8 +76,8 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 my ($type, $nom, $num_seg, $technique);
 my ($id, $number) = ('', '');
 my $step = U2_modules::U2_subs_1::check_step($q);
-if ($step == 1 || $q->param('sample')) {
-	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+if ($step == 1 || $q->param('sample')) {	
+	($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	$technique = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
 }
 if ($q->param('type') && $q->param('type') =~ /(exon|intron|5UTR|3UTR)/o) {$type = $1}
@@ -99,7 +99,7 @@ my $acc_no = U2_modules::U2_subs_1::check_acc($q, $dbh);
 if ($step == 1) { #insert form and possibility to create variants.
 	
 	#build query
-		
+
 	#get strand - NG acc no
 	my $query = "SELECT brin, chr, acc_g FROM gene WHERE nom[2] = '$acc_no';";
 	my $res = $dbh->selectrow_hashref($query);
