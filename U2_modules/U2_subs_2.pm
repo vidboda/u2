@@ -1180,7 +1180,7 @@ sub print_panel_criteria {
 			$q->li('% 20X bp < '.$U2_modules::U2_subs_1::PC50X)."\n".
 			$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV)."\n".
 			$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC)."\n".
-		$q->end_ul()."\n", $q);
+		$q->end_ul().$q->end_div()."\n", $q);
 }
 
 sub build_ngs_form {
