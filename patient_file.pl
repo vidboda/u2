@@ -82,7 +82,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 #			data: {asked: 'defgen', sample: id+num}
 #			})
 #		.done(function(msg) {
-#			\$('#defgen').html('<div class=\"w3-modal-content w3-card-4\"><header class=\"w3-container w3-teal\"><span onclick=\"\$(\'#defgen\').hide();\" class=\"w3-button w3-display-topright\">&times;</span><h2>Export to DEFGEN:</h2></header><div class=\"w3-container\"><p class=\"w3-large\">\"+msg+\"</p></div></div>');
+#			\$('#defgen').html('<div class=\"w3-modal-content w3-card-4\"><header class=\"w3-container w3-teal\"><span onclick=\"\$(\'#defgen\').hide();\" class=\"w3-button w3-ripple w3-display-topright\">&times;</span><h2>Export to DEFGEN:</h2></header><div class=\"w3-container\"><p class=\"w3-large\">\"+msg+\"</p></div></div>');
 #			\$('#defgen').show();
 #			//setDialog(msg);
 #		});	
@@ -291,7 +291,7 @@ if ($result) {
 				$q->end_em(),
 			$q->end_li();
 		}
-		print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->button({'onclick' => "getDefGenVariants('$id', '$number');", 'value' => 'DefGen genotype', 'class' => 'w3-button w3-blue w3-border w3-border-blue'}), $q->end_li(), $q->br();
+		print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->button({'onclick' => "getDefGenVariants('$id', '$number');", 'value' => 'DefGen genotype', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue'}), $q->end_li(), $q->br();
 	}
 	else {
 		print $q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, 'No pathogenic variations reported so far.'), $q->br();
@@ -406,7 +406,7 @@ if ($result) {
 									$q->span({'class' => 'w3padding-small w3-col', 'style' => 'width:15%'},"Filter: &nbsp;&nbsp;").$q->start_div({'class' => 'w3padding-small w3-col', 'style' => 'width:50%'}).
 									U2_modules::U2_subs_1::select_filter($q, 'filter', "run_filter_form$analysis_count", $res_manifest->{'filter'}).$q->end_div().
 									$q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").
-									$q->submit({'value' => 'Change', 'class' => 'w3-button w3-tiny w3-blue w3-rest w3-hover-light-grey', 'form' => "run_filter_form$analysis_count"}).$q->end_div().
+									$q->submit({'value' => 'Change', 'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'form' => "run_filter_form$analysis_count"}).$q->end_div().
 									$q->end_form().
 									$q->end_li();
 							$raw_data =~ s/$\///og;
@@ -631,7 +631,7 @@ if ($result) {
 								function() {\$(this).css('z-index', '100');}
 							);
 						});";
-					print $q->script({'type' => 'text/javascript'}, $js), $q->start_li(), $q->button({'id' => "$analysis", 'value' => "$analysis", 'class' => 'w3-button w3-teal w3-border w3-border-blue'});
+					print $q->script({'type' => 'text/javascript'}, $js), $q->start_li(), $q->button({'id' => "$analysis", 'value' => "$analysis", 'class' => 'w3-button w3-ripple w3-teal w3-border w3-border-blue'});
 					
 					if ($raw_filter ne '') {
 						my $star = '*';
@@ -750,7 +750,7 @@ if ($result) {
 	print $q->start_div({'class' => 'patient_file_frame mother appear', 'id' => 'tag'}), $q->p({'class' => 'title'}, "Jump to the following pages:"), $q->br(), "\n";
 	if ($user->isAnalyst() == 1) {
 		#print $q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'add_analysis.pl?step=1&sample='.$id.$number.'\');'}, 'Add an analysis'), "\n"
-		print $q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => '$(location).attr(\'href\', \'add_analysis.pl?step=1&sample='.$id.$number.'\');'}, 'Add an analysis'), "\n"
+		print $q->strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => '$(location).attr(\'href\', \'add_analysis.pl?step=1&sample='.$id.$number.'\');'}, 'Add an analysis'), "\n"
 	}
 	#print $q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'patient_global.pl?type=analyses&sample='.$id.$number.'\');'}, 'Global analyses view'), "\n",
 	#	$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => '$(location).attr(\'href\', \'patient_global.pl?type=genotype&sample='.$id.$number.'\');'}, 'Global genotype view'), "\n",
@@ -762,10 +762,10 @@ if ($result) {
 	#	$q->strong({'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'window.open(\'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n",
 	#	$q->end_div(), $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";
 		
-	print $q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'patient_global.pl?type=analyses&sample='.$id.$number.'\');'}, 'Global analyses view'), "\n",
-		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'patient_global.pl?type=genotype&sample='.$id.$number.'\');'}, 'Global genotype view'), "\n",
-		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=missense&sample='.$id.$number.'\');'}, 'Prioritize missense'), "\n",
-		$q->strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n",
+	print $q->strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'patient_global.pl?type=analyses&sample='.$id.$number.'\');'}, 'Global analyses view'), "\n",
+		$q->strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'patient_global.pl?type=genotype&sample='.$id.$number.'\');'}, 'Global genotype view'), "\n",
+		$q->strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=missense&sample='.$id.$number.'\');'}, 'Prioritize missense'), "\n",
+		$q->strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open(\'variant_prioritize.pl?type=splicing&sample='.$id.$number.'\');'}, 'Prioritize splicing'), "\n",
 	$q->end_div(), $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";
 	
 
@@ -1011,7 +1011,7 @@ sub create_frame {
 		foreach (@{$tab}) {
 			if (exists $list->{$_}) {
 				#print $q->start_strong({'class' => 'patient_file_frame daughter pointer frame_text frame2', 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
-				print $q->start_strong({'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
+				print $q->start_strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
 			}
 		}
 		print $q->end_div(), "\n";#, $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";
@@ -1025,9 +1025,9 @@ sub create_group {
 	#foreach (@{$tab}) {$show .= "if (\$('#$_').length){\$('#$_').show('slow');};"; $hide .= "if (\$('#$_').length){\$('#$_').hide('slow');};";} modified 29/08/2014
 	#print $q->strong({'id' => $name}, "&nbsp;&nbsp;&nbsp;$name&nbsp;"), $q->span('('), $q->a({'href' => 'javascript:;', 'onclick' => $show}, 'Show'), $q->span(' / '), $q->a({'href' => 'javascript:;', 'onclick' => $hide}, 'Hide'), $q->span(')');
 	#print $q->start_strong(), $q->span({'id' => "l$name", 'class' => 'pointer', 'onclick' => '$(location).attr(\'href\', \'#'.$name.'\');'}, "&nbsp;&nbsp;&nbsp;$name&nbsp;"), $q->end_strong();
-	#w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin
+	#w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin
 	#print $q->strong({'id' => "l$name", 'class' => 'patient_file_frame daughter pointer frame_text frame1', 'onclick' => 'show_gene_group(\''.$name.'\');'}, $name), "\n";
-	print $q->strong({'id' => "l$name", 'class' => 'w3-button w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'show_gene_group(\''.$name.'\');'}, $name), "\n";
+	print $q->strong({'id' => "l$name", 'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'show_gene_group(\''.$name.'\');'}, $name), "\n";
 }
 
 

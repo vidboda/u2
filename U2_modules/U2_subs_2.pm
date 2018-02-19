@@ -120,7 +120,7 @@ sub print_validation_table {
 			if ($gene eq '') {print $q->start_td(), $q->em($result->{'nom_gene'}), $q->end_td(), "\n"}
 			if ($result->{'manifest_name'} eq 'no_manifest') {print $q->td($result->{'type_analyse'}), "\n"}
 			elsif ($class ne 'global') {
-				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$bam_path.bam', indexURL:'$bam_path$addin.bai', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
+				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$bam_path.bam', indexURL:'$bam_path$addin.bai', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 			}
 			else {print $q->td($result->{'type_analyse'}), "\n"}
 			
@@ -135,7 +135,7 @@ sub print_validation_table {
 				$q->td($result->{'validateur'}), "\n";
 			my $step = 3;
 			if ($result->{'form'} == 1 && $result->{'manifest_name'} eq 'no_manifest') {$step = 2}
-			if ($user->isAnalyst() == 1) {print $q->start_td({'class' => 'print_hidden'}), $q->button({'onclick' => "window.location='add_analysis.pl?step=$step&sample=$id$number&gene=".$result->{'nom_gene'}."&analysis=".$result->{'type_analyse'}."'", 'value' => 'modify', 'class' => 'w3-button w3-blue'}), $q->end_td(), "\n"}
+			if ($user->isAnalyst() == 1) {print $q->start_td({'class' => 'print_hidden'}), $q->button({'onclick' => "window.location='add_analysis.pl?step=$step&sample=$id$number&gene=".$result->{'nom_gene'}."&analysis=".$result->{'type_analyse'}."'", 'value' => 'modify', 'class' => 'w3-button w3-ripple w3-blue'}), $q->end_td(), "\n"}
 			#if ($user->isAnalyst() == 1 && ) {print $q->start_td({'class' => 'print_hidden'}), $q->button({'onclick' => "window.location='add_analysis.pl?step=2&sample=$id$number&gene=".$result->{'nom_gene'}[0]."&analysis=".$result->{'type_analyse'}."'", 'value' => 'modify'}), $q->end_td(), "\n"}
 			#elsif ($user->isAnalyst() == 1 && $result->{'form'} != 1) {print $q->start_td({'class' => 'print_hidden'}), $q->button({'onclick' => "window.location='add_analysis.pl?step=2&sample=$id$number&gene=".$result->{'nom_gene'}[0]."&analysis=".$result->{'type_analyse'}."'", 'value' => 'modify'}), $q->end_td(), "\n"}
 			print $q->end_Tr(), "\n";
@@ -258,7 +258,7 @@ sub print_filter {
 	&add_filter_button($q, 'After stop codon', 'afterstop', 'variants located 3\' of the stop codon');
 	&add_filter_button($q, 'Deep introns', 'deepintron', 'variants located > 30 bp far from exons');
 	&add_filter_button($q, 'U2 > 3', 'firstseen', 'variants recorded in more than three probands');
-	print $q->start_li(), $q->button({'value' => 'Reset all filters', 'title' => 'Show all filtered variants', 'onclick' => 'reset_filters();', 'class' => 'w3-button w3-blue'}), $q->end_li();
+	print $q->start_li(), $q->button({'value' => 'Reset all filters', 'title' => 'Show all filtered variants', 'onclick' => 'reset_filters();', 'class' => 'w3-button w3-ripple w3-blue'}), $q->end_li();
 	print $q->end_ul();
 	#removed maf filter, the main page is now loaded without the information (mafs computed by ajax 04/09/2014) - put neutral filter instead
 	#$q->start_li(), $q->span('MAF &gt; 0.01:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->button({'id' => 'maf_hide_button', 'value' => 'Hide'}), $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $q->button({'id' => 'maf_show_button', 'value' => 'Show'}), $q->span('&nbsp;&nbsp;&nbsp;&nbsp;(currently: '), $q->strong({'id' => 'maf_txt'}, 'shown'), $q->span(')'), $q->end_li(), "\n",
@@ -267,7 +267,7 @@ sub print_filter {
 sub add_filter_button {
 	my ($q, $category, $tag, $title_tag) = @_;
 	print $q->start_li({'class' => 'w3-padding-small'}), $q->span({'class' => 'width_span_100'}, "$category:"),
-			$q->button({'value' => 'Filter', 'title' => "Hide $title_tag", 'onclick' => "variant_hide('$tag');", 'class' => 'w3-button w3-blue w3-tiny  w3-padding-small'}),#'id' => $tag.'_hide_button', 
+			$q->button({'value' => 'Filter', 'title' => "Hide $title_tag", 'onclick' => "variant_hide('$tag');", 'class' => 'w3-button w3-ripple w3-blue w3-tiny  w3-padding-small'}),#'id' => $tag.'_hide_button', 
 			#$q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'),
 			#$q->button({'value' => 'Show', 'title' => "Show $title_tag", 'onclick' => "variant_show('$tag');"}),#'id' => $tag.'_show_button', 
 			$q->span('&nbsp;&nbsp;&nbsp;&nbsp;(currently: '),
@@ -390,7 +390,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		if ($global ne 't' && ($type_analyse =~ /Mi/o || $type_analyse =~ /Next/o)) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
 			my $igv_padding = 40;
-			print $q->start_td(), $q->button({'onclick' => "igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')", 'class' => 'pointer', 'title' => 'Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table', 'value' => $nom_seg, 'class' => 'w3-button w3-blue w3-padding-small w3-tiny'}), $q->end_td(), "\n";
+			print $q->start_td(), $q->button({'onclick' => "igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')", 'class' => 'pointer', 'title' => 'Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table', 'value' => $nom_seg, 'class' => 'w3-button w3-ripple w3-blue w3-padding-small w3-tiny'}), $q->end_td(), "\n";
 		}
 		else {print $q->td($nom_seg), "\n";}
 		
@@ -1099,7 +1099,7 @@ sub RNA_pie {
 
 sub info_panel {
 	my ($text, $q) = @_;
-	return $q->start_div({'class' => 'w3-margin w3-panel w3-sand w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-display-topright w3-large'}, 'X').$q->p($text).$q->end_div()."\n";
+	return $q->start_div({'class' => 'w3-margin w3-panel w3-sand w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-ripple w3-display-topright w3-large'}, 'X').$q->p($text).$q->end_div()."\n";
 }
 
 sub mini_info_panel {
@@ -1109,7 +1109,7 @@ sub mini_info_panel {
 
 sub danger_panel {
 	my ($text, $q) = @_;
-	return $q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-display-topright w3-large'}, 'X').$q->start_p().$q->strong($text).$q->end_p().$q->end_div()."\n";
+	return $q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-ripple w3-display-topright w3-large'}, 'X').$q->start_p().$q->strong($text).$q->end_p().$q->end_div()."\n";
 }
 
 sub cnil_disclaimer {
@@ -1191,7 +1191,7 @@ sub build_ngs_form {
 	$info .= ".";	
 	my $form = &info_panel($info, $q);
 		
-	#.$q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-display-topright w3-large'}, 'X').$q->start_p({'class' => 'w3-margin'}).$q->strong().$q->end_p().$q->end_div().$q->br()."\n";
+	#.$q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-ripple w3-display-topright w3-large'}, 'X').$q->start_p({'class' => 'w3-margin'}).$q->strong().$q->end_p().$q->end_div().$q->br()."\n";
 	$info = 'You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet.'.$q->br().'In this case, please insert them via the Excel file and reload the page.';
 	
 	$form .= &danger_panel($info, $q).$q->br();
@@ -1204,7 +1204,7 @@ sub build_ngs_form {
 	$form .= $q->start_div({'align' => 'center'}).
 		$q->start_div({'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'style' => 'width:50%'}).
 			$q->h3({'class' => 'w3-center w3-padding-16'}, 'Import '.ucfirst($analysis).' data')."\n".
-			$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');", 'class' => 'w3-button w3-blue w3-hover-white'}).$q->br().
+			$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');", 'class' => 'w3-button w3-ripple w3-blue w3-hover-white'}).$q->br().
 			$q->start_form({'action' => $script, 'method' => 'post', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED})."\n".
 			$q->input({'type' => 'hidden', 'name' => 'step', 'value' => $step, form => "illumina_form_$run"})."\n".
 			$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"})."\n".
@@ -1275,7 +1275,7 @@ sub build_ngs_form {
 	#print		$q->end_ol(),
 	#	$q->end_fieldset(),
 	#	$q->br(),
-	$form .= $q->submit({'value' => 'Import', 'class' => 'w3-button w3-blue w3-hover-white', form => "illumina_form_$run"}).
+	$form .= $q->submit({'value' => 'Import', 'class' => 'w3-button w3-ripple w3-blue w3-hover-white', form => "illumina_form_$run"}).
 		$q->br().$q->br()."\n".
 		$q->end_form().
 		$q->end_div().

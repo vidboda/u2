@@ -95,62 +95,63 @@ sub standard_begin_html { #prints top of the pages
 		$q->end_div(),
 		$q->start_div({'id' => 'myNavbar', 'class' => 'w3-bar w3-card-2 w3-black'}),
 		$q->start_div({'class' => 'w3-dropdown-hover'}),
-			$q->start_a({'class' => 'w3-button w3-black', 'onclick' => 'window.location="/U2/";'}),$q->start_i({'class' => 'fa fa-home w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			$q->start_a({'class' => 'w3-button w3-ripple w3-black', 'onclick' => 'window.location="/U2/";'}),$q->start_i({'class' => 'fa fa-home w3-xxlarge'}), $q->end_i(), $q->end_a(),
 			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
 			$q->end_div(),
 		$q->end_div(),
 		$q->start_div({'class' => 'w3-dropdown-hover'}),
-			$q->start_a({'class' => 'w3-button w3-black'}),$q->start_i({'class' => 'fa fa-stethoscope w3-xxlarge'}), $q->end_i(), $q->end_a(),
-			#$q->a({'class' => 'w3-button w3-large'},'Patients'),
+			$q->start_a({'class' => 'w3-button w3-ripple w3-black'}),$q->start_i({'class' => 'fa fa-stethoscope w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			#$q->a({'class' => 'w3-button w3-ripple w3-large'},'Patients'),
 			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'});
 	#get patients' pathologies
 	my $query = "SELECT pathologie FROM valid_pathologie ORDER BY id;";
-	print $q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/patients.pl?phenotype=all'}, 'ALL'),
-		$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/patients.pl?phenotype=USHER'}, 'USHER');	
+	print $q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=all'}, 'ALL'),
+		$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=USHER'}, 'USHER');	
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();	
 	while (my $result = $sth->fetchrow_hashref()) {
-		print $q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => "/perl/U2/patients.pl?phenotype=$result->{'pathologie'}"}, $result->{'pathologie'});
+		print $q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => "/perl/U2/patients.pl?phenotype=$result->{'pathologie'}"}, $result->{'pathologie'});
 	}
-		#		$q->a({'class' => 'w3-bar-item w3-button w3-xlarge', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
+		#		$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-xlarge', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
 	print 		$q->end_div(),
 		$q->end_div(),
 		$q->start_div({'class' => 'w3-dropdown-hover'}),
-			$q->start_a({'class' => 'w3-button w3-black'}),$q->start_i({'class' => 'fa fa-ioxhost w3-xxlarge'}), $q->end_i(), $q->end_a(),
-			#$q->a({'class' => 'w3-button w3-xlarge'},'Genes'),
+			$q->start_a({'class' => 'w3-button w3-ripple w3-black'}),$q->start_i({'class' => 'fa fa-ioxhost w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			#$q->a({'class' => 'w3-button w3-ripple w3-xlarge'},'Genes'),
 			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=ALL'}, 'ALL'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=USHER'}, 'USHER'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNB'}, 'DFNB'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNA'}, 'DFNA'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNX'}, 'DFNX'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NSRP'}, 'NSRP'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=CHM'}, 'CHM'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/gene_page.pl?sort=LCA'}, 'LCA'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=ALL'}, 'ALL'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=USHER'}, 'USHER'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNB'}, 'DFNB'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNA'}, 'DFNA'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DFNX'}, 'DFNX'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NSRP'}, 'NSRP'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=CHM'}, 'CHM'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=LCA'}, 'LCA'),
 			$q->end_div(),
 		$q->end_div(),
 		$q->start_div({'class' => 'w3-dropdown-hover'}),
-			$q->start_a({'class' => 'w3-button w3-black'}),$q->start_i({'class' => 'fa fa-pie-chart w3-xxlarge'}), $q->end_i(), $q->end_a(),
-			#$q->a({'class' => 'w3-button w3-large'},'Statistics'),
+			$q->start_a({'class' => 'w3-button w3-ripple w3-black'}),$q->start_i({'class' => 'fa fa-pie-chart w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			#$q->a({'class' => 'w3-button w3-ripple w3-large'},'Statistics'),
 			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/stats_ngs.pl'}, 'Illumina tables'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/stats_ngs.pl?graph=1'}, 'Illumina graphs'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/dbsnp_info.pl'}, 'dbSNP'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/stats_general_1.pl'}, 'General Stats'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/stats_ngs.pl'}, 'Illumina tables'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/stats_ngs.pl?graph=1'}, 'Illumina graphs'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/ngs_compare.pl'}, 'NGS compare'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/dbsnp_info.pl'}, 'dbSNP'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/stats_general_1.pl'}, 'General Stats'),
 			$q->end_div(),
 		$q->end_div(),
 		$q->start_div({'class' => 'w3-dropdown-hover'}),
-			#$q->a({'class' => 'w3-button w3-large'},'Advanced'),
-			$q->start_a({'class' => 'w3-button w3-black'}),$q->start_i({'class' => 'fa fa-gears w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			#$q->a({'class' => 'w3-button w3-ripple w3-large'},'Advanced'),
+			$q->start_a({'class' => 'w3-button w3-ripple w3-black'}),$q->start_i({'class' => 'fa fa-gears w3-xxlarge'}), $q->end_i(), $q->end_a(),
 			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/automated_class.pl?class=1', 'onclick' => 'info(\'class\');'}, 'Automatic Classification'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/automated_class.pl?neg=1', 'onclick' => 'info(\'neg\');'}, 'Automatic Negative'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/search_controls.pl?step=1'}, 'Search Controls'),
-				$q->a({'class' => 'w3-bar-item w3-button w3-large', 'href' => '/perl/U2/advanced.pl?advanced=non-USH'}, 'USH non-USH'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/automated_class.pl?class=1', 'onclick' => 'info(\'class\');'}, 'Automatic Classification'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/automated_class.pl?neg=1', 'onclick' => 'info(\'neg\');'}, 'Automatic Negative'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/search_controls.pl?step=1'}, 'Search Controls'),
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/advanced.pl?advanced=non-USH'}, 'USH non-USH'),
 			$q->end_div(),
 		$q->end_div(),		
-		$q->start_a({'class' => 'w3-bar-item w3-button w3-xlarge w3-right', 'href' => '/ushvam2/change_user.php'}), $q->start_i({'class' => 'fa fa-user-times w3-xxlarge'}), $q->end_i(), $q->end_a(),
+		$q->start_a({'class' => 'w3-bar-item w3-button w3-ripple w3-xlarge w3-right', 'href' => '/ushvam2/change_user.php'}), $q->start_i({'class' => 'fa fa-user-times w3-xxlarge'}), $q->end_i(), $q->end_a(),
 		$q->span({'class' => 'w3-bar-item w3-xlarge w3-right'}, "Logged in as $user_name"),
 		$q->end_div(), $q->end_div(), $q->br(), $q->br(),
 		$q->start_div({'id' => 'internal'}), $q->br();	
@@ -381,7 +382,7 @@ sub valid {
 		if ($res ne '0E0') {
 			while (my $result = $sth->fetchrow_hashref()) {
 				$html .= $q->start_li().$q->em($result->{'nom_gene'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-				$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-blue'});
+				$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'});
 				$html .= $q->end_li();
 			}		
 		}
@@ -401,7 +402,7 @@ sub valid_table {
 			$html .= $q->start_table({'class' => 'great_table technical'}).$q->start_Tr().$q->th({'class' => 'left_general'}, 'Gene').$q->th({'class' => 'left_general'}, 'Analysis').$q->th({'class' => 'left_general'}, 'Link').$q->end_Tr();
 			while (my $result = $sth->fetchrow_hashref()) {
 				$html .= $q->start_Tr().$q->td({'class' => 'italique'}, $result->{'nom_gene'}).$q->td($result->{'type_analyse'});
-				$html .= $q->start_td().$q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-blue'}).$q->end_td();
+				$html .= $q->start_td().$q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'}).$q->end_td();
 				$html .= $q->end_Tr();
 				#$html .= $q->start_li().$q->em($result->{'nom_gene'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 				#$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';"});

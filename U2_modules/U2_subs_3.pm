@@ -838,5 +838,31 @@ sub get_data {
 	chop($data);
 	return $data;
 }
+#in stats_ngs.pl, ngs_compare.pl
+sub display_page_header {
+	my ($txt, $js_fn, $div_id, $q, $dbh) = @_;
+	my $text = 'Please choose some kind of NGS experiment below to display '.$txt;
+	my $data = U2_modules::U2_subs_2::info_panel($text, $q);
+	
+	$data .= $q->start_div({'class' => 'w3-container'})."\n";
+	
+	my @colors = ('sand', 'khaki', 'yellow', 'amber', 'orange', 'deep-orange', 'red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue');
+	
+	my $query = "SELECT type_analyse FROM valid_type_analyse WHERE manifest_name <> 'no_manifest' ORDER BY type_analyse;";
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	while (my $result = $sth->fetchrow_hashref()) {
+		#print $q->strong({'class' => 'w3-button w3-ripple w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-32 w3-margin w3-round', 'onclick' => 'window.open(\'stats_ngs.pl?analysis='.$result->{'type_analyse'}.'&amp;time=1\');'}, $result->{'type_analyse'}), "\n";
+		$data .=  $q->strong({'class' => 'w3-button w3-ripple w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-32 w3-margin w3-round', 'onclick' => ''.$js_fn.'(\''.$result->{'type_analyse'}.'\');'}, $result->{'type_analyse'})."\n";
+	}
+	#print $q->strong({'class' => 'w3-button w3-ripple w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-32 w3-margin w3-round', 'onclick' => 'window.open(\'stats_ngs.pl?analysis=all&amp;time=1\');'}, 'All analyses'), "\n",
+	$data .=  $q->strong({'class' => 'w3-button w3-ripple w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-32 w3-margin w3-round', 'onclick' => ''.$js_fn.'(\'all\');'}, 'All analyses')."\n".
+		$q->end_div().$q->br().
+		$q->start_div({'style' => 'height:7px;overflow:hidden;', 'class' => 'w3-margin w3-deep-orange'}).
+		$q->end_div()."\n".
+		$q->div({'id' => $div_id});
+	return $data;
+}
+
 
 1;

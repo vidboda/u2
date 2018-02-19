@@ -848,11 +848,11 @@ if ($user->isAnalyst() == 1) {
 				$q->span({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(':'), $q->end_strong(), $q->end_big(), $q->end_p(), "\n";
 				
 			if ($step == 2) {
-				my $text =  $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-blue'}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants.")."\n";
+				my $text =  $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-ripple w3-blue'}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants.")."\n";
 				print U2_modules::U2_subs_2::danger_panel($text, $q);			
 				
 				print $q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
-				#print $q->start_p(), $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants."), $q->end_p(), "\n",
+				#print $q->start_p(), $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-ripple w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants."), $q->end_p(), "\n",
 				#$q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
 				
 				my @js_params = ('createForm', $id.$number, $analysis);
@@ -1006,7 +1006,7 @@ if ($user->isAnalyst() == 1) {
 			#			$q->start_li(),
 			#				$q->span("Technical validation: "), $q->span({'id' => 'technical_valid', 'class' => $tech_val_class}, $tech_val), "\n";
 			if ($tech_val ne '+') {
-				print $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'id' => 'technical_valid_2', 'value' => 'Validate', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'technical_valid');", 'class' => 'w3-button w3-blue'});
+				print $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'id' => 'technical_valid_2', 'value' => 'Validate', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'technical_valid');", 'class' => 'w3-button w3-ripple w3-blue'});
 			}
 			print
 					$q->end_td(), "\n",
@@ -1017,7 +1017,7 @@ if ($user->isAnalyst() == 1) {
 			#		$q->span("Analysis result: "), $q->span({'id' => 'result', 'class' => $result_ana_class}, $result_ana), "\n";
 			if ($user->isReferee() == 1) {
 				if ($result_ana eq 'UNDEFINED') {
-					print $q->start_span({'id' => 'result_2'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'value' => 'Negative', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'negatif');", 'class' => 'w3-button w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'value' => 'Positive', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'positif');", 'class' => 'w3-button w3-blue'}),  $q->end_span();
+					print $q->start_span({'id' => 'result_2'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'value' => 'Negative', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'negatif');", 'class' => 'w3-button w3-ripple w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'value' => 'Positive', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'positif');", 'class' => 'w3-button w3-ripple w3-blue'}),  $q->end_span();
 				}
 			}
 			print
@@ -1029,13 +1029,13 @@ if ($user->isAnalyst() == 1) {
 			#		$q->span("Biological validation: "), $q->span({'id' => 'valide', 'class' => $bio_val_class}, $bio_val), "\n";
 			if ($user->isValidator() == 1) {
 				if ($bio_val ne '+') {
-					print $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'id' => 'valide_2', 'value' => 'Validate', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'valide');", 'class' => 'w3-button w3-blue'});
+					print $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'id' => 'valide_2', 'value' => 'Validate', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'valide');", 'class' => 'w3-button w3-ripple w3-blue'});
 				}
 			}
 			print
 					$q->end_td(), "\n",
 					$q->start_td({'class' => 'td_border'}), "\n",
-						$q->button({'value' => 'Jump to genotype view', 'onclick' => "window.location = 'patient_genotype.pl?sample=$id$number&gene=$gene';", 'class' => 'w3-button w3-blue'}),
+						$q->button({'value' => 'Jump to genotype view', 'onclick' => "window.location = 'patient_genotype.pl?sample=$id$number&gene=$gene';", 'class' => 'w3-button w3-ripple w3-blue'}),
 					$q->end_td(), "\n",
 				$q->end_Tr(), "\n",
 			$q->end_table(), "\n",
