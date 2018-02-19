@@ -751,6 +751,11 @@ sub build_roi {
 	return \%intervals;
 }
 
+sub compute_approx_panel_size {
+	my ($dbh, $analysis_type) = shift;
+	my $query = "SELECT SUM(a.end_g - a.start_g + 1) FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.\"$analysis_type\" = 't' and b.main = 't';";
+}
+
 sub get_nenufaar_id {#get nenufaar id of the analysis => needs path to log file ($ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run)
 	my $path = shift;
 	my $nenufaar_log = `ls $path/*.log | xargs basename`;

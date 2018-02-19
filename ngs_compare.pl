@@ -74,35 +74,39 @@ my $js = "
 	function show_vs_table(analysis_value) {
 		if (i <= 6) {
 			//\$(\'#match_container\').append('$loading');
+			\$(\'#page\').css(\'cursor\', \'progress\');
+			\$(\'.w3-button\').css(\'cursor\', \'progress\');
 			\$.ajax({
 				type: \"POST\",
 				url: \"ajax.pl\",
 				data: {vs_table: 1, analysis: analysis_value, round: i}
 			})
 			.done(function(content) {
-				if (i == 1) {\$(\'#vs_table\').html(content);}
+				if (i == 1) {\$(\'#vs_table\').css('display', 'none');\$(\'#vs_table\').html(content);\$(\'#vs_table\').fadeIn();}
 				else {
 					//k = 100/i;
 					//alert(content);
 					//each 1st child or sthg like .css('width', 'width:k;')
+					\$(\'#match_\' + i).css(\'display\', \'none\');
 					\$(\'#match_container\').append(content);
-					\$(\'#match_i\').css('width', function (i) {
-						return 100 / i;
-					});
-					
-					//\$(\'#vs_table\').html(content);
-					//voir appendTo aussi
+					\$(\'#match_\' + i).fadeIn();
+					//\$(\'#match_i\').css('width', function (i) {
+					//	return 100 / i;
+					//});
 				}
 				i += 1;
+				\$(\'#page\').css(\'cursor\', \'default\');
+				\$(\'.w3-button\').css(\'cursor\', \'default\');
 			});
 		}
 		else {
 			//document.getElementById('modal1').style.display='block;';
-			\$(\'#modal1\').show();
+			\$(\'#modal1\').fadeIn();
 		}
 	}
 	function reset() {
-		\$(\'#match_container\').html('');
+		\$(\'#match_container\').fadeOut();
+		//\$(\'#match_container\').html('');
 		i = 1;
 	}
 ";

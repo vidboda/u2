@@ -1162,17 +1162,25 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 		$content .= $q->start_div({'class' => 'w3-container w3-center w3-cell-row', 'id' => 'match_container',  'style' => 'width:100%'})."\n".$q->br();			
 	}
 	my ($total_runs, $total_samples) = (U2_modules::U2_subs_3::get_total_runs($analysis, $dbh), U2_modules::U2_subs_3::get_total_samples($analysis, $dbh));
-	my $query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) as f FROM miseq_analysis WHERE type_analyse = '$analysis';";
+	my $query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) AS f FROM miseq_analysis WHERE type_analyse = '$analysis';";
+	my $query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.\"$analysis\" = 't' AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
 	if ($analysis eq 'all') {
-		$query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) as f FROM miseq_analysis;";
+		$query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) AS f FROM miseq_analysis;";
+		$query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.nom_gene = b.nom AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
+	}
+	elsif ($analysis =~ /Min?i?Seq-3$/o) {
+		$query_size = "WITH tmp AS (SELECT MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment b WHERE a.nom[1] = b.nom_gene[1] AND type LIKE '%UTR' AND a.\"$analysis\" = 't' GROUP BY a.nom[1], a.chr ORDER BY a.chr, min ASC)\nSELECT SUM(max - min) AS size FROM tmp";
 	}
 	my $res = $dbh->selectrow_hashref($query);
 	
+	my $res_size = $dbh->selectrow_hashref($query_size);
+	
 	$content .= $q->start_div({'class' => 'w3-hover-shadow w3-cell w3-mobile', 'id' => "match_$round"}).
-			$q->start_div({'class' => 'w3-container w3-light-grey'}).
+			$q->start_div({'class' => 'w3-container w3-blue'}).
 				$q->h3($analysis).
 			$q->end_div().
 			$q->start_div({'class' => 'w3-container'}).
+				$q->p("Size ~ ".sprintf('%.0f', $res_size->{'size'}/1000)." kb").
 				$q->p($total_runs).
 				$q->p($total_samples).
 				$q->p("50X %: ".sprintf('%.2f', $res->{'a'})).
