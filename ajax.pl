@@ -1130,7 +1130,7 @@ if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
 	";
 	#print $js;
         my $content =   $q->script({'type' => 'text/javascript'}, $js).                         
-                        $q->start_div({'class' => 'w3-container w3-center w3-card', 'id' => $pg_row}). "\n".$q->br().
+                        $q->start_div({'class' => 'w3-container w3-center w3-card', 'id' => $pg_row})."\n".$q->br().
                                 $q->big($metric_type).$q->br().$q->br().$q->span("$math_type: ").
                                 $q->span(U2_modules::U2_subs_3::get_data_mean($analysis, $pg_row, $floating_depth, $table, $dbh).$percent).$q->br().$q->br()."\n<canvas class=\"ambitious\" width = \"$width\" height = \"500\" id=\"graph\">Change web browser for a more recent please!</canvas>".
 				$q->p('X-axis legend: date_reagent_genes with date being yymmdd.').
@@ -1147,6 +1147,47 @@ if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
         $content .= $q->end_ul().$q->end_div()."\n";
 			
 			
+	print $content;
+}
+
+
+if ($q->param('vs_table') && $q->param('vs_table') == 1) {
+	my $analysis;
+	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
+	else {$analysis = 'all'}
+	my $round = $q->param('round');
+	my $content;
+	if ($round == 1) {
+		#create table
+		$content .= $q->start_div({'class' => 'w3-container w3-center w3-cell-row', 'id' => 'match_container',  'style' => 'width:100%'})."\n".$q->br();			
+	}
+	my ($total_runs, $total_samples) = (U2_modules::U2_subs_3::get_total_runs($analysis, $dbh), U2_modules::U2_subs_3::get_total_samples($analysis, $dbh));
+	my $query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) as f FROM miseq_analysis WHERE type_analyse = '$analysis';";
+	if ($analysis eq 'all') {
+		$query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) as f FROM miseq_analysis;";
+	}
+	my $res = $dbh->selectrow_hashref($query);
+	
+	$content .= $q->start_div({'class' => 'w3-hover-shadow w3-cell w3-mobile', 'id' => "match_$round"}).
+			$q->start_div({'class' => 'w3-container w3-light-grey'}).
+				$q->h3($analysis).
+			$q->end_div().
+			$q->start_div({'class' => 'w3-container'}).
+				$q->p($total_runs).
+				$q->p($total_samples).
+				$q->p("50X %: ".sprintf('%.2f', $res->{'a'})).
+				$q->p("% duplicates: ".sprintf('%.2f', $res->{'b'})).
+				$q->p("Insert size (median): ".sprintf('%.0f', $res->{'c'})).
+				$q->p("DoC: ".sprintf('%.2f', $res->{'d'})).
+				$q->p("#SNVs: ".sprintf('%.0f', $res->{'e'})).
+				$q->p("SNVs Ts/Tv: ".sprintf('%.2f', $res->{'f'})).
+			$q->end_div().
+		$q->end_div();
+	
+		if ($round == 1) {
+		#create table
+		$content .= $q->end_div()."\n".$q->br();			
+	}
 	print $content;
 }
 

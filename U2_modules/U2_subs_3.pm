@@ -860,7 +860,7 @@ sub display_page_header {
 		$q->end_div().$q->br().
 		$q->start_div({'style' => 'height:7px;overflow:hidden;', 'class' => 'w3-margin w3-deep-orange'}).
 		$q->end_div()."\n".
-		$q->div({'id' => $div_id});
+		$q->start_div({'id' => $div_id}).$q->end_div();
 	return $data;
 }
 
