@@ -742,7 +742,7 @@ sub build_roi {
 	my $dbh = shift;
 	##we built a hash with 'start, stop' => chr for each gene
 	#select min(least(start_g, end_g)), max(greatest(start_g,end_g)) from segment where nom_gene[1] = 'USH2A' and type LIKE '%UTR';
-	my $query = "SELECT a.chr, MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment B WHERE a.nom[1] = b.nom_gene[1] AND type LIKE '%UTR' GROUP BY a.nom[1], a.chr ORDER BY a.chr, min ASC;";
+	my $query = "SELECT a.chr, MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment b WHERE a.nom[1] = b.nom_gene[1] AND type LIKE '%UTR' GROUP BY a.nom[1], a.chr ORDER BY a.chr, min ASC;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	
