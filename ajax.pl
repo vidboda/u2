@@ -777,7 +777,10 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	if ($res ne '0E0') {
-		$text = $q->start_p().$q->button({'onclick' => "showAllVariants('$gene', '$sort_value', '$sort_type', '$freq', '$css_class');", 'value' => "Sort by $toprint"}).$q->end_p().$q->start_ul();
+		$text = $q->start_p().
+				$q->span({'class' => 'w3-button w3-ripple w3-blue', 'onclick' => "showAllVariants('$gene', '$sort_value', '$sort_type', '$freq', '$css_class');"}, "Sort by $toprint").
+			$q->end_p().
+			$q->start_ul();
 		while (my $result = $sth->fetchrow_hashref()) {
 			my $color = U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh);
 			my $name2 = $result->{'nom_prot'} if $result->{'nom_prot'};
