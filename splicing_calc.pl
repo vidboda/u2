@@ -443,7 +443,7 @@ sub build_window {
 		}
 	}
 	elsif ($dna_type eq 'deletion') {
-		for (my $i = -$window_size+$size+1; $i < $size; $i++) {
+		for (my $i = -$window_size+1; $i < $size; $i++) {
 			if ($i <= 0) {
 				$temp_wt = substr($wt->[0], $i, -$i).$wt->[1].substr($wt->[2], 0, ($i+($window_size-($size-1))));
 				$temp_html_wt = substr($wt->[0], $i, -$i).$q->span({'class' => 'red'}, $wt->[1]).substr($wt->[2], 0, ($i+($window_size-($size-1))));
