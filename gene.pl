@@ -122,6 +122,8 @@ my $js = "
 		\$(\'.ui-dialog\').zIndex(\'1002\');
 	}
 	function showAllVariants(gene, sort_value, sort_type, freq, dynamic) {
+		\$(\'#page\').css(\'cursor\', \'progress\');
+		\$(\'.w3-button\').css(\'cursor\', \'progress\');
 		\$.ajax({
 			type: 'POST',
 			url: 'ajax.pl',
@@ -130,6 +132,8 @@ my $js = "
 		.done(function(msg) {
 			\$(\'#vars\').html(msg);
 			if (dynamic) {\$("." + dynamic).css(\'background-color\', \'#FFFF66\');}
+			\$(\'#page\').css(\'cursor\', \'default\');
+			\$(\'.w3-button\').css(\'cursor\', \'default\');
 		});
 	}";
 
@@ -233,7 +237,9 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					$q->end_Tr(), "\n";				
 			}
 			
-			print $q->start_Tr(), "\n", $q->start_td({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}), $q->start_strong(), $q->span("$result->{'nom'}[1].$result->{'acc_version'}");
+			print $q->start_Tr(), "\n",
+				$q->start_td({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}),
+					$q->start_strong(), $q->span("$result->{'nom'}[1].$result->{'acc_version'}");
 			if ($result->{'main'} == 1) {print $q->span(' (main)')}
 			print $q->end_strong(), $q->end_td();
 				
@@ -406,12 +412,19 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 					$q->end_Tr();
 			while (my $result = $sth->fetchrow_hashref()) {
 				print $q->start_Tr(), "\n",
-					$q->td({'onclick' => "showAllVariants('$gene', '$result->{'sort'}', '$sort', '2', '$css_class');", 'class' => 'pointer'}, $result->{'sort'}), $q->td($result->{'var'}), $q->td($result->{'allel'}), "\n",
+					$q->start_td(),
+						$q->span({'class' => 'w3-button w3-ripple w3-blue', 'style' => 'width:60%', 'onclick' => "showAllVariants('$gene', '$result->{'sort'}', '$sort', '2', '$css_class');"}, $result->{'sort'}),
+					$q->end_td(), "\n",
+					$q->td($result->{'var'}),
+					$q->td($result->{'allel'}), "\n",
 					$q->end_Tr(), "\n";
 					$i += $result->{'var'};$j += $result->{'allel'};
 			}
 			print $q->start_Tr(), "\n",
-				$q->td({'onclick' => "showAllVariants('$gene', 'all', 'all', '2');", 'class' => 'pointer'}, 'Total'), $q->td($i), $q->td($j), "\n",
+				$q->start_td(),
+					$q->span({'class' => 'w3-button w3-ripple w3-blue', 'style' => 'width:60%', 'onclick' => "showAllVariants('$gene', 'all', 'all', '2');"}, 'Total'),
+				$q->end_td(),
+				$q->td($i), $q->td($j), "\n",
 				$q->end_Tr(), "\n",
 				$q->end_table(), $q->end_div();
 		}
@@ -435,7 +448,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	}
 	elsif ($sort eq 'taille') {
 		print $q->p("All large rearrangements recorded for $gene are listed in the table below.");
-		my $query = "SELECT a.*, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND taille > 50 GROUP BY a.taille, a.nom, a.classe, a.nom_gene ORDER BY a.nom_g ".U2_modules::U2_subs_1::get_strand($gene, $dbh).";";
+		my $query = "SELECT a.classe, a.taille, a.nom, a.nom_gene, a.type_adn, a.num_segment, a.num_segment_end,  COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND taille > 50 GROUP BY a.taille, a.nom, a.classe, a.nom_gene, a.nom_g, a.type_adn, a.num_segment, a.num_segment_end ORDER BY a.nom_g ".U2_modules::U2_subs_1::get_strand($gene, $dbh).";";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		if ($res ne '0E0') {

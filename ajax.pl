@@ -762,8 +762,8 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 	#$query = "SELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
 	#changed 06/23/2015 to remove duplicates (e.g. variant seen in MiSeq and sanger were counted twice)
 	
-	#$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value')\nSELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
-	$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value')\nSELECT a.*, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
+	$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value')\nSELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs, a.nom_g ORDER BY $order;";
+	#$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value')\nSELECT a.*, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
 	
 	#$query = "SELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY a.nom_g ".U2_modules::U2_subs_1::get_strand($gene, $dbh).";";
 	if ($sort_type eq 'all') {
@@ -773,7 +773,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 		
 		#SELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(DISTINCT(b.type_analyse)) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
 	}
-	
+	#print $query;
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	if ($res ne '0E0') {
