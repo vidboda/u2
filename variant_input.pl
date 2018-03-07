@@ -5,6 +5,7 @@ use strict;
 #use DBI;
 #use AppConfig qw(:expand :argcount);
 use URI::Encode qw(uri_encode uri_decode);
+use URI::Escape;
 #use LWP::UserAgent;
 use SOAP::Lite;
 #use Data::Dumper;
@@ -617,7 +618,7 @@ elsif ($step == 2) { #insert variant and print
 							$q->end_td();
 					}
 					else {
-						my $text = $q->span('Newly created variant: ').$q->a({'href' => "variant.pl?gene=$gene&amp;accession=$acc_no&nom_c=".uri_encode($variant)}, $variant);
+						my $text = $q->span('Newly created variant: ').$q->a({'href' => "variant.pl?gene=$gene&amp;accession=$acc_no&nom_c=".uri_escape($variant)}, $variant);
 						print U2_modules::U2_subs_2::info_panel($text, $q);
 					}
 					#print $q->span("Added: ".ucfirst($type_segment)." $nom: $variant, ").$q->span({'id' => "w$j"}, "$status, allele: $allele, class: ").$q->span({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($classe, $dbh).";"}, "$classe&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$technique', '".uri_encode($variant)."', 'v$j');"}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($variant)."', '$gene', '$id$number', '$technique', 'v$j', '$status', '$allele');\$(\"#dialog-form-status\").dialog(\"open\");"}).$q->span({'class' => 'list'}, "Status&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a();
