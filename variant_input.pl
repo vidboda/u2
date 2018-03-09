@@ -571,7 +571,7 @@ elsif ($step == 2) { #insert variant and print
 											
 								my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee) VALUES ('$variant', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."');";
 								$insert =~ s/'NULL'/NULL/og;
-								print $q->td({'colspan' => '7'}, $insert);exit;
+								#print $q->td({'colspan' => '7'}, $insert);exit;
 								$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";
 								
 								if ($id ne '') {
