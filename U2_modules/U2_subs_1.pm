@@ -1034,7 +1034,7 @@ sub translate_boolean_class {
 
 sub translate_boolean_denovo {
 	my ($boolean) = shift;
-	if (defined($boolean) && $boolean == 1) {return ' denovo'}
+	if (defined($boolean) && $boolean ne "" && $boolean == 1) {return ' denovo'}
 	else {return ''}
 }
 

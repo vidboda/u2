@@ -453,6 +453,7 @@ elsif ($step == 2) { #insert variant and print
 								#print $q->start_Tr(), $q->td({'colspan' => '7'}, "-$seq_wt-"), $q->end_Tr();;exit;
 								
 								## Transcript description (submission) get version of isoform
+								if ($gene eq 'GPR98') {$gene = 'ADGRV1'}
 								my $true_version = "";
 								if ($call->result->{'transcriptDescriptions'}) {
 									foreach ($call->result->{'transcriptDescriptions'}->{'string'}) {
@@ -541,7 +542,7 @@ elsif ($step == 2) { #insert variant and print
 									else {$nom_prot = 'p.(=)';$type_prot = 'NULL';}
 								}
 								if ($taille > 50) {$nom_prot = 'p.?'}
-								
+								#print $q->td({'colspan' => '7'}, "$nom_prot-$type_prot-$gene-$true_version-");exit;
 								#snp
 								($snp_id, $snp_common) = ('NULL', 'NULL');
 								#my $sign = '=';
@@ -565,6 +566,8 @@ elsif ($step == 2) { #insert variant and print
 								
 								
 								## let's go
+								#reverse
+								if ($gene eq 'ADGRV1') {$gene = 'GPPR98'}
 											
 								my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee) VALUES ('$variant', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."');";
 								$insert =~ s/'NULL'/NULL/og;
