@@ -246,7 +246,7 @@ my $js = "
 		var gjb2 = /DFNB1/;
 		var gjb6 = /GJB6/;
 		var filtered = /Min?i?Seq-1./;
-		var simple = /Min?i?Seq-(3|28)/;
+		var simple = /Min?i?Seq-(3|2|28)/;
 		var bigger = /NextSeq-ClinicalExome/;
 		//var analysis = \$('input[name=analysis]').filter(':checked').val(); //4 radio button style
 		var analysis = \$('#analysis').val();
