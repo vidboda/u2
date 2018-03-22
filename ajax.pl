@@ -840,16 +840,21 @@ if ($q->param('asked') && $q->param('asked') eq 'req_class') {
 if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	#print $number;
-	my $query = "SELECT a.*, b.*, a.nom_prot as hgvs_prot, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
+	#my $query = "SELECT a.*, b.*, a.nom_prot as hgvs_prot, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
+	my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	#my $content = "GENE;VARIANT;GENOME_REFERENCE;NOMENCLATURE_HGVS;NOMPROTEINE;VARIANT_C;CHROMOSOME;SEQUENCE_REF;LOCALISATION;POSITION_GENOMIQUE;NM;VARIANT_P;CLASSESUR3;CLASSESUR5;DOMAINE_FCTL;CONSEQUENCES;RS;COSMIC;ENST;DATEDESAISIE;REFERENCES;COMMENTAIRE;ETAT;A_ENREGISTRER;STATUT;RESULTAT;ALLELE;NOTES\n";
 	#updated with defgen file 28/12/2017
-	my $content = "GENE;VARIANT;A_ENREGISTRER;STATUT;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ALLELE;CLASSESUR3;CLASSESUR5;NOTES;COSMIC;ENST;NM;RS;REFERENCES;CONSEQUENCES;POSITION_GENOMIQUE;COMMENTAIRE\n";
+	#my $content = "GENE;VARIANT;A_ENREGISTRER;STATUT;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ALLELE;CLASSESUR3;CLASSESUR5;NOTES;COSMIC;ENST;NM;RS;REFERENCES;CONSEQUENCES;POSITION_GENOMIQUE;COMMENTAIRE\n";
+	my $content =  "GENE;VARIANT;A_ENREGISTRER;STATUT;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2;PROTEINE;NOTES\n";
 	if ($res ne '0E0') {
 		while (my $result = $sth->fetchrow_hashref()) {
 			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($result->{nom_g}, 'clinvar');
-			$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{'allele'};;;$result->{type_segment} $result->{num_segment};;$result->{enst};$result->{nom_gene}[1];$result->{snp_id};hg19;$result->{type_prot};;$result->{nom_prot}\n";
+			my $acmg_class = U2_modules::U2_subs_3::u2class2acmg($result->{classe});
+			my ($defgen_a1, $defgen_a2) = U2_modules::U2_subs_3::get_defgen_allele($result->{'allele'});
+			#$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{'allele'};;;$result->{type_segment} $result->{num_segment};;$result->{enst};$result->{nom_gene}[1];$result->{snp_id};hg19;$result->{type_prot};;$result->{nom_prot}\n";
+			$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{enst};$result->{nom_gene}[1];$pos;$acmg_class;;;$result->{snp_id};;$result->{type_prot};;$chr;hg19;$result->{nom_c};$result->{type_segment} $result->{num_segment};;;$defgen_a1;$defgen_a2;$result->{nom_prot};\n";
 			#$content .= "$result->{nom_gene}[0];$result->{nom_c};hg19;$result->{nom_g};$result->{nom_prot};$result->{nom_c};chr$chr;;$result->{type_segment} $result->{num_segment};$pos;$result->{nom_gene}[1].$result->{acc_version};$result->{hgvs_prot};;;;$result->{type_prot};$result->{snp_id};;$result->{enst};;;$result->{classe};;;$result->{'statut'};;$result->{'allele'};\n";
 		}
 	}

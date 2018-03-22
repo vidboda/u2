@@ -763,6 +763,23 @@ sub get_nenufaar_id {#get nenufaar id of the analysis => needs path to log file 
 	return ($1, $2);
 }
 
+sub u2class2acmg {
+	my $u2_classe = shift;
+	if ($u2_classe eq 'neutral') {return 'ACMG class I'}
+	elsif ($u2_classe eq 'VUCS class I' || $u2_classe eq 'VUCS class II') {return 'ACMG class II'}
+	elsif ($u2_classe eq 'VUCS class III' || $u2_classe eq 'VUCS class IV') {return 'ACMG class IV'}
+	elsif ($u2_classe eq 'pathogenic') {return 'ACMG class V'}
+	else {return 'ACMG class III'}
+}
+
+sub get_defgen_allele {
+	my $u2_allele = shift;
+	if ($u2_allele eq 'unknown') {return ('unknown', 'unknown')}
+	elsif ($u2_allele == '1') {return ('yes', 'no')}
+	elsif ($u2_allele == '1') {return ('no', 'yes')}
+	elsif ($u2_allele == '1') {return ('yes', 'yes')}
+}
+
 sub get_total_samples {
 	my ($analysis, $dbh) = @_;	
 	my $query;
