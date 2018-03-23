@@ -764,12 +764,22 @@ sub get_nenufaar_id {#get nenufaar id of the analysis => needs path to log file 
 }
 
 sub u2class2acmg {
-	my $u2_classe = shift;
-	if ($u2_classe eq 'neutral') {return 'ACMG class I'}
-	elsif ($u2_classe eq 'VUCS class I' || $u2_classe eq 'VUCS class II') {return 'ACMG class II'}
-	elsif ($u2_classe eq 'VUCS class III' || $u2_classe eq 'VUCS class IV') {return 'ACMG class IV'}
-	elsif ($u2_classe eq 'pathogenic') {return 'ACMG class V'}
-	else {return 'ACMG class III'}
+	my ($u2_class, $dbh) = @_;
+	my $query = "SELECT acmg_class FROM valid_classe WHERE classe = '$u2_class';";
+	my $res = $dbh->selectrow_hashref($query);
+	return $res->{'acmg_class'};
+	#if ($u2_class eq 'neutral') {return 'ACMG class I'}
+	#elsif ($u2_class eq 'VUCS class I' || $u2_class eq 'VUCS class II') {return 'ACMG class II'}
+	#elsif ($u2_class eq 'VUCS class IV') {return 'ACMG class IV'}
+	#elsif ($u2_class eq 'pathogenic') {return 'ACMG class V'}
+	#else {return 'ACMG class III'}
+}
+
+sub acmg_color_by_classe {
+	my ($acmg_class, $dbh) = @_;
+	my $query = "SELECT acmg_html_code FROM valid_classe WHERE acmg_class = '$acmg_class';";
+	my $res = $dbh->selectrow_hashref($query);
+	return $res->{'acmg_html_code'};
 }
 
 sub get_defgen_allele {

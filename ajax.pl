@@ -851,7 +851,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	if ($res ne '0E0') {
 		while (my $result = $sth->fetchrow_hashref()) {
 			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($result->{nom_g}, 'clinvar');
-			my $acmg_class = U2_modules::U2_subs_3::u2class2acmg($result->{classe});
+			my $acmg_class = U2_modules::U2_subs_3::u2class2acmg($result->{classe}, $dbh);
 			my ($defgen_a1, $defgen_a2) = U2_modules::U2_subs_3::get_defgen_allele($result->{'allele'});
 			#$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{'allele'};;;$result->{type_segment} $result->{num_segment};;$result->{enst};$result->{nom_gene}[1];$result->{snp_id};hg19;$result->{type_prot};;$result->{nom_prot}\n";
 			$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{enst};$result->{nom_gene}[1];$pos;$acmg_class;;;$result->{snp_id};;$result->{type_prot};;$chr;hg19;$result->{nom_c};$result->{type_segment} $result->{num_segment};;;$defgen_a1;$defgen_a2;$result->{nom_prot};\n";

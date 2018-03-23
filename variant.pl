@@ -15,6 +15,7 @@ use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
+use U2_modules::U2_subs_3;
 
 #http://stackoverflow.com/questions/74358/how-can-i-get-lwp-to-validate-ssl-server-certificates
 # to bypass ssl validation by LWP version 6 and above
@@ -521,13 +522,29 @@ my $js = "
 	};";
 
 
-print $q->start_Tr(), $q->td('NG HGVS:'), $q->start_td(), $q->span({'onclick' => "window.open('$ncbi_url$res->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $res->{'acc_g'}), $q->span(":$res->{'nom_ng'}"), $q->end_td(), $q->td('Relative genomic HGVS nomenclature (NG)'), $q->end_Tr(), "\n",
-	$q->start_Tr(), $q->td('hg19 Genomic HGVS:'), "\n", $q->start_td({'id' => 'nom_g'}),
-	$q->span("$res->{'nom_g'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link, 'target' => '_blank'}, 'UCSC'), $map2pdb, $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => "/perl/led/engine.pl?research=hg19:$evs_chr:$evs_pos_start", 'target' => '_blank'}, 'LED'), $q->end_td(), $q->td('Absolute genomic HGVS nomenclature (chr), hg19 assembly'), $q->end_Tr(), "\n",
-	$q->start_Tr(), $q->td('hg38 Genomic HGVS: (work in progress)'), "\n", $q->start_td({'id' => 'nom_g_38'}),
-	$q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $map2pdb_hg38, $mutalyzer_hg38_pos_conv, $q->end_td(), $q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'), $q->end_Tr(), "\n",
-	$q->start_Tr(), $q->td('Alternatives:'), "\n", $q->start_td({'id' => 'mutalyzer_place'}), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'all_nomenclature', 'value' => 'Other nomenclatures', 'onclick' => 'getAllNom();$(\'#mutalyzer_place\').html("Please wait while mutalyzer is checking...");', 'class' => 'w3-button w3-blue'}), $q->end_td(), $q->td('Click to retrieve alternative notations for the variant'), $q->end_Tr(), "\n",
-	$q->start_Tr(), $q->td('Classification:'), $q->start_td(), $q->span({'id' => 'variant_class', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_classe($res->{'classe'}, $dbh).';'}, $res->{'classe'});
+print $q->start_Tr(),
+		$q->td('NG HGVS:'),
+		$q->start_td(), $q->span({'onclick' => "window.open('$ncbi_url$res->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $res->{'acc_g'}), $q->span(":$res->{'nom_ng'}"), $q->end_td(),
+		$q->td('Relative genomic HGVS nomenclature (NG)'),
+	$q->end_Tr(), "\n",
+	$q->start_Tr(),
+		$q->td('hg19 Genomic HGVS:'), "\n",
+		$q->start_td({'id' => 'nom_g'}), $q->span("$res->{'nom_g'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link, 'target' => '_blank'}, 'UCSC'), $map2pdb, $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => "/perl/led/engine.pl?research=hg19:$evs_chr:$evs_pos_start", 'target' => '_blank'}, 'LED'), $q->end_td(),
+		$q->td('Absolute genomic HGVS nomenclature (chr), hg19 assembly'),
+	$q->end_Tr(), "\n",
+	$q->start_Tr(),
+		$q->td('hg38 Genomic HGVS: (work in progress)'), "\n",
+		$q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $map2pdb_hg38, $mutalyzer_hg38_pos_conv, $q->end_td(),
+		$q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'),
+	$q->end_Tr(), "\n",
+	$q->start_Tr(),
+		$q->td('Alternatives:'), "\n",
+		$q->start_td({'id' => 'mutalyzer_place'}), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'all_nomenclature', 'value' => 'Other nomenclatures', 'onclick' => 'getAllNom();$(\'#mutalyzer_place\').html("Please wait while mutalyzer is checking...");', 'class' => 'w3-button w3-blue'}), $q->end_td(),
+		$q->td('Click to retrieve alternative notations for the variant'),
+	$q->end_Tr(), "\n",
+	$q->start_Tr(),
+		$q->td('U2 Classification:'),
+		$q->start_td(), $q->span({'id' => 'variant_class', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_classe($res->{'classe'}, $dbh).';'}, $res->{'classe'});
 	
 	#change class
 #need to be validator
@@ -591,7 +608,16 @@ if ($res->{'classe'} eq 'unknown') {
 	
 	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->span({'id' => 'request_done'}), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_request', 'value' => 'Request classification', 'onclick' => 'reqclass();', 'class' => 'w3-button w3-blue'});
 }
-	print $q->end_td(), $q->td('U2 variant classification'), $q->end_Tr(), "\n";
+	
+	my $acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh);
+	print $q->end_td(),
+			$q->td('U2 variant classification'),
+		$q->end_Tr(), "\n",
+		$q->start_Tr(),
+			$q->start_td(), $q->a({'href' => 'https://www.acmg.net/docs/Standards_Guidelines_for_the_Interpretation_of_Sequence_Variants.pdf', 'target' => '_blank'}, 'ACMG Classification :'), $q->end_td(),
+			$q->start_td(), $q->span({'id' => 'acmg_variant_class', 'style' => 'color:'.U2_modules::U2_subs_3::acmg_color_by_classe($acmg_class, $dbh).';'}, $acmg_class), $q->end_td(),
+			$q->td('Automatic classification based on U2 class'),
+		$q->end_Tr(), "\n";
 
 
 #dbSNP
@@ -970,7 +996,7 @@ sub menu_class {
 	my ($classe, $q, $dbh) = @_;
 	my @class_list;
 	my $html2return = $q->br().$q->br().$q->start_div({'align' => 'center'}).$q->start_Select({'id' => 'class_select'});
-	my $sth = $dbh->prepare("SELECT classe FROM valid_classe;");
+	my $sth = $dbh->prepare("SELECT classe FROM valid_classe ORDER BY ordering;");
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
 		my $options = 'style = "color:'.U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh).';"';
