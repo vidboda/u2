@@ -608,15 +608,16 @@ if ($res->{'classe'} eq 'unknown') {
 	
 	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->span({'id' => 'request_done'}), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_request', 'value' => 'Request classification', 'onclick' => 'reqclass();', 'class' => 'w3-button w3-blue'});
 }
-	
-	my $acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh);
+	my ($acmg_class, $acmg_source);
+	if ($res->{'acmg_class'}) {$acmg_class = $res->{'acmg_class'};$acmg_source = 'Manual'}
+	else {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh);$acmg_source = 'Automatic'}
 	print $q->end_td(),
 			$q->td('U2 variant classification'),
 		$q->end_Tr(), "\n",
 		$q->start_Tr(),
 			$q->start_td(), $q->a({'href' => 'https://www.acmg.net/docs/Standards_Guidelines_for_the_Interpretation_of_Sequence_Variants.pdf', 'target' => '_blank'}, 'ACMG Classification :'), $q->end_td(),
 			$q->start_td(), $q->span({'id' => 'acmg_variant_class', 'style' => 'color:'.U2_modules::U2_subs_3::acmg_color_by_classe($acmg_class, $dbh).';'}, $acmg_class), $q->end_td(),
-			$q->td('Automatic classification based on U2 class'),
+			$q->td("$acmg_source classification based on U2 class"),
 		$q->end_Tr(), "\n";
 
 
