@@ -45,6 +45,7 @@ my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $PATIENT_IDS = $config->PATIENT_IDS();
 my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
 my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
+my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -1172,15 +1173,22 @@ sub print_clinical_exome_criteria {
 }
 
 sub print_panel_criteria {
-	my $q = shift;
-	return info_panel($q->start_div({'class' => 'w3-container w3-padding-16'}).
+	my ($q, $analysis) = @_;
+	my $text = $q->start_div({'class' => 'w3-container w3-padding-16'}).
 		$q->span('Criteria for FAIL:')."\n".
 		$q->start_ul({'class' => 'w3-ul w3-hoverable', 'style' => 'width:30%'})."\n".
-			$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30)."\n".
-			$q->li('% 20X bp < '.$U2_modules::U2_subs_1::PC50X)."\n".
-			$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV)."\n".
-			$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC)."\n".
-		$q->end_ul().$q->end_div()."\n", $q);
+			$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30)."\n";
+	if ($analysis =~ /$ANALYSIS_ILLUMINA_WG_REGEXP/o) {
+		$text .= $q->li('% 50X bp < '.$U2_modules::U2_subs_1::PC50X_WG)."\n".
+			$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV_WG)."\n";
+	}
+	else {
+		$text .= $q->li('% 50X bp < '.$U2_modules::U2_subs_1::PC50X)."\n".
+			$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV)."\n";
+	}
+	$text .= $q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC)."\n".
+		$q->end_ul().$q->end_div()."\n";
+	return info_panel($text, $q);
 }
 
 sub build_ngs_form {
@@ -1238,7 +1246,7 @@ sub build_ngs_form {
 				$form .=   $q->end_div();
 			}
 			else {$form .=   $q->end_div();}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis)}
 			else {$form .=  &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
@@ -1264,7 +1272,7 @@ sub build_ngs_form {
 				$form .=   $q->div({'class' => 'w3-quarter w3-large'}, "Filter:").
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, "$filter")."\n";
 			}			
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis)}
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
@@ -1365,7 +1373,7 @@ sub get_raw_detail_ce_qualimap {
 
 #subs for panel, add_analysis.pl
 sub get_raw_data {
-	my ($dir, $sample, $ssh, $file, $instrument, $q) = @_;
+	my ($dir, $sample, $ssh, $file, $instrument, $q, $analysis) = @_;
 	#we want - miseq
 	#Percent Q30:,
 	#Target coverage at 50X:,
@@ -1387,9 +1395,16 @@ sub get_raw_data {
 	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
 	#return ($q30, $x50, $tstv, $doc);
 	my $criteria = '';
-	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}	
-	if ($x50 < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
-	if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
+	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}
+	if ($analysis =~ /$ANALYSIS_ILLUMINA_WG_REGEXP/o) {
+		#Whole genes
+		if ($x50 < $U2_modules::U2_subs_1::PC50X_WG) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X_WG.') '}
+		if ($tstv < $U2_modules::U2_subs_1::TITV_WG) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_WG.') '}
+	}
+	else {
+		if ($x50 < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
+		if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
+	}
 	if ($doc < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
 	if ($ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
 	if ($criteria ne '') {return $q->div({'class' => 'w3-red w3-quarter'}, "FAILED $criteria")}

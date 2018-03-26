@@ -150,7 +150,7 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiSeq-\d+)/o) {
 }
 elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 	#1st get poor coverage file
-	#MiSeq
+	#MiniSeq
 	my $nenufaar_ana_tmp = $1;
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
 	$nenufaar_ana = $nenufaar_ana_tmp;

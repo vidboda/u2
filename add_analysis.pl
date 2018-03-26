@@ -62,6 +62,7 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $PATIENT_IDS = $config->PATIENT_IDS();
+my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 
 #specific args for remote login to RS
 
@@ -642,7 +643,7 @@ if ($user->isAnalyst() == 1) {
 							
 							#build form
 							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, 'import_illumina.pl', '2', $q, $alignment_dir, $ssh, $summary_file, $instrument);
-							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q);
+							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
 							#print $q->p("In addition to $id$number, I have found ".(keys(%patients)-1)." other patients eligible for import in U2 for this run ($run)."), $q->start_p(), $q->span("Please select those you are interested in"), "\n";
 							#if ($filtered == '1') {print $q->span(" and specify your filtering options for each of them")}
 							#print $q->span("."), $q->end_p();
@@ -1100,48 +1101,48 @@ exit();
 
 ##specific subs for current script
 
-sub get_raw_data {
-	my ($dir, $sample, $ssh, $file, $instrument) = @_;
-	#we want - miseq
-	#Percent Q30:,
-	#Target coverage at 50X:,
-	#SNV Ts/Tv ratio:,
-	#Mean region coverage depth:,
-	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads);
-	
-	if ($instrument eq 'miseq') {
-		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
-	}
-	elsif ($instrument eq 'miniseq') {
-		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Padded target aligned reads,');
-	}
-	
-	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file);
-	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file);
-	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file);
-	my $doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file);
-	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
-	#return ($q30, $x50, $tstv, $doc);
-	my $criteria = '';
-	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}	
-	if ($x50 < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
-	if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
-	if ($doc < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
-	if ($ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
-	if ($criteria ne '') {return $q->div({'class' => 'fixed_200 red'}, "FAILED $criteria")}
-	else {return $q->div({'class' => 'fixed_200 green'}, 'PASS')}
-}
-
-sub get_raw_detail {
-	my ($dir, $sample, $ssh, $expr, $file) = @_;
-	#print "grep -e \"$expr\" $dir/".$sample."_S*.$file";
-	my $data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file");
-	#print "-$data-<br/>";
-	if ($data =~ /$expr([\d\.]+)[%\s]{0,2}$/) {$data = $1}
-	else {print "pb with $expr:$data:"}
-	#print "_".$data."_<br/>";
-	return $data,;
-}
+#sub get_raw_data {
+#	my ($dir, $sample, $ssh, $file, $instrument) = @_;
+#	#we want - miseq
+#	#Percent Q30:,
+#	#Target coverage at 50X:,
+#	#SNV Ts/Tv ratio:,
+#	#Mean region coverage depth:,
+#	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads);
+#	
+#	if ($instrument eq 'miseq') {
+#		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
+#	}
+#	elsif ($instrument eq 'miniseq') {
+#		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Padded target aligned reads,');
+#	}
+#	
+#	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file);
+#	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file);
+#	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file);
+#	my $doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file);
+#	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
+#	#return ($q30, $x50, $tstv, $doc);
+#	my $criteria = '';
+#	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}	
+#	if ($x50 < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
+#	if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
+#	if ($doc < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
+#	if ($ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
+#	if ($criteria ne '') {return $q->div({'class' => 'fixed_200 red'}, "FAILED $criteria")}
+#	else {return $q->div({'class' => 'fixed_200 green'}, 'PASS')}
+#}
+#
+#sub get_raw_detail {
+#	my ($dir, $sample, $ssh, $expr, $file) = @_;
+#	#print "grep -e \"$expr\" $dir/".$sample."_S*.$file";
+#	my $data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file");
+#	#print "-$data-<br/>";
+#	if ($data =~ /$expr([\d\.]+)[%\s]{0,2}$/) {$data = $1}
+#	else {print "pb with $expr:$data:"}
+#	#print "_".$data."_<br/>";
+#	return $data,;
+#}
 
 
 sub insert_analysis {

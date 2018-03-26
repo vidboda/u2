@@ -62,6 +62,7 @@ my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $CLINICAL_EXOME_SHORT_BASE_DIR = $config->CLINICAL_EXOME_SHORT_BASE_DIR();
 my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
+my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
@@ -597,8 +598,16 @@ if ($result) {
 						my $criteria = '';
 						if ($nenufaar == 0) {
 							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
-							if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
-							if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
+							if ($analysis =~ /$ANALYSIS_ILLUMINA_WG_REGEXP/o) {
+								#Whole genes
+								if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X_WG) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X_WG.') '}
+								if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV_WG) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_WG.') '}
+								$illumina_semaph = 4;#whole genes
+							}
+							else {
+								if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
+								if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
+							}
 							if ($res_manifest->{'ontarget_reads'} < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
 							$illumina_semaph = 1;#gene panel
 						}
@@ -685,13 +694,20 @@ if ($result) {
 		print $q->end_div(), "\n";
 		if ($illumina_semaph >= 1) {
 			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'});
-			if ($illumina_semaph == 1 || $illumina_semaph == 3) {
+			if ($illumina_semaph == 1 || $illumina_semaph == 3 || $illumina_semaph == 4) {
 				print $q->span('*Gene panel raw data must fulfill the following criteria to pass:'), "\n",
 				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
-					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n",
-					$q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
-					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n",
-					$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
+					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n";
+				if ($illumina_semaph == 4) {
+					#Whole genes
+					print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X_WG.','), "\n",
+					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_WG.','), "\n";
+				}
+				else {
+					print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
+					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n";
+				}
+				print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
 				$q->end_ul();
 				
 			}

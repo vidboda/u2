@@ -59,6 +59,9 @@ our $TITV = 2.3;
 our $MDOC = 150;
 our $PC50X = 95;
 our $Q30 = 80;
+#for whole genes
+our $TITV_WG = 1.8;
+our $PC50X_WG = 70;
 #Clinical exomes
 our $PC20X_CE = 75;
 our $MDOC_CE = 30;
