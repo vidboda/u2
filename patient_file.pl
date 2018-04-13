@@ -519,52 +519,90 @@ if ($result) {
 						if ($nenufaar == 0) {
 							$raw_data .= $q->li({'class' => 'w3-padding-small'}, "# of identified indels: $res_manifest->{'indel_num'}");
 							if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp.'.report.pdf') {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.report.pdf', 'target' => '_blank'}, 'Get Illumina sample summary').$q->end_li()
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => $partial_path.'.report.pdf', 'target' => '_blank'}, 'Get Illumina sample summary').
+											$q->end_li()
 							}
 							if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$res_manifest->{'run_id'}.'/aggregate.report.pdf') {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$res_manifest->{'run_id'}.'/aggregate.report.pdf', 'target' => '_blank'}, 'Get Illumina run summary').$q->end_li()
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$res_manifest->{'run_id'}.'/aggregate.report.pdf', 'target' => '_blank'}, 'Get Illumina run summary').
+											$q->end_li()
 							}
 							$raw_data .= 	
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.coverage.tsv', 'target' => '_blank'}, 'Get coverage file').$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.enrichment_summary.csv', 'target' => '_blank'}, 'Get enrichment summary file').$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.gaps.tsv', 'target' => '_blank'}, 'Get gaps file').$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.'.$analysis.'.bedgraph', 'target' => '_blank'}, 'Get coverage bedgraph file (use as UCSC track)').$q->end_li();
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => $partial_path.'.coverage.tsv', 'target' => '_blank'}, 'Get coverage file').
+								$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => $partial_path.'.enrichment_summary.csv', 'target' => '_blank'}, 'Get enrichment summary file').
+								$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => $partial_path.'.gaps.tsv', 'target' => '_blank'}, 'Get gaps file').
+								$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => $partial_path.'.'.$analysis.'.bedgraph', 'target' => '_blank'}, 'Get coverage bedgraph file (use as UCSC track)').
+								$q->end_li();
 						}
-						$raw_data .= 	$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $partial_path.'.vcf', 'target' => '_blank'}, 'Get original vcf file').$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$partial_path.'.vcf&genome=hg19'}, 'Open VCF in IGV (on configurated computers only)').
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$bam_ftp.'.bam&genome=hg19'}, 'Open BAM in IGV (on configurated computers only)').
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp.bam", 'target' => '_blank'}, 'Download BAM file').
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp$bai_suffix.bai", 'target' => '_blank'}, 'Download indexed BAM file');
+						$raw_data .= 	$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => $partial_path.'.vcf', 'target' => '_blank'}, 'Get original vcf file').
+								$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$partial_path.'.vcf&genome=hg19'}, 'Open VCF in IGV (on configurated computers only)').
+								$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$bam_ftp.'.bam&genome=hg19'}, 'Open BAM in IGV (on configurated computers only)').
+								$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp.bam", 'target' => '_blank'}, 'Download BAM file')
+								.$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp$bai_suffix.bai", 'target' => '_blank'}, 'Download indexed BAM file').
+								$q->end_li();
 								#$q->start_li().$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$SSH_RACKSTATION_FTP_BASE_DIR$res_manifest->{'run_id'}$bam_file", 'target' => '_blank'}, 'Download BAM file');
 								#$q->start_li().$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$SSH_RACKSTATION_FTP_BASE_DIR$res_manifest->{'run_id'}$bam_file.bai", 'target' => '_blank'}, 'Download indexed BAM file');
 								#$q->start_li().$q->a({'href' => 'http://localhost:60151/load?file=~/Downloads/'.$id_tmp.$num_tmp.$bam_file_suffix.'&genome=hg19'}, 'Open BAM in IGV (on configurated computers only -- TEST)').
 						if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.'reanalysis/'.$id_tmp.$num_tmp.'.pdf') {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH."reanalysis/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get NENUFAAR reanalysis summary').$q->end_li()
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+											$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH."reanalysis/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get NENUFAAR reanalysis summary').
+										$q->end_li()
 						}
 						my ($panel_nenufaar_path, $partial_panel_nenufaar_path, $link_panel_nenufaar_path, $partial_link_panel_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar");
 					
 						if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf") {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get autoNENUFAAR reanalysis summary').$q->end_li()
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+											$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get autoNENUFAAR reanalysis summary').
+										$q->end_li()
 						}
 						if (-e "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx") {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file');
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+											$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
+										$q->end_li();
 						}
 						if (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report');
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+											$q->a({'href' => "$link_panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report').
+										$q->end_li();
 							#my @nenuf_id = split (/\s/,`ls $panel_nenufaar_path/$id_tmp$num_tmp/`);
 							#$nenuf_id[0] =~ s/\s//g;
 							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id($panel_nenufaar_path);
 							#my $nenuf_id;
 							#print "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenuf_id[0]/".$id_tmp.$num_tmp."_poor_coverage.txt";
 							if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx", 'target' => '_blank'}, 'Download poor coverage file (Excel)');
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx", 'target' => '_blank'}, 'Download poor coverage file (Excel)').
+											$q->end_li();
 							}
 							if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.txt") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.txt", 'target' => '_blank'}, 'View poor coverage file (txt)');
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "ngs_poor_coverage.pl?type=$analysis&sample=$id_tmp$num_tmp&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, "Display $analysis poor coverage table").$q->end_li();
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.txt", 'target' => '_blank'}, 'View poor coverage file (txt)').
+											$q->end_li();
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "ngs_poor_coverage.pl?type=$analysis&sample=$id_tmp$num_tmp&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, "Display $analysis poor coverage table").
+											$q->end_li();
 							}
 							if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx", 'target' => '_blank'}, 'Download Nenufaar variant file (Excel)');
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx", 'target' => '_blank'}, 'Download Nenufaar variant file (Excel)').
+											$q->end_li();
 							}
 							#if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenuf_id[0]/".$id_tmp.$num_tmp.".final.vcf.final.txt") {
 							#	$raw_data .= $q->start_li().$q->a({'href' => "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenuf_id[0]/".$id_tmp.$num_tmp.".final.vcf.final.txt", 'target' => '_blank'}, 'Download Nenufaar variant file (txt)');
@@ -574,20 +612,32 @@ if ($result) {
 							#my ($ce_nenufaar_path, $link_ce_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/ns/ClinicalExome/nenufarised/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/ns/ClinicalExome/nenufarised/$res_manifest->{'run_id'}");
 							my ($ce_nenufaar_path, $link_ce_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}");
 							if (-e "$ce_nenufaar_path/multiqc_report.html") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View Clinical Exome MultiQC run report').$q->end_li();
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "$link_ce_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View Clinical Exome MultiQC run report').
+											$q->end_li();
 							}
 							if (-e "$ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx", 'target' => '_blank'}, 'Download Clinical Exome poor coverage file (Excel)').$q->end_li();
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "$link_ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx", 'target' => '_blank'}, 'Download Clinical Exome poor coverage file (Excel)').
+											$q->end_li();
 							}
 							if (-e "$ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.txt") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.txt", 'target' => '_blank'}, 'View Clinical Exome poor coverage file (txt)').$q->end_li();
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "ngs_poor_coverage.pl?type=ce&sample=$id_tmp$num_tmp&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, 'Display Clinical Exome poor coverage table').$q->end_li();
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "$link_ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.txt", 'target' => '_blank'}, 'View Clinical Exome poor coverage file (txt)').
+											$q->end_li();
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "ngs_poor_coverage.pl?type=ce&sample=$id_tmp$num_tmp&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, 'Display Clinical Exome poor coverage table').
+											$q->end_li();
 							}
 							if (-e "$ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx", 'target' => '_blank'}, 'Download Clinical Exome Nenufaar variant file (Excel)').$q->end_li();
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "$link_ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx", 'target' => '_blank'}, 'Download Clinical Exome Nenufaar variant file (Excel)').
+											$q->end_li();
 							}
 							if (-e "$ce_nenufaar_path/$res_manifest->{'run_id'}.xlsx") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file');
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+												$q->a({'href' => "$link_ce_nenufaar_path/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
+											$q->end_li();
 							}
 						}
 						
