@@ -541,10 +541,13 @@ if ($result) {
 						if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.'reanalysis/'.$id_tmp.$num_tmp.'.pdf') {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH."reanalysis/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get NENUFAAR reanalysis summary').$q->end_li()
 						}
-						my ($panel_nenufaar_path, $link_panel_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}");
+						my ($panel_nenufaar_path, $partial_panel_nenufaar_path, $link_panel_nenufaar_path, $partial_link_panel_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar");
 					
 						if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get autoNENUFAAR reanalysis summary').$q->end_li()
+						}
+						if (-e "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx") {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file');
 						}
 						if (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report');
@@ -582,7 +585,10 @@ if ($result) {
 							}
 							if (-e "$ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx", 'target' => '_blank'}, 'Download Clinical Exome Nenufaar variant file (Excel)').$q->end_li();
-							}							
+							}
+							if (-e "$ce_nenufaar_path/$res_manifest->{'run_id'}.xlsx") {
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "$link_ce_nenufaar_path/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file');
+							}
 						}
 						
 						#else {
