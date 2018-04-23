@@ -203,7 +203,7 @@ if ($q->param('advanced') && $q->param('advanced') eq 'forgotten_samples') {
 	#my $query = "WITH tmp AS (SELECT DISTINCT(id_pat, numpat) FROM analyse_moleculaire\nSELECT a.identifiant, a.numero, a.first_name, a.last_name, a.date_creation FROM patient a, tmp b WHERE a.proband = 't' AND a.date_creation + CAST('".$delay."' AS INTERVAL) < CURRENT_DATE AND (a.identifiant, a.numero) NOT IN (b.id_pat, b.num_pat) ORDER BY a.date_creation, a.identifiant, a.numero;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
-	print U2_modules::U2_subs_2::info_panel("You will find below a list of index cases samples recorded more than $delay ago, and for which no analyses have been carried:", $q),
+	print U2_modules::U2_subs_2::info_panel("You will find below a list of index cases samples recorded more than $delay ago, and for which no analyses have been performed:", $q),
 			$q->ul(), "\n";
 	my $i = 0;
 	while (my $result = $sth->fetchrow_hashref()) {
