@@ -195,7 +195,50 @@ if ($q->param('advanced') && $q->param('advanced') eq 'non-USH') {
 	
 }
 
-
+if ($q->param('advanced') && $q->param('advanced') eq 'forgotten_samples') {
+	#select numero, identifiant from patient where (numero || identifiant) not in (select DISTINCT(num_pat, id_pat) from analyse_moleculaire)
+	#SELECT numero FROM patient WHERE proband = 't' AND date_creation + CAST('3 months' AS INTERVAL) < CURRENT_DATE AND (numero) NOT IN (SELECT DISTINCT(num_pat) FROM analyse_moleculaire)
+	my $delay = '3 months';
+	my $query = "SELECT identifiant, numero, first_name, last_name, date_creation FROM patient WHERE proband = 't' AND date_creation + CAST('".$delay."' AS INTERVAL) < CURRENT_DATE AND (identifiant || numero) NOT IN (SELECT DISTINCT(id_pat || num_pat) FROM analyse_moleculaire) ORDER BY date_creation, identifiant, numero;";
+	#my $query = "WITH tmp AS (SELECT DISTINCT(id_pat, numpat) FROM analyse_moleculaire\nSELECT a.identifiant, a.numero, a.first_name, a.last_name, a.date_creation FROM patient a, tmp b WHERE a.proband = 't' AND a.date_creation + CAST('".$delay."' AS INTERVAL) < CURRENT_DATE AND (a.identifiant, a.numero) NOT IN (b.id_pat, b.num_pat) ORDER BY a.date_creation, a.identifiant, a.numero;";
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	print U2_modules::U2_subs_2::info_panel("You will find below a list of index cases samples recorded more than $delay ago, and for which no analyses have been carried:", $q),
+			$q->ul(), "\n";
+	my $i = 0;
+	while (my $result = $sth->fetchrow_hashref()) {
+		if ($res ne '0E0') {
+			my ($last_name, $first_name) = ($result->{'last_name'}, $result->{'first_name'});
+			$last_name =~ s/'/''/og;
+			$first_name =~ s/'/''/og;
+			#got all samples without associated experiment arrived more than 3 months ago : need to double check if another sample of the samepatient has been studied
+			my $query_check = "SELECT COUNT(numero) as num_samples FROM patient WHERE last_name = '$last_name' AND first_name = '$first_name';";
+			my $res_check = $dbh->selectrow_hashref($query_check);
+			if ($res_check->{'num_samples'} > 1) {
+				#need to actually double check
+				my $query_check2 = "SELECT identifiant, numero FROM patient WHERE last_name = '$last_name' AND first_name = '$first_name' AND numero <> '".$result->{'numero'}."';";
+				my $sth_check2 = $dbh->prepare($query_check2);
+				my $res_check2 = $sth_check2->execute();
+				while (my $result_check2 = $sth_check2->fetchrow_hashref()) {
+					my $query_check3 = "SELECT id_pat, num_pat FROM analyse_moleculaire WHERE id_pat = '".$result_check2->{'identifiant'}."' AND num_pat = '".$result_check2->{'numero'}."';";
+					my $res_check3 = $dbh->selectrow_hashref($query_check3);
+					if ($res_check3 eq '') {
+						#print $q->li($res_check->{'num_samples'} ." - ".$res_check3);
+						&print_forgotten_sample($result->{'identifiant'}, $result->{'numero'}, $result->{'date_creation'});
+						$i++;
+					}
+				}
+			}
+			else {
+				&print_forgotten_sample($result->{'identifiant'}, $result->{'numero'}, $result->{'date_creation'});
+				$i++;
+			}
+		}
+		else {print $q->li('Congrats!! you are up-to-date!!!')}
+	}
+	print $q->end_ul(), "\n", $q->br(),
+		U2_modules::U2_subs_2::info_panel("Corresponding to $i samples", $q);
+}
 
 
 
@@ -209,3 +252,13 @@ print $q->end_html();
 exit();
 
 ##End of Basic end
+
+##specific subs
+
+sub print_forgotten_sample {
+	my ($id, $number, $date) = @_;
+	print $q->start_li(),
+			$q->a({'target' => '_blank', 'href' => "patient_file.pl?sample=$id$number", 'title' => 'Visit the sample page'}, $id.$number), $q->span(" created $date"),
+			$q->end_li(), "\n";
+}
+
