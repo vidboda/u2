@@ -1447,6 +1447,45 @@ sub build_sample_hash {
 	return %list
 }
 
+sub dbnsfp_clinvar2text {
+	my $code = shift;
+	my @list = split(/\|/, $code);
+	my $trad = '';
+	foreach (@list) {
+		#print $_;
+		if ($_ < 0) {if ($trad =~ /score for ref allele;/){next}else{$trad .= 'score for ref allele;'}}
+		elsif ($_ == 2) {if ($trad =~ /Benign;/){next}else{$trad .=  'Benign;'}}
+		elsif ($_ == 3) {if ($trad =~ /Likely benign;/){next}else{$trad .=  'Likely benign;'}}
+		elsif ($_ == 4) {if ($trad =~ /Likely pathogenic;/){next}else{$trad .=  'Likely pathogenic;'}}
+		elsif ($_ == 5) {if ($trad =~ /Pathogenic;/){next}else{$trad .=  'Pathogenic;'}}
+		elsif ($_ == 6) {if ($trad =~ /drug response;/){next}else{$trad .=  'drug response;'}}
+		elsif ($_ == 7) {if ($trad =~ /histocompatibility;/){next}else{$trad .=  'histocompatibility;'}}
+		else {if ($trad =~ /unknown code;/){next}else{$_ .=  'unknown code;'}}
+	}
+	return $trad;
+		
+	#if ($code < 0) {return 'score for ref allele'}
+	#elsif ($code == 2) {return 'Benign'}
+	#elsif ($code == 3) {return 'Likely benign'}
+	#elsif ($code == 4) {return 'Likely pathogenic'}
+	#elsif ($code == 5) {return 'Pathogenic'}
+	#elsif ($code == 6) {return 'drug response'}
+	#elsif ($code == 7) {return 'histocompatibility'}
+	#else {return 'unknown code'}
+}
+
+sub gnomadAF {
+	my ($tabix, $file, $type, $chr, $pos, $ref, $alt, $q) = @_;
+	my @gnomad =  split(/\n/, `$tabix $file $chr:$pos-$pos`);
+	#print $gnomad[0];
+	foreach (@gnomad) {
+		my @current = split(/\t/, $_);
+		if (($current[3] eq $ref) && ($current[4] eq $alt)) {
+		#if (/\t$ref\t$alt\t/) {
+			return $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, "gnomAD $type").$q->span(" AF: $current[5]").$q->span().$q->end_li()."\n";
+		}
+	}
+}
 
 #####removed 04/09/2014 old fashioned mafs were computed for each variant, the optimised version does this on demand by AJAX
 #sub genotype_line { #prints a line in the genotype table

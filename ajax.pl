@@ -135,39 +135,76 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	###NEW style using VEP 4 TGP and ESP
+	
 	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, b.dfn, b.usher FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
 	my ($text, $semaph) = ($q->start_ul(), 0);#$q->strong('MAFs &amp; databases:').
-	my $tempfile = File::Temp->new(UNLINK => 1);
 	
-	my $network = 'offline';
-	#my $version = 78;
+	
 	my $chr = my $position = my $ref = my $alt = '';
-	if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {print $tempfile "$1 $2 $2 $3/$4 +\n";$chr = $1; $position = $2; $ref = $3;$alt = $4;}
-	elsif ($variant =~ /chr(.+)$/o) {print $tempfile "$1\n";$network = 'port 3337';}
-	else {print "pb with variant $variant with VEP"}
-	#my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);
-	#print $tempfile "$chr $pos1 $pos1 $wt/$mt +\n";
-	#print $tempfile "$1 $2 $2 $3/$4 +\n";
-	#$variant =~ /chr(.+)$/o;	
-	#print $tempfile "$1\n";
-	if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
-		delete $ENV{PATH};
-		#my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 -o STDOUT`); ###VEP75
-		
-		my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz --plugin CADD,$DATABASES_PATH/CADD/whole_genome_SNVs.tsv.gz,$DATABASES_PATH/CADD/InDels.tsv.gz  -o STDOUT`); ###VEP81;
-		#for unknwon reasons VEP78 does not work anymore with indels (error) and VEP 81 with substitutions (does not retrieve gmaf esp_maf) - FINALLY works with assembly v75
-		
-		#if ($version == 78) {
-		#	@results = split('\n', `$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`); ###VEP78
-		#}
-		#else {
-		#	@results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`); ###VEP81
-		#	
-		#}
-		
-		if ($res->{'acc'} =~ /(N[MR]_\d+)/o) {		
+	
+	if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
+		####NEW NEW STYLE with dbNSFP 04/2018 for substitutions
+		#print $tempfile "$1 $2 $2 $3/$4 +\n";
+		$chr = $1; $position = $2; $ref = $3;$alt = $4;
+		$chr =~ s/chr//og;
+		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/dbNSFP/dbNSFP29.gz $chr:$position-$position`);
+		foreach (@dbnsfp) {
+			my @current = split(/\t/, $_);
+			if (($current[2] eq $ref) && ($current[3] eq $alt)) {
+				$text .= $q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
+							$q->span(" phase 1 AF (allele $alt): ".sprintf('%.4f', $current[83])).
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
+							$q->span(" EA AF (allele $alt): ".sprintf('%.4f', $current[93])).
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
+							$q->span(" AA AF (allele $alt): ".sprintf('%.4f', $current[92])).
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').
+							$q->span(" adjusted AF (allele $alt): ".sprintf('%.4f', $current[101])).
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'https://www.ncbi.nlm.nih.gov/clinvar/\')', 'class' => 'pointer'}, 'ClinVar').
+							$q->span(" (allele $alt): ".U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115])).
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD raw:').
+							$q->span(" (allele $alt): ".sprintf('%.4f', $current[59])).
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD phred:').
+							$q->span(" (allele $alt): $current[61]").
+						$q->end_li()."\n";
+				$semaph = 1;
+			}
+		}
+	}
+	elsif ($variant =~ /chr(.+)$/o) {
+		###NEW style using VEP 4 TGP and ESP
+		my $tempfile = File::Temp->new(UNLINK => 1);		
+		my $network = 'offline';
+		print $tempfile "$1\n";$network = 'port 3337';
+		if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
+			delete $ENV{PATH};
+			#my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 -o STDOUT`); ###VEP75
+			
+			my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz --plugin CADD,$DATABASES_PATH/CADD/whole_genome_SNVs.tsv.gz,$DATABASES_PATH/CADD/InDels.tsv.gz  -o STDOUT`); ###VEP81;
+			#for unknwon reasons VEP78 does not work anymore with indels (error) and VEP 81 with substitutions (does not retrieve gmaf esp_maf) - FINALLY works with assembly v75
+			
+			#if ($version == 78) {
+			#	@results = split('\n', `$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`); ###VEP78
+			#}
+			#else {
+			#	@results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`); ###VEP81
+			#	
+			#}
+			
+			if ($res->{'acc'} =~ /(N[MR]_\d+)/o) {		
 				my @good_line = grep(/$1/, @results);
 				my $not_good_alt = 0;
 				#print "--$alt--";
@@ -201,27 +238,35 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 				if ($good_line[0] =~ /CLIN_SIG=(\w+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/SNP/\')', 'class' => 'pointer'}, 'Clinical significance (dbSNP): ').$q->span($1).$q->end_li();}}
 				if ($good_line[0] =~ /CADD_RAW=([\d\.]+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD raw: ').$q->span($1).$q->end_li();}}
 				if ($good_line[0] =~ /CADD_PHRED=(\d+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD PHRED: ').$q->span($1).$q->end_li();}}
-				#print $q->li($good_line[0]);
-		}
-		else {$text .= $q->li("$res->{'acc'} not matching.");$semaph = 1;}
-		#MCAP results for missense
-		#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
-		#	my ($chr, $pos, $ref, $alt) = ($1, $2, $3, $4);
-		#	my @mcap =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/mcap/mcap_v1_0.txt.gz $chr:$pos-$pos`);
-		#	foreach (@mcap) {
-		#		my @current = split(/\t/, $_);
-		#		if (/\t$ref\t$alt\t/) {
-		#			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://bejerano.stanford.edu/mcap/\')', 'class' => 'pointer'}, 'M-CAP score: '.sprintf('%.4f', $current[4])).$q->end_li(), "\n";
-		#		}
-		#	}
-		#}
-		if ($#results == -1) {
-			print "There may be an issue with port 3337 of Ensembl server mandatory for indel analysis. Please retry later.";
-			$semaph = 1;
-		}
-		#print $#results;
-		#foreach(@results) {print "$_<br/>"}
-	}	
+			#print $q->li($good_line[0]);
+			}
+			else {$text .= $q->li("$res->{'acc'} not matching.");$semaph = 1;}
+			#MCAP results for missense
+			#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
+			#	my ($chr, $pos, $ref, $alt) = ($1, $2, $3, $4);
+			#	my @mcap =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/mcap/mcap_v1_0.txt.gz $chr:$pos-$pos`);
+			#	foreach (@mcap) {
+			#		my @current = split(/\t/, $_);
+			#		if (/\t$ref\t$alt\t/) {
+			#			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://bejerano.stanford.edu/mcap/\')', 'class' => 'pointer'}, 'M-CAP score: '.sprintf('%.4f', $current[4])).$q->end_li(), "\n";
+			#		}
+			#	}
+			#}
+			if ($#results == -1) {
+				print "There may be an issue with port 3337 of Ensembl server mandatory for indel analysis. Please retry later.";
+				$semaph = 1;
+			}
+			#print $#results;
+			#foreach(@results) {print "$_<br/>"}
+		}	
+	}
+	else {print "pb with variant $variant with VEP"}
+	#my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);
+	#print $tempfile "$chr $pos1 $pos1 $wt/$mt +\n";
+	#print $tempfile "$1 $2 $2 $3/$4 +\n";
+	#$variant =~ /chr(.+)$/o;	
+	#print $tempfile "$1\n";
+
 	#get gnomAD via tabix
 	#if ($chr ne '') {
 	#	$chr =~ s/chr//og;
@@ -236,24 +281,27 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	#	}
 	#}
 	#get gnomAD via tabix v2 using annovar database (lighter)
+	#TO DO: small sub for gnomad treatment
 	if ($chr ne '') {
 		$chr =~ s/chr//og;
-		my @gnomad =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz $chr:$position-$position`);
-		foreach (@gnomad) {
-			my @current = split(/\t/, $_);
-			if (/\t$ref\t$alt\t/) {
-				#my $af = $current[5];
-				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD Exome').$q->span(" AF: $current[5]").$q->span().$q->end_li()."\n";
-			}
-		}
-		@gnomad =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/gnomad/hg19_gnomad_genome_sorted.txt.gz $chr:$position-$position`);
-		foreach (@gnomad) {
-			my @current = split(/\t/, $_);
-			if (/\t$ref\t$alt\t/) {
-				#my $af = $current[5];
-				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD Genome').$q->span(" AF: $current[5]").$q->span().$q->end_li()."\n";
-			}
-		}
+		$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz", 'exome', $chr, $position, $ref, $alt, $q);
+		$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_genome_sorted.txt.gz", 'genome', $chr, $position, $ref, $alt, $q);
+		#my @gnomad =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz $chr:$position-$position`);
+		#foreach (@gnomad) {
+		#	my @current = split(/\t/, $_);
+		#	if (/\t$ref\t$alt\t/) {
+		#		#my $af = $current[5];
+		#		$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD Exome').$q->span(" AF: $current[5]").$q->span().$q->end_li()."\n";
+		#	}
+		#}
+		#@gnomad =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/gnomad/hg19_gnomad_genome_sorted.txt.gz $chr:$position-$position`);
+		#foreach (@gnomad) {
+		#	my @current = split(/\t/, $_);
+		#	if (/\t$ref\t$alt\t/) {
+		#		#my $af = $current[5];
+		#		$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD Genome').$q->span(" AF: $current[5]").$q->span().$q->end_li()."\n";
+		#	}
+		#}
 	}
 	
 	if ($semaph == 0) {$text .= $q->li('No MAF retrieved.')}
