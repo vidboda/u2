@@ -60,6 +60,8 @@ my $EXE_PATH = $config->EXE_PATH();
 my $ANALYSIS_ILLUMINA_REGEXP = $config->ANALYSIS_ILLUMINA_REGEXP();
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $NENUFAAR_ANALYSIS = $config->NENUFAAR_ANALYSIS();
+my $DBNSFP_V2 = $config->DBNSFP_V2();
+my $DBNSFP_V3_PATH = $config->DBNSFP_V3_PATH();
 
 my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         $DB_USER,
@@ -136,52 +138,69 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, b.dfn, b.usher FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
+	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, b.dfn, b.usher FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
 	my ($text, $semaph) = ($q->start_ul(), 0);#$q->strong('MAFs &amp; databases:').
 	
 	
 	my $chr = my $position = my $ref = my $alt = '';
 	
+	
+	
+	
 	if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
 		####NEW NEW STYLE with dbNSFP 04/2018 for substitutions
 		#print $tempfile "$1 $2 $2 $3/$4 +\n";
 		$chr = $1; $position = $2; $ref = $3;$alt = $4;
 		$chr =~ s/chr//og;
-		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/dbNSFP/dbNSFP29.gz $chr:$position-$position`);
-		foreach (@dbnsfp) {
-			my @current = split(/\t/, $_);
-			if (($current[2] eq $ref) && ($current[3] eq $alt)) {
-				$text .= $q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
-							$q->span(" phase 1 AF (allele $alt): ".sprintf('%.4f', $current[83])).
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
-							$q->span(" EA AF (allele $alt): ".sprintf('%.4f', $current[93])).
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
-							$q->span(" AA AF (allele $alt): ".sprintf('%.4f', $current[92])).
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').
-							$q->span(" adjusted AF (allele $alt): ".sprintf('%.4f', $current[101])).
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'https://www.ncbi.nlm.nih.gov/clinvar/\')', 'class' => 'pointer'}, 'ClinVar').
-							$q->span(" (allele $alt): ".U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115])).
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD raw:').
-							$q->span(" (allele $alt): ".sprintf('%.4f', $current[59])).
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD phred:').
-							$q->span(" (allele $alt): $current[61]").
-						$q->end_li()."\n";
-				$semaph = 1;
-			}
+		if ($res->{'nom_g_38'} ne '') {			
+			$res->{'nom_g_38'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
+			$chr = $1; $position = $2; $ref = $3;$alt = $4;
+			#my $chrfull = $chr;
+			$chr =~ s/chr//og;
+			#print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.chr$chr.gz $chr:$position-$position";
+			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.chr$chr.gz $chr:$position-$position`);
+			$text .=  &dbnsfp2html(\@dbnsfp, $ref, $alt, 120, 138, 136, 142, 239, 76, 78);#1kg, ESPEA, ESPAA, ExAC, clinvar, CADD raw, CADD phred
+			$semaph = 1;
+		}
+		else {
+			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$position-$position`);
+			$text .=  &dbnsfp2html(\@dbnsfp, $ref, $alt, 83, 93, 92, 101, 115, 59, 61);
+			$semaph = 1;
+			#foreach (@dbnsfp) {
+			#	my @current = split(/\t/, $_);
+			#	if (($current[2] eq $ref) && ($current[3] eq $alt)) {
+			#		$text .= $q->start_li().
+			#					$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
+			#					$q->span(" phase 1 AF (allele $alt): ".sprintf('%.4f', $current[83])).
+			#				$q->end_li()."\n".
+			#				$q->start_li().
+			#					$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
+			#					$q->span(" EA AF (allele $alt): ".sprintf('%.4f', $current[93])).
+			#				$q->end_li()."\n".
+			#				$q->start_li().
+			#					$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
+			#					$q->span(" AA AF (allele $alt): ".sprintf('%.4f', $current[92])).
+			#				$q->end_li()."\n".
+			#				$q->start_li().
+			#					$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').
+			#					$q->span(" adjusted AF (allele $alt): ".sprintf('%.4f', $current[101])).
+			#				$q->end_li()."\n".
+			#				$q->start_li().
+			#					$q->span({'onclick' => 'window.open(\'https://www.ncbi.nlm.nih.gov/clinvar/\')', 'class' => 'pointer'}, 'ClinVar').
+			#					$q->span(" (allele $alt): ".U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115])).
+			#				$q->end_li()."\n".
+			#				$q->start_li().
+			#					$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD raw:').
+			#					$q->span(" (allele $alt): ".sprintf('%.4f', $current[59])).
+			#				$q->end_li()."\n".
+			#				$q->start_li().
+			#					$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD phred:').
+			#					$q->span(" (allele $alt): $current[61]").
+			#				$q->end_li()."\n";
+			#		$semaph = 1;
+			#	}
+			#}
 		}
 	}
 	elsif ($variant =~ /chr(.+)$/o) {
@@ -281,7 +300,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	#	}
 	#}
 	#get gnomAD via tabix v2 using annovar database (lighter)
-	#TO DO: small sub for gnomad treatment
+	#TO DO: small sub for gnomad treatment DONE
 	if ($chr ne '') {
 		$chr =~ s/chr//og;
 		$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz", 'exome', $chr, $position, $ref, $alt, $q);
@@ -589,113 +608,177 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 	
 	my $var_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 	if ($var_g =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
-		my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);
-		#my $tempfile = File::Temp->new(UNLINK => 0);
-		my $tempfile = File::Temp->new();
+		my ($chr, $pos1, $ref, $alt) = ($1, $2, $3, $4);
 		
-		#open(F, '>'.$DATABASES_PATH.'variant_effect_predictor/input.txt') or die $!;
-		#print F "$1 $2 $2 $3/$4 +\n";
-		#close F;
+		#NEW style 04/2018 replacment of VEP with dbNSFP
 		
-		print $tempfile "$chr $pos1 $pos1 $wt/$mt +\n";
-		if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
-			#http://www.nada.kth.se/~esjolund/writing-more-secure-perl-cgi-scripts/output/writing-more-secure-perl-cgi-scripts.html.utf8  run vep without tempfile not working don't know why
-			#my($child_out, $child_in);
-			#$pid = open2($child_out, $child_in, "/home/esjolund/public_html/cgi-bin/count.py", $type,"/dev/stdin");
-			#print $child_in $content;
-			#close($child_in);
-			#my $result=<$child_out>;  
-			#waitpid($pid,0);
-			#print $q->li($result);
-			#my @results = split('\n', $result);
-			#print $q->li($ENV{PATH});
-			delete $ENV{PATH};
-			
-			#my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress "gunzip -c" --polyphen b --sift b --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 -o STDOUT`);   ###VEP75
-			my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress "gunzip -c" --maf_esp --polyphen b --sift b --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 --plugin FATHMM,"python $DATABASES_PATH/.vep/Plugins/fathmm.py" --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`);  ##VEP 78 Grch37
-			#print $q->li("$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/78_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress \"gunzip -c\" --polyphen b --sift b --refseq --maf_esp --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 --plugin FATHMM,\"python $DATABASES_PATH/.vep/Plugins/fathmm.py\" -o STDOUT");
-			if ($q->param('acc_no') =~ /(NM_\d+)/o) {		
-				my @good_line = grep(/$1/, @results);
-				my $space_var = $chr.'_'.$pos1.'_'.$wt.'/'.$mt;
-				#print $space_var;
-				my @results_split = split(/\s/, $good_line[0]);
-				#if ($good_line[0] =~ /$space_var/o) { sometimes does not work even by escaping / 
-				if ($results_split[0] eq $space_var) {				
-					if ($good_line[0] =~ /SIFT=([^\)]+\))/o) {
-						$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://sift.bii.a-star.edu.sg/");', 'target' => '_blank', 'class' => 'pointer'}, 'SIFT').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::sift_color2($1)}, $1).$q->end_li()."\n";
-						if (U2_modules::U2_subs_1::sift_color2($1) eq '#FF0000') {$i++}
-						$j++;
-					}
-					else {$text .= $q->li("No SIFT for this position.")}
-					if ($good_line[0] =~ /PolyPhen=([\w\d\(\)\.^\)]+\))/o) {
-						$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://genetics.bwh.harvard.edu/pph2/");', 'target' => '_blank', 'class' => 'pointer'}, 'PolyPhen2').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::pph2_color($1)}, $1).$q->end_li()."\n";
-						if (U2_modules::U2_subs_1::pph2_color($1) eq '#FF0000') {$i++}
-						$j++;
-					}
-					else {
-						$text .= $q->li("No Polyphen for this position.")#.$q->start_li().$q->span('Complete VEP output:').$q->start_ul();
-						#foreach (@results) {$text .= $q->li($_)}
-						#$text .= $q->end_ul().$q->end_li();
-					}
-					if ($good_line[0] =~ /FATHMM=([\d\.-]+)\(/o) {
-						$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://fathmm.biocompute.org.uk/");', 'target' => '_blank', 'class' => 'pointer'}, 'FATHMM').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::fathmm_color($1)}, $1).$q->end_li()."\n";
-						if (U2_modules::U2_subs_1::fathmm_color($1) eq '#FF0000') {$i++}
-						$j++;
-					}
-					
-					#ESP replaced with ExAC 07/27/2015
-					
-					my $ea_maf = my $aa_maf = my $exac_maf = -1;
-					if ($good_line[0] =~ /EA_MAF=[ATCG-]+:([\d\.]+);*/o) {$ea_maf = $1}
-					if ($good_line[0] =~ /AA_MAF=[ATCG-]+:([\d\.]+);*/o) {$aa_maf = $1}
-					#my $max_maf = $ea_maf;
-					#if ($aa_maf > $max_maf) {$max_maf = $aa_maf}
-					#my $maf;
-					if ($good_line[0] =~ /ExAC_AF=([\d\.e-]+);*/) {$exac_maf = $1}
-					
-					if (max($ea_maf, $aa_maf, $exac_maf) > -1) {
-						$j++;
-						if (max($ea_maf, $aa_maf, $exac_maf) < 0.005) {$i++}
-					}
-										
-					if ($good_line[0] =~ /CLIN_SIG=(\w+)/o) {
-						if ($1 =~ /pathogenic/o) {$i++}
-						$j++;
-					}
-					
-					#MCAP results for missense
-					my @mcap =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/mcap/mcap_v1_0.txt.gz $chr:$pos1-$pos1`);
-					foreach (@mcap) {
-						my @current = split(/\t/, $_);
-						if (/\t$wt\t$mt\t/) {
-							$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://bejerano.stanford.edu/mcap/\')', 'class' => 'pointer'}, 'M-CAP').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::mcap_color($current[4])}, sprintf('%.4f', $current[4])).$q->end_li()."\n";
-							if (U2_modules::U2_subs_1::mcap_color($current[4]) eq '#FF0000') {$i++}
-							$j++;
-						}
-					}
-					
-					my ($ratio, $class) = (0, 'one_quarter');
-					if ($j != 0) {
-						$ratio = sprintf('%.2f', ($i)/($j));
-						if ($ratio >= 0.25 && $ratio < 0.5) {$class = 'two_quarter'}
-						elsif ($ratio >= 0.5 && $ratio < 0.75) {$class = 'three_quarter'}
-						elsif ($ratio >= 0.75) {$class = 'four_quarter'}
-						
-						$text .= $q->start_li().$q->span({'class' => $class}, 'U2 experimental pathogenic ratio: ').$q->span({'class' => $class}, "$ratio, ($i/$j)").$q->end_li();
-					}
-					
-					#$text .= $q->li($good_line[0]);
+		$chr =~ s/chr//og;
+		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1`);
+		foreach (@dbnsfp) {
+			my @current = split(/\t/, $_);
+			if (($current[2] eq $ref) && ($current[3] eq $alt)) {
+				my $sift = U2_modules::U2_subs_2::most_damaging($current[26], 'min');
+				if (U2_modules::U2_subs_1::sift_color($sift) eq '#FF0000') {$i++}
+				if ($sift ne '') {$j++}	
+				my $polyphen = U2_modules::U2_subs_2::most_damaging($current[32], 'max');
+				if (U2_modules::U2_subs_1::pph2_color2($polyphen) eq '#FF0000') {$i++}
+				if ($polyphen ne '') {$j++}
+				my $fathmm = U2_modules::U2_subs_2::most_damaging($current[44], 'min');
+				if (U2_modules::U2_subs_1::fathmm_color($fathmm) eq '#FF0000') {$i++}
+				if ($fathmm ne '') {$j++}
+				my $metalr = U2_modules::U2_subs_2::most_damaging($current[50], 'max');
+				if (U2_modules::U2_subs_1::metalr_color($metalr) eq '#FF0000') {$i++}
+				if ($metalr ne '') {$j++}
+				#my $ea_maf = my $aa_maf = my $exac_maf = my $1kg_maf = -1;
+				my $ea_maf = sprintf('%.4f', $current[93]);
+				my $aa_maf = sprintf('%.4f', $current[92]);
+				my $exac_maf = sprintf('%.4f', $current[101]);
+				my $onekg_maf = sprintf('%.4f', $current[83]);
+				if (max($ea_maf, $aa_maf, $exac_maf, $onekg_maf) > -1) {
+					$j++;
+					if (max($ea_maf, $aa_maf, $exac_maf, $onekg_maf) < 0.005) {$i++}
 				}
-				else {
-					#$text .= $q->li("variant '$space_var' not found in VEP results:\n '$results_split[0]'");
-					$text .= $q->li("variant '$space_var' not found in VEP results:").$q->start_li().$q->span('Complete VEP output:').$q->start_ul();
-					foreach (@results) {$text .= $q->li($_)}
-					$text .= $q->end_ul().$q->end_li();
+				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) =~ /Pathogenic/) {$i++}
+				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) ne '.') {$j++}
+				
+				$text .= $q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://sift.bii.a-star.edu.sg\')', 'class' => 'pointer'}, 'SIFT').
+							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::sift_color($sift)}, $sift).$q->end_li()."\n".
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://genetics.bwh.harvard.edu/pph2/\')', 'class' => 'pointer'}, 'Polyphen2').
+							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::pph2_color2($polyphen)}, $polyphen).$q->end_li()."\n".
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://fathmm.biocompute.org.uk/\')', 'class' => 'pointer'}, 'FATHMM').
+							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::fathmm_color($fathmm)}, $fathmm).$q->end_li()."\n".
+						$q->end_li()."\n".
+						$q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'MetaLR').
+							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::metalr_color($metalr)}, $metalr).$q->end_li()."\n".
+						$q->end_li()."\n";
+				my ($ratio, $class) = (0, 'one_quarter');
+				if ($j != 0) {
+					$ratio = sprintf('%.2f', ($i)/($j));
+					if ($ratio >= 0.25 && $ratio < 0.5) {$class = 'two_quarter'}
+					elsif ($ratio >= 0.5 && $ratio < 0.75) {$class = 'three_quarter'}
+					elsif ($ratio >= 0.75) {$class = 'four_quarter'}
+					
+					$text .= $q->start_li().$q->span({'class' => $class}, 'U2 experimental pathogenic ratio: ').$q->span({'class' => $class}, "$ratio, ($i/$j)").$q->end_li();
 				}
 			}
 		}
-		else {$text .= $q->li("Predictors not run because of a security issue. Please report.")}
 	}
+		
+		
+		
+		
+		#my $tempfile = File::Temp->new(UNLINK => 0);
+	#	my $tempfile = File::Temp->new();
+	#	
+	#	#open(F, '>'.$DATABASES_PATH.'variant_effect_predictor/input.txt') or die $!;
+	#	#print F "$1 $2 $2 $3/$4 +\n";
+	#	#close F;
+	#	
+	#	print $tempfile "$chr $pos1 $pos1 $ref/$alt +\n";
+	#	if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
+	#		#http://www.nada.kth.se/~esjolund/writing-more-secure-perl-cgi-scripts/output/writing-more-secure-perl-cgi-scripts.html.utf8  run vep without tempfile not working don't know why
+	#		#my($child_out, $child_in);
+	#		#$pid = open2($child_out, $child_in, "/home/esjolund/public_html/cgi-bin/count.py", $type,"/dev/stdin");
+	#		#print $child_in $content;
+	#		#close($child_in);
+	#		#my $result=<$child_out>;  
+	#		#waitpid($pid,0);
+	#		#print $q->li($result);
+	#		#my @results = split('\n', $result);
+	#		#print $q->li($ENV{PATH});
+	#		delete $ENV{PATH};
+	#		
+	#		#my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress "gunzip -c" --polyphen b --sift b --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 -o STDOUT`);   ###VEP75
+	#		my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress "gunzip -c" --maf_esp --polyphen b --sift b --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 --plugin FATHMM,"python $DATABASES_PATH/.vep/Plugins/fathmm.py" --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`);  ##VEP 78 Grch37
+	#		#print $q->li("$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/78_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress \"gunzip -c\" --polyphen b --sift b --refseq --maf_esp --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 --plugin FATHMM,\"python $DATABASES_PATH/.vep/Plugins/fathmm.py\" -o STDOUT");
+	#		if ($q->param('acc_no') =~ /(NM_\d+)/o) {		
+	#			my @good_line = grep(/$1/, @results);
+	#			my $space_var = $chr.'_'.$pos1.'_'.$ref.'/'.$alt;
+	#			#print $space_var;
+	#			my @results_split = split(/\s/, $good_line[0]);
+	#			#if ($good_line[0] =~ /$space_var/o) { sometimes does not work even by escaping / 
+	#			if ($results_split[0] eq $space_var) {				
+	#				if ($good_line[0] =~ /SIFT=([^\)]+\))/o) {
+	#					$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://sift.bii.a-star.edu.sg/");', 'target' => '_blank', 'class' => 'pointer'}, 'SIFT').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::sift_color2($1)}, $1).$q->end_li()."\n";
+	#					if (U2_modules::U2_subs_1::sift_color2($1) eq '#FF0000') {$i++}
+	#					$j++;
+	#				}
+	#				else {$text .= $q->li("No SIFT for this position.")}
+	#				if ($good_line[0] =~ /PolyPhen=([\w\d\(\)\.^\)]+\))/o) {
+	#					$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://genetics.bwh.harvard.edu/pph2/");', 'target' => '_blank', 'class' => 'pointer'}, 'PolyPhen2').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::pph2_color($1)}, $1).$q->end_li()."\n";
+	#					if (U2_modules::U2_subs_1::pph2_color($1) eq '#FF0000') {$i++}
+	#					$j++;
+	#				}
+	#				else {
+	#					$text .= $q->li("No Polyphen for this position.")#.$q->start_li().$q->span('Complete VEP output:').$q->start_ul();
+	#					#foreach (@results) {$text .= $q->li($_)}
+	#					#$text .= $q->end_ul().$q->end_li();
+	#				}
+	#				if ($good_line[0] =~ /FATHMM=([\d\.-]+)\(/o) {
+	#					$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://fathmm.biocompute.org.uk/");', 'target' => '_blank', 'class' => 'pointer'}, 'FATHMM').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::fathmm_color($1)}, $1).$q->end_li()."\n";
+	#					if (U2_modules::U2_subs_1::fathmm_color($1) eq '#FF0000') {$i++}
+	#					$j++;
+	#				}
+	#				
+	#				#ESP replaced with ExAC 07/27/2015
+	#				
+	#				my $ea_maf = my $aa_maf = my $exac_maf = -1;
+	#				if ($good_line[0] =~ /EA_MAF=[ATCG-]+:([\d\.]+);*/o) {$ea_maf = $1}
+	#				if ($good_line[0] =~ /AA_MAF=[ATCG-]+:([\d\.]+);*/o) {$aa_maf = $1}
+	#				#my $max_maf = $ea_maf;
+	#				#if ($aa_maf > $max_maf) {$max_maf = $aa_maf}
+	#				#my $maf;
+	#				if ($good_line[0] =~ /ExAC_AF=([\d\.e-]+);*/) {$exac_maf = $1}
+	#				
+	#				if (max($ea_maf, $aa_maf, $exac_maf) > -1) {
+	#					$j++;
+	#					if (max($ea_maf, $aa_maf, $exac_maf) < 0.005) {$i++}
+	#				}
+	#									
+	#				if ($good_line[0] =~ /CLIN_SIG=(\w+)/o) {
+	#					if ($1 =~ /pathogenic/o) {$i++}
+	#					$j++;
+	#				}
+	#				
+	#				#MCAP results for missense
+	#				my @mcap =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/mcap/mcap_v1_0.txt.gz $chr:$pos1-$pos1`);
+	#				foreach (@mcap) {
+	#					my @current = split(/\t/, $_);
+	#					if (/\t$ref\t$alt\t/) {
+	#						$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://bejerano.stanford.edu/mcap/\')', 'class' => 'pointer'}, 'M-CAP').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::mcap_color($current[4])}, sprintf('%.4f', $current[4])).$q->end_li()."\n";
+	#						if (U2_modules::U2_subs_1::mcap_color($current[4]) eq '#FF0000') {$i++}
+	#						$j++;
+	#					}
+	#				}
+	#				
+	#				my ($ratio, $class) = (0, 'one_quarter');
+	#				if ($j != 0) {
+	#					$ratio = sprintf('%.2f', ($i)/($j));
+	#					if ($ratio >= 0.25 && $ratio < 0.5) {$class = 'two_quarter'}
+	#					elsif ($ratio >= 0.5 && $ratio < 0.75) {$class = 'three_quarter'}
+	#					elsif ($ratio >= 0.75) {$class = 'four_quarter'}
+	#					
+	#					$text .= $q->start_li().$q->span({'class' => $class}, 'U2 experimental pathogenic ratio: ').$q->span({'class' => $class}, "$ratio, ($i/$j)").$q->end_li();
+	#				}
+	#				
+	#				#$text .= $q->li($good_line[0]);
+	#			}
+	#			else {
+	#				#$text .= $q->li("variant '$space_var' not found in VEP results:\n '$results_split[0]'");
+	#				$text .= $q->li("variant '$space_var' not found in VEP results:").$q->start_li().$q->span('Complete VEP output:').$q->start_ul();
+	#				foreach (@results) {$text .= $q->li($_)}
+	#				$text .= $q->end_ul().$q->end_li();
+	#			}
+	#		}
+	#	}
+	#	else {$text .= $q->li("Predictors not run because of a security issue. Please report.")}
+	#}
 	
 	#my $nom_c = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
 	#my $gene = U2_modules::U2_subs_1::check_gene($q, $dbh);
@@ -1265,6 +1348,43 @@ sub miseq_details {
 	return $q->start_li().$q->strong("$miseq_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($res_ngs->{'depth'}).$q->span(" Freq: ").$q->strong($res_ngs->{'frequency'}).$q->end_li().$q->start_li().$q->span("MSR filter: ").$q->strong($res_ngs->{'msr_filter'}).$q->end_li().$q->end_ul().$q->end_li();
 }
 
+sub dbnsfp2html {
+	my ($dbnsfp, $ref, $alt, $onekg, $espea, $espaa, $exac_maf, $clinvar, $caddraw, $caddphred) = @_;
+	foreach (@{$dbnsfp}) {
+		my @current = split(/\t/, $_);
+		if (($current[2] eq $ref) && ($current[3] eq $alt)) {
+			my $text = $q->start_li().
+						$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
+						$q->span(" phase 1 AF (allele $alt): ".sprintf('%.4f', $current[$onekg])).
+					$q->end_li()."\n".
+					$q->start_li().
+						$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
+						$q->span(" EA AF (allele $alt): ".sprintf('%.4f', $current[$espea])).
+					$q->end_li()."\n".
+					$q->start_li().
+						$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
+						$q->span(" AA AF (allele $alt): ".sprintf('%.4f', $current[$espaa])).
+					$q->end_li()."\n".
+					$q->start_li().
+						$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').
+						$q->span(" adjusted AF (allele $alt): ".sprintf('%.4f', $current[$exac_maf])).
+					$q->end_li()."\n".
+					$q->start_li().
+						$q->span({'onclick' => 'window.open(\'https://www.ncbi.nlm.nih.gov/clinvar/\')', 'class' => 'pointer'}, 'ClinVar').
+						$q->span(" (allele $alt): ".U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[$clinvar])).
+					$q->end_li()."\n".
+					$q->start_li().
+						$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD raw:').
+						$q->span(" (allele $alt): ".sprintf('%.4f', $current[$caddraw])).
+					$q->end_li()."\n".
+					$q->start_li().
+						$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD phred:').
+						$q->span(" (allele $alt): $current[$caddphred]").
+					$q->end_li()."\n";
+			return $text
+		}
+	}
+}
 
 
 

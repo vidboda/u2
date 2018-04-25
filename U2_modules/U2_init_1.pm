@@ -84,7 +84,9 @@ sub initConfig {
 		'EMAIL_PORT' => {ARGCOUNT => 1},
 		'EMAIL_PASSWORD' => {ARGCOUNT => 1},
 		'EMAIL_CLASS' => {ARGCOUNT => 3},
-		'NENUFAAR_ANALYSIS' => {ARGCOUNT => 1}
+		'NENUFAAR_ANALYSIS' => {ARGCOUNT => 1},
+		'DBNSFP_V2' => {ARGCOUNT => 1},
+		'DBNSFP_V3_PATH' => {ARGCOUNT => 1}
 	);
 }
 

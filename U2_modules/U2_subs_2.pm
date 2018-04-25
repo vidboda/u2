@@ -1453,7 +1453,8 @@ sub dbnsfp_clinvar2text {
 	my $trad = '';
 	foreach (@list) {
 		#print $_;
-		if ($_ < 0) {if ($trad =~ /score for ref allele;/){next}else{$trad .= 'score for ref allele;'}}
+		if ($_ eq '.') {$trad = 'not seen in Clinvar'}
+		elsif ($_ < 0) {if ($trad =~ /score for ref allele;/){next}else{$trad .= 'score for ref allele;'}}
 		elsif ($_ == 2) {if ($trad =~ /Benign;/){next}else{$trad .=  'Benign;'}}
 		elsif ($_ == 3) {if ($trad =~ /Likely benign;/){next}else{$trad .=  'Likely benign;'}}
 		elsif ($_ == 4) {if ($trad =~ /Likely pathogenic;/){next}else{$trad .=  'Likely pathogenic;'}}
@@ -1486,6 +1487,15 @@ sub gnomadAF {
 		}
 	}
 }
+
+sub most_damaging {
+	my ($score, $direction) = @_;
+	my @scores = split(/;/, $score);
+	if ($direction eq 'min') {return min @scores}
+	else {return max @scores}
+}
+
+
 
 #####removed 04/09/2014 old fashioned mafs were computed for each variant, the optimised version does this on demand by AJAX
 #sub genotype_line { #prints a line in the genotype table

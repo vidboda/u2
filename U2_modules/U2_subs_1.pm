@@ -721,9 +721,21 @@ sub pph2_color {
 	else {return '#00A020'}	
 }
 
+sub pph2_color2 {
+	my $res = shift;
+	if ($res > 0.447) {return '#FF0000'}
+	else {return '#00A020'}	
+}
+
 sub fathmm_color {
 	my $score = shift;
 	if ($score < -1.5) {return '#FF0000'}
+	else {return '#00A020'}	
+}
+
+sub metalr_color {
+	my $score = shift;
+	if ($score > 0.5) {return '#FF0000'}
 	else {return '#00A020'}	
 }
 
