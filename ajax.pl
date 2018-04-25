@@ -346,7 +346,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	$var =~ s/\+/\\\+/og;
 	$var =~ s/\./\\\./og;
 	my $ua = new LWP::UserAgent();
-	$ua->timeout(10);
+	$ua->timeout(3);
 	my $response = $ua->get("$url/api?terms=chr$chr:$pos");
 	#http://vvd.eng.uiowa.edu/api?terms=chr1:94461749
 	#print $response->decoded_content();
