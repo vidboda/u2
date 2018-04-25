@@ -331,29 +331,36 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	####TEMP COMMENT connexion to DVD really slow comment for the moment
 	my $url = 'http://vvd.eng.uiowa.edu';
-	if ($res->{'dfn'} == 1 || $res->{'usher'} == 1) {$url = 'http://deafnessvariationdatabase.org'}#OtoDB university of Iowa deafness and usher genes  
-		#ping dvd to ensure host is reachable
-		#my $p = Net::Ping->new("tcp", 2);
-		#$text.= "ping ".$p->ping('deafnessvariationdatabase.org');
-		#if ($p->ping('deafnessvariationdatabase.org')) {
-			#$text.= 'ping ok';
-			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
-			my $var = $res->{'nom'};
-			$var =~ s/\+/\\\+/og;
-			$var =~ s/\./\\\./og;
-			my $ua = new LWP::UserAgent();
-			my $response = $ua->get("$url/api?terms=chr$chr:$pos");
-			#http://vvd.eng.uiowa.edu/api?terms=chr1:94461749
-			#print $response->decoded_content();
-			if ($response->is_success()) {
-				my @dvd = split(/\n/, $response->decoded_content());
-				my @good_line = grep (/$var/, @dvd);
-				#print "$dvd[0]-$var";
-				my @split_dvd = split(/\t/, $good_line[0]);
-				if ($split_dvd[57] && $split_dvd[57] ne 'NULL') {$text .= $q->start_li().$q->span({'onclick' => "window.open('$url/sources')", 'class' => 'pointer'}, 'OtoDB').$q->span(" MAF: $split_dvd[57]").$q->end_li()} #otoscope_all_af
-				#print $split_dvd[0];
-				if ($split_dvd[0] && $split_dvd[0] =~ /(\d+)/o) {$text .= $q->start_li().$q->a({'href' => "$url/variant/$1?full", 'target' => '_blank'}, 'Iowa DB full description').$q->end_li()}
-			}
+	if ($res->{'dfn'} == 1 || $res->{'usher'} == 1) {$url = 'http://deafnessvariationdatabase.org'}#OtoDB university of Iowa deafness and usher genes
+	
+	
+	#ping dvd to ensure host is reachable
+	#my $p = Net::Ping->new("tcp", 2);
+	#$text.= "ping ".$p->ping('deafnessvariationdatabase.org');
+	#if ($p->ping('deafnessvariationdatabase.org')) {
+		#$text.= 'ping ok';
+			
+			
+	my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
+	my $var = $res->{'nom'};
+	$var =~ s/\+/\\\+/og;
+	$var =~ s/\./\\\./og;
+	my $ua = new LWP::UserAgent();
+	$ua->timeout(10);
+	my $response = $ua->get("$url/api?terms=chr$chr:$pos");
+	#http://vvd.eng.uiowa.edu/api?terms=chr1:94461749
+	#print $response->decoded_content();
+	if ($response->is_success()) {
+		my @dvd = split(/\n/, $response->decoded_content());
+		my @good_line = grep (/$var/, @dvd);
+		#print "$dvd[0]-$var";
+		my @split_dvd = split(/\t/, $good_line[0]);
+		if ($split_dvd[57] && $split_dvd[57] ne 'NULL') {$text .= $q->start_li().$q->span({'onclick' => "window.open('$url/sources')", 'class' => 'pointer'}, 'OtoDB').$q->span(" MAF: $split_dvd[57]").$q->end_li()} #otoscope_all_af
+		#print $split_dvd[0];
+		if ($split_dvd[0] && $split_dvd[0] =~ /(\d+)/o) {$text .= $q->start_li().$q->a({'href' => "$url/variant/$1?full", 'target' => '_blank'}, 'Iowa DB full description').$q->end_li()}
+	}
+	
+	
 			#else {print $response}
 		#}
 		#$p->close();
@@ -1355,7 +1362,7 @@ sub dbnsfp2html {
 		if (($current[2] eq $ref) && ($current[3] eq $alt)) {
 			my $text = $q->start_li().
 						$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
-						$q->span(" phase 1 AF (allele $alt): ".sprintf('%.4f', $current[$onekg])).
+						$q->span(" AF (allele $alt): ".sprintf('%.4f', $current[$onekg])).
 					$q->end_li()."\n".
 					$q->start_li().
 						$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
