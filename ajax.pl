@@ -158,7 +158,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#my $chrfull = $chr;
 			$chr38 =~ s/chr//og;
 			#print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.chr$chr.gz $chr:$position-$position";
-			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.$chr38.gz $chr38:$position38-$position38`);
+			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.chr$chr38.gz $chr38:$position38-$position38`);
 			$text .=  &dbnsfp2html(\@dbnsfp, $ref38, $alt38, 120, 138, 136, 142, 239, 76, 78);#1kg, ESPEA, ESPAA, ExAC, clinvar, CADD raw, CADD phred
 			if ($#dbnsfp > -1) {$semaph = 1}
 		}
