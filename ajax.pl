@@ -278,7 +278,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#foreach(@results) {print "$_<br/>"}
 		}	
 	}
-	else {print "pb with variant $variant with VEP"}
+	#else {print "pb with variant $variant with VEP"}
 	#my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);
 	#print $tempfile "$chr $pos1 $pos1 $wt/$mt +\n";
 	#print $tempfile "$1 $2 $2 $3/$4 +\n";
