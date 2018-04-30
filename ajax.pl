@@ -165,7 +165,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		if ($semaph == 0) {
 			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$position-$position`);
 			$text .=  &dbnsfp2html(\@dbnsfp, $ref, $alt, 83, 93, 92, 101, 115, 59, 61);
-			$semaph = 1;
+			if ($#dbnsfp > -1) {$semaph = 1}
 			#foreach (@dbnsfp) {
 			#	my @current = split(/\t/, $_);
 			#	if (($current[2] eq $ref) && ($current[3] eq $alt)) {
@@ -202,7 +202,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#}
 		}
 	}
-	elsif ($variant =~ /chr(.+)$/o) {
+	if ($variant =~ /chr(.+)$/o && $semaph == 0) {
 		###NEW style using VEP 4 TGP and ESP
 		my $tempfile = File::Temp->new(UNLINK => 1);		
 		my $network = 'offline';
