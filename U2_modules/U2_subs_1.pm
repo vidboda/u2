@@ -67,6 +67,14 @@ our $PC20X_CE = 75;
 our $MDOC_CE = 30;
 our $TITV_CE = 2.8;
 
+#threshold values for POMPS
+our $SIFT_THRESHOLD = 0.05;
+our $PPH2_THRESHOLD = 0.447;
+our $FATHMM_THRESHOLD = -1.5;
+our $METALR_THRESHOLD = 0.5;
+our $MCAP_THRESHOLD = 0.025;
+
+
 #genes for aCGH
 our @ACGH = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'PDZD7', 'CHM', 'OTOF', 'TECTA', 'MYO15A', 'COCH', 'TMC1', 'SLC26A4', 'KCNQ4', 'EYA4', 'TMPRSS3', 'WFS1', 'MYO6', 'EYS', 'GJB2', 'GJB6', 'POU3F4', 'ACTG1');
 #genes for our LOVD install - deprecated 2014/12/17 in variant.pl- reused since
@@ -495,6 +503,14 @@ sub check_nom_g {
 	}
 	else {&standard_error('8', $q)}
 }
+#in ajax.pl get ref and alt aa for missense
+sub decompose_nom_p {
+	my $prot = shift;
+	if ($prot =~ /p.\(?([A-Z][a-z]{2})\d+([A-Z][a-z]{2})\)?/o) {
+		return (three2one($1), three2one($2));
+	}
+}
+
 
 #in ajax.pl,gets enst or ensp as type
 sub check_ens {
@@ -696,16 +712,25 @@ sub color_by_rna_status {
 }
 
 
-###subs for SIFT using querying with SQLlite or VEP
+#our $SIFT_THRESHOLD = 0.05;
+#our $PPH2_THRESHOLD = 0.447;
+#our $FATHMM_THRESHOLD = -1.5;
+#our $METALR_THRESHOLD = 0.5;
+#our $MCAP_THRESHOLD = 0.025;
+
+###subs for SIFT and co querying with SQLlite or VEP or dbNSFP
 sub sift_color {
 	my $score = shift;
-	if ($score < 0.05) {return '#FF0000'}
-	else {return '#00A020'}	
+	if ($score ne '.') {
+		if ($score < $SIFT_THRESHOLD) {return '#FF0000'}
+		else {return '#00A020'}
+	}
+	else {return '#000000'}
 }
 
 sub sift_interpretation {
 	my $score = shift;
-	if ($score < 0.05) {return 'damaging'}
+	if ($score < $SIFT_THRESHOLD) {return 'damaging'}
 	else {return 'tolerated'}	
 }
 
@@ -722,26 +747,35 @@ sub pph2_color {
 }
 
 sub pph2_color2 {
-	my $res = shift;
-	if ($res > 0.447) {return '#FF0000'}
-	else {return '#00A020'}	
+	my $score = shift;
+	if ($score ne '.') {
+		if ($score > $PPH2_THRESHOLD) {return '#FF0000'}
+		else {return '#00A020'}
+	}
+	else {return '#000000'}
 }
 
 sub fathmm_color {
 	my $score = shift;
-	if ($score < -1.5) {return '#FF0000'}
-	else {return '#00A020'}	
+	if ($score ne '.') {
+		if ($score < $FATHMM_THRESHOLD) {return '#FF0000'}
+		else {return '#00A020'}
+	}
+	else {return '#000000'}
 }
 
 sub metalr_color {
 	my $score = shift;
-	if ($score > 0.5) {return '#FF0000'}
-	else {return '#00A020'}	
+	if ($score ne '.') {
+		if ($score > $METALR_THRESHOLD) {return '#FF0000'}
+		else {return '#00A020'}
+	}
+	else {return '#000000'}
 }
 
 sub mcap_color {
 	my $score = shift;
-	if ($score > 0.025) {return '#FF0000'}
+	if ($score > $MCAP_THRESHOLD) {return '#FF0000'}
 	else {return '#00A020'}	
 }
 
