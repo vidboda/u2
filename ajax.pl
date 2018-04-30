@@ -610,6 +610,9 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 	#5 89988504 89988504 A/G +
 	#my $vep_output;
 	### we also compute predictions score like in missense_prioritize.pl
+	
+	my ($aa_ref, $aa_alt) = U2_modules::U2_subs_1::decompose_nom_p($q->param('var_prot'));
+	
 	my ($i, $j) = (0, 0);
 	
 	my $var_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
@@ -619,10 +622,11 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 		#NEW style 04/2018 replacment of VEP with dbNSFP
 		
 		$chr =~ s/chr//og;
+		#print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1";
 		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1`);
 		foreach (@dbnsfp) {
 			my @current = split(/\t/, $_);
-			if (($current[2] eq $ref) && ($current[3] eq $alt)) {
+			if (($current[2] eq $ref) && ($current[3] eq $alt) && ($current[4] eq $aa_ref) && ($current[5] eq $aa_alt)) {
 				my $sift = U2_modules::U2_subs_2::most_damaging($current[26], 'min');
 				if (U2_modules::U2_subs_1::sift_color($sift) eq '#FF0000') {$i++}
 				if ($sift ne '') {$j++}	
@@ -645,7 +649,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 					if (max($ea_maf, $aa_maf, $exac_maf, $onekg_maf) < 0.005) {$i++}
 				}
 				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) =~ /Pathogenic/) {$i++}
-				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) ne '.') {$j++}
+				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) ne 'not seen in Clinvar') {$j++}
 				
 				$text .= $q->start_li().
 							$q->span({'onclick' => 'window.open(\'http://sift.bii.a-star.edu.sg\')', 'class' => 'pointer'}, 'SIFT').
