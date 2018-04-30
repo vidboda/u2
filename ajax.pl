@@ -147,23 +147,22 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	
 	if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
 		####NEW NEW STYLE with dbNSFP 04/2018 for substitutions
 		#print $tempfile "$1 $2 $2 $3/$4 +\n";
-		$chr = $1; $position = $2; $ref = $3;$alt = $4;
+		$chr = $1; $position = $2; $ref = $3; $alt = $4;
 		$chr =~ s/chr//og;
 		if ($res->{'nom_g_38'} ne '') {			
 			$res->{'nom_g_38'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
-			$chr = $1; $position = $2; $ref = $3;$alt = $4;
+			my $chr38 = $1; my $position38 = $2; my $ref38 = $3; my $alt38 = $4;
 			#my $chrfull = $chr;
-			$chr =~ s/chr//og;
+			$chr38 =~ s/chr//og;
 			#print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.chr$chr.gz $chr:$position-$position";
-			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.chr$chr.gz $chr:$position-$position`);
-			$text .=  &dbnsfp2html(\@dbnsfp, $ref, $alt, 120, 138, 136, 142, 239, 76, 78);#1kg, ESPEA, ESPAA, ExAC, clinvar, CADD raw, CADD phred
-			$semaph = 1;
+			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.$chr38.gz $chr38:$position38-$position38`);
+			$text .=  &dbnsfp2html(\@dbnsfp, $ref38, $alt38, 120, 138, 136, 142, 239, 76, 78);#1kg, ESPEA, ESPAA, ExAC, clinvar, CADD raw, CADD phred
+			if ($#dbnsfp > -1) {$semaph = 1}
 		}
-		else {
+		if ($semaph == 0) {
 			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$position-$position`);
 			$text .=  &dbnsfp2html(\@dbnsfp, $ref, $alt, 83, 93, 92, 101, 115, 59, 61);
 			$semaph = 1;
