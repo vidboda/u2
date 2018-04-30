@@ -165,15 +165,16 @@ if ($result) {
 			my $filtered_missense = 0;
 			my $text = $q->span('You will find below a table ranking all ').$q->strong('unknown').$q->span(" missense variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5.");
 			print U2_modules::U2_subs_2::info_panel($text, $q);
-			$text = $q->span('Up to Five items can be considered to prioritize the variants, 3 predictors, EVS MAF and Clinvar annotation').$q->br().
-					$q->span(' The \'score\' column goes from 0 to 5 (the higher the more probably pathogenic), as well as the \'Pathogenic Ratio\', ').
+			$text = $q->span('Up to Five items can be considered to prioritize the variants, 4 predictors, MAX MAF and Clinvar annotation').$q->br().
+					$q->span(' The \'score\' column goes from 0 to 6 (the higher the more probably pathogenic), as well as the \'Pathogenic Ratio\', ').
 					$q->span(' which is the ratio between the score and the total number of available items. To gain a point in the score column, variants must either:')."\n".
 			$q->start_ul().
 				$q->li('have a SIFT prediction below 0.05').
-				$q->li('have a polyphen prediction being \'possibly_pathogenic\' or \'probably_pathogenic\'').
+				$q->li('have a polyphen prediction being above 0.447').
 				$q->li('have a FATHMM prediction below -1.5').
+				$q->li('have a MetaLR prediction above 0.5').
 				$q->li('be reported in ClinVar as \'likely pathogenic\' or \'pathogenic\'').
-				$q->li('have a MAX_MAF below 0.005 (same for dominants and recessives), MAX_MAF being the maximum between ExAC, EVS_EA and EVS_AA MAFs.').
+				$q->li('have a MAX_MAF below 0.005 (same for dominants and recessives), MAX_MAF being the maximum between ExAC, EVS_EA, EVS_AA and 1000 genomes MAFs.').
 			$q->end_ul();
 			print U2_modules::U2_subs_2::info_panel($text, $q);
 			#print $q->start_p(), $q->span('You will find below a table ranking all '), $q->strong('unknown'), $q->span(" missense variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5."), $q->end_p(), $q->br(), $q->br(), $q->p('Up to Five items can be considered to prioritize the variants, 3 predictors, EVS MAF and Clinvar annotation. The \'score\' column goes from 0 to 5 (the higher the more probably pathogenic), as well as the \'Pathogenic Ratio\', which is the ratio between the score and the total number of available items. To gain a point in the score column, variants must either:'), "\n",
@@ -483,7 +484,7 @@ sub dbnsfp2html {
 				$q->td({'style' => 'color:'.U2_modules::U2_subs_1::fathmm_color($fathmm_unic)}, $fathmm_unic), "\n",
 				$q->td({'style' => 'color:'.U2_modules::U2_subs_1::metalr_color($metalr_unic)}, $metalr_unic), "\n",
 				$q->td(U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[$clinvar])), "\n",
-				$q->td($max_maf), "\n",
+				$q->td(sprintf('%.4f',$max_maf)), "\n",
 				$q->td({'class' => $class}, $score), "\n",
 				$q->td({'class' => $class}, $ratio), "\n",
 				$q->end_Tr();		
