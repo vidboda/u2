@@ -165,7 +165,7 @@ if ($result) {
 			my $filtered_missense = 0;
 			my $text = $q->span('You will find below a table ranking all ').$q->strong('unknown').$q->span(" missense variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5.");
 			print U2_modules::U2_subs_2::info_panel($text, $q);
-			$text = $q->span('Up to Five items can be considered to prioritize the variants, 4 predictors, MAX MAF and Clinvar annotation').$q->br().
+			$text = $q->span('Up to Six items can be considered to prioritize the variants, 4 predictors, MAX MAF and Clinvar annotation').$q->br().
 					$q->span(' The \'score\' column goes from 0 to 6 (the higher the more probably pathogenic), as well as the \'Pathogenic Ratio\', ').
 					$q->span(' which is the ratio between the score and the total number of available items. To gain a point in the score column, variants must either:')."\n".
 			$q->start_ul().
@@ -509,7 +509,7 @@ sub compute_ratio {
 	#if (U2_modules::U2_subs_2::most_damaging($values->[$metalr], 'max') ne ''){$b++;if ($values->[$metalr] > $U2_modules::U2_subs_1::METALR_THRESHOLD) {$a++}}
 	if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($values->[$clinvar]) =~ /Pathogenic/) {$a++}
 	if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($values->[$clinvar]) ne 'not seen in Clinvar') {$b++}
-	return ($max_maf, $b, sprintf('%.2f', ($a/$b)));
+	return ($max_maf, $a, sprintf('%.2f', ($a/$b)));
 	#print $max_maf.$q->br();
 }
 
