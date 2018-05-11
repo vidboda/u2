@@ -74,6 +74,9 @@ our $FATHMM_THRESHOLD = -1.5;
 our $METALR_THRESHOLD = 0.5;
 our $MCAP_THRESHOLD = 0.025;
 
+#regexp to capture chromosomes
+our $CHR_REGEXP = '[\dXYM]{1,2}';
+
 
 #genes for aCGH
 our @ACGH = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'PDZD7', 'CHM', 'OTOF', 'TECTA', 'MYO15A', 'COCH', 'TMC1', 'SLC26A4', 'KCNQ4', 'EYA4', 'TMPRSS3', 'WFS1', 'MYO6', 'EYS', 'GJB2', 'GJB6', 'POU3F4', 'ACTG1');
@@ -494,7 +497,8 @@ sub check_nom_c {
 #get nom_gene in splicing_calc.pl, otherwise get var
 sub check_nom_g {
 	my ($q, $dbh) = @_;
-	if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
+	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
+	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:g\.[>\w\*\-\+\?_\{\}]+)/og) {	
 		my $query = "SELECT nom_g as var FROM variant WHERE nom_g = '$1';";
 		#print $query;
 		my $res = $dbh->selectrow_hashref($query);
@@ -667,7 +671,8 @@ sub get_gene_group {
 
 sub get_gene_from_nom_g {
 	my ($q, $dbh) = @_;
-	if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
+	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
+	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:g\.[>\w\*\-\+\?_\{\}]+)/og) {	
 		my $query = "SELECT nom_gene FROM variant WHERE nom_g = '$1';";
 		my $res = $dbh->selectrow_hashref($query);
 		if ($res->{'nom_gene'} ne '0E0') {return ($res->{'nom_gene'})}
@@ -823,7 +828,8 @@ sub get_interpreted_position {
 #in variant.pl, patient_genotype.pl, engine.pl, ajax.pl, automated_class.pl
 sub extract_pos_from_genomic { #get chr and genomic positions
 	my ($genomic, $type) = @_;
-	if ($genomic =~ /^chr([\dXY]+):g\.(\d+)[\+-]?\??_?(\d*)[^\d]*/o) {
+	#if ($genomic =~ /^chr([\dXY]+):g\.(\d+)[\+-]?\??_?(\d*)[^\d]*/o) {
+	if ($genomic =~ /^chr($CHR_REGEXP):g\.(\d+)[\+-]?\??_?(\d*)[^\d]*/o) {
 		#print "--$type--$3--";
 		if ($type eq 'clinvar') {return ($1, $2)}
 		elsif ($type eq 'evs') {
@@ -906,7 +912,8 @@ sub get_deleted_sequence {
 
 sub getExacFromGenoVar {
 	my $genomic = shift;
-	if ($genomic =~ /chr([0-9XY]{1,2}):g.(\d+)([ATCG])>([ATGC])/o) {
+	#if ($genomic =~ /chr([0-9XY]{1,2}):g.(\d+)([ATCG])>([ATGC])/o) {
+	if ($genomic =~ /chr($CHR_REGEXP):g.(\d+)([ATCG])>([ATGC])/o) {
 		return "$1-$2-$3-$4"
 	}
 }

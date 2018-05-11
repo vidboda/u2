@@ -216,7 +216,8 @@ if ($result) {
 				#my $tempfile = File::Temp->new(UNLINK => 1);
 				my $semaph = 0;
 				if ($result->{'nom_g_38'} ne '') {
-					$result->{'nom_g_38'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
+					#$result->{'nom_g_38'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
+					$result->{'nom_g_38'} =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):g\.(\d+)([ATGC])>([ATGC])/o;
 					my ($chr38, $position38, $ref38, $alt38) = ($1, $2, $3, $4);
 					#my $chrfull = $chr;
 					$chr38 =~ s/chr//og;
@@ -226,7 +227,8 @@ if ($result) {
 					if ($#dbnsfp > -1) {$semaph = 1}
 				}
 				if ($semaph == 0) {
-					$result2->{'nom_g'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
+					#$result2->{'nom_g'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
+					$result2->{'nom_g'} =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):g\.(\d+)([ATGC])>([ATGC])/o;
 					my ($chr, $position, $ref, $alt) = ($1, $2, $3, $4);
 					my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$position-$position`);
 					&dbnsfp2html(\@dbnsfp, $ref, $alt, 83, 93, 92, 101, 115, 26, 32, 44, 50, $result2->{'nom_gene'}->[0], $id, $number, $result2->{'nom_gene'}->[1], $result2->{'nom'}, $result2->{'nom_prot'}, $result2->{'statut'});#dbnsfp, ref, alt, onekg, espea, espaa, exac_maf, clinvar, sift, polyphen, fathmm, metalr, gene, id_patient, number_patient, NM_accno, var c., var p., status

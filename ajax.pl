@@ -147,13 +147,15 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
+	#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
+	if ($variant =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):g\.(\d+)([ATGC])>([ATGC])/o) {
 		####NEW NEW STYLE with dbNSFP 04/2018 for substitutions
 		#print $tempfile "$1 $2 $2 $3/$4 +\n";
 		$chr = $1; $position = $2; $ref = $3; $alt = $4;
 		$chr =~ s/chr//og;
 		if ($res->{'nom_g_38'} ne '') {			
-			$res->{'nom_g_38'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
+			#$res->{'nom_g_38'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
+			$res->{'nom_g_38'} =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):g\.(\d+)([ATGC])>([ATGC])/o;
 			my $chr38 = $1; my $position38 = $2; my $ref38 = $3; my $alt38 = $4;
 			#my $chrfull = $chr;
 			$chr38 =~ s/chr//og;
@@ -616,7 +618,8 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 	my ($i, $j) = (0, 0);
 	
 	my $var_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
-	if ($var_g =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
+	#if ($var_g =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
+	if ($var_g =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):g\.(\d+)([ATGC])>([ATGC])/o) {
 		my ($chr, $pos1, $ref, $alt) = ($1, $2, $3, $4);
 		
 		#NEW style 04/2018 replacment of VEP with dbNSFP

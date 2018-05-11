@@ -1370,8 +1370,10 @@ sub get_detailed_pos {
 
 sub get_start_end_pos {
 	my $var = shift;
-	if ($var =~ /chr[\dXYM]+:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
-	elsif ($var =~ /chr[\dXYM]+:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
+	#if ($var =~ /chr[\dXYM]+:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
+	#elsif ($var =~ /chr[\dXYM]+:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
+	if ($var =~ /chr$U2_modules::U2_subs_1::CHR_REGEXP:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
+	elsif ($var =~ /chr$U2_modules::U2_subs_1::CHR_REGEXP:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
 }
 
 

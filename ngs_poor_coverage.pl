@@ -188,7 +188,8 @@ while (<F>) {
 		#print "$_<br/>";
 		my @line = split(/\t/);
 		my ($region, $size);		
-		$line[0] =~ /chr([\dXY]{1,2})/o;
+		#$line[0] =~ /chr([\dXY]{1,2})/o;
+		$line[0] =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP)/o;
 		my $u2_chr = $1;
 		if ($q->param('type') eq 'ce') {
 			my $interest = 0;

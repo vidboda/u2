@@ -181,7 +181,8 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 		}	
 		
 		my ($score3, $txt3, $site3, $chr3, $x3, $y3, $score5, $txt5, $site5, $chr5, $x5, $y5);
-		$var =~ /(chr[\dXYM]+):/o;
+		#$var =~ /(chr[\dXYM]+):/o;
+		$var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP):/o;
 		my $chr = $1;
 		if ($segment_type eq 'exon') {
 			($score3, $txt3, $site3, $chr3, $x3, $y3) = &get_natural($start_g, '3', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg);
@@ -233,7 +234,8 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 		else {print $html;$html = '';}
 		
 		print $q->end_table(), $q->end_div(), "\n";
-		$var =~ /(chr[\dXYM]+):/o;
+		#$var =~ /(chr[\dXYM]+):/o;
+		$var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP):/o;
 		my $chr = $1;
 		&print_natural($score3, $txt3, $site3, $chr3, $x3, $y3, $segment_type, $nom_seg, '3');
 		#if ($segment_type eq 'exon') {&get_natural($start_g, '3', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}

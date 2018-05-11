@@ -3,6 +3,7 @@ package U2_modules::U2_subs_3;
 use strict;
 use warnings;
 use U2_modules::U2_init_1;
+use U2_modules::U2_subs_1;
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -39,7 +40,8 @@ sub insert_variant {
 	
 	#we check wether the variant is in our genes or not
 	#we just query ushvam2
-	if  ($var_chr =~ /^chr([\dXYM]{1,2})$/o) {$var_chr = $1}
+	#if  ($var_chr =~ /^chr([\dXYM]{1,2})$/o) {$var_chr = $1}
+	if  ($var_chr =~ /^chr($U2_modules::U2_subs_1::CHR_REGEXP)$/o) {$var_chr = $1}
 	
 	##we could query each variant but takes some time
 	#my $query = "SELECT b.nom, a.nom[1] as gene FROM gene a, segment b WHERE a.nom = b.nom_gene AND a.chr = '$var_chr' AND $var_pos BETWEEN SYMMETRIC b.$postgre_start_g AND b.$postgre_end_g;";
@@ -108,7 +110,8 @@ sub insert_variant {
 		return 1;
 	}
 	#still here? we try to invert wt & mut
-	if ($genomic_var =~ /(chr[\dXYM]+:g\..+\d+)([ATGC])>([ATCG])/o) {
+	#if ($genomic_var =~ /(chr[\dXYM]+:g\..+\d+)([ATGC])>([ATCG])/o) {
+	if ($genomic_var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP:g\..+\d+)([ATGC])>([ATCG])/o) {
 		my $inv_genomic_var = $1.$3.">".$2;
 		$insert = &direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 		if ($insert ne '') {
@@ -696,7 +699,8 @@ sub build_hgvs_from_illumina {
 	my ($var_chr, $var_pos, $var_ref, $var_alt) = @_;
 	#we keep only the first variants if more than 1 e.g. alt = TAA, TA
 	if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
-	if ($var_chr =~ /^([\dXYM]{1,2})/o) {$var_chr = "chr$1"}
+	#if ($var_chr =~ /^([\dXYM]{1,2})/o) {$var_chr = "chr$1"}
+	if ($var_chr =~ /^($U2_modules::U2_subs_1::CHR_REGEXP)/o) {$var_chr = "chr$1"}
 	
 	#subs
 	if ($var_ref =~ /^[ATGC]$/ && $var_alt =~ /^[ATGC]$/) {return "$var_chr:g.$var_pos$var_ref>$var_alt"}
@@ -734,8 +738,10 @@ sub get_detailed_pos {
 
 sub get_start_end_pos {
 	my $var = shift;
-	if ($var =~ /chr[\dXY]+:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
-	elsif ($var =~ /chr[\dXY]+:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
+	#if ($var =~ /chr[\dXY]+:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
+	#elsif ($var =~ /chr[\dXY]+:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
+	if ($var =~ /chr$U2_modules::U2_subs_1::CHR_REGEXP:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
+	elsif ($var =~ /chr$U2_modules::U2_subs_1::CHR_REGEXP:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
 }
 
 sub build_roi {
