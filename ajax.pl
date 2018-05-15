@@ -148,14 +148,14 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
-	if ($variant =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):g\.(\d+)([ATGC])>([ATGC])/o) {
+	if ($variant =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):$U2_modules::U2_subs_1::HGVS_CHR_TAG\.(\d+)([ATGC])>([ATGC])/o) {
 		####NEW NEW STYLE with dbNSFP 04/2018 for substitutions
 		#print $tempfile "$1 $2 $2 $3/$4 +\n";
 		$chr = $1; $position = $2; $ref = $3; $alt = $4;
 		$chr =~ s/chr//og;
 		if ($res->{'nom_g_38'} ne '') {			
 			#$res->{'nom_g_38'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
-			$res->{'nom_g_38'} =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):g\.(\d+)([ATGC])>([ATGC])/o;
+			$res->{'nom_g_38'} =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):$U2_modules::U2_subs_1::HGVS_CHR_TAG\.(\d+)([ATGC])>([ATGC])/o;
 			my $chr38 = $1; my $position38 = $2; my $ref38 = $3; my $alt38 = $4;
 			#my $chrfull = $chr;
 			$chr38 =~ s/chr//og;
@@ -856,29 +856,31 @@ if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 	
 	$html.= $q->end_ul();
 	
-	my ($default_status, $default_allele) = ('heterozygous', 'unknown');
+	if (U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh) ne 'M') {
 	
-	$html .= $q->start_p().$q->strong('Create a variant not linked to a specific sample:').$q->end_p();
-	
-	my $ng_accno = U2_modules::U2_subs_1::get_ng_accno($gene, $acc_no, $dbh, $q);
-	
-	$html .= $q->start_form({'action' => '', 'method' => 'post', 'class' => 'u2form', 'id' => 'creation_form', 'enctype' => &CGI::URL_ENCODED}).
-					$q->input({'type' => 'hidden', 'name' => 'gene', 'value' => $gene, 'id' => 'gene', 'form' => 'creation_form'})."\n".
-					$q->input({'type' => 'hidden', 'name' => 'acc_no', 'value' => $acc_no, 'id' => 'acc_no', 'form' => 'creation_form'})."\n".
-					$q->input({'type' => 'hidden', 'name' => 'type', 'value' => $type, 'id' => 'type', 'form' => 'creation_form'})."\n".
-					$q->input({'type' => 'hidden', 'name' => 'numero', 'value' => $num_seg, 'id' => 'numero', 'form' => 'creation_form'})."\n".
-					$q->input({'type' => 'hidden', 'name' => 'nom', 'value' => $nom, 'id' => 'nom', 'form' => 'creation_form'})."\n".
-					$q->input({'type' => 'hidden', 'name' => 'ng_accno', 'value' => $ng_accno, 'id' => 'ng_accno', 'form' => 'creation_form'})."\n".
-					$q->start_fieldset();				
-	my @status = ('heterozygous', 'homozygous', 'hemizygous');
-	my @alleles = ('unknown', 'both', '1', '2');
-	my $js = "if (\$(\"#status\").val() === 'homozygous') {\$(\"#allele\").val('both')}else {\$(\"#allele\").val('unknown')}";
-	$html .= $q->br().$q->br().$q->start_li()."\n".
-			$q->label({'for' => 'new_variant'}, 'New variant (cDNA):')."\n".
-			$q->textfield(-name => 'new_variant', -id => 'new_variant', -value => 'c.', -size => '20', -maxlength => '50')."\n".
-		$q->end_li()."\n".
-		$q->end_ol().$q->end_fieldset().$q->end_form();
-	
+		my ($default_status, $default_allele) = ('heterozygous', 'unknown');
+		
+		$html .= $q->start_p().$q->strong('Create a variant not linked to a specific sample:').$q->end_p();
+		
+		my $ng_accno = U2_modules::U2_subs_1::get_ng_accno($gene, $acc_no, $dbh, $q);
+		
+		$html .= $q->start_form({'action' => '', 'method' => 'post', 'class' => 'u2form', 'id' => 'creation_form', 'enctype' => &CGI::URL_ENCODED}).
+						$q->input({'type' => 'hidden', 'name' => 'gene', 'value' => $gene, 'id' => 'gene', 'form' => 'creation_form'})."\n".
+						$q->input({'type' => 'hidden', 'name' => 'acc_no', 'value' => $acc_no, 'id' => 'acc_no', 'form' => 'creation_form'})."\n".
+						$q->input({'type' => 'hidden', 'name' => 'type', 'value' => $type, 'id' => 'type', 'form' => 'creation_form'})."\n".
+						$q->input({'type' => 'hidden', 'name' => 'numero', 'value' => $num_seg, 'id' => 'numero', 'form' => 'creation_form'})."\n".
+						$q->input({'type' => 'hidden', 'name' => 'nom', 'value' => $nom, 'id' => 'nom', 'form' => 'creation_form'})."\n".
+						$q->input({'type' => 'hidden', 'name' => 'ng_accno', 'value' => $ng_accno, 'id' => 'ng_accno', 'form' => 'creation_form'})."\n".
+						$q->start_fieldset();				
+		my @status = ('heterozygous', 'homozygous', 'hemizygous');
+		my @alleles = ('unknown', 'both', '1', '2');
+		my $js = "if (\$(\"#status\").val() === 'homozygous') {\$(\"#allele\").val('both')}else {\$(\"#allele\").val('unknown')}";
+		$html .= $q->br().$q->br().$q->start_li()."\n".
+				$q->label({'for' => 'new_variant'}, 'New variant (cDNA):')."\n".
+				$q->textfield(-name => 'new_variant', -id => 'new_variant', -value => 'c.', -size => '20', -maxlength => '50')."\n".
+			$q->end_li()."\n".
+			$q->end_ol().$q->end_fieldset().$q->end_form();
+	}
 	
 	print $html;
 }

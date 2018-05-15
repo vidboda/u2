@@ -521,13 +521,15 @@ my $js = "
 		});
 	};";
 
+if ($res->{'acc_g'} ne 'NG_000000.0') {
+	print $q->start_Tr(),
+			$q->td('NG HGVS:'),
+			$q->start_td(), $q->span({'onclick' => "window.open('$ncbi_url$res->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $res->{'acc_g'}), $q->span(":$res->{'nom_ng'}"), $q->end_td(),
+			$q->td('Relative genomic HGVS nomenclature (NG)'),
+		$q->end_Tr(), "\n";
+}
 
 print $q->start_Tr(),
-		$q->td('NG HGVS:'),
-		$q->start_td(), $q->span({'onclick' => "window.open('$ncbi_url$res->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $res->{'acc_g'}), $q->span(":$res->{'nom_ng'}"), $q->end_td(),
-		$q->td('Relative genomic HGVS nomenclature (NG)'),
-	$q->end_Tr(), "\n",
-	$q->start_Tr(),
 		$q->td('hg19 Genomic HGVS:'), "\n",
 		$q->start_td({'id' => 'nom_g'}), $q->span("$res->{'nom_g'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link, 'target' => '_blank'}, 'UCSC'), $map2pdb, $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => "/perl/led/engine.pl?research=hg19:$evs_chr:$evs_pos_start", 'target' => '_blank'}, 'LED'), $q->end_td(),
 		$q->td('Absolute genomic HGVS nomenclature (chr), hg19 assembly'),

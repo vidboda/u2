@@ -90,7 +90,8 @@ sub insert_variant {
 		my $res_hemi = $dbh->selectrow_hashref($query_hemi);
 		if ($res_hemi->{'sexe'} eq 'M' && $var_chr eq 'X') {($status, $allele) = ('hemizygous', '2')}
 	}
-	if ($var_chr eq 'Y') {($status, $allele) = ('hemizygous', '1')}
+	elsif ($var_chr eq 'Y') {($status, $allele) = ('hemizygous', '1')}
+	elsif ($var_chr eq 'M') {($status, $allele) = ('hemizygous', '2')}
 	
 	my $genomic_var = &build_hgvs_from_illumina($var_chr, $var_pos, $var_ref, $var_alt);
 	#print "$genomic_var<br/>";
@@ -145,6 +146,7 @@ sub insert_variant {
 				return "MANUAL PTPRQ\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n"
 			}
 		}
+		#HERE if we want to return chrM values
 		##run numberConversion() webservice
 		my $call = $soap->call('numberConversion',
 				SOAP::Data->name('build')->value('hg19'),
@@ -351,8 +353,11 @@ sub insert_variant {
 						}
 					}
 				}
-				elsif (/NR_.+/) {#deal with NR for NR, a number conversion should be enough
+				elsif (/NR_.+/) {#deal with NR for NR, a number conversion should be enough - same for chrM
 					$tmp .= "MANUAL NR_variant\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n";
+				}
+				elsif (/NC_012920.+/) {
+					$tmp .= "MANUAL chrM_variant\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n";
 				}
 			}			
 		}
@@ -701,16 +706,18 @@ sub build_hgvs_from_illumina {
 	if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 	#if ($var_chr =~ /^([\dXYM]{1,2})/o) {$var_chr = "chr$1"}
 	if ($var_chr =~ /^($U2_modules::U2_subs_1::CHR_REGEXP)/o) {$var_chr = "chr$1"}
+	my $hgvs_pref = 'g.';
+	if ($var_chr eq 'chrM') {$hgvs_pref = 'm.'}
 	
 	#subs
-	if ($var_ref =~ /^[ATGC]$/ && $var_alt =~ /^[ATGC]$/) {return "$var_chr:g.$var_pos$var_ref>$var_alt"}
+	if ($var_ref =~ /^[ATGC]$/ && $var_alt =~ /^[ATGC]$/) {return "$var_chr:$hgvs_pref$var_pos$var_ref>$var_alt"}
 	#dels
 	elsif (length($var_ref) > length($var_alt)) {
-		if (length($var_ref) == 2) {return "$var_chr:g.".($var_pos+1)."del".substr($var_ref, 1)}
-		else {return "$var_chr:g.".($var_pos+1)."_".($var_pos+(length($var_ref)-1))."del".substr($var_ref, 1)}
+		if (length($var_ref) == 2) {return "$var_chr:$hgvs_pref".($var_pos+1)."del".substr($var_ref, 1)}
+		else {return "$var_chr:$hgvs_pref".($var_pos+1)."_".($var_pos+(length($var_ref)-1))."del".substr($var_ref, 1)}
 	}
 	#insdup
-	elsif (length($var_alt) > length($var_ref)) {return "$var_chr:g.".($var_pos)."_".($var_pos+1)."ins".substr($var_alt, 1)}
+	elsif (length($var_alt) > length($var_ref)) {return "$var_chr:$hgvs_pref".($var_pos)."_".($var_pos+1)."ins".substr($var_alt, 1)}
 }
 
 sub direct_submission {

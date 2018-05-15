@@ -76,6 +76,8 @@ our $MCAP_THRESHOLD = 0.025;
 
 #regexp to capture chromosomes
 our $CHR_REGEXP = '[\dXYM]{1,2}';
+our $HGVS_CHR_TAG = '[gm]';
+our $HGVS_TRANSCRIPT_TAG = '[cm]';
 
 
 #genes for aCGH
@@ -473,7 +475,7 @@ sub create_image_file_name {
 sub check_acc {
 	#checks gene param
 	my ($q, $dbh) = @_;
-	if ($q->param('accession') =~ /(N[MRG]_\d+\.*\d*)/og) {
+	if ($q->param('accession') =~ /(N[MRGC]_\d+\.*\d*)/og) {
 		my $query = "SELECT nom[2] as acc FROM gene WHERE nom[2] = '$1';";
 		if ($1 =~ /NG_.+/o) {$query = "SELECT acc_g as acc FROM gene WHERE nom[2] = '$1';";}
 		my $res = $dbh->selectrow_hashref($query);
@@ -498,7 +500,7 @@ sub check_nom_c {
 sub check_nom_g {
 	my ($q, $dbh) = @_;
 	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
-	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:g\.[>\w\*\-\+\?_\{\}]+)/og) {	
+	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {	
 		my $query = "SELECT nom_g as var FROM variant WHERE nom_g = '$1';";
 		#print $query;
 		my $res = $dbh->selectrow_hashref($query);
@@ -672,7 +674,7 @@ sub get_gene_group {
 sub get_gene_from_nom_g {
 	my ($q, $dbh) = @_;
 	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
-	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:g\.[>\w\*\-\+\?_\{\}]+)/og) {	
+	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {	
 		my $query = "SELECT nom_gene FROM variant WHERE nom_g = '$1';";
 		my $res = $dbh->selectrow_hashref($query);
 		if ($res->{'nom_gene'} ne '0E0') {return ($res->{'nom_gene'})}
@@ -829,7 +831,8 @@ sub get_interpreted_position {
 sub extract_pos_from_genomic { #get chr and genomic positions
 	my ($genomic, $type) = @_;
 	#if ($genomic =~ /^chr([\dXY]+):g\.(\d+)[\+-]?\??_?(\d*)[^\d]*/o) {
-	if ($genomic =~ /^chr($CHR_REGEXP):g\.(\d+)[\+-]?\??_?(\d*)[^\d]*/o) {
+	#print $genomic;
+	if ($genomic =~ /^chr($CHR_REGEXP):$HGVS_CHR_TAG\.(\d+)[\+-]?\??_?(\d*)[^\d]*/o) {
 		#print "--$type--$3--";
 		if ($type eq 'clinvar') {return ($1, $2)}
 		elsif ($type eq 'evs') {
@@ -842,8 +845,8 @@ sub extract_pos_from_genomic { #get chr and genomic positions
 #in gene_graphs.pl, variant.pl, engine.pl, ajax.pl
 sub get_pos_from_exon {
 	my $name = shift;
-	if ($name !~ /_/ && $name =~ /c\.-?\d+[\+-](\d+)[^_]/o) {return $1}
-	elsif ($name =~ /c\.-?\d+([\+-])(\d+)_\d+[\+-](\d+)[^\d]/o) {
+	if ($name !~ /_/ && $name =~ /$HGVS_TRANSCRIPT_TAG\.-?\d+[\+-](\d+)[^_]/o) {return $1}
+	elsif ($name =~ /$HGVS_TRANSCRIPT_TAG\.-?\d+([\+-])(\d+)_\d+[\+-](\d+)[^\d]/o) {
 		if ($1 eq '+') {return $2}
 		elsif ($1 eq '-') {return $3}
 	}
@@ -913,9 +916,16 @@ sub get_deleted_sequence {
 sub getExacFromGenoVar {
 	my $genomic = shift;
 	#if ($genomic =~ /chr([0-9XY]{1,2}):g.(\d+)([ATCG])>([ATGC])/o) {
-	if ($genomic =~ /chr($CHR_REGEXP):g.(\d+)([ATCG])>([ATGC])/o) {
+	if ($genomic =~ /chr($CHR_REGEXP):$HGVS_CHR_TAG.(\d+)([ATCG])>([ATGC])/o) {
 		return "$1-$2-$3-$4"
 	}
+}
+
+sub get_chr_from_gene {
+	my ($gene, $dbh) = @_;
+	my $query = "SELECT chr FROM gene where nom[1] = '$gene';";
+	my $res = $dbh->selectrow_hashref($query);
+	return $res->{'chr'};
 }
 
 sub is_large {
