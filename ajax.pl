@@ -993,14 +993,16 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	#my $content = "GENE;VARIANT;GENOME_REFERENCE;NOMENCLATURE_HGVS;NOMPROTEINE;VARIANT_C;CHROMOSOME;SEQUENCE_REF;LOCALISATION;POSITION_GENOMIQUE;NM;VARIANT_P;CLASSESUR3;CLASSESUR5;DOMAINE_FCTL;CONSEQUENCES;RS;COSMIC;ENST;DATEDESAISIE;REFERENCES;COMMENTAIRE;ETAT;A_ENREGISTRER;STATUT;RESULTAT;ALLELE;NOTES\n";
 	#updated with defgen file 28/12/2017
 	#my $content = "GENE;VARIANT;A_ENREGISTRER;STATUT;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ALLELE;CLASSESUR3;CLASSESUR5;NOTES;COSMIC;ENST;NM;RS;REFERENCES;CONSEQUENCES;POSITION_GENOMIQUE;COMMENTAIRE\n";
-	my $content =  "GENE;VARIANT;A_ENREGISTRER;STATUT;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2;PROTEINE;NOTES\n";
+	my $content =  "GENE;VARIANT;A_ENREGISTRER;STATUT;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2\r\n";
 	if ($res ne '0E0') {
 		while (my $result = $sth->fetchrow_hashref()) {
 			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($result->{nom_g}, 'clinvar');
-			my $acmg_class = U2_modules::U2_subs_3::u2class2acmg($result->{classe}, $dbh);
+			my $acmg_class = $result->{'acmg_class'};
+			if ($acmg_class eq '') {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($result->{classe}, $dbh)}
+			my $defgen_acmg = &u22defgen_acmg($acmg_class);
 			my ($defgen_a1, $defgen_a2) = U2_modules::U2_subs_3::get_defgen_allele($result->{'allele'});
 			#$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{'allele'};;;$result->{type_segment} $result->{num_segment};;$result->{enst};$result->{nom_gene}[1];$result->{snp_id};hg19;$result->{type_prot};;$result->{nom_prot}\n";
-			$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{enst};$result->{nom_gene}[1];$pos;$acmg_class;;;$result->{snp_id};;$result->{type_prot};;$chr;hg19;$result->{nom_c};$result->{type_segment} $result->{num_segment};;;$defgen_a1;$defgen_a2;$result->{nom_prot};\n";
+			$content .= "$result->{nom_gene}[0];$result->{nom_c};;;".&u22defgen_status($result->{'statut'}).";;$result->{hgvs_prot};$result->{nom_c};$result->{enst};$result->{nom_gene}[1];$pos;$defgen_acmg;;;$result->{snp_id};;$result->{type_prot};$result->{classe};$chr;hg19;$result->{nom_g};$result->{type_segment} $result->{num_segment};;;$defgen_a1;$defgen_a2\r\n";
 			#$content .= "$result->{nom_gene}[0];$result->{nom_c};hg19;$result->{nom_g};$result->{nom_prot};$result->{nom_c};chr$chr;;$result->{type_segment} $result->{num_segment};$pos;$result->{nom_gene}[1].$result->{acc_version};$result->{hgvs_prot};;;;$result->{type_prot};$result->{snp_id};;$result->{enst};;;$result->{classe};;;$result->{'statut'};;$result->{'allele'};\n";
 		}
 	}
@@ -1401,6 +1403,20 @@ sub dbnsfp2html {
 	}
 }
 
+sub u22defgen_status {
+	my $u2_status = shift;
+	if ($u2_status eq 'homozygous') {return 'Homozygote'}
+	elsif ($u2_status eq 'heterozygous') {return 'Hétérozygote'}
+	elsif ($u2_status eq 'hemizygous') {return 'Hémizygote'}
+}
 
+sub u22defgen_acmg {
+	my $u2_acmg = shift;
+	if ($u2_acmg eq 'ACMG class I') {return 'Classe 1'}
+	elsif ($u2_acmg eq 'ACMG class II') {return 'Classe 2'}
+	elsif ($u2_acmg eq 'ACMG class III') {return 'Classe 3'}
+	elsif ($u2_acmg eq 'ACMG class IV') {return 'Classe 4'}
+	elsif ($u2_acmg eq 'ACMG class V') {return 'Classe 5'}
+}
 
 
