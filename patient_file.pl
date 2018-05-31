@@ -183,11 +183,11 @@ if ($result) {
 	#while (my $result = $sth->fetchrow_hashref()) {
 	my $proband = 'no';
 	if ($result->{'proband'} == 1) {$proband = 'yes'}
-	my $last_analysis = 'not recorded';
+	#my $last_analysis = 'not recorded';
 	###use analyse_moleculaire to get most recent analysis!!! date_last_analyse is useless in patient
-	my $query_date_analyse = "SELECT date_analyse FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND date_analyse IS NOT NULL ORDER BY date_analyse DESC LIMIT 1;";
-	my $res = $dbh->selectrow_hashref($query_date_analyse);
-	if ($res) {$last_analysis = $res->{'date_analyse'}}	
+	#my $query_date_analyse = "SELECT date_analyse FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND date_analyse IS NOT NULL ORDER BY date_analyse DESC LIMIT 1;";
+	#my $res = $dbh->selectrow_hashref($query_date_analyse);
+	#if ($res) {$last_analysis = $res->{'date_analyse'}}	
 	#if ($result->{'date_last_analyse'} ne '') {$last_analysis = $result->{'date_last_analyse'}}
 	
 	
@@ -201,21 +201,27 @@ if ($result) {
 			$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, 'Family ID'),
 				$q->th({'class' => 'left_general'}, 'Phenotype'),
+				$q->th({'class' => 'left_general'}, 'Date of birth'),
+				$q->th({'class' => 'left_general'}, 'Defgen ID'),
+				$q->th({'class' => 'left_general'}, 'Defgen family'),
 				$q->th({'class' => 'left_general'}, 'Gender'),
 #				$q->th({'class' => 'left_general'}, 'Origin'),
 				$q->th({'class' => 'left_general'}, 'Index case'),
 				$q->th({'class' => 'left_general'}, 'Created'),
-				$q->th({'class' => 'left_general'}, 'Last analysis'),
+#				$q->th({'class' => 'left_general'}, 'Last analysis'),
 				$q->th({'class' => 'left_general'}, 'Other sample(s)'),
 			$q->end_Tr(), "\n",
 			$q->start_Tr(), "\n",
 				$q->start_td(), $q->span({'class' => 'pointer', 'onclick' => "window.open('engine.pl?search=$result->{'famille'}', '_blank')"}, $result->{'famille'}), $q->end_td(), "\n",
 				$q->start_td(), $q->span({'class' => 'pointer', 'onclick' => "window.open('patients.pl?phenotype=$result->{'pathologie'}', '_blank')"}, $result->{'pathologie'}), $q->end_td(), "\n",
+				$q->td($result->{'date_of_birth'}), "\n",
+				$q->td($result->{'defgen_num'}), "\n",
+				$q->td($result->{'defgen_fam'}), "\n",
 				$q->td($result->{'sexe'}), "\n",
 #				$q->td($result->{'origine'}), "\n",
 				$q->td($proband), "\n",
 				$q->td($result->{'date_creation'}), "\n",
-				$q->td($last_analysis), "\n",
+#				$q->td($last_analysis), "\n",
 				$q->start_td();
 
 	
