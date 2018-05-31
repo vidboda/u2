@@ -462,7 +462,9 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		#	}); //end mouseover event
 		#	
 		#});";
-		
+		my ($escaped_first_name, $escaped_last_name) = ($var->{'first_name'}, $var->{'last_name'});
+		$escaped_first_name =~ s/'/\\'/og;
+		$escaped_last_name =~ s/'/\\'/og;
 		my $js = "\n
 		\$('.a$nb').mouseover(function(){
 			setTimeout(function (){	
@@ -471,7 +473,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 					\$.ajax({
 					type: \"POST\",
 					url: \"ajax.pl\",
-					data: {asked: 'var_info', gene: '$gene', accession: '$acc', nom_c: '$var->{'nom'}', analysis_all: '$type_analyse', depth: '$var->{'depth'}', current_analysis: '$var->{'type_analyse'}', frequency: '$var->{'frequency'}', wt_f: '$var->{'wt_f'}', wt_r: '$var->{'wt_r'}', mt_f: '$var->{'mt_f'}', mt_r: '$var->{'mt_r'}', last_name: '$var->{'last_name'}', first_name: '$var->{'first_name'}', msr_filter: '$var->{'msr_filter'}', nb: '$nb'}
+					data: {asked: 'var_info', gene: '$gene', accession: '$acc', nom_c: '$var->{'nom'}', analysis_all: '$type_analyse', depth: '$var->{'depth'}', current_analysis: '$var->{'type_analyse'}', frequency: '$var->{'frequency'}', wt_f: '$var->{'wt_f'}', wt_r: '$var->{'wt_r'}', mt_f: '$var->{'mt_f'}', mt_r: '$var->{'mt_r'}', last_name: '$escaped_last_name', first_name: '$escaped_first_name', msr_filter: '$var->{'msr_filter'}', nb: '$nb'}
 					})
 					.done(function(msg) {					
 						\$('#details').html(msg);

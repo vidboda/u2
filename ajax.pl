@@ -1359,6 +1359,8 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 
 sub miseq_details {
 	my ($miseq_analysis, $first_name, $last_name, $gene, $acc, $nom_c) = @_;
+	$first_name =~ s/'/''/og;
+	$last_name =~ s/'/''/og;
 	my $query_ngs = "SELECT depth, frequency, msr_filter FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND  nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$nom_c' AND type_analyse = '$miseq_analysis';";
 	my $res_ngs = $dbh->selectrow_hashref($query_ngs);
 	#$print_ngs .= "DOC MiSeq: <strong>$res_ngs->{'depth'}</strong> Freq: <strong>$res_ngs->{'frequency'}</strong><br/>MSR filter:<strong>$res_ngs->{'msr_filter'}</strong><br/>";
