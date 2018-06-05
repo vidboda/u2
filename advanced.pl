@@ -240,8 +240,29 @@ if ($q->param('advanced') && $q->param('advanced') eq 'forgotten_samples') {
 		U2_modules::U2_subs_2::info_panel("Corresponding to $i samples", $q);
 }
 
-
-
+if ($q->param('advanced') && $q->param('advanced') eq 'last_creations') {
+	my $delay = '1 week';
+	my $query = "SELECT identifiant, numero, date_creation, defgen_num FROM patient WHERE date_creation + CAST('".$delay."' AS INTERVAL) > CURRENT_DATE;";
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	print U2_modules::U2_subs_2::info_panel("You will find below a list of index cases samples recorded last week:", $q),
+			$q->ul(), "\n";
+	my $i = 0;
+	while (my $result = $sth->fetchrow_hashref()) {
+		if ($res ne '0E0') {
+			my ($last_name, $first_name) = ($result->{'last_name'}, $result->{'first_name'});
+			$last_name =~ s/'/''/og;
+			$first_name =~ s/'/''/og;
+			&print_last_sample($result);
+			$i++;
+		}
+		else {
+			print U2_modules::U2_subs_2::info_panel("No samples created on the last 7 days")
+		}
+	}
+	print $q->end_ul(), "\n", $q->br(),
+		U2_modules::U2_subs_2::info_panel("Corresponding to $i samples", $q);
+}
 
 ##Basic end of USHVaM 2 perl scripts:
 
@@ -259,6 +280,13 @@ sub print_forgotten_sample {
 	my ($id, $number, $date) = @_;
 	print $q->start_li(),
 			$q->a({'target' => '_blank', 'href' => "patient_file.pl?sample=$id$number", 'title' => 'Visit the sample page'}, $id.$number), $q->span(" created $date"),
+			$q->end_li(), "\n";
+}
+
+sub print_last_sample {
+	my $res = shift;
+	print $q->start_li(),
+			$q->a({'target' => '_blank', 'href' => "patient_file.pl?sample=".$res->{'identifiant'}.$res->{'numero'}, 'title' => 'Visit the sample page'}, $res->{'identifiant'}.$res->{'numero'}), $q->span(" (".$res->{'defgen_num'}.")"), $q->span(" created ".$res->{'date_creation'}),
 			$q->end_li(), "\n";
 }
 
