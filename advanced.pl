@@ -245,7 +245,7 @@ if ($q->param('advanced') && $q->param('advanced') eq 'last_creations') {
 	my $query = "SELECT identifiant, numero, date_creation, defgen_num FROM patient WHERE date_creation + CAST('".$delay."' AS INTERVAL) > CURRENT_DATE;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
-	print U2_modules::U2_subs_2::info_panel("You will find below a list of index cases samples recorded last week:", $q),
+	print U2_modules::U2_subs_2::info_panel("You will find below a list of samples recorded last week:", $q),
 			$q->ul(), "\n";
 	my $i = 0;
 	while (my $result = $sth->fetchrow_hashref()) {
