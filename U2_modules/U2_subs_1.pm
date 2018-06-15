@@ -36,7 +36,7 @@ our @COUNTRY = ('Unknown','France','Afghanistan','Albania','Algeria','American S
 
 #manage groups
 
-our @USHER = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'PDZD7', 'VEZT', 'CEP250');
+our @USHER = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'PDZD7', 'VEZT', 'CEP250', 'PEX1', 'PEX6');
 our @USH1 = ('', 'MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2');
 our @USH2 = ('USH2A', 'GPR98', 'DFNB31', 'PDZD7');
 our @USH3 = ('CLRN1', 'HARS');
