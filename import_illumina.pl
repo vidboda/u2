@@ -190,7 +190,7 @@ if ($step && $step == 2) {
 		$alignment_dir =~ s/\\/\//og;
 		$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$alignment_dir";
 	}
-	#print $alignment_dir;exit;
+	#print STDERR "huhu$alignment_dir\n";exit;
 	#old fashioned replaced with code above david 01/07/2016
 	#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
 	#print "grep -Eo \"<AlignmentFolder>\\\\".$SSH_RACKSTATION_IP."\\data\\MiSeqDx\\".$run."\\Data\\Intensities\\BaseCalls\\Alignment\\d*<\/AlignmentFolder>\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml";
@@ -224,7 +224,7 @@ if ($step && $step == 2) {
 	mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";
 	#$ssh->scp_get({glob => 1, copy_attrs => 1}, $location.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf") or die $!;
 	#print $alignment_dir.'/'.$report;exit;
-	my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf") or die $!;
+	my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
 	if ($success != 1) {U2_modules::U2_subs_1::standard_error('22', $q)}
 	
 	#################################UNCOMMENT when sub
@@ -425,9 +425,9 @@ if ($step && $step == 2) {
 				
 				#################################sub begins
 				my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'VF', $dbh, $instrument, $number, $id, $analysis, $interval, $soap, $date);
-				if ($variant_input eq '1') {$i++;next VCF}#variant added
-				elsif ($variant_input eq '2') {next VCF}#variant in unknown region
-				elsif ($variant_input eq '3') {$i++;$j++;next VCF}#variant created and added
+				if ($variant_input == 1) {$i++;next VCF}#variant added
+				elsif ($variant_input == 2) {next VCF}#variant in unknown region
+				elsif ($variant_input == 3) {$i++;$j++;next VCF}#variant created and added
 				elsif ($variant_input =~ /^MANUAL/o) {$manual .= $variant_input;next VCF}
 				elsif ($variant_input =~ /^NOTINSERTED/o) {$not_inserted .= $variant_input;next VCF}
 				elsif ($variant_input =~ /^FOLLOW/o) {$to_follow .= $variant_input;$i++;next VCF}
