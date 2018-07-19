@@ -55,7 +55,10 @@ our @OTHER_NS = ('ABHD12', 'ACOX1', 'ACTB', 'ACY1', 'ALMS1', 'ATP2B2', 'ATP6V0A4
 #number of on target reads mini
 #= (panel size in kb * enrichment coeff * mean expected doc) / read size
 #= (900000 * 1,3 * 150) / 150 = 1170000
+#152 genes
+#= (993000 *1,3 * 150) / 150 = 1290900
 our $NUM_ONTARGET_READS = 1170000;
+our $NUM_ONTARGET_READS_152 = 1290900;
 our $TITV = 2.3;
 our $MDOC = 150;
 our $PC50X = 95;

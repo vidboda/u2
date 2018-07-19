@@ -348,7 +348,6 @@ if ($result) {
 	}
 	#print $q->start_li(), $q->button({'onclick' => "window.open('missense_prioritize.pl?sample=$id$number')", 'value' => 'Prioritize missense'}), $q->end_li(), $q->br();
 	#my $analysis_type = U2_modules::U2_subs_1::get_analysis_hash($dbh);
-	
 	my @eligible = split(/;/, $ANALYSIS_GRAPHS_ELIGIBLE);
 	my $done  = "SELECT DISTINCT(a.type_analyse), a.num_pat, a.id_pat, c.manifest_name FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name';";
 	my $sth4 = $dbh->prepare($done);
@@ -670,8 +669,11 @@ if ($result) {
 								if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
 								if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
 							}
-							if ($res_manifest->{'ontarget_reads'} < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
 							$illumina_semaph = 1;#gene panel
+							my $num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS;
+							if ($analysis =~ /-152/o) {$illumina_semaph = 5;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_152}#152 genes panel
+							if ($res_manifest->{'ontarget_reads'} < $num_ontarget_reads) {$criteria .= ' (on target reads &lt; '.$num_ontarget_reads.') '}
+							
 						}
 						else {
 							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC_CE) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC_CE.') '}
@@ -756,7 +758,7 @@ if ($result) {
 		print $q->end_div(), "\n";
 		if ($illumina_semaph >= 1) {
 			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'});
-			if ($illumina_semaph == 1 || $illumina_semaph == 3 || $illumina_semaph == 4) {
+			if ($illumina_semaph == 1 || $illumina_semaph == 3 || $illumina_semaph == 4 || $illumina_semaph == 5) {
 				print $q->span('*Gene panel raw data must fulfill the following criteria to pass:'), "\n",
 				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
 					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n";
@@ -769,8 +771,14 @@ if ($result) {
 					print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
 					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n";
 				}
-				print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
+				if ($illumina_semaph == 5) {
+					print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_152), "\n",
 				$q->end_ul();
+				}
+				else {
+					print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
+				$q->end_ul();
+				}
 				
 			}
 			if ($illumina_semaph > 1) {
