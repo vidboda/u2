@@ -262,6 +262,7 @@ if ($result) {
 	my $filter = 'ALL'; #for NGS stuff
 	my $valid_import = '';
 	my $illumina_semaph = 0;
+	my @illumina_analysis;
 	my $query_filter = "SELECT filter, valid_import FROM miseq_analysis WHERE num_pat IN ($num_list) AND id_pat IN ($id_list) AND filter <> 'ALL';";
 	my $res_filter = $dbh->selectrow_hashref($query_filter);
 	if ($res_filter) {$filter = $res_filter->{'filter'};$valid_import = $res_filter->{'valid_import'}}
@@ -657,21 +658,25 @@ if ($result) {
 						$filter = $res_manifest->{'filter'}; #in case of bug of code l190 we rebuild $filter
 						$raw_filter = $q->span({'class' => 'green'}, 'PASS');
 						my $criteria = '';
+						#@illumina_analysis code: 1 => gene panel < 152 genes; 2 clinical exome; 3 ?; 4 whole genes; 5 gene panel 152
 						if ($nenufaar == 0) {
+							$illumina_semaph = 1;
 							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
 							if ($analysis =~ /$ANALYSIS_ILLUMINA_WG_REGEXP/o) {
 								#Whole genes
 								if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X_WG) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X_WG.') '}
 								if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV_WG) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_WG.') '}
-								$illumina_semaph = 4;#whole genes
+								#$illumina_semaph = 4;#whole genes
+								push @illumina_analysis, 4;
 							}
 							else {
 								if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
 								if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
 							}
-							$illumina_semaph = 1;#gene panel
+							#$illumina_semaph = 1;#gene panel < 152
 							my $num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS;
-							if ($analysis =~ /-152/o) {$illumina_semaph = 5;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_152}#152 genes panel
+							if ($analysis =~ /-152/o) {push @illumina_analysis, 5;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_152}#152 genes panel $illumina_semaph = 5;
+							else {push @illumina_analysis, 1}
 							if ($res_manifest->{'ontarget_reads'} < $num_ontarget_reads) {$criteria .= ' (on target reads &lt; '.$num_ontarget_reads.') '}
 							
 						}
@@ -679,8 +684,9 @@ if ($result) {
 							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC_CE) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC_CE.') '}
 							if ($res_manifest->{'twentyx_doc'} < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
 							if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV_CE) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_CE.') '}
-							if ($illumina_semaph == 0) {$illumina_semaph = 2}#clinical exome
-							else {$illumina_semaph = 3}
+							if ($illumina_semaph == 0) {push @illumina_analysis, 2;}#clinical exome $illumina_semaph = 2;
+							else {push @illumina_analysis, 3;}#$illumina_semaph = 3;
+							$illumina_semaph = 1;
 						}
 						if ($criteria ne '') {$raw_filter = $q->span({'class' => 'red'}, "FAILED $criteria")}					
 						
@@ -708,7 +714,8 @@ if ($result) {
 					
 					if ($raw_filter ne '') {
 						my $star = '*';
-						if ($illumina_semaph == 2) {$star = '**'}#clinical exomes
+						#if ($illumina_semaph == 2) {$star = '**'}#clinical exomes
+						if (grep(/2/, @illumina_analysis)) {$star = '**'}#clinical exomes
 						print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $raw_filter, $q->span("&nbsp;$star");
 					}
 					if ($valid_import eq '1') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;-&nbsp;&nbsp;IMPORT VALIDATED')}
@@ -756,39 +763,76 @@ if ($result) {
 		
 		#print $q->end_ul(), $q->end_div(), "\n";
 		print $q->end_div(), "\n";
-		if ($illumina_semaph >= 1) {
+		if ($illumina_semaph == 1) {
 			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'});
-			if ($illumina_semaph == 1 || $illumina_semaph == 3 || $illumina_semaph == 4 || $illumina_semaph == 5) {
-				print $q->span('*Gene panel raw data must fulfill the following criteria to pass:'), "\n",
-				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
-					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n";
-				if ($illumina_semaph == 4) {
-					#Whole genes
-					print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X_WG.','), "\n",
-					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_WG.','), "\n";
+			foreach my $ngs (@illumina_analysis) {
+				if ($ngs != 2) {
+					my $gene_tag = '152';
+					if ($ngs == 4) {$gene_tag = 'whole genes'}
+					elsif ($ngs == 1) {$gene_tag = '<= 132'}
+					print $q->span("*Gene panel $gene_tag raw data must fulfill the following criteria to pass:"), "\n",
+						$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
+							$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n";
+					if ($ngs == 4) {
+						#Whole genes
+						print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X_WG.','), "\n",
+						$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_WG.','), "\n";
+					}
+					else {
+						print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
+						$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n";
+					}
+					if ($ngs == 5) {
+						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_152), "\n",
+					$q->end_ul();
+					}
+					else {
+						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
+					$q->end_ul();
+					}
 				}
 				else {
-					print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
-					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n";
+					print $q->br(), $q->span('**Clinical Exome raw data must fulfill the following criteria to pass:'), "\n",
+					$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
+						$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC_CE.','), "\n",
+						$q->li('% of bp with coverage at least 20X &ge; '.$U2_modules::U2_subs_1::PC20X_CE.','), "\n",
+						$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_CE.','), "\n",
+					$q->end_ul();
 				}
-				if ($illumina_semaph == 5) {
-					print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_152), "\n",
-				$q->end_ul();
-				}
-				else {
-					print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
-				$q->end_ul();
-				}
-				
 			}
-			if ($illumina_semaph > 1) {
-				print $q->br(), $q->span('**Clinical Exome raw data must fulfill the following criteria to pass:'), "\n",
-				$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
-					$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC_CE.','), "\n",
-					$q->li('% of bp with coverage at least 20X &ge; '.$U2_modules::U2_subs_1::PC20X_CE.','), "\n",
-					$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_CE.','), "\n",
-				$q->end_ul();
-			}
+			#print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'});
+			#if ($illumina_semaph == 1 || $illumina_semaph == 3 || $illumina_semaph == 4 || $illumina_semaph == 5) {
+			#	print $q->span('*Gene panel raw data must fulfill the following criteria to pass:'), "\n",
+			#	$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
+			#		$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC.','), "\n";
+			#	if ($illumina_semaph == 4) {
+			#		#Whole genes
+			#		print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X_WG.','), "\n",
+			#		$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_WG.','), "\n";
+			#	}
+			#	else {
+			#		print $q->li('% of bp with coverage at least 50X &ge; '.$U2_modules::U2_subs_1::PC50X.','), "\n",
+			#		$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV.','), "\n";
+			#	}
+			#	if ($illumina_semaph == 5) {
+			#		print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_152), "\n",
+			#	$q->end_ul();
+			#	}
+			#	else {
+			#		print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
+			#	$q->end_ul();
+			#	}
+			#	
+			#}
+			##if ($illumina_semaph > 1) {
+			#if (grep(/2/, @illumina_analysis)) {
+			#	print $q->br(), $q->span('**Clinical Exome raw data must fulfill the following criteria to pass:'), "\n",
+			#	$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
+			#		$q->li('Mean DOC &ge; '.$U2_modules::U2_subs_1::MDOC_CE.','), "\n",
+			#		$q->li('% of bp with coverage at least 20X &ge; '.$U2_modules::U2_subs_1::PC20X_CE.','), "\n",
+			#		$q->li('SNP Transition to Transversion ratio &ge; '.$U2_modules::U2_subs_1::TITV_CE.','), "\n",
+			#	$q->end_ul();
+			#}
 			print $q->end_div(), "\n";
 		}		
 	}
