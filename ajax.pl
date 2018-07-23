@@ -987,7 +987,8 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	#print $number;
 	#my $query = "SELECT a.*, b.*, a.nom_prot as hgvs_prot, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
-	my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
+	#my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
+	my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.defgen_export = 't';";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	#my $content = "GENE;VARIANT;GENOME_REFERENCE;NOMENCLATURE_HGVS;NOMPROTEINE;VARIANT_C;CHROMOSOME;SEQUENCE_REF;LOCALISATION;POSITION_GENOMIQUE;NM;VARIANT_P;CLASSESUR3;CLASSESUR5;DOMAINE_FCTL;CONSEQUENCES;RS;COSMIC;ENST;DATEDESAISIE;REFERENCES;COMMENTAIRE;ETAT;A_ENREGISTRER;STATUT;RESULTAT;ALLELE;NOTES\n";
