@@ -509,17 +509,7 @@ if ($res->{'protein'} ne '') {
 my $mutalyzer_hg38_pos_conv = $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;").$q->a({'href' => "https://mutalyzer.nl/position-converter?assembly_name_or_alias=GRCh38&description=$res->{'nom_g_38'}", 'target' => '_blank'}, 'Mutalyzer hg38');
 
 
-my $js = "
-	function getAllNom() {
-		\$.ajax({
-			type: \"POST\",
-			url: \"ajax.pl\",
-			data: {asked: 'var_nom', nom_g: '$res->{'nom_g'}', accession: '$acc', nom_c: '$var', gene: '$gene'}
-		})
-		.done(function(msg) {					
-			\$('#mutalyzer_place').html(msg);
-		});
-	};";
+
 
 if ($res->{'acc_g'} ne 'NG_000000.0') {
 	print $q->start_Tr(),
@@ -538,11 +528,48 @@ print $q->start_Tr(),
 		$q->td('hg38 Genomic HGVS: (work in progress)'), "\n",
 		$q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $map2pdb_hg38, $mutalyzer_hg38_pos_conv, $q->end_td(),
 		$q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'),
-	$q->end_Tr(), "\n",
-	$q->start_Tr(),
+	$q->end_Tr(), "\n";
+	
+my $js = "
+	function getAllNom() {
+		\$.ajax({
+			type: \"POST\",
+			url: \"ajax.pl\",
+			data: {asked: 'var_nom', nom_g: '$res->{'nom_g'}', accession: '$acc', nom_c: '$var', gene: '$gene'}
+		})
+		.done(function(msg) {					
+			\$('#mutalyzer_place').html(msg);
+		});
+	};";
+	
+print $q->start_Tr(),
 		$q->td('Alternatives:'), "\n",
 		$q->start_td({'id' => 'mutalyzer_place'}), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'all_nomenclature', 'value' => 'Other nomenclatures', 'onclick' => 'getAllNom();$(\'#mutalyzer_place\').html("Please wait while mutalyzer is checking...");', 'class' => 'w3-button w3-blue'}), $q->end_td(),
 		$q->td('Click to retrieve alternative notations for the variant'),
+	$q->end_Tr(), "\n";
+
+
+$js = "
+	function defgenExport(status) {
+		\$.ajax({
+			type: \"POST\",
+			url: \"ajax.pl\",
+			data: {asked: 'defgen_status', nom_g: '$res->{'nom_g'}', status: status}
+		})
+		.done(function(msg) {					
+			\$('#defgen_export').html(msg);
+		});
+	};";
+
+print $q->start_Tr(),
+		$q->td('DEFGEN Export:'), "\n",
+		$q->start_td({'id' => 'defgen_export'}), U2_modules::U2_subs_3::defgen_status_html($res->{'defgen_export'}, $q);
+#need to be validator	
+if ($user->isValidator == 1) {		
+		print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'defgen_export', 'value' => 'Change status', 'onclick' => 'defgenExport('.$res->{'defgen_export'}.');$(\'#defgen_export\').html("Please wait ...");', 'class' => 'w3-button w3-blue'});
+}	
+print $q->end_td(),
+		$q->td('DEFGEN export preference for this variant'),
 	$q->end_Tr(), "\n",
 	$q->start_Tr(),
 		$q->td('U2 Classification:'),
@@ -633,7 +660,7 @@ if ($res->{'snp_id'} ne '') {
 	if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP150 variant set (MAF > 0.01)')}
 }
 else {print $q->span("Not reported in dbSNP150")}
-print $q->end_td(), $q->td('dbSNP v142 (Oct 14, 2014) related information'), $q->end_Tr(), "\n";
+print $q->end_td(), $q->td('dbSNP v150 (Feb 03, 2017) related information'), $q->end_Tr(), "\n";
 
 #1000 genomes
 

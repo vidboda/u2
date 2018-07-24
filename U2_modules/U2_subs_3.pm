@@ -909,5 +909,11 @@ sub display_page_header {
 	return $data;
 }
 
+sub defgen_status_html {
+	my ($status, $q) = @_;
+	if ($status == 1) {return $q->span({'style' => 'color:#00A020'},'Yes')}
+	else {return $q->span({'style' => 'color:#FF0000'},'No')}
+}
+
 
 1;

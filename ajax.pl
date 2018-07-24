@@ -997,9 +997,9 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	my $content =  "GENE;VARIANT;A_ENREGISTRER;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2\r\n";
 	if ($res ne '0E0') {
 		while (my $result = $sth->fetchrow_hashref()) {
-			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($result->{nom_g}, 'clinvar');
+			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($result->{'nom_g'}, 'clinvar');
 			my $acmg_class = $result->{'acmg_class'};
-			if ($acmg_class eq '') {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($result->{classe}, $dbh)}
+			if ($acmg_class eq '') {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($result->{'classe'}, $dbh)}
 			my $defgen_acmg = &u22defgen_acmg($acmg_class);
 			my ($defgen_a1, $defgen_a2) = U2_modules::U2_subs_3::get_defgen_allele($result->{'allele'});
 			#$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{'allele'};;;$result->{type_segment} $result->{num_segment};;$result->{enst};$result->{nom_gene}[1];$result->{snp_id};hg19;$result->{type_prot};;$result->{nom_prot}\n";
@@ -1360,6 +1360,17 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 		$content .= $q->end_div()."\n".$q->br();			
 	}
 	print $content;
+}
+
+if ($q->param('asked') && $q->param('asked') eq 'defgen_status') {
+	my $variant = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
+	my $status;
+	if ($q->param('status') && $q->param('status') =~ /^(0|1)$/o) {$status = $1}
+	my ($new_status, $new_html) = ('t', 1);
+	if ($status == 1) {($new_status, $new_html) = ('f', 0)}
+	my $query = "UPDATE variant SET defgen_export = '$new_status' WHERE nom_g = '$variant';";
+	$dbh->do($query);	
+	print $q->span(U2_modules::U2_subs_3::defgen_status_html($new_html, $q));
 }
 
 sub miseq_details {
