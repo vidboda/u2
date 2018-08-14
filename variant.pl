@@ -560,18 +560,19 @@ $js = "
 			\$('#defgen_export').html(msg);
 		});
 	};";
-
+if (U2_modules::U2_subs_1::is_pathogenic($res) == 0) {
+	print $q->start_Tr(),
+			$q->td('DEFGEN Export:'), "\n",
+			$q->start_td({'id' => 'defgen_export'}), U2_modules::U2_subs_3::defgen_status_html($res->{'defgen_export'}, $q);
+	#need to be validator	
+	if ($user->isValidator == 1) {		
+			print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'defgen_export', 'value' => 'Change status', 'onclick' => 'defgenExport('.$res->{'defgen_export'}.');$(\'#defgen_export\').html("Please wait ...");', 'class' => 'w3-button w3-blue'});
+	}	
+	print $q->end_td(),
+			$q->td('DEFGEN export preference for this variant'),
+		$q->end_Tr(), "\n";
+}
 print $q->start_Tr(),
-		$q->td('DEFGEN Export:'), "\n",
-		$q->start_td({'id' => 'defgen_export'}), U2_modules::U2_subs_3::defgen_status_html($res->{'defgen_export'}, $q);
-#need to be validator	
-if ($user->isValidator == 1) {		
-		print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'defgen_export', 'value' => 'Change status', 'onclick' => 'defgenExport('.$res->{'defgen_export'}.');$(\'#defgen_export\').html("Please wait ...");', 'class' => 'w3-button w3-blue'});
-}	
-print $q->end_td(),
-		$q->td('DEFGEN export preference for this variant'),
-	$q->end_Tr(), "\n",
-	$q->start_Tr(),
 		$q->td('U2 Classification:'),
 		$q->start_td(), $q->span({'id' => 'variant_class', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_classe($res->{'classe'}, $dbh).';'}, $res->{'classe'});
 	

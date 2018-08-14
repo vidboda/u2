@@ -938,6 +938,12 @@ sub is_large {
 	else {return 0}
 }
 
+sub is_pathogenic {
+	my $var = shift;
+	if ($var->{'classe'} eq 'VUCS class III' || $var->{'classe'} eq 'VUCS class IV' || $var->{'classe'} eq 'pathogenic') {return 1}
+	return 0
+}
+
 #in splicing_calc.pl
 sub get_last_exon_number {
 	my ($transcript, $dbh) = @_;
