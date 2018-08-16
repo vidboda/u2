@@ -421,10 +421,10 @@ sub valid_table {
 		my $res = $sth->execute();
 		my $html;
 		if ($res ne '0E0') {
-			$html .= $q->start_table({'class' => 'great_table technical'}).$q->start_Tr().$q->th({'class' => 'left_general'}, 'Gene').$q->th({'class' => 'left_general'}, 'Analysis').$q->th({'class' => 'left_general'}, 'Link').$q->end_Tr();
+			$html .= $q->start_table({'class' => 'great_table technical'}).$q->start_Tr().$q->th({'class' => 'left_general'}, 'Gene').$q->th({'class' => 'left_general'}, 'Analysis').$q->end_Tr();#$q->th({'class' => 'left_general'}, 'Link').
 			while (my $result = $sth->fetchrow_hashref()) {
-				$html .= $q->start_Tr().$q->td({'class' => 'italique'}, $result->{'nom_gene'}).$q->td($result->{'type_analyse'});
-				$html .= $q->start_td().$q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'}).$q->end_td();
+				$html .= $q->start_Tr().$q->td({'class' => 'italique'}, $result->{'nom_gene'});#.$q->td($result->{'type_analyse'});
+				$html .= $q->start_td().$q->button({'value' => $result->{'type_analyse'}, 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'}).$q->end_td();
 				$html .= $q->end_Tr();
 				#$html .= $q->start_li().$q->em($result->{'nom_gene'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 				#$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';"});
