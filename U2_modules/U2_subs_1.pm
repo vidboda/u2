@@ -944,6 +944,12 @@ sub is_pathogenic {
 	return 0
 }
 
+sub is_class_pathogenic {
+	my $class = shift;
+	if ($class eq 'VUCS class III' || $class eq 'VUCS class IV' || $class eq 'pathogenic') {return 1}
+	return 0
+}
+
 #in splicing_calc.pl
 sub get_last_exon_number {
 	my ($transcript, $dbh) = @_;

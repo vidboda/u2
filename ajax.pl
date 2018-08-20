@@ -434,6 +434,9 @@ if ($q->param('asked') && $q->param('asked') eq 'class') {
 	my $acc = U2_modules::U2_subs_1::check_acc($q, $dbh);
 	my $class = U2_modules::U2_subs_1::check_class($q, $dbh);
 	my $update = "UPDATE variant SET classe = '$class' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+	if (U2_modules::U2_subs_1::is_class_pathogenic($class) == 1){
+		$update = "UPDATE variant SET classe = '$class', defgen_export = 't' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+	}
 	#print $update;
 	$dbh->do($update);
 	#print ($class, U2_modules::U2_subs_1::color_by_classe($class, $dbh));
