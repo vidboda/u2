@@ -48,6 +48,7 @@ our @DFNX = ('POU3F4', 'PRPS1', 'SMPX', 'COL4A6');
 our @LCA = ('LRAT', 'SPATA7', 'TULP1', 'RPE65');
 #our @MITO = ('RNR1', 'TRNL1', 'TRNS1');
 our @OTHER_NS = ('ABHD12', 'ACOX1', 'ACTB', 'ACY1', 'ALMS1', 'ATP2B2', 'ATP6V0A4', 'ATP6V1B1', 'BSND', 'CACNA1D', 'CATSPER2', 'CHD7', 'CISD2', 'COL11A1', 'COL2A1', 'COL4A1', 'COL4A3', 'COL4A4', 'COL4A5', 'COL9A1', 'COL9A2', 'COL9A3', 'COLEC11', 'ECE1', 'EDN3', 'EDNRA', 'EDNRB', 'ERCC2', 'EYA1', 'FGF3', 'FGFR3', 'GATA3', 'HARS2', 'HSD17B4', 'JAG1', 'KARS', 'KCNE1', 'KCNQ1', 'KIT', 'LARS2', 'MASP1', 'MITF', 'MTAP', 'MYO1F', 'NDP', 'NF2', 'OPA1', 'PAX1', 'PAX3', 'PAX6', 'PEX1', 'PEX6', 'PHYH', 'PLS1', 'PMP22', 'POLR1C', 'POLR1D', 'SEMA3E', 'SIX1', 'SIX5', 'SLC4A11', 'SNAI2', 'SOX10', 'SOX2', 'TCOF1', 'TFAP2A', 'TIMM8A', 'TNC', 'TSHZ1', 'TWNK');
+our @DAV = ('EYA1', 'SIX1', 'KMT2D', 'KDM6A', 'ATP6V1B1', 'SLC26A4', 'FOXI1', 'KCNJ10', 'ATP6V0A4');
 #our @NOGROUP = ();
 
 
@@ -357,7 +358,8 @@ sub select_genes_grouped { #insert a list of genes in a pop up menu - group by p
 					$q->optgroup (-name => 'DFNX', -values => \@DFNX),
 					$q->optgroup (-name => 'NSRP', -values => \@NSRP),
 					$q->optgroup (-name => 'LCA', -values => \@LCA),
-					$q->optgroup (-name => 'OTHER NS', -values => \@OTHER_NS)
+					$q->optgroup (-name => 'OTHER NS', -values => \@OTHER_NS),
+					$q->optgroup (-name => 'DVA', -values => \@DAV)
 					#$q->optgroup (-name => 'NO GROUP', -values => \@NOGROUP)			    
 					    ]);
 }
