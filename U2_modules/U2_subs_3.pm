@@ -914,6 +914,36 @@ sub defgen_status_html {
 	if ($status == 1) {return $q->span({'style' => 'color:#00A020'},'Yes')}
 	else {return $q->span({'style' => 'color:#FF0000'},'No')}
 }
+#in variant_prioritize, ajax(defgen)
+sub get_sampleID_list {
+	my ($id, $number, $dbh) = @_;
+	my $query = "SELECT * FROM patient WHERE numero = '$number' AND identifiant = '$id';";
+	my $result = $dbh->selectrow_hashref($query);
+	if ($result) {
+		my ($first_name, $last_name) = ($result->{'first_name'}, $result->{'last_name'});
+		$first_name =~ s/'/''/og;
+		$last_name =~ s/'/''/og;
+		
+		my $query2 = "SELECT numero, identifiant FROM patient WHERE first_name = '$first_name' AND last_name = '$last_name' AND numero <> '$number'";
+		my $list = "('$id', '$number')";
+		my $sth2 = $dbh->prepare($query2);
+		my $res2 = $sth2->execute();
+		if ($res2 ne '0E0') {
+			while (my $result2 = $sth2->fetchrow_hashref()) {
+				$list .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}')";
+			}
+		}
+		return $list, $first_name, $last_name;
+	}
+}
 
+sub get_filter_from_idlist {
+	my ($list, $dbh) = @_;
+	my $filter = 'ALL'; #for NGS stuff
+	my $query_filter = "SELECT filter FROM miseq_analysis WHERE (id_pat, num_pat) IN ($list) AND filter <> 'ALL';";
+	my $res_filter = $dbh->selectrow_hashref($query_filter);
+	if ($res_filter) {$filter = $res_filter->{'filter'}}
+	return $filter;
+}
 
 1;
