@@ -566,6 +566,7 @@ sub insert_variant {
 								## Transcript description (submission) get version of isoform
 								if ($call->result->{'transcriptDescriptions'}) {
 									foreach ($call->result->{'transcriptDescriptions'}->{'string'}) {
+										my $tosearch = $gene."_v";
 										my $tab_ref;
 										if (ref($_) eq 'ARRAY') {$tab_ref = $_}
 										else {$tab_ref->[0] = $_}
@@ -581,15 +582,23 @@ sub insert_variant {
 											#see test_mutalyzer_pde6a.pl on 158 for details
 											#$to_follow .= "\nTranscript Description: $_\n";
 											if (/($gid)_\d+\.?\d\((\w+)\):(c\..+)/o) {
-												my ($version, $variant) = ($2, $3);
+												my ($version, $temp_var) = ($2, $3);
+												$temp_var =~ s/\?/\\?/og;
+												if ($nom =~ /^$temp_var/) {#for exonic variants
+													$temp_var =~ s/\\//og;
+													$nom = $temp_var;
+													$version =~ /$tosearch(\d{3})/;
+													$true_version = $1;
+												}
+												##my ($version, $variant) = ($2, $3);
 												#$to_follow .= "version: $version variant: $variant\n";
 												#$tmp .= "$version-$variant-$nom-$gene\n";
-												if ($nom =~ /$variant/) {
-													$version =~ /($gene)_v(\d{3})/;
-													$true_version = $2;
+												##if ($nom =~ /$variant/) {
+												##	$version =~ /($gene)_v(\d{3})/;
+												##	$true_version = $2;
 													#$to_follow .= "true version: $true_version\n";
 													#print "\n$true_version\n";
-												}
+												##}
 											}													
 											
 										}
@@ -599,6 +608,7 @@ sub insert_variant {
 								
 								if ($call->result->{'proteinDescriptions'}) {
 									foreach ($call->result->{'proteinDescriptions'}->{'string'}) {
+										my $tosearch = $gene."_i";
 										my $tab_ref;
 										if (ref($_) eq 'ARRAY') {$tab_ref = $_}
 										else {$tab_ref->[0] = $_}
@@ -606,10 +616,10 @@ sub insert_variant {
 										#if (Dumper($_) =~ /\[/og) { ## multiple results: tab ref
 										foreach(@{$tab_ref}) {
 											if ($_ =~ /($gene)_i$true_version\):(p\..+)/) {$nom_prot = $2}
-											if ($gene =~ /(PDE6A|TECTA|CDH23|RPGR)/o) {
+											##if ($_ =~ /$tosearch$true_version\):(p\..+)/) {$nom_prot = $1}
+											if ($gene =~ /(PDE6A|TECTA|CDH23|RPGR|PLS1)/o) {
 												$tmp .= "FOLLOW $1 variant to check: $nom\t$_\ttrue version:$true_version\tgid:$gid\tnom_prot:$nom_prot\n"
-											}
-											
+											}											
 											#print "\nProtein Description: ", $_, "\n"
 										}
 									}

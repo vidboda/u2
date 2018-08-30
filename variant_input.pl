@@ -474,8 +474,7 @@ elsif ($step == 2) { #insert variant and print
 											#OK it's because here intronic variants can be submitted as IVS17+2C>T, etc, which is not the case in import_illumina
 											#see test_mutalyzer_pde6a.pl on 158 for details
 											if (/($gid)_\d+\.?\d\((\w+)\):(c\..+)/) {
-												my ($version, $temp_var);
-												($version, $temp_var) = ($2, $3);
+												my ($version, $temp_var) = ($2, $3);
 												$temp_var =~ s/\?/\\?/og;
 												if ($cdna =~ /^$temp_var/) {#for exonic variants
 													$temp_var =~ s/\\//og;
@@ -522,7 +521,8 @@ elsif ($step == 2) { #insert variant and print
 										else {$tab_ref->[0] = $_}
 										#if (Dumper($_) =~ /\[/og) { ## multiple results: tab ref
 										foreach(@{$tab_ref}) {
-											if ($_ =~ /$tosearch$true_version\):(p\..+)/) {$nom_prot = $1}
+											if ($_ =~ /($gene)_i$true_version\):(p\..+)/) {$nom_prot = $2}
+											#if ($_ =~ /$tosearch$true_version\):(p\..+)/) {$nom_prot = $1}
 										}
 										#}
 										#else {
