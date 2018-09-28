@@ -110,17 +110,6 @@ my $js = "
 		//\$(\'.ui-dialog\').zIndex(\'1002\');
 		//}
 	}
-	function chooseSortingType(gene) {
-		var \$dialog = \$(\'<div></div>\')
-			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=classe\' target = \'_self\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_adn\' target = \'_self\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_prot\' target = \'_self\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_arn\' target = \'_self\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=taille\' target = \'_self\'>Variant size (get only large rearrangements)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
-			.dialog({
-			    autoOpen: false,
-			    title: \'U2 choice\',
-			    width: 450,
-			});
-		\$dialog.dialog(\'open\');
-		\$(\'.ui-dialog\').zIndex(\'1002\');
-	}
 	function showAllVariants(gene, sort_value, sort_type, freq, dynamic) {
 		\$(\'#page\').css(\'cursor\', \'progress\');
 		\$(\'.w3-button\').css(\'cursor\', \'progress\');
@@ -136,7 +125,34 @@ my $js = "
 			\$(\'.w3-button\').css(\'cursor\', \'default\');
 		});
 	}";
+my $user = U2_modules::U2_users_1->new();
 
+if ($user->isPublic != 1) {
+	$js .= "function chooseSortingType(gene) {
+		var \$dialog = \$(\'<div></div>\')
+			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=classe\' target = \'_self\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_adn\' target = \'_self\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_prot\' target = \'_self\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_arn\' target = \'_self\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=taille\' target = \'_self\'>Variant size (get only large rearrangements)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
+			.dialog({
+			    autoOpen: false,
+			    title: \'U2 choice\',
+			    width: 450,
+			});
+		\$dialog.dialog(\'open\');
+		\$(\'.ui-dialog\').zIndex(\'1002\');
+	}"
+}
+else {
+	$js .= "function chooseSortingType(gene) {
+		var \$dialog = \$(\'<div></div>\')
+			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
+			.dialog({
+			    autoOpen: false,
+			    title: \'U2 choice\',
+			    width: 450,
+			});
+		\$dialog.dialog(\'open\');
+		\$(\'.ui-dialog\').zIndex(\'1002\');
+	}"
+}
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 	$q->start_html(-title=>"U2 Gene page",
@@ -173,7 +189,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 -src => $JS_DEFAULT, 'defer' => 'defer'}],		
                         -encoding => 'ISO-8859-1');
 
-my $user = U2_modules::U2_users_1->new();
+
 
 
 if ($user->isPublic() == 1) {U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh)}

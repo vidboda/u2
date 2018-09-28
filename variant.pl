@@ -347,7 +347,7 @@ if (-d $ABSOLUTE_HTDOCS_PATH.'/data/splicing') {#if splicing module
 	if (-f $ABSOLUTE_HTDOCS_PATH.'/data/splicing/'.$gene.'_'.$splicing_var.'.pdf') {#if pdf for variant
 		print $q->span(" (confirmed), check "), $q->a({'href' => $HTDOCS_PATH.'/data/splicing/'.$gene.'_'.$splicing_var.'.pdf', 'target' => "_blank"}, 'analysis');
 	}
-	else {print $q->span(' (inferred)')}
+	else {print $q->span(' (inferred) ')}
 }
 
 #button to change RNA status for validators
