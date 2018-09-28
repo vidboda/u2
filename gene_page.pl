@@ -69,21 +69,49 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         {'RaiseError' => 1}
                 ) or die $DBI::errstr;
 
-
-my $js = 'function chooseSortingType(gene) {
-		var $dialog = $(\'<div></div>\')
-			.html("<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=classe\' target = \'_blank\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_adn\' target = \'_blank\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_prot\' target = \'_blank\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_arn\' target = \'_blank\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=taille\' target = \'_blank\'>Variant size (get only large rearrangements)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research="+gene+"\' target = \'_blank\'>LED rare variants</a></li></ul>")
+my $user = U2_modules::U2_users_1->new();
+my $js = '';
+if ($user->isPublic != 1) {
+	$js .= "function chooseSortingType(gene) {
+		var \$dialog = \$(\'<div></div>\')
+			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=classe\' target = \'_self\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_adn\' target = \'_self\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_prot\' target = \'_self\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_arn\' target = \'_self\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=taille\' target = \'_self\'>Variant size (get only large rearrangements)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
 			.dialog({
 			    autoOpen: false,
 			    title: \'U2 choice\',
 			    width: 450,
 			});
-		$dialog.dialog(\'open\');
-		$(\'.ui-dialog\').zIndex(\'1002\');
-	}';
+		\$dialog.dialog(\'open\');
+		\$(\'.ui-dialog\').zIndex(\'1002\');
+	}"
+}
+else {
+	$js .= "function chooseSortingType(gene) {
+		var \$dialog = \$(\'<div></div>\')
+			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
+			.dialog({
+			    autoOpen: false,
+			    title: \'U2 choice\',
+			    width: 450,
+			});
+		\$dialog.dialog(\'open\');
+		\$(\'.ui-dialog\').zIndex(\'1002\');
+	}"
+}
+
+#my $js = 'function chooseSortingType(gene) {
+#		var $dialog = $(\'<div></div>\')
+#			.html("<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=classe\' target = \'_blank\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_adn\' target = \'_blank\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_prot\' target = \'_blank\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_arn\' target = \'_blank\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=taille\' target = \'_blank\'>Variant size (get only large rearrangements)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research="+gene+"\' target = \'_blank\'>LED rare variants</a></li></ul>")
+#			.dialog({
+#			    autoOpen: false,
+#			    title: \'U2 choice\',
+#			    width: 450,
+#			});
+#		$dialog.dialog(\'open\');
+#		$(\'.ui-dialog\').zIndex(\'1002\');
+#	}';
 
 
-my $user = U2_modules::U2_users_1->new();
+
 
 
 
