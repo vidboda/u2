@@ -90,7 +90,7 @@ my $user = U2_modules::U2_users_1->new();
 
 ##end of Basic init
 
-if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA|NSRP)/o) {
+if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA|NSRP|DSD|NS)/o) {
 	my $sort = $1;
 	#if ($sort eq 'CHM') {
 	#	my $url = 'gene.pl?gene=CHM&info=general';
@@ -129,11 +129,15 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 					{-language => 'javascript',
 					-src => $JS_DEFAULT, 'defer' => 'defer'}],		
 				-encoding => 'ISO-8859-1');
-			
-		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
+		if ($user->isPublic() == 1) {U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh);}
+		else {U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh)}
 		my @list;
-		if ($sort eq 'ALL') {
-			my $query = 'SELECT DISTINCT(nom[1]) FROM gene ORDER BY nom[1];';
+		if ($sort eq 'ALL' && $user->isPublic() != 1) {
+			my $query = "SELECT DISTINCT(nom[1]) FROM gene WHERE ns_gene = 't' ORDER BY nom[1];";
+			@list = @{$dbh->selectcol_arrayref($query)};
+		}
+		elsif ($sort eq 'ALL' && $user->isPublic() == 1) {
+			my $query = "SELECT DISTINCT(nom[1]) FROM gene ORDER BY nom[1];";
 			@list = @{$dbh->selectcol_arrayref($query)};
 		}
 		elsif ($sort eq 'USHER') {@list = @U2_modules::U2_subs_1::USHER}
@@ -142,7 +146,12 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 		elsif ($sort eq 'DFNX') {@list = @U2_modules::U2_subs_1::DFNX}
 		elsif ($sort eq 'CHM') {@list = @U2_modules::U2_subs_1::CHM}
 		elsif ($sort eq 'LCA') {@list = @U2_modules::U2_subs_1::LCA}
-		elsif ($sort eq 'NSRP') {@list = @U2_modules::U2_subs_1::NSRP}		
+		elsif ($sort eq 'NSRP') {@list = @U2_modules::U2_subs_1::NSRP}
+		elsif ($sort eq 'DSD') {@list = @U2_modules::U2_subs_1::DSD}
+		elsif ($sort eq 'NS') {
+			my $query = "SELECT DISTINCT(nom[1]) as gene FROM gene WHERE ns_gene = 't' ORDER BY nom[1];";
+			@list = @{$dbh->selectcol_arrayref($query)}
+		}
 		print $q->start_p({'class' => 'center title'}), $q->start_big(), $q->strong("Gene group: $sort (".($#list+1)." genes)"), $q->end_big(), $q->end_p(), "\n";
 		#	$q->p('Click on a link to go to the detailed page:');
 		#	$q->start_ul(), "\n";
@@ -153,8 +162,9 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 					$q->start_Tr(), "\n",
 					$q->th({'class' => 'left_general'}, 'Genes'), "\n",
 					#$q->th({'colspan' => '5', 'class' => 'left_general'}, 'Links'), "\n",
-					$q->th({'class' => 'left_general'}, 'Links'), $q->th(), $q->th(), $q->th(), $q->th(), "\n",
-					$q->end_Tr(),
+					$q->th({'class' => 'left_general'}, 'Links'), $q->th(), $q->th();
+		if ($user->isPublic() != 1) {print $q->th(), $q->th()}
+		print "\n", $q->end_Tr(),
 					#$q->start_Tr(), "\n",
 					#$q->th(), $q->th(), $q->th(), $q->th(), $q->th(), "\n",
 					#$q->end_Tr(),
@@ -165,10 +175,12 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 				$q->start_td(), $q->em($_), $q->end_td(),
 				$q->start_td(), $q->a({'href' => "gene.pl?gene=$_&info=general", 'target' => '_blank'}, 'General info'), $q->end_td(),
 				$q->start_td(), $q->a({'href' => "gene.pl?gene=$_&info=structure", 'target' => '_blank'}, 'Structure'), $q->end_td(),
-				$q->start_td(), $q->a({'href' => "#", 'onclick' => "chooseSortingType('$_');"}, 'All variants'), $q->end_td(),
-				$q->start_td(), $q->a({'href' => "gene.pl?gene=$_&info=genotype", 'target' => '_blank'}, 'Genotypes'), $q->end_td(),
-				$q->start_td(), $q->a({'href' => "gene_graphs.pl?gene=$_", 'target' => '_blank'}, 'Graphs'), $q->end_td(),
-			$q->end_Tr();
+				$q->start_td(), $q->a({'href' => "#", 'onclick' => "chooseSortingType('$_');"}, 'All variants'), $q->end_td();
+				if ($user->isPublic() != 1) {
+					print $q->start_td(), $q->a({'href' => "gene.pl?gene=$_&info=genotype", 'target' => '_blank'}, 'Genotypes'), $q->end_td(),
+						$q->start_td(), $q->a({'href' => "gene_graphs.pl?gene=$_", 'target' => '_blank'}, 'Graphs'), $q->end_td();
+				}
+			print $q->end_Tr();
 				
 		}
 		print $q->end_tbody(), $q->end_table(), $q->end_div();

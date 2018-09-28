@@ -80,6 +80,15 @@ sub getName {
 	return $self->{name};
 }
 
+sub isPublic {
+	my $self = shift;
+	my $query = "SELECT * FROM public_access  WHERE username = '".$self->getName()."';";
+	my $res = $dbh->selectrow_hashref($query);
+	if ($res->{'username'} ne '') {return '1'}
+	else {return '0'}
+	#return $USERS->{$self->getName()}->[2];
+}
+
 sub isAnalyst {
 	my $self = shift;
 	my $query = "SELECT * FROM valid_analyste WHERE analyste = '".$self->getName()."';";

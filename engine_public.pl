@@ -78,56 +78,10 @@ sub main {
 	my ($recherche, $motif, $query, $url, $original);
 	
 	my $user = U2_modules::U2_users_1->new();
-	if ($user->isPublic()) {$q->redirect($PERL_SCRIPTS_HOME."engine_public.pl?search=".$q->param('search'));exit;}
-	#print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
-	#	$q->start_html(
-	#		-title=>"U2 search engine",
-	#                -lang => 'en',
-	#                -style => {-src => \@styles},
-	#                -head => [
-	#			$q->Link({-rel => 'icon',
-	#				-type => 'image/gif',
-	#				-href => $HTDOCS_PATH.'data/img/animated_favicon1.gif'}),
-	#			$q->Link({-rel => 'search',
-	#				-type => 'application/opensearchdescription+xml',
-	#				-title => 'U2 search engine',
-	#				-href => $HTDOCS_PATH.'u2browserengine.xml'}),
-	#			$q->meta({-http_equiv => 'Cache-control',
-	#				-content => 'no-cache'}),
-	#			$q->meta({-http_equiv => 'Pragma',
-	#				-content => 'no-cache'}),
-	#			$q->meta({-http_equiv => 'Expires',
-	#				-content => '0'})],
-	#                -script => [{-language => 'javascript',
-	#                        -src => $JS_PATH.'jquery-1.7.2.min.js'},
-	#                        {-language => 'javascript',
-	#                        -src => $JS_PATH.'jquery.fullsize.pack.js'},
-	#			{-language => 'javascript',
-	#                        -src => $JS_PATH.'jquery.validate.min.js'},
-	#                        {-language => 'javascript',
-	#                        -src => $JS_PATH.'DIV_SRC.js'},
-	#                        {-language => 'javascript',
-	#                        -src => $JS_DEFAULT}],		
-	#		-encoding => 'ISO-8859-1');
-	
-	
-	
-	#U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 	
 	
 	
 	my $keyword = &get_genes($dbh);
-	
-	$PATIENT_IDS =~ s/\(//og;
-	$PATIENT_IDS =~ s/\)//og;
-	my @ids = split(/\|/, $PATIENT_IDS);
-	foreach(@ids) {$keyword->{$_."number"} = 'patientID';$keyword->{lc($_)."number"} = 'patientID';}
-	
-	$PATIENT_FAMILY_IDS =~ s/\(//og;
-	$PATIENT_FAMILY_IDS =~ s/\)//og;
-	@ids = split(/\|/, $PATIENT_FAMILY_IDS);
-	foreach(@ids) {$keyword->{$_."number"} = 'familyID';$keyword->{lc($_)."number"} = 'familyID';}
-	
 	
 	$keyword->{'c\.'} = 'DNA-nom';
 	$keyword->{'g\.'} = 'DNA-nom_ng';
@@ -153,18 +107,18 @@ sub main {
 				elsif ($keyword->{$key} !~ /gene/) {
 					#print "$key -- $keyword->{$key} -- $recherche";exit;
 					$key =~ s/\\d\+/number/o;
-					if ($keyword->{$key} =~ /ID/o) {
-						$key =~ s/number/\\d\+/o;
-						if ($recherche =~ /^$key\d+$/) {
-							$key =~ s/\\d\+/number/o;
-							$motif = $keyword->{$key};
-							last;
-						}
-					}
-					else {
+					#if ($keyword->{$key} =~ /ID/o) {
+					#	$key =~ s/number/\\d\+/o;
+					#	if ($recherche =~ /^$key\d+$/) {
+					#		$key =~ s/\\d\+/number/o;
+					#		$motif = $keyword->{$key};
+					#		last;
+					#	}
+					#}
+					#else {
 						$motif = $keyword->{$key};
 						last;
-					}
+					#}
 				}
 			}
 		}
@@ -187,7 +141,7 @@ sub main {
 			#$motif = 'DNA-nom_g';
 		}
 		
-		if ($motif =~ /gene/ || $motif eq 'patientID') {
+		if ($motif =~ /gene/) {
 			if ($motif eq 'gene_lc') {$recherche = uc($recherche)}
 			$url = &build_link($motif, $recherche);
 			$q->redirect("$PERL_SCRIPTS_HOME$url");
@@ -199,7 +153,7 @@ sub main {
 			elsif ($recherche =~ /^\d+$/o) {$motif = 'multiple_number'}
 			elsif ($recherche =~ /^\w{1,3}\d+[\w\*]{1,3}$/o) {$motif = 'nom_prot';$recherche = "p.$recherche";}
 			elsif ($recherche =~ /^\w{1,3}[\d_]+[delupins]{3}/o) {$motif = 'nom_prot';$recherche = "p.$recherche";}
-			elsif ($recherche =~ /^([A-Za-z\s-']+)$/o) {$motif = 'patient_name';$recherche = uc($recherche);}
+			#elsif ($recherche =~ /^([A-Za-z\s-']+)$/o) {$motif = 'patient_name';$recherche = uc($recherche);}
 			#print $recherche;
 		}
 				
@@ -233,15 +187,15 @@ sub main {
 			}
 			$query = "SELECT  nom, nom_gene, nom_prot FROM variant WHERE $motif LIKE '$recherche%' ORDER BY nom_gene, nom_g;";
 		}
-		elsif ($motif eq 'patient_name') {
-			$recherche =~ s/'/''/og;
-			$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE last_name LIKE '%$recherche%';";
-		}
-		elsif ($motif eq 'familyID') {
-			$recherche = uc($recherche);
-			$recherche =~ s/^(S|U)/%/o;
-			$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE famille LIKE '$recherche';";
-		}	
+		#elsif ($motif eq 'patient_name') {
+		#	$recherche =~ s/'/''/og;
+		#	$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE last_name LIKE '%$recherche%';";
+		#}
+		#elsif ($motif eq 'familyID') {
+		#	$recherche = uc($recherche);
+		#	$recherche =~ s/^(S|U)/%/o;
+		#	$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE famille LIKE '$recherche';";
+		#}	
 		if ($query ne '') {
 			&print_results($query, $motif, '1', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 		}
@@ -256,8 +210,8 @@ sub main {
 		#del dup ins => DNA , prot OK
 		if ($motif eq 'multiple_number') {
 			#1st family/patient
-			$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE famille LIKE '%$recherche%' OR numero::text LIKE '%$recherche%' ORDER BY identifiant, numero;";
-			&print_results($query, 'familyID', '2', $recherche, $q, $dbh, $url, \@styles, $user, $original);
+			#$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE famille LIKE '%$recherche%' OR numero::text LIKE '%$recherche%' ORDER BY identifiant, numero;";
+			#&print_results($query, 'familyID', '2', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 			#2nd dna/prot variant
 			$query = "SELECT * FROM variant WHERE nom LIKE '%$recherche%' OR nom_prot LIKE '%$recherche%' ORDER BY nom_gene, nom_g;";
 			&print_results($query, 'variant', '3', $recherche, $q, $dbh, $url, \@styles, $user, $original);
@@ -266,8 +220,8 @@ sub main {
 		if ($query eq '' && $motif ne 'LR') {
 			&header($q, \@styles);
 			U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
-			print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
-			print $q->start_p(), $q->strong("Sorry, I did not find anything matching your query in U2 (query: '$recherche'). If you believe I should have found something, please contact David."), $q->end_p();
+			print $q->p("MobiCheck interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
+			print $q->start_p(), $q->strong("Sorry, I did not find anything matching your query in MobiCheck (query: '$recherche'). If you believe I should have found something, please contact David."), $q->end_p();
 		}
 		
 		
@@ -276,7 +230,7 @@ sub main {
 	else {
 		&header($q, \@styles);
 		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
-		print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
+		print $q->p("MobiCheck interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 		print "--".$q->param('search')."--";
 		U2_modules::U2_subs_1::standard_error('10', $q);
 	}
@@ -393,7 +347,7 @@ sub build_link {
 
 sub get_genes { #sub to get gene names recorded
 	my $dbh = shift;
-	my $query = "SELECT DISTINCT (nom[1]) as gene FROM gene ORDER BY nom[1];";
+	my $query = "SELECT DISTINCT (nom[1]) as gene FROM gene ORDER BY nom[1] WHERE ns_gene = 'f';";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $gene;

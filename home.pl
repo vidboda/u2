@@ -56,6 +56,7 @@ my $CSS_DEFAULT = $config->CSS_DEFAULT();
 my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
+my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css');
 
@@ -76,6 +77,11 @@ my $js = "
 
 "; 
 #end custom js
+
+my $user = U2_modules::U2_users_1->new();
+
+if ($user->isPublic()) {$q->redirect($PERL_SCRIPTS_HOME."home_public.pl");exit;}
+else {U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh)}
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 	$q->start_html(-title=>"USHVaM 2",
@@ -110,17 +116,14 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 -src => $JS_DEFAULT, 'defer' => 'defer'}],		
                         -encoding => 'ISO-8859-1');
 
-my $user = U2_modules::U2_users_1->new();
 
-
-U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Basic init
 
 
 #1st query to the database - basic statistics
 
-my $query = "SELECT COUNT(nom) as a, COUNT(DISTINCT(nom_gene[1])) as b, COUNT(DISTINCT(nom_gene[2])) as c FROM variant;";
+my $query = "SELECT COUNT(var.nom) as a, COUNT(DISTINCT(var.nom_gene[1])) as b, COUNT(DISTINCT(var.nom_gene[2])) as c FROM variant var, gene g WHERE var.nom_gene = g.nom AND g.ns_gene = 't';";
 my $res = $dbh->selectrow_hashref($query);
 
 #my $user = users->new();
@@ -132,7 +135,6 @@ print $q->start_div({'class' => 'w3-container w3-center w3-padding-32'}), $q->im
 $q->start_div(), "\n",
 	$q->span({'class' => 'w3-badge w3-jumbo w3-blue'}, $res->{'a'}), $q->span (' different variants '), $q->span({'class' => 'w3-badge w3-jumbo w3-red'}, $res->{'b'}), $q->span (' genes '), $q->span({'class' => 'w3-badge w3-jumbo w3-teal'}, $res->{'c'}), $q->span (' isoforms.'), "\n",
 $q->end_div(), "\n";
-
 
 
 $query = "SELECT COUNT(numero) as a FROM patient;";
@@ -187,7 +189,7 @@ print $q->span({'class' => 'w3-badge w3-xxlarge w3-teal'}, $res->{'a'}), $q->spa
 	#	$q->start_li(), $q->span('Statistics is '), $q->font({'color' => 'green'}, 'active'), $q->end_li(),
 	#	#$q->start_li(), $q->span('Variants is '), $q->font({'color' => 'red'}, 'inactive'), $q->end_li(),
 	#	
-	#$q->end_ul(),
+	#$q->end_ul(),	
 	$q->end_div();
 	#$q->start_div(),
 	my $text = $q->span('Example research for search engine:').

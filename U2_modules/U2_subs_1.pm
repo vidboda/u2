@@ -49,6 +49,8 @@ our @LCA = ('LRAT', 'SPATA7', 'TULP1', 'RPE65');
 #our @MITO = ('RNR1', 'TRNL1', 'TRNS1');
 our @OTHER_NS = ('ABHD12', 'ACOX1', 'ACTB', 'ACY1', 'ALMS1', 'ATP2B2', 'ATP6V0A4', 'ATP6V1B1', 'BSND', 'CACNA1D', 'CATSPER2', 'CHD7', 'CISD2', 'COL11A1', 'COL2A1', 'COL4A1', 'COL4A3', 'COL4A4', 'COL4A5', 'COL9A1', 'COL9A2', 'COL9A3', 'COLEC11', 'ECE1', 'EDN3', 'EDNRA', 'EDNRB', 'ERCC2', 'EYA1', 'FGF3', 'FGFR3', 'GATA3', 'HARS2', 'HSD17B4', 'JAG1', 'KARS', 'KCNE1', 'KCNQ1', 'KIT', 'LARS2', 'MASP1', 'MITF', 'MTAP', 'MYO1F', 'NDP', 'NF2', 'OPA1', 'PAX1', 'PAX3', 'PAX6', 'PEX1', 'PEX6', 'PHYH', 'PLS1', 'PMP22', 'POLR1C', 'POLR1D', 'SEMA3E', 'SIX1', 'SIX5', 'SLC4A11', 'SNAI2', 'SOX10', 'SOX2', 'TCOF1', 'TFAP2A', 'TIMM8A', 'TNC', 'TSHZ1', 'TWNK');
 our @DAV = ('EYA1', 'SIX1', 'KMT2D', 'KDM6A', 'ATP6V1B1', 'SLC26A4', 'FOXI1', 'KCNJ10', 'ATP6V0A4');
+our @DSD = ('AKR1C2','AKR1C4','AMH','AMHR2','AR','ARL6','ARX','ATF3','ATRX','CBX2','CHD7','CITED2','CYB5A','CYP11A1','CYP17A1','DHH','DMRT1','DMRT2','FGF8','FGF9','FGFR1','FGFR2','FSHB','FSHR','GATA4','HOXA13','HSD17B3','HSD3B2','INSL3','ANOS1','LHB','LHCGR','MAMLD1','MAP3K1','MKKS','NR0B1','NR5A1','POR','RXFP2','SOX2','SOX3','SOX8','SOX9','SOX10','SRD5A2','SRY','STAR','TSPYL1','WDR11','WNT4','WT1','ZFPM2');
+
 #our @NOGROUP = ();
 
 
@@ -181,6 +183,34 @@ sub standard_begin_html { #prints top of the pages
 	
 }
 
+sub public_begin_html { #prints top of the pages
+	my ($q, $user_name, $dbh) = @_;
+	print $q->start_div({'id' => 'page', 'class' => 'w3-medium'}), $q->start_div({'class' => 'w3-top', 'style' => 'z-index:1112'}),
+		$q->start_div({'id' => 'scroll', 'class' => 'w3-white w3-opacity-min'}),
+			$q->start_div({'id' => 'scroll-bar', 'class' => 'w3-blue', 'style' => 'height:4px;width:0%'}), $q->end_div(),
+		$q->end_div(),
+		$q->start_div({'id' => 'myNavbar', 'class' => 'w3-bar w3-card-2 w3-black'}),
+		$q->start_div({'class' => 'w3-dropdown-hover'}),
+			$q->start_a({'class' => 'w3-button w3-ripple w3-black', 'onclick' => 'window.location="/U2/";'}),$q->start_i({'class' => 'fa fa-home w3-xxlarge'}), $q->end_i(), $q->end_a(),
+			#$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}),
+			#	$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/resources.pl'}, 'Resources'),
+			#$q->end_div(),
+		$q->end_div(),
+		$q->start_div({'class' => 'w3-dropdown-hover'}), "\n",
+			$q->start_a({'class' => 'w3-button w3-ripple w3-black'}),$q->start_i({'class' => 'fa fa-ioxhost w3-xxlarge'}), $q->end_i(), $q->end_a(), "\n",
+			#$q->a({'class' => 'w3-button w3-ripple w3-xlarge'},'Genes'),
+			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}), "\n",
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=ALL'}, 'ALL'), "\n",
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NS'}, 'NS'), "\n",
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DSD'}, 'DSD'), "\n",
+			$q->end_div(), "\n",
+		$q->end_div(),
+		$q->start_a({'class' => 'w3-bar-item w3-button w3-ripple w3-xlarge w3-right', 'href' => '/ushvam2/change_user.php'}), $q->start_i({'class' => 'fa fa-user-times w3-xxlarge'}), $q->end_i(), $q->end_a(),
+		$q->span({'class' => 'w3-bar-item w3-xlarge w3-right'}, "Logged in as $user_name"), "\n",
+		$q->end_div(), $q->end_div(), $q->br(), $q->br(), "\n",
+		$q->start_div({'id' => 'internal'}), $q->br(), "\n";
+}
+
 sub standard_end_html { #prints bottom of the pages
 	my ($q) = shift;
 	#ends main div and prints fix_bot.html , 'src' => $HTDOCS_PATH.'fix_bot.html'
@@ -190,7 +220,7 @@ sub standard_end_html { #prints bottom of the pages
 
 #common header for gene pages in gene.pl, gene_graphs.pl
 sub gene_header {
-	my ($q, $current_tab, $gene) = @_;
+	my ($q, $current_tab, $gene, $user) = @_;
 	
 	print $q->start_div({'class' => 'w3-container'}), $q->start_h2(), $q->em($gene), $q->span(" page:"), $q->end_h2(), "\n",
 		$q->br(), $q->start_div({'class' => 'w3-row'}), "\n";
@@ -200,10 +230,12 @@ sub gene_header {
 	else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}	
 	if ($current_tab eq 'var_all') {&print_span(' w3-border-red', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
 	else {&print_span('', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
-	if ($current_tab eq 'genotypes') {&print_span(' w3-border-red', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
-	else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
-	if ($current_tab eq 'graphs') {&print_span(' w3-border-red', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
-	else {&print_span('', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
+	if ($user->isPublic() != 1) {
+		if ($current_tab eq 'genotypes') {&print_span(' w3-border-red', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
+		else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
+		if ($current_tab eq 'graphs') {&print_span(' w3-border-red', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
+		else {&print_span('', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
+	}
 	
 	#"chooseSortingType('$gene');"
 	

@@ -127,7 +127,7 @@ my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 
 my $date = U2_modules::U2_subs_1::get_date();
 
-U2_modules::U2_subs_1::gene_header($q, 'graphs', $gene);
+U2_modules::U2_subs_1::gene_header($q, 'graphs', $gene, $user);
 
 print $q->start_div({'class' => 'container'}), "\n",
 	$q->start_h2(), $q->em($gene), $q->span(' graphs page:'), $q->end_h2(), "\n",

@@ -176,7 +176,8 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 my $user = U2_modules::U2_users_1->new();
 
 
-U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
+if ($user->isPublic() == 1) {U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh)}
+else {U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh)}
 
 ##end of init
 
@@ -201,7 +202,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		while (my $result = $sth->fetchrow_hashref()) {
 			if ($result->{'main'} == 1) {
 				
-				U2_modules::U2_subs_1::gene_header($q, 'general_info', $gene);
+				U2_modules::U2_subs_1::gene_header($q, 'general_info', $gene, $user);
 				
 				$chr = $result->{'chr'};
 				print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' main accession: '),
@@ -258,7 +259,11 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		my $res_dalliance = $dbh->selectrow_hashref($query_dalliance);
 		my ($dal_start, $dal_stop) = (($res_dalliance->{'min'}-5000), ($res_dalliance->{'max'}+5000));
 		#if ($highlight_start == $highlight_end) {$highlight_end++}
-		
+					#	{name: '132 genes Design',
+					#desc: 'Nimblegen SeqCap on 132 genes',
+					#tier_type: 'tabix',
+					#payload: 'bed',
+					#uri: '".$DALLIANCE_DATA_DIR_URI."designs/seqcap_targets_sorted.132.bed.gz'},
 		my $browser = "
 			console.log(\"creating browser with coords: chr$chr:$dal_start-$dal_stop\" );
 			var sources = [
@@ -282,12 +287,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					desc: 'Repeat annotation from RepeatMasker', 
 					bwgURI: '".$DALLIANCE_DATA_DIR_URI."repeats/repeats.bb',
 					stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."repeats/bb-repeats2.xml',
-					forceReduction: -1},
-					{name: '132 genes Design',
-					desc: 'Nimblegen SeqCap on 132 genes',
-					tier_type: 'tabix',
-					payload: 'bed',
-					uri: '".$DALLIANCE_DATA_DIR_URI."designs/seqcap_targets_sorted.132.bed.gz'},
+					forceReduction: -1}
 					];
 			var browser = new Browser({
 				chr:		'$chr',
@@ -350,7 +350,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 }
 elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
-	U2_modules::U2_subs_1::gene_header($q, 'structure', $gene);
+	U2_modules::U2_subs_1::gene_header($q, 'structure', $gene, $user);
 	my $query = "SELECT DISTINCT(brin) FROM gene WHERE nom[1] = '$gene' ORDER BY main DESC;";
 	my $order = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 	my @js_params = ('showVariants', 'NULL', 'NULL');
@@ -382,7 +382,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		elsif ($q->param('sort') =~ /large/o) {$sort = 'taille'}
 	}
 	
-	U2_modules::U2_subs_1::gene_header($q, 'var_all', $gene);
+	U2_modules::U2_subs_1::gene_header($q, 'var_all', $gene, $user);
 	
 	print $q->br(), $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), 
 		$q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), $q->br(), "\n";
@@ -474,7 +474,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 }
 elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
-	U2_modules::U2_subs_1::gene_header($q, 'genotypes', $gene);
+	U2_modules::U2_subs_1::gene_header($q, 'genotypes', $gene, $user);
 	
 	my ($rp, $dfn, $usher) = U2_modules::U2_subs_1::get_gene_group($gene, $dbh);
 	

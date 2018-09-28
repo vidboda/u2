@@ -122,7 +122,8 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 my $user = U2_modules::U2_users_1->new();
 
 
-U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
+if ($user->isPublic() == 1) {U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh);}
+else {U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh)}
 
 ##end of Basic init
 
@@ -282,8 +283,7 @@ print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q
 				$q->end_strong(), $q->end_big(), $q->end_p(), "\n";
 
 #fixed image on the right
-
-print $q->img({'src' => $HTDOCS_PATH.'data/img/class.png', class => 'right ombre'});
+if ($user->isPublic != 1) {print $q->img({'src' => $HTDOCS_PATH.'data/img/class.png', class => 'right ombre'})}
 
 
 ##general info
@@ -548,96 +548,97 @@ print $q->start_Tr(),
 		$q->td('Click to retrieve alternative notations for the variant'),
 	$q->end_Tr(), "\n";
 
-
-$js = "
-	function defgenExport(status) {
-		\$.ajax({
-			type: \"POST\",
-			url: \"ajax.pl\",
-			data: {asked: 'defgen_status', nom_g: '$res->{'nom_g'}', status: status}
-		})
-		.done(function(msg) {					
-			\$('#defgen_export').html(msg);
-		});
-	};";
-if (U2_modules::U2_subs_1::is_pathogenic($res) == 0) {
-	print $q->start_Tr(),
-			$q->td('DEFGEN Export:'), "\n",
-			$q->start_td({'id' => 'defgen_export'}), U2_modules::U2_subs_3::defgen_status_html($res->{'defgen_export'}, $q);
-	#need to be validator	
-	if ($user->isValidator == 1) {		
-			print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'defgen_export', 'value' => 'Change status', 'onclick' => 'defgenExport('.$res->{'defgen_export'}.');$(\'#defgen_export\').html("Please wait ...");', 'class' => 'w3-button w3-blue'});
-	}	
-	print $q->end_td(),
-			$q->td('DEFGEN export preference for this variant'),
-		$q->end_Tr(), "\n";
-}
-print $q->start_Tr(),
-		$q->td('U2 Classification:'),
-		$q->start_td(), $q->span({'id' => 'variant_class', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_classe($res->{'classe'}, $dbh).';'}, $res->{'classe'});
-	
-	#change class
-#need to be validator
-if ($user->isValidator == 1) {
-	#print button which opens popup which calls ajax
-	my $html = &menu_class($res->{'classe'}, $q, $dbh);
+if ($user->isPublic != 1) {
 	$js = "
-		function classForm() {
-			var \$dialog_class = \$('<div></div>')
-				.html('$html')
-				.dialog({
-				    autoOpen: false,
-				    title: 'Change class for $gene $var:',
-				    width: 450,
-				    buttons: {
-					\"Change\": function() {
-						\$.ajax({
-							type: \"POST\",
-							url: \"ajax.pl\",
-							data: {nom_c: '".uri_escape($var)."', gene: '$gene', accession: '$acc', class: \$(\"#class_select\").val(), asked: 'class'}
-						})
-						.done(function() {
-							location.reload();
-							//var col = new RegExp(\"#[A-Z0-9]+\");
-							//var classe = new RegExp(\"[a-zA-Z ]+\");
-							//\$(\"#variant_class\").html(classe+class_col);
-							//\$(\"#variant_class\").html(classe.exec(class_col)+'');
-							//\$(\"#variant_class\").css(\"color\", \"\");							
-							//\$(\"#variant_class\").css(\"color\", \"col.exec(class_col)+''\");
-							//\$(this).dialog(\"close\"); //DOES NOT WANT TO CLOSE
-							//\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS
-						});
-					},
-					Cancel: function() {
-						\$(this).dialog(\"close\");
-					}
-				    }
-				});
-			\$dialog_class.dialog('open');
-			\$('.ui-dialog').zIndex('1002');
+		function defgenExport(status) {
+			\$.ajax({
+				type: \"POST\",
+				url: \"ajax.pl\",
+				data: {asked: 'defgen_status', nom_g: '$res->{'nom_g'}', status: status}
+			})
+			.done(function(msg) {					
+				\$('#defgen_export').html(msg);
+			});
 		};";
-	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();', 'class' => 'w3-button w3-blue'})
-	#print $q->start_li(), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();'}), $q->end_li(), $q->br(), "\n";
-}
+	if (U2_modules::U2_subs_1::is_pathogenic($res) == 0) {
+		print $q->start_Tr(),
+				$q->td('DEFGEN Export:'), "\n",
+				$q->start_td({'id' => 'defgen_export'}), U2_modules::U2_subs_3::defgen_status_html($res->{'defgen_export'}, $q);
+		#need to be validator	
+		if ($user->isValidator == 1) {		
+				print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'defgen_export', 'value' => 'Change status', 'onclick' => 'defgenExport('.$res->{'defgen_export'}.');$(\'#defgen_export\').html("Please wait ...");', 'class' => 'w3-button w3-blue'});
+		}	
+		print $q->end_td(),
+				$q->td('DEFGEN export preference for this variant'),
+			$q->end_Tr(), "\n";
+	}
+	print $q->start_Tr(),
+			$q->td('U2 Classification:'),
+			$q->start_td(), $q->span({'id' => 'variant_class', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_classe($res->{'classe'}, $dbh).';'}, $res->{'classe'});
+		
+		#change class
+	#need to be validator
+	if ($user->isValidator == 1) {
+		#print button which opens popup which calls ajax
+		my $html = &menu_class($res->{'classe'}, $q, $dbh);
+		$js = "
+			function classForm() {
+				var \$dialog_class = \$('<div></div>')
+					.html('$html')
+					.dialog({
+						autoOpen: false,
+						title: 'Change class for $gene $var:',
+						width: 450,
+						buttons: {
+						\"Change\": function() {
+							\$.ajax({
+								type: \"POST\",
+								url: \"ajax.pl\",
+								data: {nom_c: '".uri_escape($var)."', gene: '$gene', accession: '$acc', class: \$(\"#class_select\").val(), asked: 'class'}
+							})
+							.done(function() {
+								location.reload();
+								//var col = new RegExp(\"#[A-Z0-9]+\");
+								//var classe = new RegExp(\"[a-zA-Z ]+\");
+								//\$(\"#variant_class\").html(classe+class_col);
+								//\$(\"#variant_class\").html(classe.exec(class_col)+'');
+								//\$(\"#variant_class\").css(\"color\", \"\");							
+								//\$(\"#variant_class\").css(\"color\", \"col.exec(class_col)+''\");
+								//\$(this).dialog(\"close\"); //DOES NOT WANT TO CLOSE
+								//\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS
+							});
+						},
+						Cancel: function() {
+							\$(this).dialog(\"close\");
+						}
+						}
+					});
+				\$dialog_class.dialog('open');
+				\$('.ui-dialog').zIndex('1002');
+			};";
+		print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();', 'class' => 'w3-button w3-blue'})
+		#print $q->start_li(), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();'}), $q->end_li(), $q->br(), "\n";
+	}
+	
+	if ($res->{'classe'} eq 'unknown' && $user->isPublic != 1) {
+		
+		$js = "
+		function reqclass() {
+			\$.ajax({
+				type: \"POST\",
+				url: \"ajax.pl\",
+				data: {asked: 'req_class', nom_c: '$var', gene: '$gene'}
+			})
+			.done(function(msg) {					
+				\$('#class_request').hide();
+				\$('#request_done').html(msg);
+			});
+		};
+	";
+		
+		print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->span({'id' => 'request_done'}), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_request', 'value' => 'Request classification', 'onclick' => 'reqclass();', 'class' => 'w3-button w3-blue'});
+	}
 
-if ($res->{'classe'} eq 'unknown') {
-	
-	$js = "
-	function reqclass() {
-		\$.ajax({
-			type: \"POST\",
-			url: \"ajax.pl\",
-			data: {asked: 'req_class', nom_c: '$var', gene: '$gene'}
-		})
-		.done(function(msg) {					
-			\$('#class_request').hide();
-			\$('#request_done').html(msg);
-		});
-	};
-";
-	
-	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->span({'id' => 'request_done'}), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_request', 'value' => 'Request classification', 'onclick' => 'reqclass();', 'class' => 'w3-button w3-blue'});
-}
 	my ($acmg_class, $acmg_source);
 	if ($res->{'acmg_class'}) {$acmg_class = $res->{'acmg_class'};$acmg_source = 'Manual ACMG classification'}
 	else {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh);$acmg_source = 'Automatic classification based on U2 class'}
@@ -649,153 +650,153 @@ if ($res->{'classe'} eq 'unknown') {
 			$q->start_td(), $q->span({'id' => 'acmg_variant_class', 'style' => 'color:'.U2_modules::U2_subs_3::acmg_color_by_classe($acmg_class, $dbh).';'}, $acmg_class), $q->end_td(),
 			$q->td($acmg_source),
 		$q->end_Tr(), "\n";
-
-
-#dbSNP
-print $q->start_Tr(), $q->td('dbSNP:'), "\n",
-	$q->start_td();
-if ($res->{'snp_id'} ne '') {
-	my $snp_common = "SELECT common FROM restricted_snp WHERE rsid = '$res->{'snp_id'}';";
-	my $res_common = $dbh->selectrow_hashref($snp_common);
-	print $q->a({'href' => $dbsnp_url, 'target' => '_blank'}, $res->{'snp_id'});
-	if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP150 variant set (MAF > 0.01)')}
+	
+	
+	#dbSNP
+	print $q->start_Tr(), $q->td('dbSNP:'), "\n",
+		$q->start_td();
+	if ($res->{'snp_id'} ne '') {
+		my $snp_common = "SELECT common FROM restricted_snp WHERE rsid = '$res->{'snp_id'}';";
+		my $res_common = $dbh->selectrow_hashref($snp_common);
+		print $q->a({'href' => $dbsnp_url, 'target' => '_blank'}, $res->{'snp_id'});
+		if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP150 variant set (MAF > 0.01)')}
+	}
+	else {print $q->span("Not reported in dbSNP150")}
+	print $q->end_td(), $q->td('dbSNP v150 (Feb 03, 2017) related information'), $q->end_Tr(), "\n";
 }
-else {print $q->span("Not reported in dbSNP150")}
-print $q->end_td(), $q->td('dbSNP v150 (Feb 03, 2017) related information'), $q->end_Tr(), "\n";
-
 #1000 genomes
 
 print $q->start_Tr(), $q->td('MAFs & databases:'), $q->start_td(), $q->span({'id' => 'ext_data'}, 'loading external data...'), $q->end_td(), $q->td('Diverse population MAFs and links to LSDBs'), $q->end_Tr(), "\n";
 
 
 #infos on cohort: # of seen, MAFS, 454: mean depth, mean freq, mean f/r
-
-my ($maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA');
-if ($maf eq '') {	
-	#MAF 454
-	$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '454-[[:digit:]]+');
-	#MAF SANGER
-	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'SANGER');
-	#MAF MISEQ
-	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, $ANALYSIS_ILLUMINA_PG_REGEXP);
-	$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF Illumina: $maf_miseq";	
-}
-else {
-	$maf =~ /MAF\s454:\s([\w\.]+)\s\/.+/o;
-	$maf_454 = $1;
-}
-print $q->start_Tr(), $q->td('U2 MAFs:'), $q->td($maf), $q->td('MAFs in Ushvam 2 with different techniques'), $q->end_Tr(), "\n";
-
-###TO DO mean freq and doc for MiSeq
-
-if ($maf_454 ne 'NA') {	
-	my $query_454 = "SELECT AVG(depth) as a, AVG(frequency) as b, AVG(wt_f) as c, AVG(wt_r) as d, AVG(mt_f) as e, AVG(mt_r) as f, COUNT(nom_c) as g FROM variant2patient WHERE type_analyse LIKE '454-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-	my $res_454 = $dbh->selectrow_hashref($query_454);
-	print $q->start_Tr(), $q->td('454 mean values:'), $q->start_td(), $q->span("Seen in $res_454->{'g'} runs"),
-		$q->start_ul(),
-			$q->li("depth: ".sprintf('%.2f', $res_454->{'a'})), "\n",
-			$q->li("frequency: ".sprintf('%.2f', $res_454->{'b'})), "\n",
-			$q->li("forward reads (wt+mt): ".sprintf('%.2f',($res_454->{'c'}+$res_454->{'e'}))), "\n",
-			$q->li("reverse reads (wt+mt):  ".sprintf('%.2f',($res_454->{'d'}+$res_454->{'f'}))), "\n",
-		$q->end_ul(),
-		$q->end_td(), $q->td('Metrics related to all occurences within 454 sequencing'), $q->end_Tr(), "\n";
-}
-if ($maf_miseq ne 'NA') {
-	my $query_illu = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-	my $res_illu = $dbh->selectrow_hashref($query_illu);
-	print $q->start_Tr(), $q->td('MiSeq mean values:'), $q->start_td(), $q->span("Seen $res_illu->{'c'} times in Illumina sequencing"),
-		$q->start_ul(),
-			$q->li("depth: ".sprintf('%.2f', $res_illu->{'a'})), "\n",
-			$q->li("frequency: ".sprintf('%.2f', $res_illu->{'b'})), "\n";
-	$query_illu = "SELECT msr_filter, num_pat, id_pat FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";	
-	my $sth = $dbh->prepare($query_illu);
-	$res_illu = $sth->execute();
-	my $pass = 0;
-	my $other;
-	while (my $result = $sth->fetchrow_hashref()) {
-		if ($result->{'msr_filter'} eq 'PASS') {$pass++}
-		else {$other->{$result->{'msr_filter'}} .= $q->span("   ").$q->a({'href' => "patient_genotype.pl?sample=$result->{'id_pat'}$result->{'num_pat'}&gene=$gene", 'target' => '_blank'}, $result->{'id_pat'}.$result->{'num_pat'})}		
+if ($user->isPublic != 1) {
+	my ($maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA');
+	if ($maf eq '') {	
+		#MAF 454
+		$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '454-[[:digit:]]+');
+		#MAF SANGER
+		$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'SANGER');
+		#MAF MISEQ
+		$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, $ANALYSIS_ILLUMINA_PG_REGEXP);
+		$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF Illumina: $maf_miseq";	
 	}
-	print $q->start_li(), $q->span('Filter summary:'), $q->start_ul(),
-		$q->li("PASS $pass times");
-	foreach my $key (keys(%{$other})) {print $q->start_li(), $q->span("$key: "), $other->{$key}, $q->end_li()}
-	print $q->end_ul(),
-		$q->end_li(),
-		$q->end_ul(),
-		$q->end_td(), $q->td('Metrics related to all occurences within Illumina sequencing'), $q->end_Tr(), "\n";
-}
-
-
-
-$query = "SELECT DISTINCT(num_pat), id_pat, statut, denovo FROM variant2patient WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' ORDER BY num_pat;";
-my $sth = $dbh->prepare($query);
-my $res_seen = $sth->execute();
-
-my $seen;
-my $hom = 0;
-
-while (my $result = $sth->fetchrow_hashref()) {
-	if ($result->{'statut'} eq 'homozygous') {$hom += 2}
-	#if ($result->{'filter'} eq 'RP' && $result->{'dfn'} == 1) {next}
-	#elsif ($result->{'filter'} eq 'DFN' && $result->{'rp'} == 1) {next}
-	my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
-	$seen .= $q->start_div().$q->span("-$result->{'id_pat'}$result->{'num_pat'} ($result->{'statut'}$denovo_txt)&nbsp;&nbsp;").$q->start_a({'href' => "patient_file.pl?sample=$result->{'id_pat'}$result->{'num_pat'}", 'target' => '_blank'}).$q->span('patient&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->span('&nbsp;&nbsp;&nbsp;').$q->start_a({'href' => "patient_genotype.pl?sample=$result->{'id_pat'}$result->{'num_pat'}&gene=$gene", 'target' => '_blank'}).$q->span('genotype&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_div();	
-}
-
-$query = "SELECT DISTINCT(a.num_pat), a.id_pat, a.statut, a.denovo, b.filter, c.rp, c.dfn, c.usher, c.nom FROM variant2patient a, miseq_analysis b, gene c WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND a.nom_gene = c.nom AND a.nom_gene[1] = '$gene' AND a.nom_gene[2] = '$acc' AND a.nom_c = '$var' AND b.filter <> 'ALL' ORDER BY a.num_pat;";
-$sth = $dbh->prepare($query);
-my $res_filter = $sth->execute();
-while (my $result = $sth->fetchrow_hashref()) {
-	
-	if ($result->{'filter'} eq 'RP' && ($result->{'rp'} == 1 && $result->{'usher'} == 0)) {next}
-	elsif ($result->{'filter'} eq 'DFN' && ($result->{'dfn'} == 1 && $result->{'usher'} == 0)) {next}
-	elsif ($result->{'filter'} eq 'USH' && $result->{'usher'} == 1) {next}
-	elsif ($result->{'filter'} eq 'DFN-USH' && ($result->{'dfn'} == 1 || $result->{'usher'} == 1)) {next}
-	elsif ($result->{'filter'} eq 'RP-USH' && ($result->{'rp'} == 1 || $result->{'usher'} == 1)) {next}
-	elsif ($result->{'filter'} eq 'CHM' && $result->{'nom_gene'} eq 'CHM') {next}
 	else {
-		my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
-		$seen =~ s/<div><span>-$result->{'id_pat'}$result->{'num_pat'} \($result->{'statut'}$denovo_txt\)&nbsp;&nbsp;<\/span><a target="_blank" href="patient_file\.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}"><span>patient&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small.png" border="0" \/><\/a><span>&nbsp;&nbsp;&nbsp;<\/span><a target="_blank" href="patient_genotype.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}&amp;gene=$result->{'nom'}[0]"><span>genotype&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small\.png" border="0" \/><\/a><\/div>/<div>-filtered patient<\/div>/g;
-		#print "2-$result->{'id_pat'}$result->{'num_pat'}-$result->{'statut'}-$seen-<br/>";
+		$maf =~ /MAF\s454:\s([\w\.]+)\s\/.+/o;
+		$maf_454 = $1;
 	}
+	print $q->start_Tr(), $q->td('U2 MAFs:'), $q->td($maf), $q->td('MAFs in Ushvam 2 with different techniques'), $q->end_Tr(), "\n";
+	
+	###TO DO mean freq and doc for MiSeq
+	
+	if ($maf_454 ne 'NA') {	
+		my $query_454 = "SELECT AVG(depth) as a, AVG(frequency) as b, AVG(wt_f) as c, AVG(wt_r) as d, AVG(mt_f) as e, AVG(mt_r) as f, COUNT(nom_c) as g FROM variant2patient WHERE type_analyse LIKE '454-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+		my $res_454 = $dbh->selectrow_hashref($query_454);
+		print $q->start_Tr(), $q->td('454 mean values:'), $q->start_td(), $q->span("Seen in $res_454->{'g'} runs"),
+			$q->start_ul(),
+				$q->li("depth: ".sprintf('%.2f', $res_454->{'a'})), "\n",
+				$q->li("frequency: ".sprintf('%.2f', $res_454->{'b'})), "\n",
+				$q->li("forward reads (wt+mt): ".sprintf('%.2f',($res_454->{'c'}+$res_454->{'e'}))), "\n",
+				$q->li("reverse reads (wt+mt):  ".sprintf('%.2f',($res_454->{'d'}+$res_454->{'f'}))), "\n",
+			$q->end_ul(),
+			$q->end_td(), $q->td('Metrics related to all occurences within 454 sequencing'), $q->end_Tr(), "\n";
+	}
+	if ($maf_miseq ne 'NA') {
+		my $query_illu = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+		my $res_illu = $dbh->selectrow_hashref($query_illu);
+		print $q->start_Tr(), $q->td('MiSeq mean values:'), $q->start_td(), $q->span("Seen $res_illu->{'c'} times in Illumina sequencing"),
+			$q->start_ul(),
+				$q->li("depth: ".sprintf('%.2f', $res_illu->{'a'})), "\n",
+				$q->li("frequency: ".sprintf('%.2f', $res_illu->{'b'})), "\n";
+		$query_illu = "SELECT msr_filter, num_pat, id_pat FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";	
+		my $sth = $dbh->prepare($query_illu);
+		$res_illu = $sth->execute();
+		my $pass = 0;
+		my $other;
+		while (my $result = $sth->fetchrow_hashref()) {
+			if ($result->{'msr_filter'} eq 'PASS') {$pass++}
+			else {$other->{$result->{'msr_filter'}} .= $q->span("   ").$q->a({'href' => "patient_genotype.pl?sample=$result->{'id_pat'}$result->{'num_pat'}&gene=$gene", 'target' => '_blank'}, $result->{'id_pat'}.$result->{'num_pat'})}		
+		}
+		print $q->start_li(), $q->span('Filter summary:'), $q->start_ul(),
+			$q->li("PASS $pass times");
+		foreach my $key (keys(%{$other})) {print $q->start_li(), $q->span("$key: "), $other->{$key}, $q->end_li()}
+		print $q->end_ul(),
+			$q->end_li(),
+			$q->end_ul(),
+			$q->end_td(), $q->td('Metrics related to all occurences within Illumina sequencing'), $q->end_Tr(), "\n";
+	}
+	
+	
+	
+	$query = "SELECT DISTINCT(num_pat), id_pat, statut, denovo FROM variant2patient WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' ORDER BY num_pat;";
+	my $sth = $dbh->prepare($query);
+	my $res_seen = $sth->execute();
+	
+	my $seen;
+	my $hom = 0;
+	
+	while (my $result = $sth->fetchrow_hashref()) {
+		if ($result->{'statut'} eq 'homozygous') {$hom += 2}
+		#if ($result->{'filter'} eq 'RP' && $result->{'dfn'} == 1) {next}
+		#elsif ($result->{'filter'} eq 'DFN' && $result->{'rp'} == 1) {next}
+		my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
+		$seen .= $q->start_div().$q->span("-$result->{'id_pat'}$result->{'num_pat'} ($result->{'statut'}$denovo_txt)&nbsp;&nbsp;").$q->start_a({'href' => "patient_file.pl?sample=$result->{'id_pat'}$result->{'num_pat'}", 'target' => '_blank'}).$q->span('patient&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->span('&nbsp;&nbsp;&nbsp;').$q->start_a({'href' => "patient_genotype.pl?sample=$result->{'id_pat'}$result->{'num_pat'}&gene=$gene", 'target' => '_blank'}).$q->span('genotype&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_div();	
+	}
+	
+	$query = "SELECT DISTINCT(a.num_pat), a.id_pat, a.statut, a.denovo, b.filter, c.rp, c.dfn, c.usher, c.nom FROM variant2patient a, miseq_analysis b, gene c WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND a.nom_gene = c.nom AND a.nom_gene[1] = '$gene' AND a.nom_gene[2] = '$acc' AND a.nom_c = '$var' AND b.filter <> 'ALL' ORDER BY a.num_pat;";
+	$sth = $dbh->prepare($query);
+	my $res_filter = $sth->execute();
+	while (my $result = $sth->fetchrow_hashref()) {
+		
+		if ($result->{'filter'} eq 'RP' && ($result->{'rp'} == 1 && $result->{'usher'} == 0)) {next}
+		elsif ($result->{'filter'} eq 'DFN' && ($result->{'dfn'} == 1 && $result->{'usher'} == 0)) {next}
+		elsif ($result->{'filter'} eq 'USH' && $result->{'usher'} == 1) {next}
+		elsif ($result->{'filter'} eq 'DFN-USH' && ($result->{'dfn'} == 1 || $result->{'usher'} == 1)) {next}
+		elsif ($result->{'filter'} eq 'RP-USH' && ($result->{'rp'} == 1 || $result->{'usher'} == 1)) {next}
+		elsif ($result->{'filter'} eq 'CHM' && $result->{'nom_gene'} eq 'CHM') {next}
+		else {
+			my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
+			$seen =~ s/<div><span>-$result->{'id_pat'}$result->{'num_pat'} \($result->{'statut'}$denovo_txt\)&nbsp;&nbsp;<\/span><a target="_blank" href="patient_file\.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}"><span>patient&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small.png" border="0" \/><\/a><span>&nbsp;&nbsp;&nbsp;<\/span><a target="_blank" href="patient_genotype.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}&amp;gene=$result->{'nom'}[0]"><span>genotype&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small\.png" border="0" \/><\/a><\/div>/<div>-filtered patient<\/div>/g;
+			#print "2-$result->{'id_pat'}$result->{'num_pat'}-$result->{'statut'}-$seen-<br/>";
+		}
+	}
+	
+	
+	$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) as a FROM variant2patient WHERE type_analyse LIKE '454-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+	my $res_seen_454 = $dbh->selectrow_hashref($query);
+	
+	$query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WHERE type_analyse LIKE '454-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
+	my $hom_454 = $dbh->selectrow_hashref($query);
+	
+	#$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient WHERE type_analyse LIKE 'MiSeq-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+	$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) as a FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+	my $res_seen_miseq = $dbh->selectrow_hashref($query);
+	
+	#$query = "SELECT COUNT(DISTINCT(num_pat))*2 as a FROM variant2patient WHERE type_analyse LIKE 'MiSeq-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
+	$query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
+	my $hom_miseq = $dbh->selectrow_hashref($query);
+	
+	print $q->start_Tr(), $q->td('U2 occurences:'), $q->start_td(), $q->span("Seen in ".($res_seen+($hom/2))." alleles in total (including $hom homozygous) (homozygous = 2 alleles)"),
+		$q->start_ul(), $q->li("including ".($res_seen_454->{'a'}+($hom_454->{'a'}/2))." alleles in 454 context ($hom_454->{'a'} homozygous)"),
+		$q->li("including ".($res_seen_miseq->{'a'}+($hom_miseq->{'a'}/2))." alleles in Illumina context ($hom_miseq->{'a'} homozygous)"), $q->end_ul(), $q->end_td(), $q->td('Number of observation in Ushvam2 with details'), $q->end_Tr(), "\n";
+	
+	#patient list
+	
+	$js = "
+		function getPatients() {
+			var \$dialog = \$('<div></div>')
+				.html('$seen')
+				.dialog({
+					autoOpen: false,
+					title: 'Patients carrying $var:',
+					width: 450,
+					maxHeight: 600
+				});
+			\$dialog.dialog('open');
+		};";
+	
+	print $q->start_Tr(), $q->td('Samples:'), $q->start_td(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'patient_list', 'value' => 'Sample list', 'onclick' => 'getPatients();', 'class' => 'w3-button w3-blue'}), $q->end_td(), $q->td('Get a list of samples carrying the variant'), "\n";
 }
-
-
-$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) as a FROM variant2patient WHERE type_analyse LIKE '454-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-my $res_seen_454 = $dbh->selectrow_hashref($query);
-
-$query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WHERE type_analyse LIKE '454-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
-my $hom_454 = $dbh->selectrow_hashref($query);
-
-#$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient WHERE type_analyse LIKE 'MiSeq-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) as a FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-my $res_seen_miseq = $dbh->selectrow_hashref($query);
-
-#$query = "SELECT COUNT(DISTINCT(num_pat))*2 as a FROM variant2patient WHERE type_analyse LIKE 'MiSeq-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
-$query = "SELECT COUNT(DISTINCT(num_pat, id_pat))*2 as a FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var' AND statut = 'homozygous';";
-my $hom_miseq = $dbh->selectrow_hashref($query);
-
-print $q->start_Tr(), $q->td('U2 occurences:'), $q->start_td(), $q->span("Seen in ".($res_seen+($hom/2))." alleles in total (including $hom homozygous) (homozygous = 2 alleles)"),
-	$q->start_ul(), $q->li("including ".($res_seen_454->{'a'}+($hom_454->{'a'}/2))." alleles in 454 context ($hom_454->{'a'} homozygous)"),
-	$q->li("including ".($res_seen_miseq->{'a'}+($hom_miseq->{'a'}/2))." alleles in Illumina context ($hom_miseq->{'a'} homozygous)"), $q->end_ul(), $q->end_td(), $q->td('Number of observation in Ushvam2 with details'), $q->end_Tr(), "\n";
-
-#patient list
-
-$js = "
-	function getPatients() {
-		var \$dialog = \$('<div></div>')
-			.html('$seen')
-			.dialog({
-			    autoOpen: false,
-			    title: 'Patients carrying $var:',
-			    width: 450,
-			    maxHeight: 600
-			});
-		\$dialog.dialog('open');
-	};";
-
-print $q->start_Tr(), $q->td('Samples:'), $q->start_td(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'patient_list', 'value' => 'Sample list', 'onclick' => 'getPatients();', 'class' => 'w3-button w3-blue'}), $q->end_td(), $q->td('Get a list of samples carrying the variant'), "\n";
-
 #sequence
 if ($res->{'seq_wt'} ne '') {
 	print $q->start_Tr(), $q->td('WT:'), $q->td({'class' => 'txt'}, $res->{'seq_wt'}), $q->td('Wild-type DNA sequence'), $q->end_Tr(), "\n",
