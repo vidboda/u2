@@ -14,7 +14,7 @@ $config->file($config_file);# or die $!;
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 
 sub insert_variant {
-	my ($list, $vf_tag, $dbh, $instrument, $number, $id, $analysis, $intervals, $soap, $date) = @_;
+	my ($list, $vf_tag, $dbh, $instrument, $number, $id, $analysis, $intervals, $soap, $date, $user) = @_;
 	my ($var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $null, $var_filter) = (shift(@{$list}), shift(@{$list}), shift(@{$list}), shift(@{$list}), shift(@{$list}), shift(@{$list}), shift(@{$list}));
 	my ($var_dp, $var_vf);
 	my @format_list = split(/:/, pop(@{$list}));
@@ -649,7 +649,7 @@ sub insert_variant {
 								if ($res_snp) {$snp_id  = $res_snp->{rsid};$snp_common = $res_snp->{common};}
 								elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
 									#use myvariant.info REST API  http://myvariant.info/
-									my $myvariant = U2_modules::U2_subs_1::run_myvariant($nom_g, 'dbsnp.rsid', $user->getEmail());
+									my $myvariant = U2_modules::U2_subs_1::run_myvariant($genomic_var, 'dbsnp.rsid', $user->getEmail());
 									if ($myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
 								}
 								

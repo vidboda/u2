@@ -424,7 +424,7 @@ if ($step && $step == 2) {
 				my @list = split(/\t/);
 				
 				#################################sub begins
-				my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'VF', $dbh, $instrument, $number, $id, $analysis, $interval, $soap, $date);
+				my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'VF', $dbh, $instrument, $number, $id, $analysis, $interval, $soap, $date, $user);
 				if ($variant_input == 1) {$i++;next VCF}#variant added
 				elsif ($variant_input == 2) {next VCF}#variant in unknown region
 				elsif ($variant_input == 3) {$i++;$j++;next VCF}#variant created and added
