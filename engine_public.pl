@@ -347,7 +347,7 @@ sub build_link {
 
 sub get_genes { #sub to get gene names recorded
 	my $dbh = shift;
-	my $query = "SELECT DISTINCT (nom[1]) as gene FROM gene ORDER BY nom[1] WHERE ns_gene = 'f';";
+	my $query = "SELECT DISTINCT (nom[1]) as gene FROM gene WHERE ns_gene = 'f' ORDER BY nom[1] ;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $gene;
