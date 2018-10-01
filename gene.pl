@@ -458,7 +458,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		}
 		else {
 			my $text = 'No orphan variant to display';
-			print U2_modules::U2_subs_2::info_panel($text);
+			print U2_modules::U2_subs_2::info_panel($text, $q);
 		}
 		
 	}

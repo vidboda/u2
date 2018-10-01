@@ -134,7 +134,8 @@ $q->start_div(), "\n",
 $q->end_div(), "\n";
 
 
-$query = "SELECT COUNT(nom) as a FROM variant;";
+#$query = "SELECT COUNT(nom) as a FROM variant;";
+$query = "SELECT COUNT(a.nom_g) as a FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL;";
 $res = $dbh->selectrow_hashref($query);
 
 print $q->start_div(), $q->start_p(), $q->span(' You currently have already '), $q->span({'class' => 'w3-badge w3-xxlarge w3-teal'}, $res->{'a'}), $q->span(' variants that can be investigated');
