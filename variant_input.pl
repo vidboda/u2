@@ -8,7 +8,8 @@ use URI::Encode qw(uri_encode uri_decode);
 use URI::Escape;
 #use LWP::UserAgent;
 use SOAP::Lite;
-#use Data::Dumper;
+#use JSON;
+use Data::Dumper;
 
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
@@ -552,6 +553,16 @@ elsif ($step == 2) { #insert variant and print
 								if ($nom_ng =~ /d[eu][lp]/o) {$snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var like '$ng_accno:$nom_ng%';"}
 								my $res_snp = $dbh->selectrow_hashref($snp_query);
 								if ($res_snp) {$snp_id  = $res_snp->{rsid};$snp_common = $res_snp->{common};}
+								elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
+									#use myvariant.info REST API  http://myvariant.info/
+									#my $ua = LWP::UserAgent->new();
+									#my $json= $ua->get(uri_encode("http://myvariant.info/v1/variant/$nom_g?fields=dbsnp.rsid&email=".$user->getEmail()));
+									my $myvariant = U2_modules::U2_subs_1::run_myvariant($nom_g, 'dbsnp.rsid', $user->getEmail());
+									#print "--$myvariant->{'dbsnp'}->{'rsid'}--";
+									#exit;
+									#my $myvariant = decode_json($ua->get(uri_encode("http://myvariant.info/v1/variant/$nom_g?fields=dbsnp.rsid&email=".$user->getEmail())));
+									if ($myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
+								}
 								
 								my $date = U2_modules::U2_subs_1::get_date();
 								

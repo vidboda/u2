@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use SOAP::Lite;
 #use Data::Dumper;
+use JSON;
 use LWP::UserAgent;
 
 
@@ -1109,6 +1110,23 @@ sub run_mutalyzer {
 	my $call = $soap->call('runMutalyzer', SOAP::Data->name('variant')->value("$acc_g($gene$mutalyzer_version):$var"));
 	if ($call->fault()) {print "Mutalyzer Fault $var $gene<br/>"}
 	return $call;
+}
+
+sub test_myvariant {
+	my $ua = LWP::UserAgent->new();
+	my $request = $ua->get('http://myvariant.info');
+	if ($request->is_success()) {return 1}
+	else {return 0}	
+}
+
+sub run_myvariant {
+	my ($var, $fields, $email) = @_;
+	my $ua = LWP::UserAgent->new();
+	my $request = $ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=$fields&email=".$email));
+	if ($request->is_success()) {
+		return decode_json($request->content());
+	}
+	#return decode_json($ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=$fields&email=".$email)));
 }
 
 

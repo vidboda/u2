@@ -650,20 +650,19 @@ if ($user->isPublic != 1) {
 			$q->start_td(), $q->span({'id' => 'acmg_variant_class', 'style' => 'color:'.U2_modules::U2_subs_3::acmg_color_by_classe($acmg_class, $dbh).';'}, $acmg_class), $q->end_td(),
 			$q->td($acmg_source),
 		$q->end_Tr(), "\n";
-	
-	
-	#dbSNP
-	print $q->start_Tr(), $q->td('dbSNP:'), "\n",
-		$q->start_td();
-	if ($res->{'snp_id'} ne '') {
-		my $snp_common = "SELECT common FROM restricted_snp WHERE rsid = '$res->{'snp_id'}';";
-		my $res_common = $dbh->selectrow_hashref($snp_common);
-		print $q->a({'href' => $dbsnp_url, 'target' => '_blank'}, $res->{'snp_id'});
-		if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP150 variant set (MAF > 0.01)')}
-	}
-	else {print $q->span("Not reported in dbSNP150")}
-	print $q->end_td(), $q->td('dbSNP v150 (Feb 03, 2017) related information'), $q->end_Tr(), "\n";
 }
+
+#dbSNP
+print $q->start_Tr(), $q->td('dbSNP:'), "\n",
+	$q->start_td();
+if ($res->{'snp_id'} ne '') {
+	my $snp_common = "SELECT common FROM restricted_snp WHERE rsid = '$res->{'snp_id'}';";
+	my $res_common = $dbh->selectrow_hashref($snp_common);
+	print $q->a({'href' => $dbsnp_url, 'target' => '_blank'}, $res->{'snp_id'});
+	if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP150 variant set (MAF > 0.01)')}
+}
+else {print $q->span("Not reported in dbSNP150")}
+print $q->end_td(), $q->td('dbSNP related information'), $q->end_Tr(), "\n";
 #1000 genomes
 
 print $q->start_Tr(), $q->td('MAFs & databases:'), $q->start_td(), $q->span({'id' => 'ext_data'}, 'loading external data...'), $q->end_td(), $q->td('Diverse population MAFs and links to LSDBs'), $q->end_Tr(), "\n";

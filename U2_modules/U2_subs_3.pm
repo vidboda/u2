@@ -5,6 +5,7 @@ use warnings;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 
+
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 my $config_file = U2_modules::U2_init_1->getConfFile();
@@ -646,6 +647,11 @@ sub insert_variant {
 								
 								my $res_snp = $dbh->selectrow_hashref($snp_query);
 								if ($res_snp) {$snp_id  = $res_snp->{rsid};$snp_common = $res_snp->{common};}
+								elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
+									#use myvariant.info REST API  http://myvariant.info/
+									my $myvariant = U2_modules::U2_subs_1::run_myvariant($nom_g, 'dbsnp.rsid', $user->getEmail());
+									if ($myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
+								}
 								
 								if (($type_adn =~ /(deletion|insertion|duplication)/o) && ($taille < 5) && ($nom =~ /(.+d[eu][lp])$/o)) {
 									my $tosend = $seq_mt;
