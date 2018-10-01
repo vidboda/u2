@@ -146,7 +146,7 @@ sub getEmail {
 	my $self = shift;
 	my $query = "SELECT email FROM valid_analyste WHERE analyste = '".$self->getName()."';";
 	my $res = $dbh->selectrow_hashref($query);
-	if ($res->{'email'} ne '') {return $res->{'email'}}
+	if ($res->{'email'} && $res->{'email'} ne '') {return $res->{'email'}}
 }
 
 1;

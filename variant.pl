@@ -661,7 +661,7 @@ if ($res->{'snp_id'} ne '') {
 	print $q->a({'href' => $dbsnp_url, 'target' => '_blank'}, $res->{'snp_id'});
 	if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP150 variant set (MAF > 0.01)')}
 }
-else {print $q->span("Not reported in dbSNP150")}
+else {print $q->span("Not reported in dbSNP")}
 print $q->end_td(), $q->td('dbSNP related information'), $q->end_Tr(), "\n";
 #1000 genomes
 

@@ -1111,23 +1111,35 @@ sub run_mutalyzer {
 	if ($call->fault()) {print "Mutalyzer Fault $var $gene<br/>"}
 	return $call;
 }
-
+#U2_subs_3, variant_input.pl
 sub test_myvariant {
 	my $ua = LWP::UserAgent->new();
 	my $request = $ua->get('http://myvariant.info');
 	if ($request->is_success()) {return 1}
 	else {return 0}	
 }
-
+#U2_subs_3, variant_input.pl
 sub run_myvariant {
 	my ($var, $fields, $email) = @_;
+	if ($email && $email ne '') {$email = "&email=$email"}
+	else {$email = ''}
 	my $ua = LWP::UserAgent->new();
-	my $request = $ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=$fields&email=".$email));
+	if ($var =~ /(^chr.+[delup]{3})[ATGC]+$/o) {$var = $1}
+	my $request = $ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=$fields$email"));
 	if ($request->is_success()) {
 		return decode_json($request->content());
 	}
 	#return decode_json($ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=$fields&email=".$email)));
 }
+#ajax.pl
+#sub run_myvariantMafs {
+#	my ($var, $email) = @_;
+#	my $ua = LWP::UserAgent->new();
+#	my $request = $ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=gnomad_exome.af,gnomad_genome.af,cadd.esp.af,dbnsfp.1000gp3.af&email=".$email));
+#	if ($request->is_success()) {
+#		return decode_json($request->content());
+#	}
+#}
 
 
 # Other

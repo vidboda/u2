@@ -15,7 +15,7 @@ use SOAP::Lite;
 use File::Temp qw/ :seekable /;
 use List::Util qw(min max);
 #use IPC::Open2;
-#use Data::Dumper;
+use Data::Dumper;
 use URI::Escape;
 use LWP::UserAgent;
 use Net::Ping;
@@ -71,7 +71,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 
 my $q = new CGI;
 
-
+my $user = U2_modules::U2_users_1->new();
 
 
 
@@ -206,14 +206,51 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	}
 	if ($variant =~ /chr(.+)$/o && $semaph == 0) {
 		###NEW style using VEP 4 TGP and ESP
-		my $tempfile = File::Temp->new(UNLINK => 1);		
-		my $network = 'offline';
-		print $tempfile "$1\n";$network = 'port 3337';
-		if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
-			delete $ENV{PATH};
+		#####removed 01/10/2018 replaced wit myvariant.info
+		######my $tempfile = File::Temp->new(UNLINK => 1);		
+		#####my $network = 'offline';
+		#####print $tempfile "$1\n";$network = 'port 3337';
+		#####if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
+		#####	delete $ENV{PATH};
 			#my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 -o STDOUT`); ###VEP75
 			
-			my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz --plugin CADD,$DATABASES_PATH/CADD/whole_genome_SNVs.tsv.gz,$DATABASES_PATH/CADD/InDels.tsv.gz  -o STDOUT`); ###VEP81;
+		if (U2_modules::U2_subs_1::test_myvariant() == 1) {
+			#use myvariant.info REST API  http://myvariant.info/
+			#my $myvarinput = $variant;
+			#if ($myvarinput =~ /($chr.+[delup]{3})(.+)$/o) {$myvarinput = $1}
+			my $myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'all', $user->getEmail());
+			print Dumper($myvariant);
+			if ($myvariant && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
+				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD exome').$q->span(" AF: ".$myvariant->{'gnomad_exome'}->{'af'}->{'af'}).$q->end_li();
+				$semaph = 1;
+			}
+			#,gnomad_genome.af.af,cadd.esp.af,dbnsfp.1000gp3.af,clinvar.rcv.accession,cadd.rawscore
+			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'gnomad_genome.af.af', $user->getEmail());
+			if ($myvariant && $myvariant->{'gnomad_genome'}->{'af'}->{'af'} ne '') {
+				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD genome').$q->span(" AF: ".$myvariant->{'gnomad_genome'}->{'af'}->{'af'}).$q->end_li();
+				$semaph = 1;
+			}
+			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'dbnsfp.1000gp3.af', $user->getEmail());
+			if ($myvariant && $myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'} ne '') {
+				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1K genome').$q->span(" AF: ".$myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'}).$q->end_li();
+				$semaph = 1;
+			}
+			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.esp.af', $user->getEmail());
+			if ($myvariant && $myvariant->{'cadd'}->{'esp'}->{'af'} ne '') {
+				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP').$q->span(" AF: ".$myvariant->{'cadd'}->{'esp'}->{'af'}).$q->end_li();
+				$semaph = 1;
+			}
+			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.rawscore', $user->getEmail());
+			if ($myvariant && $myvariant->{'cadd'}->{'rawscore'} ne '') {
+				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD').$q->span(" raw: ".$myvariant->{'cadd'}->{'rawscore'}).$q->end_li();
+			}
+			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession', $user->getEmail());
+			if ($myvariant && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
+				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV').$q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->{'accession'}).$q->end_li();
+			}
+		}
+			#####removed 01/10/2018 replaced wit myvariant.info
+			#####my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz --plugin CADD,$DATABASES_PATH/CADD/whole_genome_SNVs.tsv.gz,$DATABASES_PATH/CADD/InDels.tsv.gz  -o STDOUT`); ###VEP81;
 			#for unknwon reasons VEP78 does not work anymore with indels (error) and VEP 81 with substitutions (does not retrieve gmaf esp_maf) - FINALLY works with assembly v75
 			
 			#if ($version == 78) {
@@ -224,43 +261,43 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#	
 			#}
 			
-			if ($res->{'acc'} =~ /(N[MR]_\d+)/o) {		
-				my @good_line = grep(/$1/, @results);
-				my $not_good_alt = 0;
-				#print "--$alt--";
-				if ($good_line[0] =~ /GMAF=([ATCG-]+):([\d\.]+);*/o) {
-					my ($nuc, $score) = ($1, $2);
-					#print $q->li("$nuc $ref $alt");
-					#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
-					#if (($ref ne '' && ($nuc =~ /[ATGC]/o  && ($nuc eq $alt || $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
-					if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
-						$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').$q->span(" phase 1 AF (allele $nuc): $score").$q->end_li();$semaph = 1;
-					}
-					else {$not_good_alt = 1}
-				}
-				if ($good_line[0] =~ /EA_MAF=([ATCG-]+):([\d\.]+);*/o) {
-					my ($nuc, $score) = ($1, $2);
-					#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
-					if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
-						$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').$q->span("  EA AF (allele $nuc): ".sprintf('%.4f', $score)).$q->end_li();$semaph = 1;
-					}
-					else {$not_good_alt = 1}
-				}
-				if ($good_line[0] =~ /AA_MAF=([ATCG-]+):([\d\.]+);*/o) {
-					my ($nuc, $score) = ($1, $2);
-					#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
-					if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
-						$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').$q->span("  AA AF (allele $nuc): ".sprintf('%.4f', $score)).$q->end_li();$semaph = 1;
-					}
-					else {$not_good_alt = 1}
-				}
-				if ($good_line[0] =~ /ExAC_AF=([\d\.e-]+);*/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').$q->span(" AF: $1").$q->end_li();$semaph = 1;}}
-				if ($good_line[0] =~ /CLIN_SIG=(\w+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/SNP/\')', 'class' => 'pointer'}, 'Clinical significance (dbSNP): ').$q->span($1).$q->end_li();}}
-				if ($good_line[0] =~ /CADD_RAW=([\d\.]+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD raw: ').$q->span($1).$q->end_li();}}
-				if ($good_line[0] =~ /CADD_PHRED=(\d+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD PHRED: ').$q->span($1).$q->end_li();}}
-			#print $q->li($good_line[0]);
-			}
-			else {$text .= $q->li("$res->{'acc'} not matching.");$semaph = 1;}
+			#####if ($res->{'acc'} =~ /(N[MR]_\d+)/o) {		
+			#####	my @good_line = grep(/$1/, @results);
+			#####	my $not_good_alt = 0;
+			#####	#print "--$alt--";
+			#####	if ($good_line[0] =~ /GMAF=([ATCG-]+):([\d\.]+);*/o) {
+			#####		my ($nuc, $score) = ($1, $2);
+			#####		#print $q->li("$nuc $ref $alt");
+			#####		#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
+			#####		#if (($ref ne '' && ($nuc =~ /[ATGC]/o  && ($nuc eq $alt || $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
+			#####		if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
+			#####			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').$q->span(" phase 1 AF (allele $nuc): $score").$q->end_li();$semaph = 1;
+			#####		}
+			#####		else {$not_good_alt = 1}
+			#####	}
+			#####	if ($good_line[0] =~ /EA_MAF=([ATCG-]+):([\d\.]+);*/o) {
+			#####		my ($nuc, $score) = ($1, $2);
+			#####		#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
+			#####		if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
+			#####			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').$q->span("  EA AF (allele $nuc): ".sprintf('%.4f', $score)).$q->end_li();$semaph = 1;
+			#####		}
+			#####		else {$not_good_alt = 1}
+			#####	}
+			#####	if ($good_line[0] =~ /AA_MAF=([ATCG-]+):([\d\.]+);*/o) {
+			#####		my ($nuc, $score) = ($1, $2);
+			#####		#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
+			#####		if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
+			#####			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').$q->span("  AA AF (allele $nuc): ".sprintf('%.4f', $score)).$q->end_li();$semaph = 1;
+			#####		}
+			#####		else {$not_good_alt = 1}
+			#####	}
+			#####	if ($good_line[0] =~ /ExAC_AF=([\d\.e-]+);*/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').$q->span(" AF: $1").$q->end_li();$semaph = 1;}}
+			#####	if ($good_line[0] =~ /CLIN_SIG=(\w+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/SNP/\')', 'class' => 'pointer'}, 'Clinical significance (dbSNP): ').$q->span($1).$q->end_li();}}
+			#####	if ($good_line[0] =~ /CADD_RAW=([\d\.]+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD raw: ').$q->span($1).$q->end_li();}}
+			#####	if ($good_line[0] =~ /CADD_PHRED=(\d+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD PHRED: ').$q->span($1).$q->end_li();}}
+			######print $q->li($good_line[0]);
+			#####}
+			#####else {$text .= $q->li("$res->{'acc'} not matching.");$semaph = 1;}
 			#MCAP results for missense
 			#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
 			#	my ($chr, $pos, $ref, $alt) = ($1, $2, $3, $4);
@@ -272,13 +309,13 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#		}
 			#	}
 			#}
-			if ($#results == -1) {
-				print "There may be an issue with port 3337 of Ensembl server mandatory for indel analysis. Please retry later.";
-				$semaph = 1;
-			}
+			#####if ($#results == -1) {
+			#####	print "There may be an issue with port 3337 of Ensembl server mandatory for indel analysis. Please retry later.";
+			#####	$semaph = 1;
+			#####}
 			#print $#results;
 			#foreach(@results) {print "$_<br/>"}
-		}	
+		#####}	
 	}
 	#else {print "pb with variant $variant with VEP"}
 	#my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);

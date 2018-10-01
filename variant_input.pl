@@ -561,7 +561,7 @@ elsif ($step == 2) { #insert variant and print
 									#print "--$myvariant->{'dbsnp'}->{'rsid'}--";
 									#exit;
 									#my $myvariant = decode_json($ua->get(uri_encode("http://myvariant.info/v1/variant/$nom_g?fields=dbsnp.rsid&email=".$user->getEmail())));
-									if ($myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
+									if ($myvariant && $myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
 								}
 								
 								my $date = U2_modules::U2_subs_1::get_date();
