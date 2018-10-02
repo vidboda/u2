@@ -532,6 +532,8 @@ print $q->start_Tr(),
 	
 my $js = "
 	function getAllNom() {
+		\$(\'#page\').css(\'cursor\', \'progress\');
+		\$(\'#mutalyzer_place\').css(\'cursor\', \'progress\');
 		\$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
@@ -539,6 +541,8 @@ my $js = "
 		})
 		.done(function(msg) {					
 			\$('#mutalyzer_place').html(msg);
+			\$(\'#page\').css(\'cursor\', \'auto\');
+			\$(\'#mutalyzer_place\').css(\'cursor\', \'auto\');
 		});
 	};";
 	
@@ -580,7 +584,7 @@ if ($user->isPublic != 1) {
 	#need to be validator
 	if ($user->isValidator == 1) {
 		#print button which opens popup which calls ajax
-		my $html = &menu_class($res->{'classe'}, $q, $dbh);
+		my $html = &menu_class($res->{'classe'}, 'classe', $q, $dbh);
 		$js = "
 			function classForm() {
 				var \$dialog_class = \$('<div></div>')
@@ -591,10 +595,12 @@ if ($user->isPublic != 1) {
 						width: 450,
 						buttons: {
 						\"Change\": function() {
+							\$(\'#page\').css(\'cursor\', \'progress\');
+							\$(\'.ui-button\').css(\'cursor\', \'progress\');
 							\$.ajax({
 								type: \"POST\",
 								url: \"ajax.pl\",
-								data: {nom_c: '".uri_escape($var)."', gene: '$gene', accession: '$acc', class: \$(\"#class_select\").val(), asked: 'class'}
+								data: {nom_c: '".uri_escape($var)."', gene: '$gene', accession: '$acc', field: 'classe', class: \$(\"#class_select\").val(), asked: 'class'}
 							})
 							.done(function() {
 								location.reload();
@@ -611,8 +617,8 @@ if ($user->isPublic != 1) {
 						Cancel: function() {
 							\$(this).dialog(\"close\");
 						}
-						}
-					});
+					}
+				});
 				\$dialog_class.dialog('open');
 				\$('.ui-dialog').zIndex('1002');
 			};";
@@ -620,7 +626,7 @@ if ($user->isPublic != 1) {
 		#print $q->start_li(), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();'}), $q->end_li(), $q->br(), "\n";
 	}
 	
-	if ($res->{'classe'} eq 'unknown' && $user->isPublic != 1) {
+	if ($res->{'classe'} eq 'unknown') {
 		
 		$js = "
 		function reqclass() {
@@ -638,19 +644,59 @@ if ($user->isPublic != 1) {
 		
 		print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->span({'id' => 'request_done'}), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_request', 'value' => 'Request classification', 'onclick' => 'reqclass();', 'class' => 'w3-button w3-blue'});
 	}
-
-	my ($acmg_class, $acmg_source);
-	if ($res->{'acmg_class'}) {$acmg_class = $res->{'acmg_class'};$acmg_source = 'Manual ACMG classification'}
-	else {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh);$acmg_source = 'Automatic classification based on U2 class'}
 	print $q->end_td(),
-			$q->td('U2 variant classification'),
-		$q->end_Tr(), "\n",
-		$q->start_Tr(),
-			$q->start_td(), $q->a({'href' => 'https://www.acmg.net/docs/Standards_Guidelines_for_the_Interpretation_of_Sequence_Variants.pdf', 'target' => '_blank'}, 'ACMG Classification :'), $q->end_td(),
-			$q->start_td(), $q->span({'id' => 'acmg_variant_class', 'style' => 'color:'.U2_modules::U2_subs_3::acmg_color_by_classe($acmg_class, $dbh).';'}, $acmg_class), $q->end_td(),
-			$q->td($acmg_source),
-		$q->end_Tr(), "\n";
+		$q->td('U2 variant classification'),
+	$q->end_Tr(), "\n",
 }
+my ($acmg_class, $acmg_source);
+if ($res->{'acmg_class'}) {$acmg_class = $res->{'acmg_class'};$acmg_source = 'Manual ACMG classification'}
+elsif ($user->isPublic != 1) {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh);$acmg_source = 'Automatic classification based on U2 class'}
+else {$acmg_class = 'Unknown';$acmg_source = 'Default ACMG class'}
+
+print 	$q->start_Tr(),
+		$q->start_td(), $q->a({'href' => 'https://www.acmg.net/docs/Standards_Guidelines_for_the_Interpretation_of_Sequence_Variants.pdf', 'target' => '_blank'}, 'ACMG Classification :'), $q->end_td(),
+		$q->start_td(), $q->span({'id' => 'acmg_variant_class', 'style' => 'color:'.U2_modules::U2_subs_3::acmg_color_by_classe($acmg_class, $dbh).';'}, $acmg_class);
+		
+if ($user->isValidator == 1 || $user->isPublic == 1) {
+	my $html = &menu_class($res->{'acmg_class'}, 'acmg_class', $q, $dbh);
+	$js = "
+		function classForm() {
+			var \$dialog_class = \$('<div></div>')
+				.html('$html')
+				.dialog({
+					autoOpen: false,
+					title: 'Change ACMG class for $gene $var:',
+					width: 450,
+					buttons: {
+					\"Change\": function() {
+						\$(\'#page\').css(\'cursor\', \'progress\');
+						\$(\'.ui-button\').css(\'cursor\', \'progress\');
+						\$.ajax({
+							type: \"POST\",
+							url: \"ajax.pl\",
+							data: {nom_c: '".uri_escape($var)."', gene: '$gene', accession: '$acc', field: 'acmg_class', class: \$(\"#acmg_class_select\").val(), asked: 'class'}
+						})
+						.done(function() {
+							location.reload();
+						});
+					},
+					Cancel: function() {
+						\$(this).dialog(\"close\");
+					}
+				}
+			});
+			\$dialog_class.dialog('open');
+			\$('.ui-dialog').zIndex('1002');
+		};";
+	
+	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();', 'class' => 'w3-button w3-blue'});
+
+}
+
+print 	$q->end_td(),
+		$q->td($acmg_source),
+	$q->end_Tr(), "\n";
+
 
 #dbSNP
 print $q->start_Tr(), $q->td('dbSNP:'), "\n",
@@ -1024,15 +1070,24 @@ exit();
 ##specific subs for current script
 
 sub menu_class {
-	my ($classe, $q, $dbh) = @_;
+	my ($classe, $field, $q, $dbh) = @_;
 	my @class_list;
-	my $html2return = $q->br().$q->br().$q->start_div({'align' => 'center'}).$q->start_Select({'id' => 'class_select'});
-	my $sth = $dbh->prepare("SELECT classe FROM valid_classe ORDER BY ordering;");
+	my $html2return = $q->br().$q->br().$q->start_div({'align' => 'center'}).$q->start_Select({'id' => $field.'_select'});
+	my $query = "SELECT $field FROM valid_classe ORDER BY ordering;";
+	if ($field eq 'acmg_class') {$query = "SELECT DISTINCT($field) FROM valid_classe ORDER BY $field;"}
+	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
-		my $options = 'style = "color:'.U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh).';"';
-		if ($result->{'classe'} eq $classe) {$options .= ' selected = "selected"'}
-		$html2return .= $q->option({$options}, $result->{'classe'});
+		if ($field eq 'acmg_class') {
+			my $options = 'style = "color:'.U2_modules::U2_subs_1::color_by_acmg_classe($result->{'acmg_class'}, $dbh).';"';
+			if ($result->{'acmg_class'} eq $classe) {$options .= ' selected = "selected"'}
+			$html2return .= $q->option({$options}, $result->{'acmg_class'})
+		}
+		else {
+			my $options = 'style = "color:'.U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh).';"';
+			if ($result->{'classe'} eq $classe) {$options .= ' selected = "selected"'}
+			$html2return .= $q->option({$options}, $result->{'classe'})
+		}
 	}
 	$html2return .= $q->end_Select().$q->end_div().$q->br().$q->br();
 	return $html2return;

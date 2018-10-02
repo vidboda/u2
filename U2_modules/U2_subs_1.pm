@@ -639,6 +639,18 @@ sub check_class {
 	}
 	&standard_error('17', $q)
 }
+sub check_acmg_class {
+	my ($q, $dbh) = @_;
+	my $query = "SELECT class FROM valid_acmg_class;";
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	while (my $result = $sth->fetchrow_hashref()) {
+		if ($q->param('class') eq $result->{'class'}) {
+			return $result->{'class'};
+		}		
+	}
+	&standard_error('17', $q)
+}
 sub check_rna_status {
 	my ($q, $dbh) = @_;
 	my $query = "SELECT type_arn FROM valid_type_arn;";
@@ -748,6 +760,14 @@ sub color_by_classe {
 	my $query = "SELECT html_code FROM valid_classe WHERE classe = '$classe';";
 	my $res = $dbh->selectrow_hashref($query);
 	return $res->{'html_code'};
+}
+sub color_by_acmg_classe {
+	my ($acmg_class, $dbh) = @_;
+	if ($acmg_class ne '') {
+		my $query = "SELECT html_code FROM valid_classe WHERE acmg_class = '$acmg_class';";
+		my $res = $dbh->selectrow_hashref($query);
+		return $res->{'html_code'};
+	}
 }
 #in variant.pl
 sub color_by_rna_status {
@@ -942,8 +962,6 @@ sub compute_exonic_positions {
 	else {print "size pb with $query-$pos-$dist1-$dist2-$res->{'taille'}::"}	
 }
 
-
-
 #in variant.pl & variant creation scripts
 sub get_deleted_sequence {
 	my $mutalyzer_seq = shift;
@@ -970,18 +988,18 @@ sub get_chr_from_gene {
 sub is_large {
 	my ($var) = shift;
 	if ($var->{'taille'} > 50) {return 1}
-	else {return 0}
+	return 0
 }
 
 sub is_pathogenic {
 	my $var = shift;
-	if ($var->{'classe'} eq 'VUCS class III' || $var->{'classe'} eq 'VUCS class IV' || $var->{'classe'} eq 'pathogenic') {return 1}
+	if ($var->{'classe'} eq 'VUCS class III' || $var->{'classe'} eq 'VUCS class IV' || $var->{'classe'} eq 'pathogenic' || $var->{'classe'} eq 'ACMG class IV' || $var->{'classe'} eq 'ACMG class V') {return 1}
 	return 0
 }
 
 sub is_class_pathogenic {
 	my $class = shift;
-	if ($class eq 'VUCS class III' || $class eq 'VUCS class IV' || $class eq 'pathogenic') {return 1}
+	if ($class eq 'VUCS class III' || $class eq 'VUCS class IV' || $class eq 'pathogenic' || $class eq 'ACMG class IV' || $class eq 'ACMG class V') {return 1}
 	return 0
 }
 

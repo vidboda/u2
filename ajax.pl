@@ -465,15 +465,35 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	print $text;
 	###END NEW style using VEP
 }
+#if ($q->param('asked') && $q->param('asked') eq 'class') {
+#	print $q->header();
+#	my $variant = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
+#	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
+#	my $acc = U2_modules::U2_subs_1::check_acc($q, $dbh);
+#	my $class = U2_modules::U2_subs_1::check_class($q, $dbh);
+#	my $update = "UPDATE variant SET classe = '$class' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+#	if (U2_modules::U2_subs_1::is_class_pathogenic($class) == 1){
+#		$update = "UPDATE variant SET classe = '$class', defgen_export = 't' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+#	}
+#	#print $update;
+#	$dbh->do($update);
+#	#print ($class, U2_modules::U2_subs_1::color_by_classe($class, $dbh));
+#}
 if ($q->param('asked') && $q->param('asked') eq 'class') {
 	print $q->header();
 	my $variant = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	my $acc = U2_modules::U2_subs_1::check_acc($q, $dbh);
-	my $class = U2_modules::U2_subs_1::check_class($q, $dbh);
-	my $update = "UPDATE variant SET classe = '$class' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+	my $field;
+	if ($q->param('field') eq 'classe' || $q->param('field') eq 'acmg_class') {$field = $q->param('field')}
+	else {U2_modules::U2_subs_1::standard_error('17', $q)}
+	my $class;
+	if ($field eq 'classe') {$class= U2_modules::U2_subs_1::check_class($q, $dbh)}
+	else {$class= U2_modules::U2_subs_1::check_acmg_class($q, $dbh)}
+	
+	my $update = "UPDATE variant SET $field = '$class' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
 	if (U2_modules::U2_subs_1::is_class_pathogenic($class) == 1){
-		$update = "UPDATE variant SET classe = '$class', defgen_export = 't' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+		$update = "UPDATE variant SET $field = '$class', defgen_export = 't' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
 	}
 	#print $update;
 	$dbh->do($update);
