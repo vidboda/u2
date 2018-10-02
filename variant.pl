@@ -268,6 +268,7 @@ print	$q->a({'href' => $dbsnp_url, 'target' => '_blank', 'class' => 'w3-bar-item
 	$q->a({'href' => $ucsc_link_hg38, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 UCSC'), "\n",
 	$q->a({'href' => $map2pdb_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg19 Map2PDB'), "\n",
 	$q->a({'href' => $map2pdb_hg38_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 Map2PDB'), "\n",
+	$q->a({'href' => 'http://wintervar.wglab.org/', 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'InterVar'), "\n",
 	$q->end_div();
 		#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvar_button.png'}), $q->end_a(),
 	#$q->end_li(), "\n";
