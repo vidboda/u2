@@ -15,7 +15,7 @@ use SOAP::Lite;
 use File::Temp qw/ :seekable /;
 use List::Util qw(min max);
 #use IPC::Open2;
-use Data::Dumper;
+#use Data::Dumper;
 use URI::Escape;
 use LWP::UserAgent;
 use Net::Ping;
@@ -204,6 +204,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#}
 		}
 	}
+	my $gnomad = 0;
 	if ($variant =~ /chr(.+)$/o && $semaph == 0) {
 		###NEW style using VEP 4 TGP and ESP
 		#####removed 01/10/2018 replaced wit myvariant.info
@@ -219,16 +220,16 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#my $myvarinput = $variant;
 			#if ($myvarinput =~ /($chr.+[delup]{3})(.+)$/o) {$myvarinput = $1}
 			my $myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'all', $user->getEmail());
-			print Dumper($myvariant);
+			#print Dumper($myvariant);
 			if ($myvariant && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
 				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD exome').$q->span(" AF: ".$myvariant->{'gnomad_exome'}->{'af'}->{'af'}).$q->end_li();
-				$semaph = 1;
+				($semaph, $gnomad) = (1, 1);
 			}
 			#,gnomad_genome.af.af,cadd.esp.af,dbnsfp.1000gp3.af,clinvar.rcv.accession,cadd.rawscore
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'gnomad_genome.af.af', $user->getEmail());
 			if ($myvariant && $myvariant->{'gnomad_genome'}->{'af'}->{'af'} ne '') {
 				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD genome').$q->span(" AF: ".$myvariant->{'gnomad_genome'}->{'af'}->{'af'}).$q->end_li();
-				$semaph = 1;
+				($semaph, $gnomad) = (1, 1);
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'dbnsfp.1000gp3.af', $user->getEmail());
 			if ($myvariant && $myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'} ne '') {
@@ -339,7 +340,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	#}
 	#get gnomAD via tabix v2 using annovar database (lighter)
 	#TO DO: small sub for gnomad treatment DONE
-	if ($chr ne '') {
+	if ($chr ne '' && $gnomad == 0) {
 		$chr =~ s/chr//og;
 		$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz", 'exome', $chr, $position, $ref, $alt, $q);
 		$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_genome_sorted.txt.gz", 'genome', $chr, $position, $ref, $alt, $q);
