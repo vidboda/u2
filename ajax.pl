@@ -490,7 +490,7 @@ if ($q->param('asked') && $q->param('asked') eq 'class') {
 	my $class;
 	if ($field eq 'classe') {$class= U2_modules::U2_subs_1::check_class($q, $dbh)}
 	else {$class= U2_modules::U2_subs_1::check_acmg_class($q, $dbh)}
-	
+
 	my $update = "UPDATE variant SET $field = '$class' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
 	if (U2_modules::U2_subs_1::is_class_pathogenic($class) == 1){
 		$update = "UPDATE variant SET $field = '$class', defgen_export = 't' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";

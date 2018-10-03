@@ -604,7 +604,7 @@ if ($user->isPublic != 1) {
 							\$.ajax({
 								type: \"POST\",
 								url: \"ajax.pl\",
-								data: {nom_c: '".uri_escape($var)."', gene: '$gene', accession: '$acc', field: 'classe', class: \$(\"#class_select\").val(), asked: 'class'}
+								data: {nom_c: '".uri_escape($var)."', gene: '$gene', accession: '$acc', field: 'classe', class: \$(\"#classe_select\").val(), asked: 'class'}
 							})
 							.done(function() {
 								location.reload();

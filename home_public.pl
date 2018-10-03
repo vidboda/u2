@@ -128,7 +128,7 @@ my $res = $dbh->selectrow_hashref($query);
 #print $q->start_div({'align' => 'center'}), $q->img({'src' => $HTDOCS_PATH.'data/img/U2.png', 'alt' => 'U2'}), $q->start_p(), $q->big($user->getName().", Welcome to USHVaM 2. The system currently records $res->{'a'} different variants collected in $res->{'b'} genes corresponding to $res->{'c'} different isoforms."), $q->end_p(), "\n",
 #	$q->p("You ".$user->isAnalystToString()." and ".$user->isValidatorToString()." and ".$user->isRefereeToString()), "\n";
 
-print $q->start_div({'class' => 'w3-container w3-center w3-padding-32'}), $q->img({'src' => $HTDOCS_PATH.'data/img/U2.png', 'alt' => 'U2'}), $q->p({'class' => 'w3-large'}, ucfirst($user->getName()).", Welcome to MobiCheck: You can create and investigate variants in "), "\n",
+print $q->start_div({'class' => 'w3-container w3-center w3-padding-32'}), $q->img({'src' => $HTDOCS_PATH.'data/img/U2.png', 'alt' => 'U2'}), $q->p({'class' => 'w3-large'}, ucfirst($user->getName()).", Welcome to MobiDetails: You can create and investigate variants in "), "\n",
 $q->start_div(), "\n",
 	$q->span({'class' => 'w3-badge w3-jumbo w3-blue'}, $res->{'a'}), $q->span (' genes '), $q->span({'class' => 'w3-badge w3-jumbo w3-red'}, $res->{'b'}), $q->span (' isoforms '), "\n",
 $q->end_div(), "\n";
