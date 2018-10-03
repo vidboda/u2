@@ -197,6 +197,9 @@ if ($res->{'type_prot'} eq 'missense' && exists($USMA->{$gene})) {
 	#$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/USMA_button.png'}), "\n";
 	#$q->end_li(), "\n";
 }
+elsif ($res->{'type_prot'} eq 'missense' && $gene eq 'CFTR') {
+	print $q->a({'href' => "https://cftr.iurc.montp.inserm.fr/cgi-bin/cysma/cysma.cgi?gene=$gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'CYSMA'), "\n";
+}
 
 my ($evs_chr, $evs_pos_start, $evs_pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($res->{'nom_g'}, 'evs');
 if ($res->{'taille'} < 50) {
@@ -661,7 +664,7 @@ print 	$q->start_Tr(),
 if ($user->isValidator == 1 || $user->isPublic == 1) {
 	my $html = &menu_class($res->{'acmg_class'}, 'acmg_class', $q, $dbh);
 	$js = "
-		function classForm() {
+		function acmgClassForm() {
 			var \$dialog_class = \$('<div></div>')
 				.html('$html')
 				.dialog({
@@ -690,7 +693,7 @@ if ($user->isValidator == 1 || $user->isPublic == 1) {
 			\$('.ui-dialog').zIndex('1002');
 		};";
 	
-	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'classForm();', 'class' => 'w3-button w3-blue'});
+	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'class_button', 'value' => 'Change class', 'onclick' => 'acmgClassForm();', 'class' => 'w3-button w3-blue'});
 
 }
 
