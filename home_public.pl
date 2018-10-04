@@ -196,7 +196,7 @@ print $q->end_p(), $q->end_div(), $q->end_div(), "\n",
 
 ##Basic end of USHVaM 2 perl scripts:
 
-U2_modules::U2_subs_1::standard_end_html($q);
+U2_modules::U2_subs_1::public_end_html($q);
 
 print $q->end_html();
 

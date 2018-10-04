@@ -218,7 +218,47 @@ sub standard_end_html { #prints bottom of the pages
 	my ($q) = shift;
 	#ends main div and prints fix_bot.html , 'src' => $HTDOCS_PATH.'fix_bot.html'
 	#print $q->end_div(), $q->br(), $q->start_div({'id' => 'bottom', 'align' => 'right', 'class' => 'print_hidden'}), $q->start_a({'href' => '#page'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/top_arrow.png', 'width' => '23', 'height' => '34', 'border' => '0'}), $q->strong('Go to top'), $q->end_a(), $q->end_div(), "\n",
-	print $q->end_div(), $q->br(), $q->start_div({'id' => 'fixbot', 'class' => 'w3-container w3-center'}), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->br(), $q->br(), $q->end_div();
+	print $q->end_div(), $q->br(), $q->start_div({'id' => 'fixbot', 'class' => 'w3-container w3-center fixbot'}), $q->end_div(), $q->br(), $q->br(), $q->br(), $q->br(), $q->br(), $q->end_div();
+}
+
+sub public_end_html { #prints bottom of the pages
+	my ($q) = shift;
+	print $q->end_div(), $q->br(), $q->start_div({'class' => 'w3-container w3-center fixbot'}),
+	$q->script({'type' => "text/javascript"}, "
+\$(document).ready(function() {
+	\$('#engine').autocomplete({
+		serviceUrl: '/perl/U2/autocomplete.pl',
+		type: 'POST',
+		dataType: 'json',
+		orientation: 'top',
+		onSelect: function(){\$(\"#search_form\").submit();},
+		minChars: 2,
+		preventBadQueries: false,
+		showNoSuggestionNotice: true,
+		noSuggestionNotice: 'No results in patient or gene names'
+	});
+	\$('#main_engine').autocomplete({
+		serviceUrl: '/perl/U2/autocomplete.pl',
+		type: 'POST',
+		dataType: 'json',
+		orientation: 'top',
+		onSelect: function(){\$(\"#main\").submit();},
+		minChars: 2,
+		preventBadQueries: false,
+		showNoSuggestionNotice: true,
+		noSuggestionNotice: 'No results in patient or gene names'
+	});
+});"),
+	$q->start_form({'action' => "/perl/U2/engine_public.pl", 'id' => "search_form"}),
+		$q->start_div({'class' => "w3-row"}),
+			$q->start_div({'class' => "w3-half w3-right-align"}),
+				$q->input({'type' => "text", 'class' => "w3-input w3-border w3-large", 'name' => "search", 'id' => "engine", 'size' => "30", 'style' => "width:200px;display:inline;", 'maxlength' => "40", 'placeholder' => " Ask MobiDetails:", 'autofocus' => "autofocus"}),
+			$q->end_div(),
+			$q->start_div({'class' =>"w3-quarter"}), $q->input({'type' => "submit", 'id' => "submit_a", 'value' => "Submit", 'class' => "w3-button w3-white w3-large w3-border"}),
+			$q->end_div(),
+		$q->end_div(),
+		$q->end_form(), "\n", 
+	$q->end_div(), $q->br(), $q->br(), $q->br(), $q->br(), $q->br(), $q->end_div();
 }
 
 #common header for gene pages in gene.pl, gene_graphs.pl

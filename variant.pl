@@ -1063,7 +1063,8 @@ print U2_modules::U2_subs_2::info_panel($text, $q);
 
 ##Basic end of USHVaM 2 perl scripts:
 
-U2_modules::U2_subs_1::standard_end_html($q);
+if ($user->isPublic() == 1) {U2_modules::U2_subs_1::public_end_html($q)}
+else {U2_modules::U2_subs_1::standard_end_html($q)}
 
 print $q->end_html();
 

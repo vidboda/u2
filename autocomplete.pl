@@ -10,7 +10,7 @@ use JSON;
 #use SOAP::Lite;
 #use Data::Dumper;
 
-#use U2_modules::U2_users_1;
+use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 
@@ -61,7 +61,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=ushvam2;host=localhost;",
                 ) or die $DBI::errstr;
 
 
-#my $user = U2_modules::U2_users_1->new();
+my $user = U2_modules::U2_users_1->new();
 
 
 ##end of Minimal init
@@ -84,19 +84,21 @@ if ($q->param('query') =~ /^([\w\s]+)$/o) {
 	#	}
 	#}	
 	#else {
-	my $query = "SELECT DISTINCT(last_name) FROM patient WHERE last_name LIKE '%".uc($search)."%' ORDER BY last_name;";
-	my $sth = $dbh->prepare($query);
-	my $res = $sth->execute();	
-	#$return->{'suggestions'} = [];
 	my $i = 0;
-	if ($res) {
+	if ($user->isPublic() != 1) {
+		my $query = "SELECT DISTINCT(last_name) FROM patient WHERE last_name LIKE '%".uc($search)."%' ORDER BY last_name;";
+		my $sth = $dbh->prepare($query);
+		my $res = $sth->execute();	
+		#$return->{'suggestions'} = [];
 		
-		while (my $result = $sth->fetchrow_hashref()) {
-			my $answer = $result->{'last_name'};
-			if ($result->{'last_name'} =~ /(\w+)\s*\(*[Nn]&eacute;e.+/o) {$answer = $1}
-			elsif ($result->{'last_name'} =~ /(\w+)\s\(*ep\..+/o) {$answer = $1}	
-			$return->{'suggestions'}[$i] = $answer;
-			$i++;
+		if ($res) {			
+			while (my $result = $sth->fetchrow_hashref()) {
+				my $answer = $result->{'last_name'};
+				if ($result->{'last_name'} =~ /(\w+)\s*\(*[Nn]&eacute;e.+/o) {$answer = $1}
+				elsif ($result->{'last_name'} =~ /(\w+)\s\(*ep\..+/o) {$answer = $1}	
+				$return->{'suggestions'}[$i] = $answer;
+				$i++;
+			}
 		}
 	}
 	my $query = "SELECT DISTINCT(nom[1]) FROM gene WHERE nom[1] LIKE '%".uc($search)."%' ORDER BY nom[1];";
