@@ -78,7 +78,7 @@ my $js = "
 #end custom js
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
-	$q->start_html(-title=>"USHVaM 2",
+	$q->start_html(-title=>"MobiDetails",
                         -lang => 'en',
                         -style => {-src => \@styles},
                         -head => [
@@ -128,9 +128,13 @@ my $res = $dbh->selectrow_hashref($query);
 #print $q->start_div({'align' => 'center'}), $q->img({'src' => $HTDOCS_PATH.'data/img/U2.png', 'alt' => 'U2'}), $q->start_p(), $q->big($user->getName().", Welcome to USHVaM 2. The system currently records $res->{'a'} different variants collected in $res->{'b'} genes corresponding to $res->{'c'} different isoforms."), $q->end_p(), "\n",
 #	$q->p("You ".$user->isAnalystToString()." and ".$user->isValidatorToString()." and ".$user->isRefereeToString()), "\n";
 
-print $q->start_div({'class' => 'w3-container w3-center w3-padding-32'}), $q->img({'src' => $HTDOCS_PATH.'data/img/U2.png', 'alt' => 'U2'}), $q->p({'class' => 'w3-large'}, ucfirst($user->getName()).", Welcome to MobiDetails: You can create and investigate variants in "), "\n",
+print $q->start_div({'class' => 'w3-container w3-center w3-padding-32'}), $q->span({'class' => 'w3-badge w3-jumbo w3-blue'}, 'MobiDetails');
+
+#$q->img({'src' => $HTDOCS_PATH.'data/img/U2.png', 'alt' => 'U2'}),
+
+print $q->p({'class' => 'w3-large'}, ucfirst($user->getName()).", Welcome to MobiDetails: You can create and investigate variants in "), "\n",
 $q->start_div(), "\n",
-	$q->span({'class' => 'w3-badge w3-jumbo w3-blue'}, $res->{'a'}), $q->span (' genes '), $q->span({'class' => 'w3-badge w3-jumbo w3-red'}, $res->{'b'}), $q->span (' isoforms '), "\n",
+	$q->span({'class' => 'w3-badge w3-jumbo w3-blue'}, $res->{'a'}), $q->span (' genes,'), $q->span({'class' => 'w3-badge w3-jumbo w3-red'}, $res->{'b'}), $q->span (' isoforms '), "\n",
 $q->end_div(), "\n";
 
 
@@ -144,7 +148,7 @@ print $q->end_p(), $q->end_div(), $q->end_div(), "\n",
 	$q->start_div({'align' => 'center'}), "\n",
 		$q->start_form({'action' => '/perl/U2/engine_public.pl', 'id' => 'main', 'method' => 'POST', 'enctype' => &CGI::URL_ENCODED}), "\n",
 			$q->start_div({'class' => 'w3-margin-16 w3-container', 'style' => 'width:50%'}), "\n",
-				$q->input({'type' => 'text', 'name' => 'search', 'id' => 'main_engine', 'size' => '50', 'maxlength' => '40', 'placeholder' => ' Ask USHVaM 2:', 'class' => 'w3-input w3-light-grey w3-animate-input', 'style' => 'width:30%'}), "\n", $q->br(), $q->br(),
+				$q->input({'type' => 'text', 'name' => 'search', 'id' => 'main_engine', 'size' => '50', 'maxlength' => '40', 'placeholder' => ' Ask MobiDetails:', 'class' => 'w3-input w3-light-grey w3-animate-input', 'style' => 'width:30%'}), "\n", $q->br(), $q->br(),
 				$q->input({'type' => 'submit', 'value' => 'Submit', 'class' => 'w3-button w3-blue'}),
 			$q->end_div(), "\n",
 		$q->end_form(), "\n",
