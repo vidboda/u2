@@ -118,7 +118,7 @@ else {
 
 ##end of Basic init
 
-if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA|NSRP|DSD|NS)/o) {
+if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA|NSRP|DSD|NS|NM)/o) {
 	my $sort = $1;
 	#if ($sort eq 'CHM') {
 	#	my $url = 'gene.pl?gene=CHM&info=general';
