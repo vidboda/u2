@@ -381,7 +381,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	if ($nb_exons > 300) {$canvas_height = '2500'}
 	print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'),
 		$q->br(), $q->br(),
-		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"$canvas_height\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}),
+		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}),
 		$q->end_div(), "\n",
 		$q->script({'type' => 'text/javascript'}, $js), "\n",
 		$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}),
