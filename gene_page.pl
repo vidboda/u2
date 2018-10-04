@@ -176,6 +176,7 @@ if ($q->param('sort') && $q->param('sort') =~ /(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA
 		elsif ($sort eq 'LCA') {@list = @U2_modules::U2_subs_1::LCA}
 		elsif ($sort eq 'NSRP') {@list = @U2_modules::U2_subs_1::NSRP}
 		elsif ($sort eq 'DSD') {@list = @U2_modules::U2_subs_1::DSD}
+		elsif ($sort eq 'NM') {@list = @U2_modules::U2_subs_1::NM}
 		elsif ($sort eq 'NS') {
 			my $query = "SELECT DISTINCT(nom[1]) as gene FROM gene WHERE ns_gene = 't' ORDER BY nom[1];";
 			@list = @{$dbh->selectcol_arrayref($query)}
