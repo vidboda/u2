@@ -371,9 +371,16 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	my $order = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 	my @js_params = ('showVariants', 'NULL', 'NULL');
 	my ($js, $map) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
+	#get exon number for gene
+	$query = "SELECT MAX(nbre_exons) FROM gene WHERE nom[1] = '$gene';";
+	my $nb_exons = $dbh->selectrow_hashref($query);
+	my $canvas_height = '500';
+	if ($nb_exons > 300) {$canvas_height = '2000'}
+	if ($nb_exons > 200) {$canvas_height = '1500'}
+	if ($nb_exons > 100) {$canvas_height = '1000'}
 	print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'),
 		$q->br(), $q->br(),
-		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}),
+		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"$canvas_height\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}),
 		$q->end_div(), "\n",
 		$q->script({'type' => 'text/javascript'}, $js), "\n",
 		$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}),
