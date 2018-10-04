@@ -372,16 +372,16 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	my @js_params = ('showVariants', 'NULL', 'NULL');
 	my ($js, $map) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
 	#get exon number for gene
-	$query = "SELECT MAX(nbre_exons) FROM gene WHERE nom[1] = '$gene';";
-	my $nb_exons = $dbh->selectrow_hashref($query);
-	my $canvas_height = '500';
-	
-	if ($nb_exons > 100) {$canvas_height = '1000'}
-	if ($nb_exons > 200) {$canvas_height = '1700'}
-	if ($nb_exons > 300) {$canvas_height = '2500'}
+	$query = "SELECT MAX(nbre_exons) as a FROM gene WHERE nom[1] = '$gene';";
+	my $res_exons = $dbh->selectrow_hashref($query);
+	my $nb_exons = $res_exons->{'a'};
+	my ($canvas_height, $img_suffix, $css_suffix) = ('500', '', '');
+	if ($nb_exons > 100) {$canvas_height = '1000';$img_suffix = '2';$css_suffix = '_1000'}
+	if ($nb_exons > 200) {$canvas_height = '1700';$img_suffix = '3';$css_suffix = '_1700'}
+	if ($nb_exons > 300) {$canvas_height = '2500';$img_suffix = '4';$css_suffix = '_2500'}
 	print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'),
 		$q->br(), $q->br(),
-		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}),
+		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"$canvas_height\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency'.$img_suffix.'.png', 'usemap' => '#segment', 'class' => 'fented'.$css_suffix, 'id' => 'transparent_image'}),
 		$q->end_div(), "\n",
 		$q->script({'type' => 'text/javascript'}, $js), "\n",
 		$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}),
