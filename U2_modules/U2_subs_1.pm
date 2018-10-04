@@ -204,7 +204,7 @@ sub public_begin_html { #prints top of the pages
 			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'}), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=ALL'}, 'ALL'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DSD'}, 'DSD'), "\n",
-				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DSD'}, 'NM'), "\n",
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NM'}, 'NM'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NS'}, 'NS'), "\n",
 			$q->end_div(), "\n",
 		$q->end_div(),
