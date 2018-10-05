@@ -387,7 +387,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 		$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}),
 			$q->p({'id' => 'fill_in'}),
 		$q->end_div(), "\n",
-		$q->div({'id' => 'created_variant', 'class' => 'fented_noleft w3-container container'}), "\n";
+		$q->div({'id' => 'created_variant', 'class' => 'fented_noleft'.$css_suffix.' w3-container container'}), "\n";
 		#$q->start_div(), $q->start_ul({'id' => 'created_variant'}), $q->end_div(), "\n";
 }
 elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
