@@ -214,13 +214,13 @@ sub main {
 			#&print_results($query, 'familyID', '2', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 			#2nd dna/prot variant
 			$query = "SELECT * FROM variant WHERE nom LIKE '%$recherche%' OR nom_prot LIKE '%$recherche%' ORDER BY nom_gene, nom_g;";
-			&print_results($query, 'variant', '3', $recherche, $q, $dbh, $url, \@styles, $user, $original);
+			&print_results($query, 'variant', '2', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 		}
 		
 		if ($query eq '' && $motif ne 'LR') {
 			&header($q, \@styles);
 			U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
-			print $q->p("MobiCheck interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
+			print $q->p("MobiDetails interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 			print $q->start_p(), $q->strong("Sorry, I did not find anything matching your query in MobiCheck (query: '$recherche'). If you believe I should have found something, please contact David."), $q->end_p();
 		}
 		
@@ -230,7 +230,7 @@ sub main {
 	else {
 		&header($q, \@styles);
 		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
-		print $q->p("MobiCheck interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
+		print $q->p("MobiDetails interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 		print "--".$q->param('search')."--";
 		U2_modules::U2_subs_1::standard_error('10', $q);
 	}
