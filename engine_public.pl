@@ -219,7 +219,7 @@ sub main {
 		
 		if ($query eq '' && $motif ne 'LR') {
 			&header($q, \@styles);
-			U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
+			U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh);
 			print $q->p("MobiDetails interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 			print $q->start_p(), $q->strong("Sorry, I did not find anything matching your query in MobiCheck (query: '$recherche'). If you believe I should have found something, please contact David."), $q->end_p();
 		}
@@ -229,7 +229,7 @@ sub main {
 	}
 	else {
 		&header($q, \@styles);
-		U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
+		U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh);
 		print $q->p("MobiDetails interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 		print "--".$q->param('search')."--";
 		U2_modules::U2_subs_1::standard_error('10', $q);
@@ -267,7 +267,7 @@ sub print_results {
 		else {#multiple result
 			if ($call != 3) {
 				&header($q, $style);
-				U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
+				U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh);
 				#print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 			}
 			if ($motif eq 'patient_name' || $motif eq 'familyID') {
@@ -325,7 +325,7 @@ sub print_results {
 		}
 		if ($call != 3) {
 			&header($q, , $style);
-			U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
+			U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh);
 			#print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 		}		
 		print $q->start_p(), $q->strong("Unknown value as $motif: $recherche."), $q->end_p();
@@ -347,7 +347,7 @@ sub build_link {
 
 sub get_genes { #sub to get gene names recorded
 	my $dbh = shift;
-	my $query = "SELECT DISTINCT (nom[1]) as gene FROM gene WHERE ns_gene = 'f' ORDER BY nom[1] ;";
+	my $query = "SELECT DISTINCT (nom[1]) as gene FROM gene ORDER BY nom[1] ;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $gene;
