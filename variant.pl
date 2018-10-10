@@ -214,15 +214,18 @@ if ($res->{'taille'} < 50) {
 if ($res->{'type_adn'} eq 'substitution') {
 	my $exac = U2_modules::U2_subs_1::getExacFromGenoVar($res->{'nom_g'});
 	#http://wintervar.wglab.org/results.pos.php?queryType=position&chr=1&pos=115828756&ref=G&alt
-	my @hyphen = split(/-/, $exac);
-	my $intervar_url = "http://wintervar.wglab.org/results.pos.php?queryType=position&chr=$evs_chr&pos=$evs_pos_start&ref=$hyphen[2]&alt=$hyphen[3]";
 	if ($exac) {
 		#print $q->start_li(),
-		print $q->a({'href' => "http://gnomad.broadinstitute.org/variant/$exac", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'gnomAD'), "\n",
-			$q->a({'href' => $intervar_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'InterVar'), "\n";
+		print $q->a({'href' => "http://gnomad.broadinstitute.org/variant/$exac", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'gnomAD'), "\n";
+		if ($res->{'type_segment'} eq 'exon') {
+			my @hyphen = split(/-/, $exac);
+			my $intervar_url = "http://wintervar.wglab.org/results.pos.php?queryType=position&chr=$evs_chr&pos=$evs_pos_start&ref=$hyphen[2]&alt=$hyphen[3]";
+			print $q->a({'href' => $intervar_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'InterVar'), "\n"
+		}			
 	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/gnomad_button.png'}, 'gnomAD'), "\n";
 		#, $q->end_a(), $q->end_li(), "\n";
 	}
+
 }
 
 #1kG
