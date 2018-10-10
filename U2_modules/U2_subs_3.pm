@@ -160,6 +160,8 @@ sub insert_variant {
 			POSCONV: foreach (@{$tab_ref}) {
 				if (/(NM_\d+)\.(\d):([cn]\..+)/og) {
 					my $acc = $1;
+					#patch for TMEM132E - mutalyzer bug uses a deprecated NM 10/10/2018
+					if ($acc eq 'NM_207313') {$acc = 'NM_001304438'}
 					my $ver = $2;
 					my $nom = $3;
 					my $query = "SELECT nom[1] as gene_name, acc_g, mutalyzer_acc, mutalyzer_version FROM gene WHERE nom[2] = '$acc' AND main = 't';";# AND acc_version = '$ver';";
@@ -402,7 +404,7 @@ sub insert_variant {
 				if (/(NM_\d+)\.(\d):([cn]\..+)/og && $treated == 0) {
 					my $acc = $1;
 					#patch 2015/10/10 for TMEM132E => mutalyzer posconv returns only a deprecated NM
-					if ($gene eq 'TMEM132E') {$acc = 'NM_001304438'}
+					if ($acc eq 'NM_207313') {$acc = 'NM_001304438'}
 					my $ver = $2;
 					my $nom = $3;
 					#print $nom, "<br/>";
