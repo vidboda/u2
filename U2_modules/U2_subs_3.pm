@@ -401,6 +401,8 @@ sub insert_variant {
 			POSCONV2: foreach (@{$tab_ref}) {
 				if (/(NM_\d+)\.(\d):([cn]\..+)/og && $treated == 0) {
 					my $acc = $1;
+					#patch 2015/10/10 for TMEM132E => mutalyzer posconv returns only a deprecated NM
+					if ($gene eq 'TMEM132E') {$acc = 'NM_001304438'}
 					my $ver = $2;
 					my $nom = $3;
 					#print $nom, "<br/>";
