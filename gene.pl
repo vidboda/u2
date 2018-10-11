@@ -88,17 +88,21 @@ my $js = "
 			    width: 650,
 			    buttons: {
 			       \"Create a variant\": function() {
-				       var nom_c = \$(\"#new_variant\").val();
-				       \$(\"#title_form_var\").append(\"&nbsp;&nbsp;&nbsp;&nbsp;PLEASE WAIT WHILE CREATING VARIANT\");
-				       \$(\"#creation_form :input\").prop(\"disabled\", true);
-				       \$.ajax({
-					       type: \"POST\",
-					       url: \"variant_input.pl\",
-					       data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, ng_accno: \$(\"#ng_accno\").val()}
-					       })
+						\$(\'#page\').css(\'cursor\', \'progress\');
+						\$(\'.ui-dialog\').css(\'cursor\', \'progress\');
+						var nom_c = \$(\"#new_variant\").val();
+						\$(\"#title_form_var\").append(\"&nbsp;&nbsp;&nbsp;&nbsp;PLEASE WAIT WHILE CREATING VARIANT\");
+						\$(\"#creation_form :input\").prop(\"disabled\", true);
+						\$.ajax({
+							type: \"POST\",
+							url: \"variant_input.pl\",
+							data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, ng_accno: \$(\"#ng_accno\").val(), single_var: \'y\'}
+					    })
 				       .done(function(msg) {
-						if (msg !== '') {\$(\"#created_variant\").append(msg)};
-						\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS		
+							if (msg !== '') {\$(\"#created_variant\").append(msg)};
+							\$(\'.ui-dialog\').css(\'cursor\', \'default\');
+							\$(\'#page\').css(\'cursor\', \'default\');
+							\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS		
 				       });
 			       },
 			       Cancel: function() {
