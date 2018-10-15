@@ -438,7 +438,7 @@ sub insert_variant {
 							else {if ($var_pos == 88886963 || $var_pos == 88887724 || $var_pos == 88888215) {print "here we are!<br/>"};return "MANUAL SEGMENT ERROR $manual_temp"}#;$stop = 1;}
 						}
 						if (!$num_segment_end) {$num_segment_end = $num_segment;$type_segment_end = $type_segment;}
-						if ($nom =~ /[cn]\.\d+[\+-][12]\D.+/o) {$type_arn = 'altered'}
+						if ($nom =~ /[cn]\.\d+[\+-][12]\D.+/o) {$type_arn = 'altered';$nom_prot = 'p.(?)';$type_prot = 'NULL';}
 						##
 						## Now we can run Mutalyzer...
 						##
