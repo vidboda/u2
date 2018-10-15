@@ -586,7 +586,7 @@ if ($result) {
 						}
 						elsif (-e "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}/$res_manifest->{'run_id'}.xlsx") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-											$q->a({'href' => "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
+											$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
 										$q->end_li();
 						}
 						if (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
