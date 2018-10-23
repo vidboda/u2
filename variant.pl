@@ -914,6 +914,22 @@ if ($res->{'taille'} > 100) {
 }
 
 
+##easy-comment
+my $valid_id = "$acc$res->{'acc_version'}$var";
+$valid_id =~ s/>//og;
+$valid_id =~ s/\.//og;
+$valid_id =~ s/\+//og;
+$valid_id =~ s/\?//og;
+$valid_id =~ s/\*//og;
+$js = "jQuery(document).ready(function(){
+   \$(\"#$valid_id\").EasyComment({
+      path:\"/javascript/u2/easy-comment/\"
+   });
+   \$(\"[name='name']\").val('".$user->getName()."');
+});";
+
+print $q->br(), $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->start_div({'id' => $valid_id, 'class' => 'comments'}), $q->end_div();
+
 ##genome browser
 #http://www.biodalliance.org/
 #my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
@@ -1041,30 +1057,17 @@ my $browser = "
 	});
 ";
 
-print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'fitin'}, 'Dalliance Browser here'), $q->br(), $q->br();
+print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'fitin'}, 'Dalliance Browser here'), $q->br(), $q->br(), "\n",
+	$q->end_div();
 
+my $text = '<br/>Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.';
+
+print U2_modules::U2_subs_2::info_panel($text, $q);
 
 #end genome browser
 
 
-##easy-comment
-my $valid_id = "$acc$res->{'acc_version'}$var";
-$valid_id =~ s/>//og;
-$valid_id =~ s/\.//og;
-$valid_id =~ s/\+//og;
-$valid_id =~ s/\?//og;
-$valid_id =~ s/\*//og;
-$js = "jQuery(document).ready(function(){
-   \$(\"#$valid_id\").EasyComment({
-      path:\"/javascript/u2/easy-comment/\"
-   });
-   \$(\"[name='name']\").val('".$user->getName()."');
-});";
 
-print $q->end_div(), $q->br(), $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->start_div({'id' => $valid_id, 'class' => 'comments decale'}), $q->end_div();
-my $text = 'Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.';
-
-print U2_modules::U2_subs_2::info_panel($text, $q);
 
 #$q->start_div(), $q->p('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.');
 
