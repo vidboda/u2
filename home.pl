@@ -155,13 +155,13 @@ $res = $dbh->selectrow_hashref($query);
 
 
 #$query = "SELECT distinct (num_pat, type_analyse) as a FROM analyse_moleculaire WHERE (type_analyse LIKE '454%' OR type_analyse = 'aCGH' OR type_analyse like 'MiSeq-%');";
-$query = "SELECT COUNT(num_pat) as a FROM analyse_moleculaire a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND multiple = 't';";
-my $sth = $dbh->prepare($query);
-$sth->execute();
-my $rows2 = $sth->rows();
+#$query = "SELECT COUNT(num_pat) as a FROM analyse_moleculaire a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND multiple = 't';";
+#my $sth = $dbh->prepare($query);
+#$sth->execute();
+#my $rows2 = $sth->rows();
 
-
-print $q->span({'class' => 'w3-badge w3-xxlarge w3-red'}, ($res->{'a'}+$rows2)), $q->span(' analyses ');
+print $q->span(' cumulating ');
+#print $q->span({'class' => 'w3-badge w3-xxlarge w3-red'}, ($res->{'a'}+$rows2)), $q->span(' analyses ');
 
 
 $query = "SELECT COUNT(nom_c) as a FROM variant2patient;";
