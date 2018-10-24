@@ -254,9 +254,10 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					$q->th({'class' => 'left_general'}, 'Number of exons'), "\n",
 					$q->th({'class' => 'left_general'}, 'RefSeq protein'), "\n",
 					$q->th({'class' => 'left_general'}, 'Uniprot ID'), "\n",
-					$q->th({'class' => 'left_general'}, 'Protein Product size (aa)'), "\n",
 					$q->end_Tr(), "\n";				
 			}
+			#					$q->th({'class' => 'left_general'}, 'Protein Product size (aa)'), "\n",
+
 			
 			print $q->start_Tr(), "\n",
 				$q->start_td({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}),
@@ -269,7 +270,9 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 			print $q->start_td(), $q->span($result->{'nbre_exons'}), $q->end_td(), "\n",
 				$q->start_td({'onclick' => "window.open('$ncbi_url$result->{'acc_p'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}), $q->span($result->{'acc_p'}), $q->end_td(), "\n",
 				$q->start_td({'onclick' => "window.open('http://www.uniprot.org/uniprot/$result->{'uniprot_id'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open UNIPROT in new tab'}), $q->span($result->{'uniprot_id'}), $q->end_td(), "\n",
-				$q->start_td(), $q->span($result->{'taille_prot'}), $q->end_td(), "\n", $q->end_Tr();
+				$q->end_Tr();
+				#				$q->start_td(), $q->span($result->{'taille_prot'}), $q->end_td(), "\n",
+
 		}
 		print $q->end_table(), $q->end_div(), $q->br(), $q->br(), "\n";
 		##genome browser
