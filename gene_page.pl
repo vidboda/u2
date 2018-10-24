@@ -118,7 +118,7 @@ else {
 
 ##end of Basic init
 
-if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA|NSRP|DSD|NS|NM|DSDR)$/o) {
+if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA|NSRP|DSD|NS|NM|DSDR|ND)$/o) {
 	my $sort = $1;
 	#if ($sort eq 'CHM') {
 	#	my $url = 'gene.pl?gene=CHM&info=general';
@@ -178,6 +178,7 @@ if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LC
 		elsif ($sort eq 'DSD') {@list = @U2_modules::U2_subs_1::DSD}
 		elsif ($sort eq 'DSDR') {@list = @U2_modules::U2_subs_1::DSD_RESEARCH}
 		elsif ($sort eq 'NM') {@list = @U2_modules::U2_subs_1::NM}
+		elsif ($sort eq 'ND') {@list = @U2_modules::U2_subs_1::ND}
 		elsif ($sort eq 'NS') {
 			my $query = "SELECT DISTINCT(nom[1]) as gene FROM gene WHERE ns_gene = 't' ORDER BY nom[1];";
 			@list = @{$dbh->selectcol_arrayref($query)}
