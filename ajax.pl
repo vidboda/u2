@@ -903,6 +903,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 	if ($type ne 'exon') {$name = 'nom_ivs'}
 	
 	my $query = "SELECT nom, $name as nom2, classe FROM variant WHERE nom_gene[2] = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' ORDER BY nom_g $order;";
+	if ($user->isPublic == 1) {$query = "SELECT nom, $name as nom2, classe FROM variant WHERE nom_gene[2] = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' AND (nom, nom_gene) NOT IN (SELECT nom_c, nom_gene FROM variant2patient WHERE nom_gene[2] = '$acc_no') ORDER BY nom_g $order;"}
 	#print $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -921,7 +922,8 @@ if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 	
 		my ($default_status, $default_allele) = ('heterozygous', 'unknown');
 		
-		$html .= $q->start_p().$q->strong('Create a variant not linked to a specific sample:').$q->end_p();
+		if ($user->isPublic != 1) {$html .= $q->start_p().$q->strong('Create a variant not linked to a specific sample:').$q->end_p()}
+		else {$html .= $q->start_p().$q->strong('Create a variant:').$q->end_p()}
 		
 		my $ng_accno = U2_modules::U2_subs_1::get_ng_accno($gene, $acc_no, $dbh, $q);
 		

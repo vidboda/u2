@@ -68,6 +68,8 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 
 my $js = "
 	function showVariants(type, nom, numero, gene, acc_no, order, nulle) {
+		\$(\'area\').css(\'cursor\', \'progress\');
+		\$(\'html\').css(\'cursor\', \'progress\');
 		\$.ajax({
 			type: 'POST',
 			url: 'ajax.pl',
@@ -76,6 +78,8 @@ my $js = "
 		.done(function(msg) {
 			\$(\"#fill_in\").html(msg);
 			setDialog(msg, type, nom);
+			\$(\'area\').css(\'cursor\', \'auto\');
+			\$(\'html\').css(\'cursor\', \'auto\');
 		});		
 	}
 	function setDialog(msg, type, nom) {
@@ -147,7 +151,7 @@ if ($user->isPublic != 1) {
 else {
 	$js .= "function chooseSortingType(gene) {
 		var \$dialog = \$(\'<div></div>\')
-			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
+			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Variants in MobiDetails</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
 			.dialog({
 			    autoOpen: false,
 			    title: \'U2 choice\',
@@ -233,18 +237,20 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 						$q->li("chr$chr, strand $result->{'brin'}"), "\n",
 						$q->li("$result->{'nom_prot'} ($result->{'short_prot'})"), "\n",
 						$q->start_li(), $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'}), $q->end_li(), "\n";
-				if ($result->{'rp'} == 1) {print $q->li("Shown in 'RP', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
-				if ($result->{'dfn'} == 1) {print $q->li("Shown in 'DFN', 'DFN+USH' and in 'ALL' filters, hidden in others"), "\n"}
-				if ($result->{'usher'} == 1) {print $q->li("Shown in 'USH', 'DFN+USH', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
-				if ($result->{'nom'}[0] eq 'CHM') {print $q->li("Shown in 'CHM' and 'ALL' filters, hidden in others"), "\n"}
-				
-				#if ($result->{'usher'} != 1 && $result->{'rp'} == 1) {print $q->li("Hidden if DFN filtered"), "\n"}
-				#if ($result->{'usher'} != 1 && $result->{'dfn'} == 1) {print $q->li("Hidden if RP filtered"), "\n"}
-				if ($result->{'MiSeq-28'} == 1) {print $q->li("included in 28 genes design"), "\n"}
-				if ($result->{'MiSeq-112'} == 1) {print $q->li("included in 112 genes design"), "\n"}
-				if ($result->{'MiSeq-121'} == 1) {print $q->li("included in 121 genes design"), "\n"}
-				if ($result->{'MiSeq-3'} == 1) {print $q->li("included in 3 genes design"), "\n"}
-				if ($result->{'MiniSeq-132'} == 1) {print $q->li("included in 132 genes design"), "\n"}
+				if ($user->isPublic() != 1) {
+					if ($result->{'rp'} == 1) {print $q->li("Shown in 'RP', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
+					if ($result->{'dfn'} == 1) {print $q->li("Shown in 'DFN', 'DFN+USH' and in 'ALL' filters, hidden in others"), "\n"}
+					if ($result->{'usher'} == 1) {print $q->li("Shown in 'USH', 'DFN+USH', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
+					if ($result->{'nom'}[0] eq 'CHM') {print $q->li("Shown in 'CHM' and 'ALL' filters, hidden in others"), "\n"}
+					
+					#if ($result->{'usher'} != 1 && $result->{'rp'} == 1) {print $q->li("Hidden if DFN filtered"), "\n"}
+					#if ($result->{'usher'} != 1 && $result->{'dfn'} == 1) {print $q->li("Hidden if RP filtered"), "\n"}
+					if ($result->{'MiSeq-28'} == 1) {print $q->li("included in 28 genes design"), "\n"}
+					if ($result->{'MiSeq-112'} == 1) {print $q->li("included in 112 genes design"), "\n"}
+					if ($result->{'MiSeq-121'} == 1) {print $q->li("included in 121 genes design"), "\n"}
+					if ($result->{'MiSeq-3'} == 1) {print $q->li("included in 3 genes design"), "\n"}
+					if ($result->{'MiniSeq-132'} == 1) {print $q->li("included in 132 genes design"), "\n"}
+				}
 				#if ($result->{'brin'} eq '-') {$order = 'DESC'}
 				print $q->end_ul(), $q->br(), "\n", $q->start_div({'class' => 'container patient_file_frame', 'id' => 'info_table'}),
 					$q->start_table({'class' => 'great_table technical'}), $q->caption("Gene info table:"),#technical ombre peche
@@ -400,7 +406,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	my ($sort, $css_class) = ('', '');
-	if ($q->param('sort') && $q->param('sort') =~ /(classe|type_adn|type_arn|type_prot|taille|orphan)/o) {#orphans are varaints not linked to any sample
+	if ($q->param('sort') && $q->param('sort') =~ /(classe|type_adn|type_arn|type_prot|taille|orphan)/o) {#orphans are variants not linked to any sample - or variants shown in mobidetails
 		$sort = $1;
 		if ($sort eq 'type_arn') {
 			if ($q->param('dynamic') && $q->param('dynamic') =~ /([\w\s]+)/o) {$css_class = $1;$css_class =~ s/ /_/og;}#$js = "\$('.$1').css('background-color', '#FFFF66');";}
@@ -461,13 +467,15 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		}
 	}
 	elsif ($sort eq 'orphan') {
-		my $query = "SELECT a.nom_g, a.nom, a.nom_gene[2] as acc FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL AND a.nom_gene[1] = '$gene' ORDER BY a.nom_g;";
+		my $query = "SELECT a.nom_g, a.nom, a.nom_gene[2] as acc, a.nom_ivs, a.nom_prot FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL AND a.nom_gene[1] = '$gene' ORDER BY a.nom_g;";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		if ($res ne '0E0') {
 			print $q->start_ul();
 			while (my $result = $sth->fetchrow_hashref()) {
-				print $q->start_li(), $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, $result->{'nom'}), $q->end_li();
+				my $other_name = $result->{'nom_prot'};
+				if ($result->{'nom_ivs'} ne '') {$other_name = $result->{'nom_ivs'}}
+				print $q->start_li(), $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, "$result->{'acc'}:$result->{'nom'}"), $q->span(" - $other_name"), $q->end_li();
 			}
 			print $q->end_ul();
 		}
