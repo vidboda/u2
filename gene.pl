@@ -92,7 +92,7 @@ my $js = "
 			    width: 650,
 			    buttons: {
 			       \"Create a variant\": function() {
-						\$(\'#page\').css(\'cursor\', \'progress\');
+						\$(\'html\').css(\'cursor\', \'progress\');
 						\$(\'.ui-dialog\').css(\'cursor\', \'progress\');
 						var nom_c = \$(\"#new_variant\").val();
 						\$(\"#title_form_var\").append(\"&nbsp;&nbsp;&nbsp;&nbsp;PLEASE WAIT WHILE CREATING VARIANT\");
@@ -105,7 +105,7 @@ my $js = "
 				       .done(function(msg) {
 							if (msg !== '') {\$(\"#created_variant\").append(msg)};
 							\$(\'.ui-dialog\').css(\'cursor\', \'default\');
-							\$(\'#page\').css(\'cursor\', \'default\');
+							\$(\'html\').css(\'cursor\', \'default\');
 							\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS		
 				       });
 			       },
