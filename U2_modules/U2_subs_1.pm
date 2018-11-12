@@ -750,7 +750,8 @@ sub standard_error { #returns an error and ends script
 		22	=>	'transfer of MiSeq files from RS to U2',
 		23	=>	'the mutalyzer webservice which is unreachable. Try again later',
 		24	=>	'RNA status value',
-		25	=>	'User name'
+		25	=>	'User name',
+		26	=>	'Mutalyzer issue'
 	);
 	print $q->start_p(), $q->span('USHVaM 2 encountered an error and cannot proceed further.'), $q->br(), $q->span("The error is linked to the $error_code{$code}."), $q->br(), $q->span('Please contact your admin.'), $q->end_p();
 	&standard_end_html($q, $HTDOCS_PATH);

@@ -53,6 +53,7 @@ my $HOST = $config->HOST();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
+my $ABSOLUTE_HTDOCS_PATH  =$config->ABSOLUTE_HTDOCS_PATH();
 
 
 my $q = new CGI;
@@ -73,7 +74,7 @@ my $user = U2_modules::U2_users_1->new();
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
-
+#print Dumper($q);
 #get params
 my ($type, $nom, $num_seg, $technique);
 my ($id, $number) = ('', '');
@@ -231,13 +232,25 @@ elsif ($step == 2) { #insert variant and print
 				if ($num_seg ne $nom && $cdna =~ /IVS/) {
 					$mutalyzer_name =~ s/$nom/$num_seg/g;
 				}
-				
+				my $hg38 = '';
 				#print "$acc_no.$acc_ver:$mutalyzer_name";
 				$call = $soap->call('numberConversion',
 						SOAP::Data->name('build')->value('hg19'),
 						SOAP::Data->name('variant')->value("$acc_no.$acc_ver:$mutalyzer_name"),
 						SOAP::Data->name('gene')->value($gene));
-
+				
+				if (!$call->result()->{'string'}) {
+					#gene not found in hg19 mutalyzer
+					#let's try hg38
+					$call = $soap->call('numberConversion',
+						SOAP::Data->name('build')->value('hg38'),
+						SOAP::Data->name('variant')->value("$acc_no.$acc_ver:$mutalyzer_name"),
+						SOAP::Data->name('gene')->value($gene));
+					#print Dumper($call->result());
+					$hg38 = 1;
+					###a liftover is mandatory
+				}
+				
 				foreach ($call->result()->{'string'}) {
 					my $tab_ref;
 					if (ref($_) eq 'ARRAY') {$tab_ref = $_}
@@ -249,6 +262,7 @@ elsif ($step == 2) { #insert variant and print
 					#else {
 					#	$tab_ref->[0] = $_;	
 					#}
+					#print (Dumper($call->result()));
 					if ($_) {					
 						foreach (@{$tab_ref}) {
 							#print $_, "\n";
@@ -257,7 +271,32 @@ elsif ($step == 2) { #insert variant and print
 							my ($chr_tmp, $g_var) = ($1, $2);
 							if ($chr_tmp == 23) {$chr_tmp = 'X'}
 							elsif ($chr_tmp == 24) {$chr_tmp = 'Y'}
-							$nom_g = "chr$chr_tmp:$g_var";
+							$chr_tmp = "chr$chr_tmp";
+							my ($s38, $e38, $rest, $nom_g_38);
+							####TODOTODOTODO
+							#here if hg38 perform liftover!!!!!!! warning: patch not clean
+							if ($hg38 == 1) {
+								if ($g_var =~ /g\.(\d+)_(\d+)([^\d]+)$/o) {
+									($s38, $e38, $rest) = ($1, $2, $3);
+									my $s = &liftover38219($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH);
+									if ($s eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
+									my $e = &liftover38219($e38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH);
+									if ($e eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
+									$g_var = "g.".$s."_$e$rest";
+									$nom_g_38 = "$chr_tmp:g.".$s38."_$e38$rest";
+								}
+								elsif ($g_var =~ /g\.(\d+)([^\d]+)$/o) {
+									($s38, $rest) = ($1, $2);
+									my $s = &liftover38219($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH);
+									if ($s eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
+									$g_var = "g.$s$rest";
+									$nom_g_38 = "$chr_tmp:g.$s38$rest";
+								}
+							}
+							##### end of patch 2018/10/29
+							#print "$g_var 
+							
+							$nom_g = "$chr_tmp:$g_var";
 							#print $nom_g;
 							#ok we have cDNA and genomic nomenclature
 							#so before mutalyzer, we can fix a number of params
@@ -370,7 +409,7 @@ elsif ($step == 2) { #insert variant and print
 
 									foreach (@{$tab_ref}) {
 										#print "\nMessage: ", $_->{'message'},"\n";
-										if ($_->{'message'} =~ /HGVS/o && $cdna !~ /c\.\d+-\?_\d+\+?\w+/o) {$stop = 1;$not_done .= "HGVS error $cdna $type $nom";last;}
+										if ($_->{'message'} =~ /HGVS/o && $cdna !~ /c\.\d+-\?_\d+\+?\w+/o) {$stop = 1;$not_done .= "HGVS error $cdna $type";last;}
 										elsif ($_->{'message'} =~ /identical/o) {$stop = 1;$not_done .= "Identical variant to reference $cdna $type $nom";last;}
 										elsif ($_->{'message'} =~ /Position.+range/o) {$stop = 1;$not_done .= "out of range $cdna $type $nom";next;}
 										elsif ($_->{'message'} =~ /position.+instead/o) {$stop = 1;$not_done .= "bad wild type nucleotide $cdna $type $nom";last;}
@@ -388,7 +427,7 @@ elsif ($step == 2) { #insert variant and print
 									}	
 								}
 							}
-							foreach(@errors) {foreach my $key (keys %{$_}) {$not_done .= $key.$_->{$key}}}
+							foreach(@errors) {foreach my $key (keys %{$_}) {$not_done .= $key.$_->{$key};}}#print "$key - $_->{$key}<br/>"
 							if ($call->result->{'errors'} == 0 && $stop == 0) {
 							#for PCDH15 uncomment following
 							#if ($stop == 0) {
@@ -579,9 +618,10 @@ elsif ($step == 2) { #insert variant and print
 								## let's go
 								#reverse
 								if ($gene eq 'ADGRV1') {$gene = 'GPR98'}
-											
-								my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee) VALUES ('$variant', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."');";
+								if ($hg38 != 1) {$nom_g_38 = 'NULL'}
+								my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38) VALUES ('$variant', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38');";
 								$insert =~ s/'NULL'/NULL/og;
+								#die $insert;			
 								#print $q->td({'colspan' => '7'}, $insert);exit;
 								$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";
 								
@@ -595,7 +635,9 @@ elsif ($step == 2) { #insert variant and print
 							else {
 								$semaph_error = 1;
 								$not_done .= $q->end_strong();
-								$http_mutalyzer = "https://mutalyzer.nl/check?name=$ng_accno($gene$mutalyzer_version):$cdna&standalone=1";
+								my $http_accno = $ng_accno;
+								if ($mutalyzer_acc && $mutalyzer_acc ne '') {$http_accno = $mutalyzer_acc}
+								$http_mutalyzer = "https://mutalyzer.nl/check?name=$http_accno($gene$mutalyzer_version):$cdna&standalone=1";
 								#if ($gene eq 'USH1C') {$http_mutalyzer = "https://mutalyzer.nl/check?name=$ng_accno(".$gene."_v002):$cdna&standalone=1"}
 								$not_done .= $q->span("&nbsp;&nbsp").$q->a({'href' => $http_mutalyzer, 'target' => '_blank'}, 'Launch Mutalyzer');
 								if ($id ne '') {print $q->start_Tr(), $q->td({'colspan' => '7'}, U2_modules::U2_subs_2::danger_panel($not_done, $q)), $q->end_Tr()}
@@ -605,8 +647,10 @@ elsif ($step == 2) { #insert variant and print
 					}
 					else {
 						$semaph_error = 1;
-						$not_done .= "HGVS ERROR for $cdna".$q->end_strong();
-						$http_mutalyzer = "https://mutalyzer.nl/check?name=$ng_accno($gene$mutalyzer_version):$cdna&standalone=1";
+						$not_done .= "UNDEFINED ERROR for $cdna".$q->end_strong();
+						my $http_accno = $ng_accno;
+						if ($mutalyzer_acc && $mutalyzer_acc ne '') {$http_accno = $mutalyzer_acc}
+						$http_mutalyzer = "https://mutalyzer.nl/check?name=$http_accno($gene$mutalyzer_version):$cdna&standalone=1";
 						#if ($gene eq 'USH1C') {$http_mutalyzer = "https://mutalyzer.nl/check?name=$ng_accno(".$gene."_v002):$cdna&standalone=1"}
 						$not_done .= $q->span("&nbsp;&nbsp").$q->a({'href' => $http_mutalyzer, 'target' => '_blank'}, 'Launch Mutalyzer');
 						if ($id ne '') {print $q->start_Tr(), $q->td({'colspan' => '7'}, $not_done), $q->end_Tr()}
@@ -695,7 +739,19 @@ elsif ($step == 3) { #delete variant
 	#print "$var deleted";	
 }
 
-
+sub liftover38219 {
+	my ($pos, $chr, $path) = @_;
+	chop($path);
+	#liftover.py is 0-based
+	$pos = $pos-1;
+	#my $ret =  or die "hg38 gene mutalyzer gene only and $!";
+	my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover38219.py $chr $pos`);
+	$s =~ s/\)//g;	
+	$s =~ s/ //g;
+	$s =~ s/'//g;
+	if ($s =~ /^\d+$/o) {return $s}
+	else {return 'f'}
+}
 
 ##specific subs for current script
 
