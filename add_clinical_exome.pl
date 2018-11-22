@@ -272,7 +272,8 @@ if ($user->isAnalyst() == 1) {
 				if ($_ !~ /^#/o) {
 					chomp;
 					$k++;
-					my @list = split(/\t/);					
+					my @list = split(/\t/);
+					print STDERR '.';
 					my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'AB', $dbh, 'nextseq', $number, $id, $analysis, $interval, $soap, $date, $user);
 					if ($variant_input eq '1') {$i++;next VCF}#variant added
 					elsif ($variant_input eq '2') {next VCF}#variant in unknown region
