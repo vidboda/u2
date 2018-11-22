@@ -441,8 +441,12 @@ if ($result) {
 						}
 						#we need to get bam file name on rackstation - does not work was intended to download bam from igv
 						#connect to NAS
-						
-						my $ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);
+						my $ssh ;
+						opendir (DIR, $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR);#first attempt to wake up autofs in case of unmounted
+						my $access_method = 'autofs';
+						opendir (DIR, $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
+						#print $access_method;
+						#my $ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);
 						
 						#MINISEQ change get instrument type
 						my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
@@ -457,24 +461,36 @@ if ($result) {
 						if ($instrument eq 'miseq'){
 							#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
 							#old fashioned replaced with autofs 21/12/2016
-							$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml");
-							$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
-							$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
+							if ($access_method eq 'autofs') {
+								$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
+								$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
+								$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
+								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
+							}
+							else {
+								$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);
+								$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml");
+								$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
+								$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
+								$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
+							}
 						}
 						elsif($instrument eq 'miniseq'){
 							#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
-							$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml");
+							if ($access_method eq 'autofs') {$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml`}
+							else {$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml")}
 							$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 							$alignment_dir = $1;
 							$alignment_dir =~ s/\\/\//og;
 							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/$alignment_dir";
-							$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/$alignment_dir";						
+							if ($access_method eq 'autofs') {$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/$alignment_dir"}
+							else {$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/$alignment_dir"}					
 						}
 						elsif($instrument eq 'nextseq'){
 							#($ce_run_id, $ce_id, $ce_num) = ($res_manifest->{'run_id'}, $id_tmp, $num_tmp);
 							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}";
-							$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}";
+							if ($access_method eq 'autofs') {$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}"}
+							else {$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}"}
 						}
 						
 						#OLD fashioned 03/08/2016
@@ -487,7 +503,9 @@ if ($result) {
 						#print "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir/";exit;
 						#print "$alignment_dir--";exit;
 						#my $bam_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir/ && ls") or die "remote command failed: " . $ssh->error();
-						my $bam_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error();
+						my $bam_list;
+						if ($access_method eq 'autofs') {$bam_list = `ls $alignment_dir`}
+						else {$bam_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error()}
 						#my $bam_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/$ftp_dir`;
 						#old fashioned replaced with autofs 21/12/2016
 						#my $bam_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error();
