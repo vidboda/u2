@@ -15,6 +15,7 @@ use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
+use U2_modules::U2_subs_3;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -273,21 +274,20 @@ elsif ($step == 2) { #insert variant and print
 							elsif ($chr_tmp == 24) {$chr_tmp = 'Y'}
 							$chr_tmp = "chr$chr_tmp";
 							my ($s38, $e38, $rest, $nom_g_38);
-							####TODOTODOTODO
-							#here if hg38 perform liftover!!!!!!! warning: patch not clean
+							#here if hg38 perform liftover!!!!!!! warning: patch not really clean
 							if ($hg38 == 1) {
 								if ($g_var =~ /g\.(\d+)_(\d+)([^\d]+)$/o) {
 									($s38, $e38, $rest) = ($1, $2, $3);
-									my $s = &liftover38219($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH);
+									my $s = U2_modules::U2_subs_3::liftover($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, '38219');
 									if ($s eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
-									my $e = &liftover38219($e38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH);
+									my $e = U2_modules::U2_subs_3::liftover($e38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, '38219');
 									if ($e eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
 									$g_var = "g.".$s."_$e$rest";
 									$nom_g_38 = "$chr_tmp:g.".$s38."_$e38$rest";
 								}
 								elsif ($g_var =~ /g\.(\d+)([^\d]+)$/o) {
 									($s38, $rest) = ($1, $2);
-									my $s = &liftover38219($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH);
+									my $s = U2_modules::U2_subs_3::liftover($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, '38219');
 									if ($s eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
 									$g_var = "g.$s$rest";
 									$nom_g_38 = "$chr_tmp:g.$s38$rest";

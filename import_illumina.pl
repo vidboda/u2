@@ -60,6 +60,8 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
+
+
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css');
 
 my $q = new CGI;
@@ -117,6 +119,13 @@ my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
 my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
 #my $SSH_RACKSTATION_IP = $config->SSH_RACKSTATION_IP();
+#use automount to replace ssh
+my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
+my $RS_BASE_DIR = $config->RS_BASE_DIR();
+my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
+my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+$SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
+$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 
 
 #hg38 transition variable for postgresql 'start_g' segment field
@@ -145,6 +154,7 @@ if ($step && $step == 2) {
 	### old way to connect to mutalyzer deprecated September 2014
 	#my $soap = SOAP::Lite->new(proxy => 'http://mutalyzer.nl/2.0/services');
 	#$soap->defaul_ns('urn:https://mutalyzer.nl/services/?wsdl');
+	#$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 	my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
 	my $call;
 	
@@ -157,8 +167,11 @@ if ($step && $step == 2) {
 	#sampleID_SXX.vcf the big one => annotate mutalyzer (beware of del ins) and keep DOC
 	
 	#connect to NAS
-	my $ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);
-	
+	my $ssh;
+	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR);#first attempt to wake up autofs in case of unmounted
+	my $access_method = 'autofs';
+    opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
+	if ($access_method eq 'ssh') {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q)}
 	#1st get last alignment directory
 	#my $dirlist = $ssh->capture("ls -d $SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/Alignment*");
 	#  <AlignmentFolder>\\194.167.35.140\data\MiSeqDx\140228_M70106_0001_000000000-A81UN\Data\Intensities\BaseCalls\Alignment2</AlignmentFolder>
@@ -176,20 +189,40 @@ if ($step && $step == 2) {
 	if ($instrument eq 'miseq') {
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#old fashioned replaced with autofs 21/12/2016
-		$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-		$alignment_dir =~ /\\(Alignment\d*)<$/o;
-		$alignment_dir = $1;
-		$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+		if ($access_method eq 'autofs') {
+			$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
+			$alignment_dir =~ /\\(Alignment\d*)<$/o;
+			$alignment_dir = $1;
+			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+		}
+		else {
+			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+			$alignment_dir =~ /\\(Alignment\d*)<$/o;
+			$alignment_dir = $1;
+			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+		}
 	}
 	elsif ($instrument eq 'miniseq') {
+		$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#old fashioned replaced with autofs 21/12/2016
-		$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-		$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
-		$alignment_dir = $1;
-		$alignment_dir =~ s/\\/\//og;
-		$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$alignment_dir";
+		if ($access_method eq 'autofs') {
+			$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
+			#print "1-$alignment_dir<br/>";
+			$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
+			$alignment_dir = $1;
+			$alignment_dir =~ s/\\/\//og;
+			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/$alignment_dir";
+		}
+		else {
+			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+			$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
+			$alignment_dir = $1;
+			$alignment_dir =~ s/\\/\//og;
+			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$alignment_dir";
+		}
 	}
+	#print $alignment_dir."<br/>".$SSH_RACKSTATION_FTP_BASE_DIR;
 	#print STDERR "huhu$alignment_dir\n";exit;
 	#old fashioned replaced with code above david 01/07/2016
 	#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
@@ -224,8 +257,12 @@ if ($step && $step == 2) {
 	mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";
 	#$ssh->scp_get({glob => 1, copy_attrs => 1}, $location.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf") or die $!;
 	#print $alignment_dir.'/'.$report;exit;
-	my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
-	if ($success != 1) {U2_modules::U2_subs_1::standard_error('22', $q)}
+	my $success;
+	if ($access_method eq 'autofs') {$success = system("cp -f '$alignment_dir/$report' '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf'")}
+	else {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");}
+	#my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
+	#print "$success--<br/>";
+	if ($success != 1) {if ($! !~ /File exists/o) {U2_modules::U2_subs_1::standard_error('22', $q)}}
 	
 	#################################UNCOMMENT when sub
 	#create roi hash
@@ -264,15 +301,32 @@ if ($step && $step == 2) {
 		
 		#print "$insert\n"
 		
-		mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid";		
-		my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$coverage, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv");
-		if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$enrichment, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv")}
-		else {U2_modules::U2_subs_1::standard_error('22', $q)}
-		if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$gaps, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv")}
-		else {U2_modules::U2_subs_1::standard_error('22', $q)}
-		if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$vcf, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf")}
-		else {U2_modules::U2_subs_1::standard_error('22', $q)}
-		$ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$sample_report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf");
+		mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid";
+		my $success;
+		if ($access_method eq 'autofs') {
+			$success = system("cp -f $alignment_dir/$coverage '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv'");
+			#print "$success--$!";
+			if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$enrichment '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv'")}
+			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$gaps '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv'")}
+			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$vcf '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf'")}
+			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			if ($success == 1 || $! =~ /File exists/o) {system("cp -f $alignment_dir/$sample_report '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf'")}
+			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+		}
+		else {
+			$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$coverage, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv");
+			if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$enrichment, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv")}
+			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$gaps, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv")}
+			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$vcf, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf")}
+			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			if ($success == 1) {$ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$sample_report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf")}
+			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+		}
+		
 		system("chmod 750 $ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.*");
 		
 		
@@ -342,7 +396,7 @@ if ($step && $step == 2) {
 		###TO BE CHANGED 4 MINISEQ
 		### check if file name changed / ok file renamed on copy and regex changed and does not include ':'
 		
-		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv") or die $!;         
+		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv") or die "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv - $!";         
 		while (<F>) {
 			chomp;
 			#print "-$_-".$q->br();
@@ -425,15 +479,18 @@ if ($step && $step == 2) {
 				
 				#################################sub begins
 				my $variant_input = U2_modules::U2_subs_3::insert_variant(\@list, 'VF', $dbh, $instrument, $number, $id, $analysis, $interval, $soap, $date, $user);
+				#print "$variant_input<br/>";
+				print STDERR '.';
 				if ($variant_input == 1) {$i++;next VCF}#variant added
 				elsif ($variant_input == 2) {next VCF}#variant in unknown region
 				elsif ($variant_input == 3) {$i++;$j++;next VCF}#variant created and added
 				elsif ($variant_input =~ /^MANUAL/o) {$manual .= $variant_input;next VCF}
 				elsif ($variant_input =~ /^NOTINSERTED/o) {$not_inserted .= $variant_input;next VCF}
-				elsif ($variant_input =~ /^FOLLOW/o) {$to_follow .= $variant_input;$i++;next VCF}
+				elsif ($variant_input =~ /^FOLLOW/o) {$to_follow .= $variant_input;next VCF}
 				elsif ($variant_input =~ /^MUTALYZERNOANSWER/o) {$mutalyzer_no_answer .= $variant_input;next VCF}
-				elsif ($variant_input =~ /^NEWVAR/o) {$new_var .= $variant_input;next VCF}
+				elsif ($variant_input =~ /^NEWVAR/o) {$new_var .= $variant_input;$i++;$j++;next VCF}
 				else {print "$variant_input<br/>"}
+				
 				##################################
 				
 				##if rs and in U2 => ok insert into v2p => impossible a same rs can point 2 variants or more
@@ -1277,6 +1334,9 @@ if ($step && $step == 2) {
 		
 	}
 	#if ($manual ne '' || $not_inserted ne '') {U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run)}
+	open F, ">>$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/import.log" or print STDERR $!;
+	print F $user->getName()."\n$date\n$run\n$general\n$manual\n$not_inserted\n$mutalyzer_no_answer\n$to_follow\n$new_var\n";
+	close F;
 	
 	U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run, $general, $mutalyzer_no_answer, $to_follow);
 	

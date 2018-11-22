@@ -672,7 +672,7 @@ sub check_filter {
 sub check_illumina_run_id {
 	my ($q) = shift;
 	if ($q->param('run_id') =~ /^(\d{6}_[A-Z]\d{5}_\d{4}_0{9}-[A-Z0-9]{5})$/o || $q->param('run_id') =~ /^(\d{6}_[A-Z]{2}\d{5,6}_\d{4}_[A-Z0-9]{10})$/o) {return $1}
-	else {&standard_error('21', $q)}	
+	else {print $q->param('run_id').$q->br();&standard_error('21', $q)}	
 }
 
 
@@ -744,10 +744,10 @@ sub standard_error { #returns an error and ends script
 		16	=>	'unknown status',
 		17	=>	'class error',
 		18	=>	'fact that I cannot retrieve the patient ID in the MiSeq runs',
-		19	=>	'manifest file name. Check NRCCE (MiSeq-112) or Nimblegen (MiSeq-28)',
+		19	=>	'manifest file name',
 		20	=>	'filter name',
 		21	=>	'run ID',
-		22	=>	'transfer of MiSeq files from RS to U2',
+		22	=>	'transfer of the files from RS to U2',
 		23	=>	'the mutalyzer webservice which is unreachable. Try again later',
 		24	=>	'RNA status value',
 		25	=>	'User name',
@@ -1161,6 +1161,8 @@ sub get_nom_segment_main {
 sub test_mutalyzer {
 	my $ua = LWP::UserAgent->new();
 	#http://mutalyzer.nl/2.0/services
+	#####remove when certificate ok at mutalyzer.nl!!!!!
+	#$ua->ssl_opts(verify_hostname => 0);
 	my $request = $ua->get('https://mutalyzer.nl/services');
 	my $content = $request->content();
 	#print "$content<br/>";

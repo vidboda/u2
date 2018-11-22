@@ -250,6 +250,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					if ($result->{'MiSeq-121'} == 1) {print $q->li("included in 121 genes design"), "\n"}
 					if ($result->{'MiSeq-3'} == 1) {print $q->li("included in 3 genes design"), "\n"}
 					if ($result->{'MiniSeq-132'} == 1) {print $q->li("included in 132 genes design"), "\n"}
+					if ($result->{'MiniSeq-152'} == 1) {print $q->li("included in 152 genes design"), "\n"}
 				}
 				#if ($result->{'brin'} eq '-') {$order = 'DESC'}
 				print $q->end_ul(), $q->br(), "\n", $q->start_div({'class' => 'container patient_file_frame', 'id' => 'info_table'}),
