@@ -518,7 +518,7 @@ if ($user->isAnalyst() == 1) {
                                                                                 #21/11/2018 reattempt with auofs
                                                                                 if ($access_method eq 'autofs') {
                                                                                                 if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {
-                                                                                                                $alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
+                                                                                                                $alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
                                                                                                                 $alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
                                                                                                                 $alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
                                                                                                 }
@@ -538,7 +538,7 @@ if ($user->isAnalyst() == 1) {
 					#old fashioned replaced with autofs 21/12/2016
                                                                                 #21/11/2018 reattempt with autofs
                                                                                 if ($access_method eq 'autofs') {
-                                                                                                if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`}
+                                                                                                if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`}
                                                                                 }
                                                                                 else {$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml")}
 					#$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
