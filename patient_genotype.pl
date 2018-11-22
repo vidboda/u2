@@ -61,7 +61,7 @@ my $HOME_IP = $config->HOME_IP();
 $HOME_IP =~ /(https*:\/\/[\d\.]+)\/.+/o;
 $HOME_IP = $1;
 my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
-my $REF_GENE_URI = $config->REF_GENE_URI();
+#my $REF_GENE_URI = $config->REF_GENE_URI();
 
 #my @styles = ($CSS_DEFAULT, $CSS_PATH.'igv.css');
 
@@ -104,10 +104,10 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 					-type => 'text/css',
 					-href => $CSS_PATH.'font-awesome.min.css',
 					-media => 'screen'}),
-				$q->Link({-rel => 'stylesheet',
-					-type => 'text/css',
-					-href => $CSS_PATH.'igv-1.0.5.css',
-					-media => 'screen'}),	
+				#$q->Link({-rel => 'stylesheet',
+				#	-type => 'text/css',
+				#	-href => $CSS_PATH.'igv-1.0.5.css',
+				#	-media => 'screen'}),	
 				$q->Link({-rel => 'stylesheet',
 					-type => 'text/css',
 					-href => $CSS_PATH.'u2_print.css',
@@ -136,8 +136,10 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
+				#{-language => 'javascript',
+				#-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
+				-src => 'https://igv.org/web/release/2.0.1/dist/igv.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_DEFAULT, 'defer' => 'defer'}],		
 			-encoding => 'ISO-8859-1');
@@ -296,20 +298,7 @@ $(document).ready(function () {
 	    showNavigation: true,
 	    showRuler: true,
 	    genome: "hg19",
-	    locus: "'.$gene.'",
-	    tracks: [
-		{
-		    name: "Genes",
-		    type: "annotation",
-		    format: "bed",
-		    sourceType: "file",
-		    url: "'.$REF_GENE_URI.'",
-		    indexURL: "'.$REF_GENE_URI.'.tbi",
-		    order: Number.MAX_VALUE,
-		    visibilityWindow: 300000000,
-		    displayMode: "EXPANDED"
-		}	
-	    ]
+	    locus: "'.$gene.'"
 	};
 
 	igv.createBrowser(div, options);
@@ -317,6 +306,21 @@ $(document).ready(function () {
     });
 ';
 print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
+#tracks: [
+#		{
+#		    name: "Genes",
+#		    type: "annotation",
+#		    format: "bed",
+#		    sourceType: "file",
+#		    url: "'.$REF_GENE_URI.'",
+#		    indexURL: "'.$REF_GENE_URI.'.tbi",
+#		    order: Number.MAX_VALUE,
+#		    visibilityWindow: 300000000,
+#		    displayMode: "EXPANDED"
+#		}	
+#	    ]
+
+
 #}
 #, {
 #			    url: \''.$bam_path.'\',

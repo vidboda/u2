@@ -64,10 +64,10 @@ my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
 my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
-my $REF_GENE_URI = $config->REF_GENE_URI();
+#my $REF_GENE_URI = $config->REF_GENE_URI();
 
-my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'datatables.min.css', $CSS_PATH.'igv-1.0.5.css', $CSS_PATH.'jquery-ui-1.12.1.min.css');
-
+my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'datatables.min.css', $CSS_PATH.'jquery-ui-1.12.1.min.css');
+#$CSS_PATH.'igv-1.0.5.css', 
 my $q = new CGI;
 
 my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
@@ -110,8 +110,10 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
+				#{-language => 'javascript',
+				#-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
+				-src => 'https://igv.org/web/release/2.0.1/dist/igv.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
                                 -src => $JS_DEFAULT}],		
                         -encoding => 'ISO-8859-1', 'defer' => 'defer');
@@ -261,17 +263,7 @@ $(document).ready(function () {
 	    showRuler: true,
 	    genome: "hg19",
 	    tracks: [
-		{
-		    name: "Genes",
-		    type: "annotation",
-		    format: "bed",
-		    sourceType: "file",
-		    url: "'.$REF_GENE_URI.'",
-		    indexURL: "'.$REF_GENE_URI.'.tbi",
-		    order: Number.MAX_VALUE,
-		    visibilityWindow: 300000000,
-		    displayMode: "EXPANDED"
-		},
+		
 		{
 		    name: "'.$id.$number.' '.$nenufaar_ana.' BAM file",
 		    type: "alignment",
@@ -289,6 +281,19 @@ $(document).ready(function () {
 ';
 print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
 
+
+
+#{
+#		    name: "Genes",
+#		    type: "annotation",
+#		    format: "bed",
+#		    sourceType: "file",
+#		    url: "'.$REF_GENE_URI.'",
+#		    indexURL: "'.$REF_GENE_URI.'.tbi",
+#		    order: Number.MAX_VALUE,
+#		    visibilityWindow: 300000000,
+#		    displayMode: "EXPANDED"
+#		},
 #my $interest = 0;
 #foreach my $key (keys %{$intervals}) {
 #	$key =~ /(\d+)-(\d+)/o;
