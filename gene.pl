@@ -399,9 +399,9 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	if ($nb_exons > 100) {$canvas_height = '1000';$img_suffix = '2';$css_suffix = '_1000'}
 	if ($nb_exons > 200) {$canvas_height = '1700';$img_suffix = '3';$css_suffix = '_1700'}
 	if ($nb_exons > 300) {$canvas_height = '2500';$img_suffix = '4';$css_suffix = '_2500'}
-	print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'),
-		$q->br(), $q->br(),
-		U2_modules::U2_subs_3::add_variant_button($q, $gene, $main, $ng),
+	print	$q->p('Click on an exon/intron on the picture below to get the variants lying in it:'),
+		$q->br(),
+		$q->start_div({'class' => 'w3-container w3-center'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $main, $ng), $q->end_div(), 
 		$q->br(), $q->br(),
 		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"$canvas_height\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency'.$img_suffix.'.png', 'usemap' => '#segment', 'class' => 'fented'.$css_suffix, 'id' => 'transparent_image'}),
 		$q->end_div(), "\n",
@@ -477,7 +477,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		my $res = $dbh->selectrow_hashref($query);
 		if ($res ne '0E0') {
 			my ($ng, $acc) = ($res->{'nom_g'}, $res->{'nom'}[1]);
-			print U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->br(), $q->br();
+			print $q->start_div({'class' => 'w3-container w3-center'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->end_div(), $q->br();
 			print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 		}
 		$query = "SELECT a.nom, a.nom_gene[2] as acc, a.nom_ivs, a.nom_prot FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL AND a.nom_gene[1] = '$gene' ORDER BY a.nom_g;";
