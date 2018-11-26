@@ -704,7 +704,7 @@ sub gene_canvas {
 	#ok this is relou as canvas don't accept links, so I put a transparent picture above with a map
 	if ($js_params->[1] eq "NULL") {$js_params->[1] = $order}
 	
-	my $query = "SELECT b.nom as gene, a.numero as numero, a.nom as nom, a.type as type FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.nom[1] = '$gene' AND b.main = 't' AND a.nom NOT LIKE '%bis' order by a.$postgre_start_g $order;";
+	my $query = "SELECT b.nom as gene, b.acc_g, a.numero as numero, a.nom as nom, a.type as type FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.nom[1] = '$gene' AND b.main = 't' AND a.nom NOT LIKE '%bis' order by a.$postgre_start_g $order;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $js = "	var canvas = document.getElementById(\"exon_selection\");
@@ -715,8 +715,10 @@ sub gene_canvas {
 			context.strokeStyle = \"#6C2945\";
 		";#FF0000
 	my $map = "\n<map name='segment'>\n";
+	my ($main, $ng);
 	my ($acc, $i, $x_txt_intron, $y_txt_intron, $x_line_intron, $x_intron_exon, $y_line_intron, $y_up_exon, $x_txt_exon, $y_txt_exon) = ('', 0, 125, 19.5, 100, 150, 25, 12.5, 170, 30);
 	while (my $result = $sth->fetchrow_hashref()) {
+		($main, $ng) = ($result->{'gene'}[1], $result->{'acc_g'});
 		if ($i == 20) {$i = 0;$y_txt_intron += 50;$y_line_intron += 50;$y_txt_exon += 50;$y_up_exon += 50;$x_txt_intron = 125;$x_line_intron = 100;$x_intron_exon = 150;$x_txt_exon = 170;}
 		if ($acc ne $result->{'gene'}[1]) {#new -> print acc
 			$js.= "context.fillText(\"$result->{'gene'}[1]\", 0, $y_line_intron);";
@@ -803,7 +805,7 @@ sub gene_canvas {
 	}
 	
 	$map .= "</map>\n";
-	return ($js, $map);
+	return ($js, $map, $main, $ng);
 }
 
 sub segment_canvas {

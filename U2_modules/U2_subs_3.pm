@@ -1143,5 +1143,60 @@ sub get_filter_from_idlist {
 	if ($res_filter) {$filter = $res_filter->{'filter'}}
 	return $filter;
 }
+#in gene.pl
+sub add_variant_button {
+	my ($q, $gene, $acc, $ng) = @_;
+	my $js = "function create_var() {
+				//alert(\$(\"#new_variant\").val());
+				var begin = \$('#main_text\').html();
+				if (\$(\"#new_variant\").val() !== 'c.') {
+					\$(\'html\').css(\'cursor\', \'progress\');
+					\$(\'.w3-btn\').css(\'cursor\', \'progress\');
+					var nom_c = \$(\"#new_variant\").val();
+					\$(\"#main_text\").append(\"&nbsp;&nbsp;&nbsp;&nbsp;Please Wait While Creating Variant\");
+					\$(\"#creation_form :input\").prop(\"disabled\", true);					
+					\$.ajax({
+							type: \"POST\",
+							url: \"variant_input.pl\",
+							data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, ng_accno: \$(\"#ng_accno\").val(), single_var: \'y\'}
+					})
+					.done(function(msg) {
+						if (msg !== '') {\$(\'#created_variant\').append(msg)};
+						\$(\'.w3-btn\').css(\'cursor\', \'default\');
+						\$(\'html\').css(\'cursor\', \'default\');
+						\$(\'#main_modal\').hide();
+						\$(\'#main_text\').html(begin);
+						\$(\'#creation_form :input\').prop(\'disabled\', false);
+					});
+				}
+			}";
+	
+	my $html = $q->script({'type' => 'text/javascript'}, $js)."\n".
+		$q->button({'id' => 'add_var', 'value' => 'Create a variant', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'onclick' => "document.getElementById('main_modal').style.display='block';"})."\n".
+		$q->start_div({'id' => 'main_modal', 'class' => 'w3-modal', 'style' => 'z-index:1000'})."\n".
+			$q->start_div({'class' => 'w3-modal-content w3-card-4 w3-display-middle'})."\n".
+				$q->start_div({'class' => 'w3-container w3-blue'}).$q->span({'onclick' => "document.getElementById('main_modal').style.display='none'", 'class' => 'w3-button w3-display-topright w3-xlarge'}, '&times;').$q->h2({'id' => 'main_text'}, "Create a variant ($acc)").$q->end_div()."\n".
+				$q->start_div({'class' => 'w3-container'})."\n".
+					$q->start_form({'id' => 'creation_form', 'class' => 'u2_form', 'method'=> 'post', 'action' => '', 'enctype' => &CGI::URL_ENCODED})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'gene', 'id' => 'gene', 'value' => "$gene"})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'acc_no', 'id' => 'acc_no', 'value' => "$acc"})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'type', 'id' => 'type', 'value' => 'exon'})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'numero', 'id' => 'numero', 'value' => '1'})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'nom', 'id' => 'nom', 'value' => '1'})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'ng_accno', 'id' => 'ng_accno', 'value' => "$ng"})."\n".
+							$q->start_div({'class' => 'w3-panel w3-large'})."\n".
+								$q->label({'for' => 'new_variant'}, 'New variant (HGVS DNA):')."\n".'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.
+								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variant', 'value' => 'c.', 'size' => '20', 'maxlength' => '50'})."\n".
+							$q->end_div()."\n".
+							$q->start_div({'class' => 'w3-panel w3-large w3-center'})."\n".
+								$q->button({'name' => 'submit', 'for' => 'creation_form', 'value' => 'Let\'s do it!!', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var();'})."\n".
+							$q->end_div()."\n".
+					$q->end_form()."\n".
+				$q->end_div()."\n".
+			$q->end_div()."\n".
+		$q->end_div()."\n";
+	return $html;
+	
+}
 
 1;

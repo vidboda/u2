@@ -6,6 +6,7 @@ use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
+use U2_modules::U2_subs_3;
 
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
@@ -233,10 +234,11 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					$q->span({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$result->{'nom'}[1].$result->{'acc_version'}"), 
 					$q->br(), $q->br(), $q->span("($second_name / "), $q->span({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$result->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}, $result->{'enst'}), $q->span(')'),
 					$q->end_strong(), $q->end_big(), $q->end_p(), "\n",
-					$q->start_ul(),
+					$q->start_ul(),						
 						$q->li("chr$chr, strand $result->{'brin'}"), "\n",
 						$q->li("$result->{'nom_prot'} ($result->{'short_prot'})"), "\n",
-						$q->start_li(), $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'}), $q->end_li(), "\n";
+						$q->start_li(), $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'}), $q->end_li(), "\n",
+						$q->start_li(), U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'nom'}[1], $result->{'acc_g'}), $q->end_li(), "\n";
 				if ($user->isPublic() != 1) {
 					if ($result->{'rp'} == 1) {print $q->li("Shown in 'RP', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
 					if ($result->{'dfn'} == 1) {print $q->li("Shown in 'DFN', 'DFN+USH' and in 'ALL' filters, hidden in others"), "\n"}
@@ -261,7 +263,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					$q->th({'class' => 'left_general'}, 'Number of exons'), "\n",
 					$q->th({'class' => 'left_general'}, 'RefSeq protein'), "\n",
 					$q->th({'class' => 'left_general'}, 'Uniprot ID'), "\n",
-					$q->end_Tr(), "\n";				
+					$q->end_Tr(), "\n";		
 			}
 			#					$q->th({'class' => 'left_general'}, 'Protein Product size (aa)'), "\n",
 
@@ -282,6 +284,10 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 
 		}
 		print $q->end_table(), $q->end_div(), $q->br(), $q->br(), "\n";
+		
+		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
+		
+		
 		##genome browser
 		#http://www.biodalliance.org/
 		#my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
@@ -384,7 +390,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	my $query = "SELECT DISTINCT(brin) FROM gene WHERE nom[1] = '$gene' ORDER BY main DESC;";
 	my $order = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 	my @js_params = ('showVariants', 'NULL', 'NULL');
-	my ($js, $map) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
+	my ($js, $map, $main, $ng) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
 	#get exon number for gene
 	$query = "SELECT MAX(nbre_exons) as a FROM gene WHERE nom[1] = '$gene';";
 	my $res_exons = $dbh->selectrow_hashref($query);
@@ -394,6 +400,8 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	if ($nb_exons > 200) {$canvas_height = '1700';$img_suffix = '3';$css_suffix = '_1700'}
 	if ($nb_exons > 300) {$canvas_height = '2500';$img_suffix = '4';$css_suffix = '_2500'}
 	print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'),
+		$q->br(), $q->br(),
+		U2_modules::U2_subs_3::add_variant_button($q, $gene, $main, $ng),
 		$q->br(), $q->br(),
 		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"$canvas_height\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency'.$img_suffix.'.png', 'usemap' => '#segment', 'class' => 'fented'.$css_suffix, 'id' => 'transparent_image'}),
 		$q->end_div(), "\n",
@@ -430,10 +438,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	if ($sort =~ /(classe|type_adn|type_arn|type_prot)/o) {
 		print $q->p('All classes are represented in the table below. Click on a category to get all the associated variants (probands and relatives).');
 		my ($i, $j) = (0, 0);
-		
-		
-		
-		
+				
 		my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a WHERE a.nom_gene[1] = '$gene')
 				SELECT COUNT(DISTINCT(a.nom)) as var, a.$sort as sort, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND a.$sort <> '' GROUP BY a.$sort ORDER BY a.$sort;";
 		
@@ -468,9 +473,17 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		}
 	}
 	elsif ($sort eq 'orphan') {
-		my $query = "SELECT a.nom_g, a.nom, a.nom_gene[2] as acc, a.nom_ivs, a.nom_prot FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL AND a.nom_gene[1] = '$gene' ORDER BY a.nom_g;";
+		my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene';";
+		my $res = $dbh->selectrow_hashref($query);
+		if ($res ne '0E0') {
+			my ($ng, $acc) = ($res->{'nom_g'}, $res->{'nom'}[1]);
+			print U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->br(), $q->br();
+			print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
+		}
+		$query = "SELECT a.nom, a.nom_gene[2] as acc, a.nom_ivs, a.nom_prot FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL AND a.nom_gene[1] = '$gene' ORDER BY a.nom_g;";
 		my $sth = $dbh->prepare($query);
-		my $res = $sth->execute();
+		$res = $sth->execute();
+		
 		if ($res ne '0E0') {
 			print $q->start_ul();
 			while (my $result = $sth->fetchrow_hashref()) {
