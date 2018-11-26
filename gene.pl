@@ -432,7 +432,13 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	
 	print $q->br(), $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), 
 		$q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), $q->br(), "\n";
-		
+	my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene';";
+	my $res = $dbh->selectrow_hashref($query);
+	if ($res ne '0E0') {
+		my ($ng, $acc) = ($res->{'nom_g'}, $res->{'nom'}[1]);
+		print $q->start_div({'class' => 'w3-container w3-center'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->end_div(), $q->br();
+		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
+	}
 	
 	
 	if ($sort =~ /(classe|type_adn|type_arn|type_prot)/o) {
@@ -473,13 +479,6 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		}
 	}
 	elsif ($sort eq 'orphan') {
-		my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene';";
-		my $res = $dbh->selectrow_hashref($query);
-		if ($res ne '0E0') {
-			my ($ng, $acc) = ($res->{'nom_g'}, $res->{'nom'}[1]);
-			print $q->start_div({'class' => 'w3-container w3-center'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->end_div(), $q->br();
-			print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
-		}
 		$query = "SELECT a.nom, a.nom_gene[2] as acc, a.nom_ivs, a.nom_prot FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL AND a.nom_gene[1] = '$gene' ORDER BY a.nom_g;";
 		my $sth = $dbh->prepare($query);
 		$res = $sth->execute();
