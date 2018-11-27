@@ -21,8 +21,9 @@ sub liftover {
 	#way =19238 or 38219
 	#liftover.py is 0-based
 	$pos = $pos-1;
+	if ($chr =~ /chr([\dXYM]{1,2})/o) {$chr = $1}
 	#my $ret =  or die "hg38 gene mutalyzer gene only and $!";
-	#print STDERR "/usr/local/bin/python $path/liftover$way.py "chr$chr" $pos";
+	#print STDERR "/usr/local/bin/python $path/liftover$way.py chr$chr $pos";
 	my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover$way.py "chr$chr" $pos`);
 	$s =~ s/\)//g;	
 	$s =~ s/ //g;
@@ -1153,7 +1154,7 @@ sub add_variant_button {
 					\$(\'html\').css(\'cursor\', \'progress\');
 					\$(\'.w3-btn\').css(\'cursor\', \'progress\');
 					var nom_c = \$(\"#new_variant\").val();
-					\$(\"#main_text\").append(\"&nbsp;&nbsp;&nbsp;&nbsp;Please Wait While Creating Variant\");
+					\$(\"#main_text\").append(\"&nbsp;Please Wait While Creating Variant\");
 					\$(\"#creation_form :input\").prop(\"disabled\", true);					
 					\$.ajax({
 							type: \"POST\",

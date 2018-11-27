@@ -542,7 +542,7 @@ sub sample2idnum { #transform a sample into an id and a number
 
 sub check_gene { #checks gene param
 	my ($q, $dbh) = @_;
-	if ($q->param('gene') =~ /(\w+)/og) {
+	if ($q->param('gene') =~ /([\w-]+)/og) {
 		my $name = $1;
 		if ($name =~ /ORF/o) {$name =~ s/ORF/orf/og}
 		my $query = "SELECT DISTINCT (nom[1]) as gene, second_name FROM gene WHERE nom[1] = '$name';";

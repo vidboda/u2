@@ -435,7 +435,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene';";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '0E0') {
-		my ($ng, $acc) = ($res->{'nom_g'}, $res->{'nom'}[1]);
+		my ($ng, $acc) = ($res->{'acc_g'}, $res->{'nom'}[1]);
 		print $q->start_div({'class' => 'w3-container w3-center'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->end_div(), $q->br();
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 	}

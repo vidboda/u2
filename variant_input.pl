@@ -513,7 +513,7 @@ elsif ($step == 2) { #insert variant and print
 											#NOTE this part of code slightly differs from import_illumina but basically does the same
 											#OK it's because here intronic variants can be submitted as IVS17+2C>T, etc, which is not the case in import_illumina
 											#see test_mutalyzer_pde6a.pl on 158 for details
-											if (/($gid)_\d+\.?\d\((\w+)\):(c\..+)/) {
+											if (/($gid)_\d+\.?\d\(([\w-]+)\):(c\..+)/) {
 												my ($version, $temp_var) = ($2, $3);
 												$temp_var =~ s/\?/\\?/og;
 												if ($cdna =~ /^$temp_var/) {#for exonic variants
@@ -628,7 +628,7 @@ elsif ($step == 2) { #insert variant and print
 								if ($id ne '') {
 									$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$variant', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";
 								
-									#print $insert;
+									print $insert;
 									$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
 								}
 							}
@@ -739,19 +739,19 @@ elsif ($step == 3) { #delete variant
 	#print "$var deleted";	
 }
 
-sub liftover38219 {
-	my ($pos, $chr, $path) = @_;
-	chop($path);
-	#liftover.py is 0-based
-	$pos = $pos-1;
-	#my $ret =  or die "hg38 gene mutalyzer gene only and $!";
-	my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover38219.py $chr $pos`);
-	$s =~ s/\)//g;	
-	$s =~ s/ //g;
-	$s =~ s/'//g;
-	if ($s =~ /^\d+$/o) {return $s}
-	else {return 'f'}
-}
+#sub liftover38219 {
+#	my ($pos, $chr, $path) = @_;
+#	chop($path);
+#	#liftover.py is 0-based
+#	$pos = $pos-1;
+#	#my $ret =  or die "hg38 gene mutalyzer gene only and $!";
+#	my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover38219.py $chr $pos`);
+#	$s =~ s/\)//g;	
+#	$s =~ s/ //g;
+#	$s =~ s/'//g;
+#	if ($s =~ /^\d+$/o) {return $s}
+#	else {return 'f'}
+#}
 
 ##specific subs for current script
 
