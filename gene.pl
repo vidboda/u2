@@ -432,7 +432,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	
 	print $q->br(), $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), 
 		$q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), $q->br(), "\n";
-	my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene';";
+	my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene' and main = 't';";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '0E0') {
 		my ($ng, $acc) = ($res->{'acc_g'}, $res->{'nom'}[1]);
