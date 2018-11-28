@@ -257,12 +257,14 @@ if ($step && $step == 2) {
 	mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";
 	#$ssh->scp_get({glob => 1, copy_attrs => 1}, $location.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf") or die $!;
 	#print $alignment_dir.'/'.$report;exit;
-	my $success;
-	if ($access_method eq 'autofs') {$success = system("cp -f '$alignment_dir/$report' '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf'")}
-	else {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");}
+	if ($access_method eq 'autofs') {system("cp -f '$alignment_dir/$report' '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf'")}
+	else {
+		my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
+		if ($success != 1) {if ($! !~ /File exists/o) {U2_modules::U2_subs_1::standard_error('22', $q)}}
+	}
 	#my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
-	#print "$success--<br/>";
-	if ($success != 1) {if ($! !~ /File exists/o) {U2_modules::U2_subs_1::standard_error('22', $q)}}
+	#print STDERR "0-$success--\n";
+	
 	
 	#################################UNCOMMENT when sub
 	#create roi hash
@@ -287,7 +289,7 @@ if ($step && $step == 2) {
 		my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
 		$sample_end = $sampleid;
 		my $insert;
-		print STDERR "\nInitiating $id$number...";
+		print STDERR "\nInitiating $id$number with transfer method: $access_method..";
 		#loop 28-112-121 genes
 		$query = "SELECT nom FROM gene WHERE \"$analysis\" = 't' ORDER BY nom[1];";
 		my $sth = $dbh->prepare($query);
@@ -302,21 +304,25 @@ if ($step && $step == 2) {
 		#print "$insert\n"
 		
 		mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid";
-		my $success;
+		#my $success;
 		if ($access_method eq 'autofs') {
-			$success = system("cp -f $alignment_dir/$coverage '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv'");
-			#print "$success--$!";
-			if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$enrichment '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv'")}
-			else {U2_modules::U2_subs_1::standard_error('22', $q)}
-			if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$gaps '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv'")}
-			else {U2_modules::U2_subs_1::standard_error('22', $q)}
-			if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$vcf '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf'")}
-			else {U2_modules::U2_subs_1::standard_error('22', $q)}
-			if ($success == 1 || $! =~ /File exists/o) {system("cp -f $alignment_dir/$sample_report '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf'")}
-			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			system("cp -f $alignment_dir/$coverage '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv'");
+			#print STDERR "1-$success--\n";
+			system("cp -f $alignment_dir/$enrichment '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv'");
+			system("cp -f $alignment_dir/$gaps '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv'");
+			system("cp -f $alignment_dir/$vcf '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf'");
+			system("cp -f $alignment_dir/$sample_report '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf'");
+			#if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$enrichment '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv'")}
+			#else {print STDERR "2-$success--\n";U2_modules::U2_subs_1::standard_error('22', $q)}
+			#if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$gaps '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv'")}
+			#else {print STDERR "3-$success--\n";U2_modules::U2_subs_1::standard_error('22', $q)}
+			#if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$vcf '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf'")}
+			#else {print STDERR "4-$success--\n";U2_modules::U2_subs_1::standard_error('22', $q)}
+			#if ($success == 1 || $! =~ /File exists/o) {system("cp -f $alignment_dir/$sample_report '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf'")}
+			#else {print STDERR "5-$success--\n";U2_modules::U2_subs_1::standard_error('22', $q)}
 		}
 		else {
-			$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$coverage, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv");
+			my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$coverage, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv");
 			if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$enrichment, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv")}
 			else {U2_modules::U2_subs_1::standard_error('22', $q)}
 			if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$gaps, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv")}
