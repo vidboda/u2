@@ -82,7 +82,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                 ) or die $DBI::errstr;
 
 my $user = U2_modules::U2_users_1->new();
-my $soft = 'U2'
+my $soft = 'U2';
 if ($user->isPublic() == 1) {$soft = 'MD'}
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
