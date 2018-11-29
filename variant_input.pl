@@ -278,16 +278,16 @@ elsif ($step == 2) { #insert variant and print
 							if ($hg38 == 1) {
 								if ($g_var =~ /g\.(\d+)_(\d+)([^\d]+)$/o) {
 									($s38, $e38, $rest) = ($1, $2, $3);
-									my $s = U2_modules::U2_subs_3::liftover($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, '38219');
+									my $s = U2_modules::U2_subs_3::liftover($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG38TOHG19CHAIN);
 									if ($s eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
-									my $e = U2_modules::U2_subs_3::liftover($e38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, '38219');
+									my $e = U2_modules::U2_subs_3::liftover($e38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG38TOHG19CHAIN);
 									if ($e eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
 									$g_var = "g.".$s."_$e$rest";
 									$nom_g_38 = "$chr_tmp:g.".$s38."_$e38$rest";
 								}
 								elsif ($g_var =~ /g\.(\d+)([^\d]+)$/o) {
 									($s38, $rest) = ($1, $2);
-									my $s = U2_modules::U2_subs_3::liftover($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, '38219');
+									my $s = U2_modules::U2_subs_3::liftover($s38, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG38TOHG19CHAIN);
 									if ($s eq 'f') {U2_modules::U2_subs_1::standard_error('26', $q)}
 									$g_var = "g.$s$rest";
 									$nom_g_38 = "$chr_tmp:g.$s38$rest";

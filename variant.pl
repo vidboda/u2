@@ -81,9 +81,13 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         {'RaiseError' => 1}
                 ) or die $DBI::errstr;
 
+my $user = U2_modules::U2_users_1->new();
+my $soft = 'U2'
+if ($user->isPublic() == 1) {$soft = 'MD'}
+
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 	$q->start_html(
-			-title=>"U2 variant details",
+			-title=>"$soft variant details",
 			-lang => 'en',
 			-style => {-src => \@styles},
 			-head => [
@@ -92,7 +96,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 					-href => $HTDOCS_PATH.'data/img/animated_favicon1.gif'}),
 				$q->Link({-rel => 'search',
 					-type => 'application/opensearchdescription+xml',
-					-title => 'U2 search engine',
+					-title => "$soft search engine",
 					-href => $HTDOCS_PATH.'u2browserengine.xml'}),
 				$q->meta({-http_equiv => 'Cache-control',
 					-content => 'no-cache'}),

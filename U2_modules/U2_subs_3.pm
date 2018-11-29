@@ -13,10 +13,12 @@ my $config = U2_modules::U2_init_1->initConfig();
 $config->file($config_file);# or die $!;
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
-
+our $HG19TOHG38CHAIN = 'hg19ToHg38.over.chain.gz';
+our $HG38TOHG19CHAIN = 'hg38ToHg19.over.chain.gz';
 
 sub liftover {
-	my ($pos, $chr, $path, $way) = @_;
+	#my ($pos, $chr, $path, $way) = @_;
+	my ($pos, $chr, $path, $chain) = @_;
 	chop($path);
 	#way =19238 or 38219
 	#liftover.py is 0-based
@@ -24,7 +26,8 @@ sub liftover {
 	if ($chr =~ /chr([\dXYM]{1,2})/o) {$chr = $1}
 	#my $ret =  or die "hg38 gene mutalyzer gene only and $!";
 	#print STDERR "/usr/local/bin/python $path/liftover$way.py chr$chr $pos";
-	my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover$way.py "chr$chr" $pos`);
+	#my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover$way.py "chr$chr" $pos`);
+	my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover.py $path/$chain "chr$chr" $pos`);
 	$s =~ s/\)//g;	
 	$s =~ s/ //g;
 	$s =~ s/'//g;
@@ -242,7 +245,7 @@ sub insert_variant {
 		#}
 		if ($nm_variant != 1) {#let's try hg38
 			#liftover
-			my $hg38_pos = &liftover($var_pos, $var_chr, $ABSOLUTE_HTDOCS_PATH, '19238');
+			my $hg38_pos = &liftover($var_pos, $var_chr, $ABSOLUTE_HTDOCS_PATH, $HG19TOHG38CHAIN);
 			if ($hg38_pos eq 'f') {return "MANUAL INDEL NO MATCHING NM\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter'); $var_chr $var_pos in VCF\n"}
 			
 			my $hg38_genomic_var = &build_hgvs_from_illumina($var_chr, $hg38_pos, $var_ref, $var_alt);		
@@ -526,10 +529,10 @@ sub insert_variant {
 	if ($nm_variant != 1) {#let's try hg38
 	#liftover
 		my $hg38_pos;
-		if ($first_genomic_var eq $genomic_var) {$hg38_pos = &liftover($var_pos, $var_chr, $ABSOLUTE_HTDOCS_PATH, '19238');}
+		if ($first_genomic_var eq $genomic_var) {$hg38_pos = &liftover($var_pos, $var_chr, $ABSOLUTE_HTDOCS_PATH, $HG19TOHG38CHAIN);}
 		else {#if genomic pos has moved!!!
 			my ($hg19_pos, $ghost) = &get_start_end_pos($genomic_var);
-			$hg38_pos = &liftover($hg19_pos, $var_chr, $ABSOLUTE_HTDOCS_PATH, '19238');
+			$hg38_pos = &liftover($hg19_pos, $var_chr, $ABSOLUTE_HTDOCS_PATH, $HG19TOHG38CHAIN);
 			if ($genomic_var =~ /del/) {$hg38_pos--}#simulate VCF position for dels
 			#if ($first_genomic_var eq 'chrX:g.44918222delT') {print STDERR "4-$first_genomic_var-$genomic_var-$nom-$hg38_pos-$hg19_pos\n"}
 		}

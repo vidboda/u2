@@ -738,7 +738,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 					elsif ($ratio >= 0.5 && $ratio < 0.75) {$class = 'three_quarter'}
 					elsif ($ratio >= 0.75) {$class = 'four_quarter'}
 					
-					$text .= $q->start_li().$q->span({'class' => $class}, 'U2 experimental pathogenic ratio: ').$q->span({'class' => $class}, "$ratio, ($i/$j)").$q->end_li();
+					$text .= $q->start_li().$q->span({'class' => $class}, 'MD experimental pathogenic ratio: ').$q->span({'class' => $class}, "$ratio, ($i/$j)").$q->end_li();
 				}
 			}
 		}
