@@ -577,7 +577,8 @@ elsif ($step == 2) { #insert variant and print
 										elsif ($nom_prot =~ /dup/o) {$type_prot = 'inframe duplication';}
 										elsif ($nom_prot =~ /=/o && $type_segment eq 'exon') {$type_prot = 'silent'}
 										elsif ($nom_prot =~ /=/o && $type_segment ne 'exon') {$type_prot = 'NULL'}
-										elsif ($nom_prot =~ /[^\\^?^=]/o) {$type_prot = 'missense'}
+										elsif ($nom_prot =~ /^p\.\?$/o) {$type_prot = 'NULL'}
+										elsif ($nom_prot =~ /[^\\^\?^=]/o) {$type_prot = 'missense'}
 									}
 									else {$nom_prot = 'p.(=)';$type_prot = 'NULL';}
 								}
