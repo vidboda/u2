@@ -618,7 +618,22 @@ elsif ($step == 2) { #insert variant and print
 								## let's go
 								#reverse
 								if ($gene eq 'ADGRV1') {$gene = 'GPR98'}
-								if ($hg38 != 1) {$nom_g_38 = 'NULL'}
+								if ($hg38 != 1) {
+									#$nom_g_38 = 'NULL';
+									if ($g_var =~ /g\.(\d+)_(\d+)([^\d]+)$/o) {
+										my ($s19, $e19, $rest) = ($1, $2, $3);
+										my $s38 = U2_modules::U2_subs_3::liftover($s19, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG19TOHG38CHAIN);
+										my $e38 = U2_modules::U2_subs_3::liftover($e19, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG19TOHG38CHAIN);
+										if ($s38 eq 'f' || $e38 eq 'f') {$nom_g_38 = 'NULL'}
+										else {$nom_g_38 = "$chr_tmp:g.".$s38."_$e38$rest"}
+									}
+									elsif ($g_var =~ /g\.(\d+)([^\d]+)$/o) {
+										my ($s19, $rest) = ($1, $2);
+										my $s38 = U2_modules::U2_subs_3::liftover($s19, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG38TOHG19CHAIN);
+										if ($s38 eq 'f') {$nom_g_38 = 'NULL'}
+										else {$nom_g_38 = "$chr_tmp:g.$s38$rest"}
+									}
+								}
 								my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38) VALUES ('$variant', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38');";
 								$insert =~ s/'NULL'/NULL/og;
 								#die $insert;			
