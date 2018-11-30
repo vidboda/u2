@@ -155,7 +155,7 @@ else {
 			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Variants in MobiDetails</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
 			.dialog({
 			    autoOpen: false,
-			    title: \'U2 choice\',
+			    title: \'MD choice\',
 			    width: 450,
 			});
 		\$dialog.dialog(\'open\');
