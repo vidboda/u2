@@ -162,9 +162,10 @@ else {
 		\$(\'.ui-dialog\').zIndex(\'1002\');
 	}"
 }
-
+my $soft = 'U2';
+if ($user->isPublic() == 1) {$soft = 'MD'}
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
-	$q->start_html(-title=>"U2 Gene page",
+	$q->start_html(-title=>"$soft Gene page",
                         -lang => 'en',
                         -style => {-src => \@styles},
                         -head => [
@@ -173,7 +174,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 					-href => $HTDOCS_PATH.'data/img/animated_favicon1.gif'}),
 				$q->Link({-rel => 'search',
 					-type => 'application/opensearchdescription+xml',
-					-title => 'U2 search engine',
+					-title => "$soft search engine",
 					-href => $HTDOCS_PATH.'u2browserengine.xml'}),
 				$q->meta({-http_equiv => 'Cache-control',
 					-content => 'no-cache'}),
