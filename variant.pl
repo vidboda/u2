@@ -166,14 +166,14 @@ print				$q->start_div({'class' => 'w3-sidebar w3-bar-block w3-card w3-animate-l
 				$q->span({'class' => 'w3-bar-item w3-button w3-large w3-border-bottom', 'onclick' => 'w3_close()'}, 'Close &times;');
 	
 
-##Mutation taster
-if ($res->{'type_adn'} eq 'substitution' && $res->{'type_segment'} eq 'exon') {
-	$var =~ /.+\>(\w)/o;
-	#print $q->start_li(),
-		#$q->start_a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/mut_taster_button.png'}), $q->end_a(),
-		print $q->a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'Mutation taster'), "\n";
-	#$q->end_li(), "\n";
-}
+##Mutation taster - removed 11/2018
+#if ($res->{'type_adn'} eq 'substitution' && $res->{'type_segment'} eq 'exon') {
+#	$var =~ /.+\>(\w)/o;
+#	#print $q->start_li(),
+#		#$q->start_a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/mut_taster_button.png'}), $q->end_a(),
+#		print $q->a({'href' => "http://www.mutationtaster.org/cgi-bin/MutationTaster/MutationTaster69.cgi?gene=$gene&transcript_stable_id_text=$res->{'enst'}&sequence_type=CDS&position_be=$pos_cdna&new_base=$1&alteration_name=".$gene."_".uri_escape($var)."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'Mutation taster'), "\n";
+#	#$q->end_li(), "\n";
+#}
 	
 #HSF removed does not work anymore 27/10/2016
 #print $q->start_li(),

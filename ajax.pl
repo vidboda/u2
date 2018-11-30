@@ -688,6 +688,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 		$chr =~ s/chr//og;
 		#print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1";
 		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1`);
+		if ($#dbnsfp < 2) {print 'No values in dbNSFP v2.9 for this variant.';exit;}
 		foreach (@dbnsfp) {
 			my @current = split(/\t/, $_);
 			if (($current[2] eq $ref) && ($current[3] eq $alt) && ($current[4] eq $aa_ref) && ($current[5] eq $aa_alt)) {

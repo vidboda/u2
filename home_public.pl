@@ -155,7 +155,11 @@ print $q->end_p(), $q->end_div(), $q->end_div(), "\n",
 				$q->input({'type' => 'submit', 'value' => 'Submit', 'class' => 'w3-button w3-blue'}),
 			$q->end_div(), "\n",
 		$q->end_form(), "\n",
-	$q->end_div(), "\n",$q->br(), $q->start_div({'id' => 'farside', 'class' => 'appear center'}), $q->end_div(), "\n",
+	$q->end_div(), "\n",$q->br();
+
+my $text = 'WARNING: MobiDetails is in current active development. This is a &beta; version.<br/> If you experience any trouble or have any idea to improve the software, please contact David at david.baux@inserm.fr';
+print U2_modules::U2_subs_2::danger_panel($text, $q);	
+print $q->start_div({'id' => 'farside', 'class' => 'appear center'}), $q->end_div(), "\n",
 	$q->br(), $q->br(), $q->start_div({'align' => 'center'}),
 	#$q->p('At the time, menu:'),
 	#$q->start_ul(),
@@ -171,10 +175,11 @@ print $q->end_p(), $q->end_div(), $q->end_div(), "\n",
 	#$q->start_div(),
 	my $text = $q->span('Example research for search engine:').
 		$q->start_ul().
-			$q->li('\'p.(Arg34*)\', \'p.Arg34*\', \'p.R34*\', \'p.R34X\', \'R34X\' will look for variants linked to these protein name').
-			$q->li('\'chr1:g.216595579G>A\', \'g.6160C>T\', \'c.100C>T\', \'100C>T\', \'IVS15+35G>A\' will look for variants linked to these DNA name').
+			$q->li('\'p.(Arg34*)\', \'p.Arg34*\', \'p.R34*\', \'p.R34X\', \'R34X\' will look for variants linked to these protein names').
+			$q->li('\'chr1:g.216595579G>A\', \'g.6160C>T\', \'c.100C>T\', \'100C>T\', \'IVS15+35G>A\' will look for variants linked to these DNA names').
 			$q->li('Partial names for variants can be used e.g. \'c.100\' or \'IVS15\' will look for variants begining with c.100 or IVS15').
 			$q->li('Special: IVSX+3 will look for any \'+3\' variant').
+			$q->li('Gene names (HGNC)').
 			$q->li('And, last but not least, typing a number will seek for variants (DNA c. and protein)!').
 		$q->end_ul()."\n";
 	print U2_modules::U2_subs_2::info_panel($text, $q);

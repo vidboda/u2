@@ -255,7 +255,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					if ($result->{'MiniSeq-152'} == 1) {print $q->li("included in 152 genes design"), "\n"}
 				}
 				#if ($result->{'brin'} eq '-') {$order = 'DESC'}
-				print $q->end_ul(), $q->br(), "\n", $q->start_div({'class' => 'container patient_file_frame', 'id' => 'info_table'}),
+				print $q->end_ul(), $q->br(), "\n", $q->start_div({'class' => 'container', 'id' => 'info_table'}),
 					$q->start_table({'class' => 'great_table technical'}), $q->caption("Gene info table:"),#technical ombre peche
 					$q->start_Tr(), "\n",
 					$q->th({'class' => 'left_general'}, 'RefSeq transcript'), "\n",
