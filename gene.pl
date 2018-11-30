@@ -682,7 +682,7 @@ sub variants_div {
 		while (my $result = $sth->fetchrow_hashref()) {
 			my $other_name = $result->{'nom_prot'};
 			if ($result->{'nom_ivs'} ne '') {$other_name = $result->{'nom_ivs'}}
-			$html .= $q->start_li(). $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, "$result->{'acc'}:$result->{'nom'}"). $q->span(" - $other_name"). $q->end_li();
+			$html .= $q->start_li(). $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, "$result->{'acc'}:$result->{'nom'}"). $q->span(" - $other_name - ($result->{'type_segment'} $result->{'num_segment'})"). $q->end_li();
 		}
 		$html .= $q->end_ul(). $q->end_div(), "\n";
 	}
