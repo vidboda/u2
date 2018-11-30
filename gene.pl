@@ -230,11 +230,11 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 				U2_modules::U2_subs_1::gene_header($q, 'general_info', $gene, $user);
 				
 				$chr = $result->{'chr'};
-				print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' main accession: '),
+				print $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' main accession: '),
 					$q->span({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$result->{'nom'}[1].$result->{'acc_version'}"), 
 					$q->br(), $q->br(), $q->span("($second_name / "), $q->span({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$result->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}, $result->{'enst'}), $q->span(')'),
 					$q->end_strong(), $q->end_big(), $q->end_p(), "\n",
-					$q->start_ul(),						
+					$q->start_ul({'class' => ' w3-large'}),						
 						$q->li("chr$chr, strand $result->{'brin'}"), "\n",
 						$q->li("$result->{'nom_prot'} ($result->{'short_prot'})"), "\n",
 						$q->start_li(), $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'}), $q->end_li(), "\n",
@@ -401,7 +401,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	if ($nb_exons > 300) {$canvas_height = '2500';$img_suffix = '4';$css_suffix = '_2500'}
 	print	$q->p('Click on an exon/intron on the picture below to get the variants lying in it:'),
 		$q->br(),
-		$q->start_div({'class' => 'w3-container w3-center'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $main, $ng), $q->end_div(), 
+		$q->start_div({'class' => 'w3-container w3-center w3-xlarge'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $main, $ng), $q->end_div(), 
 		$q->br(), $q->br(),
 		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"$canvas_height\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency'.$img_suffix.'.png', 'usemap' => '#segment', 'class' => 'fented'.$css_suffix, 'id' => 'transparent_image'}),
 		$q->end_div(), "\n",
@@ -430,13 +430,13 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	
 	U2_modules::U2_subs_1::gene_header($q, 'var_all', $gene, $user);
 	
-	print $q->br(), $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), 
-		$q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), $q->br(), "\n";
+	print $q->br(), $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), 
+		$q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), "\n";
 	my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene' and main = 't';";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '0E0') {
 		my ($ng, $acc) = ($res->{'acc_g'}, $res->{'nom'}[1]);
-		print $q->start_div({'class' => 'w3-container w3-center'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->end_div(), $q->br();
+		print $q->start_div({'class' => 'w3-container w3-center w3-xlarge'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->end_div(), $q->br();
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 	}
 	
@@ -453,7 +453,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		if ($res ne '0E0') {
-			print $q->start_div({'class' => 'container patient_file_frame'}), $q->start_table({'class' => 'great_table technical'}), $q->caption("Variants summary:"),
+			print $q->start_div({'class' => 'container'}), $q->start_table({'class' => 'great_table technical'}), $q->caption("Variants summary:"),
 					$q->start_Tr(), "\n",
 					$q->th({'class' => 'left_general'}, 'Category'), "\n",
 					$q->th({'class' => 'left_general'}, 'Number of different variants recorded'), "\n",
@@ -478,25 +478,58 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 				$q->end_table(), $q->end_div();
 		}
 	}
-	elsif ($sort eq 'orphan') {
-		$query = "SELECT a.nom, a.nom_gene[2] as acc, a.nom_ivs, a.nom_prot FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE b.nom_c IS NULL AND a.nom_gene[1] = '$gene' ORDER BY a.nom_g;";
-		my $sth = $dbh->prepare($query);
-		$res = $sth->execute();
+	elsif ($sort eq 'orphan') {#MD code
+		#missense
+		my ($missense, $missense_text) = &variants_div('missense', "AND a.type_prot = 'missense'" , $dbh, $q, 'Missense', $gene);
+		#silent
+		my ($silent, $silent_text) = &variants_div('silent', "AND a.nom_prot IN  ('p.(=)', 'p.=') AND a.type_segment = 'exon' AND a.type_segment_end = 'exon'", $dbh, $q, 'Silent*', $gene);
+		#intronic
+		my ($intronic, $intronic_text) = &variants_div('intronic', "AND (a.type_segment = 'intron' OR a.type_segment_end = 'intron')", $dbh, $q, 'Intronic**', $gene);
+		#ptc
+		my ($ptc, $ptc_text) = &variants_div('ptc', "AND a.type_prot IN ('nonsense','frameshift')", $dbh, $q, 'PTC***', $gene);
+		#inframe
+		my ($inframe, $inframe_text) = &variants_div('inframe', "AND a.type_prot LIKE '%inframe%'", $dbh, $q, 'In frame Indels', $gene);
+		#all vars
+		my ($all_vars, $all_vars_text) = &variants_div('all_vars', '', $dbh, $q, 'All', $gene);
 		
-		if ($res ne '0E0') {
-			print $q->start_ul();
-			while (my $result = $sth->fetchrow_hashref()) {
-				my $other_name = $result->{'nom_prot'};
-				if ($result->{'nom_ivs'} ne '') {$other_name = $result->{'nom_ivs'}}
-				print $q->start_li(), $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, "$result->{'acc'}:$result->{'nom'}"), $q->span(" - $other_name"), $q->end_li();
+		
+		print $q->div({'class' => 'w3-row w3-center'}), "\n",
+				$q->div({'class' => 'w3-col m4'}), "\n",
+					$q->strong({'class' => 'w3-button w3-indigo w3-ripple w3-hover-light-blue w3-padding-32 w3-xlarge', 'style' => 'width:100%', 'onclick' => "hide_all();\$('#missense').show();"}, $missense_text),
+				$q->end_div(), "\n",
+				$q->div({'class' => 'w3-col m4'}), "\n",
+					$q->strong({'class' => 'w3-button w3-indigo w3-ripple w3-hover-light-blue w3-padding-32 w3-xlarge', 'style' => 'width:100%', 'onclick' => "hide_all();\$('#silent').show();"}, $silent_text),
+				$q->end_div(), "\n",
+				$q->div({'class' => 'w3-col m4'}), "\n",
+					$q->strong({'class' => 'w3-button w3-indigo w3-ripple w3-hover-light-blue w3-padding-32 w3-xlarge', 'style' => 'width:100%', 'onclick' => "hide_all();\$('#intronic').show();"}, "$intronic_text"),
+				$q->end_div(), "\n",
+			$q->end_div(), "\n",
+			$q->div({'class' => 'w3-row'}), "\n",
+				$q->div({'class' => 'w3-col m4'}), "\n",
+					$q->strong({'class' => 'w3-button w3-indigo w3-ripple w3-hover-light-blue w3-padding-32 w3-xlarge', 'style' => 'width:100%', 'onclick' => "hide_all();\$('#ptc').show();"}, "$ptc_text"),
+				$q->end_div(), "\n",
+				$q->div({'class' => 'w3-col m4'}), "\n",
+					$q->strong({'class' => 'w3-button w3-indigo w3-ripple w3-hover-light-blue w3-padding-32 w3-xlarge', 'style' => 'width:100%', 'onclick' => "hide_all();\$('#inframe').show();"}, "$inframe_text"),
+				$q->end_div(), "\n",
+				$q->div({'class' => 'w3-col m4'}), "\n",
+					$q->strong({'class' => 'w3-button w3-indigo w3-ripple w3-hover-light-blue w3-padding-32 w3-xlarge', 'style' => 'width:100%', 'onclick' => "hide_all();\$('#all_vars').show();"}, $all_vars_text),
+				$q->end_div(), "\n",
+			$q->end_div(), "\n", $q->br(), $q->br();
+			
+		my $js = "
+			//\$('#all_vars').show();
+			function hide_all() {
+				\$('#all_vars').hide();
+				\$('#silent').hide();
+				\$('#intronic').hide();
+				\$('#ptc').hide();
+				\$('#inframe').hide();
+				\$('#missense').hide();
 			}
-			print $q->end_ul();
-		}
-		else {
-			my $text = 'No orphan variant to display';
-			print U2_modules::U2_subs_2::info_panel($text, $q);
-		}
-		
+		";
+		my $explain = '* shortcut for variants not predicted by the genetic code to alter the protein sequence - does not consider splicing at all<br/>** Might include large rearrangements<br/>***Premature Termination Codons, including nonsense variants and frameshifts';
+		print U2_modules::U2_subs_2::info_panel($explain, $q);
+		print $all_vars, $missense, $silent, $intronic, $ptc, $inframe, $q->script({'type' => 'text/javascript'}, $js);		
 	}
 	elsif ($sort eq 'taille') {
 		print $q->p("All large rearrangements recorded for $gene are listed in the table below.");
@@ -636,6 +669,41 @@ print $q->end_html();
 exit();
 
 ##End of Basic end
+
+sub variants_div {
+	my ($id, $subquery, $dbh, $q, $txt, $gene) = @_;
+	my $query ="SELECT a.nom, a.nom_gene[2] as acc, a.nom_ivs, a.nom_prot, a.type_segment, a.num_segment FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE a.nom_gene[1] = '$gene' AND b.nom_c IS NULL $subquery ORDER BY a.nom_g;";
+	my $sth = $dbh->prepare($query);
+	my $res = $sth->execute();
+	my ($html, $var_text) = ('', "No $txt");
+	if ($res ne '0E0') {
+		$var_text = "$txt ($res)";
+		$html =  $q->start_div({'class' => 'w3-container w3-animate-opacity', 'id' => "$id", 'style' => 'display:none'}). $q->start_p(). $q->span("$txt variants recorded in "). $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene). $q->span(':'). $q->end_p(). $q->start_ul({'class' => 'w3-ul w3-hoverable  w3-center', 'style' => 'width:50%'});
+		while (my $result = $sth->fetchrow_hashref()) {
+			my $other_name = $result->{'nom_prot'};
+			if ($result->{'nom_ivs'} ne '') {$other_name = $result->{'nom_ivs'}}
+			$html .= $q->start_li(). $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, "$result->{'acc'}:$result->{'nom'}"). $q->span(" - $other_name"). $q->end_li();
+		}
+		$html .= $q->end_ul(). $q->end_div(), "\n";
+	}
+	elsif($txt eq 'All') {
+			my $text = 'No orphan variant to display';
+			$html = U2_modules::U2_subs_2::info_panel($text, $q);
+	}
+	return $html, $var_text;
+}
+
+#sub variant_div {
+#	my ($id, $gene, $sth, $q, $txt) = @_;
+#	my $html =  $q->start_div({'class' => 'w3-container', 'id' => "$id", 'style' => 'display:none'}). $q->start_p(). $q->span("$txt variants recorded in "). $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene). $q->span(':'). $q->end_p(). $q->start_ul({'class' => 'w3-ul w3-hoverable  w3-center', 'style' => 'width:50%'});
+#	while (my $result = $sth->fetchrow_hashref()) {
+#		my $other_name = $result->{'nom_prot'};
+#		if ($result->{'nom_ivs'} ne '') {$other_name = $result->{'nom_ivs'}}
+#		$html .= $q->start_li(). $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, "$result->{'acc'}:$result->{'nom'}"). $q->span(" - $other_name"). $q->end_li();
+#	}
+#	$html .= $q->end_ul(). $q->end_div(), "\n";
+#	return $html;
+#}
 
 sub build_hash {
 	my ($hash_count, $hash_html, $hash_done, $disease, $id, $num, $index, $gene) = @_;
