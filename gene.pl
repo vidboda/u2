@@ -237,9 +237,10 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					$q->end_strong(), $q->end_big(), $q->end_p(), "\n",
 					$q->start_ul({'class' => ' w3-large'}),						
 						$q->li("chr$chr, strand $result->{'brin'}"), "\n",
-						$q->li("$result->{'nom_prot'} ($result->{'short_prot'})"), "\n",
-						$q->start_li(), $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'}), $q->end_li(), "\n",
-						$q->start_li(), U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'nom'}[1], $result->{'acc_g'}), $q->end_li(), "\n";
+						$q->li("$result->{'nom_prot'} ($result->{'short_prot'})"), "\n";
+				if ($result->{'acc_g'} eq 'NG_000000.0') {print $q->li("No NG accession number. Mutalyzer accession: $result->{'mutalyzer_acc'}")}
+				else {print $q->start_li(), $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'}), $q->end_li(), "\n"}
+				print $q->start_li(), U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'nom'}[1], $result->{'acc_g'}), $q->end_li(), "\n";
 				if ($user->isPublic() != 1) {
 					if ($result->{'rp'} == 1) {print $q->li("Shown in 'RP', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
 					if ($result->{'dfn'} == 1) {print $q->li("Shown in 'DFN', 'DFN+USH' and in 'ALL' filters, hidden in others"), "\n"}

@@ -218,8 +218,8 @@ elsif ($step == 2) { #insert variant and print
 				
 				my ($call, $http_mutalyzer);
 				
-				my ($nom_g, $nom_ng, $nom_ivs, $nom_prot, $seq_wt, $seq_mt, $type_adn, $type_arn, $type_prot, $type_segment, $type_segment_end, $num_segment, $num_segment_end, $taille, $snp_id, $snp_common, $classe, $variant);
-				($nom_prot, $nom_ivs, $type_arn, $classe) = ('NULL', 'NULL', 'neutral', 'unknown');
+				my ($nom_g, $nom_ng, $nom_ivs, $nom_prot, $seq_wt, $seq_mt, $type_adn, $type_arn, $type_prot, $type_segment, $type_segment_end, $num_segment, $num_segment_end, $taille, $snp_id, $snp_common, $classe, $variant, $defgen_export);
+				($nom_prot, $nom_ivs, $type_arn, $classe, $defgen_export) = ('NULL', 'NULL', 'neutral', 'unknown', 'f');
 				#get NM_ acc version for mutalyzer
 				my $query = "SELECT acc_version, mutalyzer_version, mutalyzer_acc FROM gene where nom[2] = '$acc_no';";
 				my $res = $dbh->selectrow_hashref($query);
@@ -445,7 +445,7 @@ elsif ($step == 2) { #insert variant and print
 									if ($cdna =~ /c\.(\d+[\+-].+_\d+[\+-].+)/o){$nom_ivs = $1;$nom_ivs =~ s/\d+([\+-].+)_\d+([\+-].+)/IVS$nom_segment$1_IVS$nom_segment_end$2/og;}
 									elsif ($cdna =~ /c\.(\d+[\+-][^\+-]+)/o) {$nom_ivs = $1;$nom_ivs =~ s/\d+([\+-][^\+-]+)/IVS$nom_segment$1/og;}
 									elsif ($cdna =~ /c\.(IVS.+)/o) {$nom_ivs = $1}
-									if ($nom_ivs =~ /IVS\d+[\+-][12][^\d].+/) {$type_arn = 'altered';$classe = 'pathogenic';$nom_prot = 'p.(?)';$type_prot = 'NULL';}
+									if ($nom_ivs =~ /IVS\d+[\+-][12][^\d].+/) {$type_arn = 'altered';$classe = 'pathogenic';$nom_prot = 'p.(?)';$type_prot = 'NULL';$defgen_export  ='t'}
 								}	
 								## variant sequence
 								if ($call->result->{'rawVariants'}) {
@@ -570,8 +570,8 @@ elsif ($step == 2) { #insert variant and print
 										#}
 									}
 									if ($nom_prot ne 'NULL') {
-										if ($nom_prot =~ /fs/o) {$type_prot = 'frameshift';$classe = 'pathogenic';}
-										elsif ($nom_prot =~ /\*/o) {$type_prot = 'nonsense';$classe = 'pathogenic';}
+										if ($nom_prot =~ /fs/o) {$type_prot = 'frameshift';$classe = 'pathogenic';$defgen_export = 't'}
+										elsif ($nom_prot =~ /\*/o) {$type_prot = 'nonsense';$classe = 'pathogenic';$defgen_export = 't'}
 										elsif ($nom_prot =~ /del/o) {$type_prot = 'inframe deletion';}
 										elsif ($nom_prot =~ /ins/o) {$type_prot = 'inframe insertion';}
 										elsif ($nom_prot =~ /dup/o) {$type_prot = 'inframe duplication';}
@@ -635,7 +635,7 @@ elsif ($step == 2) { #insert variant and print
 										else {$nom_g_38 = "$chr_tmp:g.$s38$rest"}
 									}
 								}
-								my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38) VALUES ('$variant', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38');";
+								my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38, defgen_export) VALUES ('$variant', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38', '$defgen_export');";
 								$insert =~ s/'NULL'/NULL/og;
 								#die $insert;			
 								#print $q->td({'colspan' => '7'}, $insert);exit;
