@@ -686,11 +686,11 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 		#NEW style 04/2018 replacment of VEP with dbNSFP
 		
 		$chr =~ s/chr//og;
-		print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1";
+		#print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1";
 		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1`);
 		#my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:207634224-207634224`);
 
-		print $#dbnsfp.'-'.$dbnsfp[0];
+		#print $#dbnsfp.'-'.$dbnsfp[0];
 		if ($dbnsfp[0] eq '') {print 'No values in dbNSFP v2.9 for this variant.';exit;}
 		#if ($#dbnsfp < 2) {print 'No values in dbNSFP v2.9 for this variant.';exit;}
 		foreach (@dbnsfp) {
