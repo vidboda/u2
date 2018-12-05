@@ -588,7 +588,7 @@ sub check_nom_c {
 sub check_nom_g {
 	my ($q, $dbh) = @_;
 	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
-	if (uri_decode($q->param('nom_g')) =~ /(^chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+$)/og) {	
+	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {	
 		my $query = "SELECT nom_g as var FROM variant WHERE nom_g = '$1';";
 		#print $query;
 		my $res = $dbh->selectrow_hashref($query);
