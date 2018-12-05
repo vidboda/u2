@@ -588,7 +588,7 @@ sub check_nom_c {
 sub check_nom_g {
 	my ($q, $dbh) = @_;
 	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
-	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {	
+	if (uri_decode($q->param('nom_g')) =~ /(^chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+$)/og) {	
 		my $query = "SELECT nom_g as var FROM variant WHERE nom_g = '$1';";
 		#print $query;
 		my $res = $dbh->selectrow_hashref($query);
@@ -941,7 +941,7 @@ sub extract_pos_from_genomic { #get chr and genomic positions
 	my ($genomic, $type) = @_;
 	#if ($genomic =~ /^chr([\dXY]+):g\.(\d+)[\+-]?\??_?(\d*)[^\d]*/o) {
 	#print $genomic;
-	if ($genomic =~ /^chr($CHR_REGEXP):$HGVS_CHR_TAG\.(\d+)[\+-]?\??_?(\d*)[^\d]*/o) {
+	if ($genomic =~ /^chr($CHR_REGEXP):$HGVS_CHR_TAG\.(\d+)[\+-]?\??_?(\d*)[^\d]*/) {
 		#print "--$type--$3--";
 		if ($type eq 'clinvar') {return ($1, $2)}
 		elsif ($type eq 'evs') {
@@ -954,8 +954,8 @@ sub extract_pos_from_genomic { #get chr and genomic positions
 #in gene_graphs.pl, variant.pl, engine.pl, ajax.pl
 sub get_pos_from_exon {
 	my $name = shift;
-	if ($name !~ /_/ && $name =~ /$HGVS_TRANSCRIPT_TAG\.-?\d+[\+-](\d+)[^_]/o) {return $1}
-	elsif ($name =~ /$HGVS_TRANSCRIPT_TAG\.-?\d+([\+-])(\d+)_\d+[\+-](\d+)[^\d]/o) {
+	if ($name !~ /_/ && $name =~ /$HGVS_TRANSCRIPT_TAG\.-?\d+[\+-](\d+)[^_]/) {return $1}
+	elsif ($name =~ /$HGVS_TRANSCRIPT_TAG\.-?\d+([\+-])(\d+)_\d+[\+-](\d+)[^\d]/) {
 		if ($1 eq '+') {return $2}
 		elsif ($1 eq '-') {return $3}
 	}
