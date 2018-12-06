@@ -93,7 +93,7 @@ sub isAnalyst {
 	my $self = shift;
 	my $query = "SELECT * FROM valid_analyste WHERE analyste = '".$self->getName()."';";
 	my $res = $dbh->selectrow_hashref($query);
-	if ($res->{'analyste'} ne '') {return '1'}
+	if ($res->{'analyste'} && $res->{'analyste'} ne '') {return '1'}
 	else {return '0'}
 	#return $USERS->{$self->getName()}->[0];
 }
@@ -109,7 +109,7 @@ sub isReferee {
 	my $self = shift;
 	my $query = "SELECT * FROM valid_referee  WHERE referee = '".$self->getName()."';";
 	my $res = $dbh->selectrow_hashref($query);
-	if ($res->{'referee'} ne '') {return '1'}
+	if ($res->{'referee'} && $res->{'referee'} ne '') {return '1'}
 	else {return '0'}
 	#return $USERS->{$self->getName()}->[2];
 }
