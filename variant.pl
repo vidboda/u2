@@ -368,8 +368,8 @@ if (-d $ABSOLUTE_HTDOCS_PATH.'/data/splicing') {#if splicing module
 	else {print $q->span(' (inferred) ')}
 }
 
-#button to change RNA status for validators
-if ($user->isValidator == 1) {
+#button to change RNA status for referees
+if ($user->isReferee == 1) {
 	#print button which opens popup which calls ajax
 	my $html = &menu_rna_status($res->{'type_arn'}, $q, $dbh);
 	my $js = "
