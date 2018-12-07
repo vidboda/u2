@@ -157,7 +157,7 @@ print $q->end_p(), $q->end_div(), $q->end_div(), "\n",
 		$q->end_form(), "\n",
 	$q->end_div(), "\n",$q->br();
 
-my $text = 'WARNING: MobiDetails is in current active development. This is a &beta; version.<br/> If you experience any trouble or have any idea to improve the software, please contact David at david.baux@inserm.fr';
+my $text = 'WARNING: MobiDetails is in current active development. This is a &beta; version.<br/> If you experience any trouble or have any idea to improve the software, please contact David at david.baux@inserm.fr<br/>NEWS:<br/>2018-12-07: You can export your variant in a DEFGEN compliant csv format using the dedicated button!<br/>2018-12-06: You can modify the RNA impact status depending on what you\'ve found.';
 print U2_modules::U2_subs_2::danger_panel($text, $q);	
 print $q->start_div({'id' => 'farside', 'class' => 'appear center'}), $q->end_div(), "\n",
 	$q->br(), $q->br(), $q->start_div({'align' => 'center'}),
