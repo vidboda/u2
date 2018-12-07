@@ -1094,6 +1094,27 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	close F;
 	print '<a href="'.$HTDOCS_PATH.'data/defgen/'.$id.$number.'_defgen.csv" download>Download file for '.$id.$number.'</a>';
 }
+if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
+	my $nom_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
+	#print $nom_g;
+	my $query = "SELECT a.nom, a.acc_version, b.nom as var, b.nom_prot as hgvs_prot, b.acmg_class, b.classe, a.enst, b.snp_id, b.type_prot, b.nom_g, b.type_segment, b.num_segment FROM gene a, variant b WHERE a.nom = b.nom_gene AND b.nom_g = '$nom_g';";
+	my $res = $dbh->selectrow_hashref($query);
+	#
+	my $content =  "GENE;VARIANT;A_ENREGISTRER;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2\r\n";
+	if ($res ne '0E0') {
+		my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($res->{'nom_g'}, 'clinvar');
+		my $acmg_class = $res->{'acmg_class'};
+		if ($acmg_class eq '') {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh)}
+		my $defgen_acmg = &u22defgen_acmg($acmg_class);
+		$content .= "$res->{nom}[0];$res->{nom}[1].$res->{acc_version}:$res->{var};;;;$res->{hgvs_prot};$res->{var};$res->{enst};$res->{nom_gene}[1];$pos;$defgen_acmg;;;$res->{snp_id};;$res->{type_prot};$chr;hg19;$res->{nom_g};$res->{type_segment} $res->{num_segment};;;;\r\n";
+		$nom_g =~ s/>/_/og;
+		open F, '>'.$ABSOLUTE_HTDOCS_PATH.'data/defgen/'.$nom_g.'_defgen.csv' or die $!;
+		print F $content;
+		close F;
+		print '<a href="'.$HTDOCS_PATH.'data/defgen/'.$nom_g.'_defgen.csv" download>Download file for '.$res->{nom}[1].$res->{acc_version}.':'.$res->{var}.'</a>';
+	}
+	
+}
 
 
 

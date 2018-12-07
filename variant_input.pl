@@ -427,7 +427,7 @@ elsif ($step == 2) { #insert variant and print
 									}	
 								}
 							}
-							foreach(@errors) {foreach my $key (keys %{$_}) {$not_done .= $key.$_->{$key};}}#print "$key - $_->{$key}<br/>"
+							foreach(@errors) {foreach my $key (keys %{$_}) {$not_done .= $key.$_->{$key}."\n";}}#print "$key - $_->{$key}<br/>"
 							if ($call->result->{'errors'} == 0 && $stop == 0) {
 							#for PCDH15 uncomment following
 							#if ($stop == 0) {

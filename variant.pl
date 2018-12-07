@@ -299,7 +299,9 @@ print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q
 				$q->span({'onclick' => "window.open('$ncbi_url$acc.$res->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$acc.$res->{'acc_version'}"), $q->span(":$var"),
 				$q->br(), $q->br(), $q->span("($second_name / "), $q->span({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$res->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}, $res->{'enst'}), $q->span(')'),
 				$q->end_strong(), $q->end_big(), $q->end_p(), "\n";
-
+if ($user->isPublic == 1) {
+	print $q->start_div({'id' => 'defgen', 'class' => 'w3-modal'}), $q->end_div();
+}
 #fixed image on the right
 if ($user->isPublic != 1) {print $q->img({'src' => $HTDOCS_PATH.'data/img/class.png', class => 'right ombre'})}
 
@@ -667,11 +669,19 @@ if ($user->isPublic != 1) {
 	$q->end_Tr(), "\n",
 }
 my ($acmg_class, $acmg_source);
+if ($user->isPublic == 1) {
+	#print $q->start_div({'id' => 'defgen', 'class' => 'w3-modal'}), $q->end_div();".uri_escape($res->{'nom_g'})."
+	
+	print $q->start_Tr(),
+		$q->td('Defgen:'),
+		$q->start_td({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->button({'onclick' => "getDefGenVariantsMD('".uri_escape($res->{'nom_g'})."');", 'value' => 'Defgen Export', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue'}), $q->end_td(),
+		$q->td('Use the button to export a DEFGEN compliant CSV file'), "\n";
+}
 if ($res->{'acmg_class'}) {$acmg_class = $res->{'acmg_class'};$acmg_source = 'Manual ACMG classification'}
 elsif ($user->isPublic != 1) {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh);$acmg_source = 'Automatic classification based on U2 class'}
 else {$acmg_class = 'Unknown';$acmg_source = 'Default ACMG class'}
 
-print 	$q->start_Tr(),
+print 	$q->start_Tr(),   	
 		$q->start_td(), $q->a({'href' => 'https://www.acmg.net/docs/Standards_Guidelines_for_the_Interpretation_of_Sequence_Variants.pdf', 'target' => '_blank'}, 'ACMG Classification :'), $q->end_td(),
 		$q->start_td(), $q->span({'id' => 'acmg_variant_class', 'style' => 'color:'.U2_modules::U2_subs_3::acmg_color_by_classe($acmg_class, $dbh).';'}, $acmg_class);
 		
