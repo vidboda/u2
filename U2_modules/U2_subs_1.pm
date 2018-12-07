@@ -1188,6 +1188,12 @@ sub test_myvariant {
 	if ($request->is_success()) {return 1}
 	else {return 0}	
 }
+sub test_mygene {
+	my $ua = LWP::UserAgent->new();
+	my $request = $ua->get('http://mygene.info');
+	if ($request->is_success()) {return 1}
+	else {return 0}	
+}
 #U2_subs_3, variant_input.pl
 sub run_myvariant {
 	my ($var, $fields, $email) = @_;
@@ -1196,6 +1202,17 @@ sub run_myvariant {
 	my $ua = LWP::UserAgent->new();
 	if ($var =~ /(^chr.+[delup]{3})[ATGC]+$/o) {$var = $1}
 	my $request = $ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=$fields$email"));
+	if ($request->is_success()) {
+		return decode_json($request->content());
+	}
+	#return decode_json($ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=$fields&email=".$email)));
+}
+sub run_mygene {
+	my ($gene, $fields, $email) = @_;
+	if ($email && $email ne '') {$email = "&email=$email"}
+	else {$email = ''}
+	my $ua = LWP::UserAgent->new();
+	my $request = $ua->get(uri_encode("http://mygene.info/v1/variant/$gene?fields=$fields$email"));
 	if ($request->is_success()) {
 		return decode_json($request->content());
 	}

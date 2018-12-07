@@ -1108,6 +1108,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
 		my $defgen_acmg = &u22defgen_acmg($acmg_class);
 		$content .= "$res->{nom}[0];$res->{nom}[1].$res->{acc_version}:$res->{var};;;;$res->{hgvs_prot};$res->{var};$res->{enst};$res->{nom_gene}[1];$pos;$defgen_acmg;;;$res->{snp_id};;$res->{type_prot};$chr;hg19;$res->{nom_g};$res->{type_segment} $res->{num_segment};;;;\r\n";
 		$nom_g =~ s/>/_/og;
+		$nom_g =~ s/:/_/og;
 		open F, '>'.$ABSOLUTE_HTDOCS_PATH.'data/defgen/'.$nom_g.'_defgen.csv' or die $!;
 		print F $content;
 		close F;
@@ -1349,8 +1350,7 @@ if ($q->param('run_graphs') && $q->param('run_graphs') == 1) {
 			else {
 				$content .= $q->span({'class' => 'w3-button w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-16 w3-margin w3-round', 'onclick' => 'show_ngs_graph(\''.$analysis.'\', \''.$key.'\', \''.$metrics{$key}[0].'\', \''.$metrics{$key}[2].'\', \''.$metrics{$key}[3].'\', \''.$metrics{$key}[4].'\');'}, $key), "\n"
 			}
-		}
-		
+		}		
 		$content .= $q->br().$q->start_div({'style' => 'height:7px;overflow: hidden;', 'class' => 'w3-margin w3-light-blue'}).$q->end_div()."\n".
 				$q->div({'id' => 'graph_place'});
 	}	
