@@ -7,6 +7,7 @@ use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
 use U2_modules::U2_subs_3;
+use Data::Dumper;
 
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
@@ -217,6 +218,22 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	
 	
+	my ($pli, $prec, $pnull) = ('No pLi*', 'No pRec*', 'No pNull*');
+	if (U2_modules::U2_subs_1::test_mygene() == 1) {
+		#use mygene.info REST API
+		my $gene_api = $gene;
+		if ($gene eq 'GPR98') {$gene_api = 'ADGRV1'}
+		my $mygene = U2_modules::U2_subs_1::run_mygene($gene_api, 'exac.all', $user->getEmail());
+		if ($mygene && $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'} ne '') {
+			$pli = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'});
+			$prec = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_rec'});
+			$pnull = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_null'});
+		}
+		#else {print $mygene->{'hits'}->[0]->{'exac'}."-"}
+		#print Dumper($mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'});
+	}
+	
+	
 	my $query = "SELECT * FROM gene WHERE nom[1] = '$gene' ORDER BY main DESC;";
 	#my $order = 'ASC';
 	my $order = U2_modules::U2_subs_1::get_strand($gene, $dbh);
@@ -234,14 +251,40 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 				print $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' main accession: '),
 					$q->span({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$result->{'nom'}[1].$result->{'acc_version'}"), 
 					$q->br(), $q->br(), $q->span("($second_name / "), $q->span({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$result->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}, $result->{'enst'}), $q->span(')'),
-					$q->end_strong(), $q->end_big(), $q->end_p(), "\n",
-					$q->start_ul({'class' => ' w3-large'}),						
-						$q->li("chr$chr, strand $result->{'brin'}"), "\n",
-						$q->li("$result->{'nom_prot'} ($result->{'short_prot'})"), "\n";
-				if ($result->{'acc_g'} eq 'NG_000000.0') {print $q->li("No NG accession number. Mutalyzer accession: $result->{'mutalyzer_acc'}")}
-				else {print $q->start_li(), $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'}), $q->end_li(), "\n"}
-				print $q->start_li(), U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'nom'}[1], $result->{'acc_g'}), $q->end_li(), "\n";
+					$q->end_strong(), $q->end_big(), $q->end_p(), "\n";
+					
+					my $ng_td = $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'});
+					if ($result->{'acc_g'} eq 'NG_000000.0') {$ng_td = $q->span("No NG accession number. Mutalyzer accession: $result->{'mutalyzer_acc'}")}
+					
+					print U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'nom'}[1], $result->{'acc_g'}),
+					$q->start_div({'class' => 'w3-responsive', 'id' => 'gene_table'}), "\n",
+					$q->start_table({'class' => 'w3-table w3-striped w3-bordered w3-centered'}), $q->caption("Gene info table:"),#technical ombre peche
+					$q->start_Tr(), "\n",
+						$q->th({'class' => 'left_general'}, 'Chr'), "\n",
+						$q->th({'class' => 'left_general'}, 'Strand'), "\n",
+						$q->th({'class' => 'left_general'}, 'Protein name'), "\n",
+						$q->th({'class' => 'left_general'}, 'Genomic Accession #'), "\n",
+						$q->th({'class' => 'left_general'}, 'pLi*'), "\n",
+						$q->th({'class' => 'left_general'}, 'pRec*'), "\n",
+						$q->th({'class' => 'left_general'}, 'pNull*'), "\n",
+					$q->end_Tr(), "\n",
+					$q->start_Tr(), "\n",
+						$q->start_td(), $q->span("chr$chr"), $q->end_td(), "\n",
+						$q->start_td(), $q->span($result->{'brin'}), $q->end_td(), "\n",
+						$q->start_td(), $q->span("$result->{'nom_prot'} ($result->{'short_prot'})"), $q->end_td(), "\n",
+						$q->start_td(), $q->span($ng_td), $q->end_td(), "\n",
+						$q->start_td(), $q->span($pli), $q->end_td(), "\n",
+						$q->start_td(), $q->span($prec), $q->end_td(), "\n",
+						$q->start_td(), $q->span($pnull), $q->end_td(), "\n",
+					$q->end_Tr(), "\n", $q->end_table(), $q->end_div(), "\n";				
+					#$q->start_ul({'class' => ' w3-large'}),						
+					#	$q->li("chr$chr, strand $result->{'brin'}"), "\n",
+					#	$q->li("$result->{'nom_prot'} ($result->{'short_prot'})"), "\n";
+				#if ($result->{'acc_g'} eq 'NG_000000.0') {print $q->li("No NG accession number. Mutalyzer accession: $result->{'mutalyzer_acc'}")}
+				#else {print $q->start_li(), $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'}), $q->end_li(), "\n"}
+				#print $q->start_li(), U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'nom'}[1], $result->{'acc_g'}), $q->end_li(), "\n";
 				if ($user->isPublic() != 1) {
+					print $q->start_ul({'class' => ' w3-large'}), "\n";
 					if ($result->{'rp'} == 1) {print $q->li("Shown in 'RP', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
 					if ($result->{'dfn'} == 1) {print $q->li("Shown in 'DFN', 'DFN+USH' and in 'ALL' filters, hidden in others"), "\n"}
 					if ($result->{'usher'} == 1) {print $q->li("Shown in 'USH', 'DFN+USH', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
@@ -255,20 +298,21 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					if ($result->{'MiSeq-3'} == 1) {print $q->li("included in 3 genes design"), "\n"}
 					if ($result->{'MiniSeq-132'} == 1) {print $q->li("included in 132 genes design"), "\n"}
 					if ($result->{'MiniSeq-152'} == 1) {print $q->li("included in 152 genes design"), "\n"}
+					print $q->end_ul(), "\n";
 				}
-				#if ($result->{'brin'} eq '-') {$order = 'DESC'}
-				print $q->end_ul(), $q->br(), "\n", $q->start_div({'class' => 'container', 'id' => 'info_table'}),
-					$q->start_table({'class' => 'great_table technical'}), $q->caption("Gene info table:"),#technical ombre peche
+				#if ($result->{'brin'} eq '-') {$order = 'DESC'}great_table technical
+				print $q->br(), "\n", $q->start_div({'class' => 'w3-responsive', 'id' => 'info_table'}), "\n",
+					$q->start_table({'class' => 'w3-table w3-striped w3-bordered w3-centered'}), $q->caption("Transcript info table:"),#technical ombre peche
 					$q->start_Tr(), "\n",
-					$q->th({'class' => 'left_general'}, 'RefSeq transcript'), "\n",
-					$q->th({'class' => 'left_general'}, 'Ensembl transcript (v75)'), "\n",
-					$q->th({'class' => 'left_general'}, 'Number of exons'), "\n",
-					$q->th({'class' => 'left_general'}, 'RefSeq protein'), "\n",
-					$q->th({'class' => 'left_general'}, 'Uniprot ID'), "\n",
+						$q->th({'class' => 'left_general'}, 'RefSeq transcript'), "\n",
+						$q->th({'class' => 'left_general'}, 'Ensembl transcript (v75)'), "\n",
+						$q->th({'class' => 'left_general'}, 'Number of exons'), "\n",
+						$q->th({'class' => 'left_general'}, 'RefSeq protein'), "\n",
+						$q->th({'class' => 'left_general'}, 'Uniprot ID'), "\n",
 					$q->end_Tr(), "\n";		
 			}
 			#					$q->th({'class' => 'left_general'}, 'Protein Product size (aa)'), "\n",
-
+			
 			
 			print $q->start_Tr(), "\n",
 				$q->start_td({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}),
@@ -286,7 +330,8 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 
 		}
 		print $q->end_table(), $q->end_div(), $q->br(), $q->br(), "\n";
-		
+		my $exac_text = '*Based on the ExAC dataset, the probabilities for each gene of being loss-of function intolerant (pLi - haploinsufficients genes),<br/> Recessive (pRec - Premature Termination Variants (PTVs) tolerated heterozygotes but not homozygotes) of null (pNull - tolerant to PTVs) have been computed by the ExAC group. The closer to one, the most likely to fall in the given category. More <a href = \'https://www.nature.com/articles/nature19057\', target = \'_blank\'>here</a> (Supplementary Information, beginning p27). Please note that these metrics will soon be replaced with the more accurate oberved/expected ratio (currently in gnomAD).';
+		print U2_modules::U2_subs_2::info_panel($exac_text, $q);
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 		
 		

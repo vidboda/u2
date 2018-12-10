@@ -210,8 +210,8 @@ sub public_begin_html { #prints top of the pages
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=ALL'}, 'ALL'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DSD'}, 'DSD'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=DSDR'}, 'DSD Research'), "\n",
-				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NM'}, 'NM'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=ND'}, 'ND'), "\n",
+				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NM'}, 'NM'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/gene_page.pl?sort=NS'}, 'NS'), "\n",
 			$q->end_div(), "\n",
 		$q->end_div(),
@@ -1209,10 +1209,11 @@ sub run_myvariant {
 }
 sub run_mygene {
 	my ($gene, $fields, $email) = @_;
-	if ($email && $email ne '') {$email = "&email=$email"}
-	else {$email = ''}
+	#if ($email && $email ne '') {$email = "&email=$email"}
+	#else {$email = ''}
 	my $ua = LWP::UserAgent->new();
-	my $request = $ua->get(uri_encode("http://mygene.info/v1/variant/$gene?fields=$fields$email"));
+	my $request = $ua->get(uri_encode("http://mygene.info/v3/query?q=$gene&fields=$fields"));
+	#print "http://mygene.info/v3/query?q=$gene?fields=$fields";
 	if ($request->is_success()) {
 		return decode_json($request->content());
 	}
