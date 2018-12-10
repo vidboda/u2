@@ -11,6 +11,8 @@ use URI::Escape;
 use HTTP::Request::Common;
 use LWP::UserAgent;
 use Net::SSL;
+use JSON;
+use Data::Dumper;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
@@ -725,7 +727,7 @@ print 	$q->end_td(),
 		$q->td($acmg_source),
 	$q->end_Tr(), "\n";
 
-
+my $litvar_tr = '';
 #dbSNP
 print $q->start_Tr(), $q->td('dbSNP:'), "\n",
 	$q->start_td();
@@ -734,9 +736,47 @@ if ($res->{'snp_id'} ne '') {
 	my $res_common = $dbh->selectrow_hashref($snp_common);
 	print $q->a({'href' => $dbsnp_url, 'target' => '_blank'}, $res->{'snp_id'});
 	if ($res_common->{'common'} && $res_common->{'common'} == 1) {print $q->span('    in common dbSNP150 variant set (MAF > 0.01)')}
+	#my $query_litvar;
+	#$query_litvar->{'variant'} = ["litvar@$res->{'snp_id'}##"];
+	#= {'variant' => ["litvar@$res->{'snp_id'}##"]};
+	#my $litvar_url = "https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/pmids?query=%7B%22variant%22%3A%5B%22litvar%40$res->{'snp_id'}%23%23%22%5D%7D";
+	#my $ua = LWP::UserAgent->new();
+	#my $litvar_response = $ua->get($litvar_url);
+	#my $pubmedids = decode_json($litvar_response->decoded_content());
+	my $test_ncbi = U2_modules::U2_subs_1::test_ncbi();
+	$litvar_tr = $q->start_Tr() . $q->td('Pubmed related articles:') . $q->start_td() . $q->start_div({'class' => 'w3-container'});
+	if ($test_ncbi == 1) {
+		my $pubmedids = U2_modules::U2_subs_1::run_litvar($res->{'snp_id'});
+		if ($pubmedids->[0] eq '') {
+			$litvar_tr .= $q->span('No PubMed ID retrived');
+		}
+		else {
+			$litvar_tr .= $q->button({'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'value' => 'show Pubmed IDs', 'onclick' => '$("#pubmed").show();'}) .
+			$q->start_div({'class' => 'w3-modal', 'id' => 'pubmed'}) . "\n" .
+				$q->start_div({'class' => 'w3-modal-content', 'style' => 'z-index:1500'}) . "\n" .
+					"<header class = 'w3-container w3-teal'>" . "\n" .
+						$q->span({'onclick' => '$("#pubmed").hide();', 'class' => 'w3-button w3-display-topright w3-large'}, '&times') . "\n" .
+						$q->h2('PubMed IDs of articles citing this variant:') . "\n" .
+					'</header>' . "\n" .
+					$q->start_div({'class' => 'w3-container'}) . "\n" .
+						$q->start_ul() . "\n";
+			my $pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';
+			if ($user->isLocalUser() == 1) {$pubmed_url = 'https://www-ncbi-nlm-nih-gov.gate2.inist.fr/pubmed/';}
+			foreach my $pmid (@{$pubmedids}) {
+				$litvar_tr .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid->{'pmid'}, 'target' => '_blank'}, $pmid->{'pmid'}) . $q->end_li() . "\n"
+				#print $pmid->{'pmid'}
+			}
+			$litvar_tr .= $q->end_ul() . "\n" . $q->br() . $q->br() .
+					$q->end_div() . "\n" .
+				$q->end_div() . "\n" .
+			$q->end_div() . "\n";
+		}
+	}
+	else {$litvar_tr .= $q->span('Litvar service unavailable')}
+	$litvar_tr .= $q->end_div() . $q->end_td() . $q->start_td() . $q->span('Pubmed text mining using ') . $q->a({'href' => 'https://www.ncbi.nlm.nih.gov/CBBresearch/Lu/Demo/LitVar/index.html', 'target' => '_blank'}, 'LitVar') . $q->end_Tr() . "\n";
 }
 else {print $q->span("Not reported in dbSNP")}
-print $q->end_td(), $q->td('dbSNP related information'), $q->end_Tr(), "\n";
+print $q->end_td(), $q->td('dbSNP related information'), $q->end_Tr(), "\n", $litvar_tr;
 #1000 genomes
 
 print $q->start_Tr(), $q->td('MAFs & databases:'), $q->start_td(), $q->span({'id' => 'ext_data'}, 'loading external data...'), $q->end_td(), $q->td('Diverse population MAFs and links to LSDBs'), $q->end_Tr(), "\n";

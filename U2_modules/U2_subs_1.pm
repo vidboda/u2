@@ -1219,6 +1219,24 @@ sub run_mygene {
 	}
 	#return decode_json($ua->get(uri_encode("http://myvariant.info/v1/variant/$var?fields=$fields&email=".$email)));
 }
+
+sub test_ncbi {
+	my $ua = LWP::UserAgent->new();
+	my $request = $ua->get('https://www.ncbi.nlm.nih.gov/');
+	if ($request->is_success()) {return 1}
+	else {return 0}	
+}
+sub run_litvar {
+	my $snp_id = shift;
+	my $ua = LWP::UserAgent->new();
+	my $request = $ua->get("https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/pmids?query=%7B%22variant%22%3A%5B%22litvar%40$snp_id%23%23%22%5D%7D");
+	#print "http://mygene.info/v3/query?q=$gene?fields=$fields";
+	if ($request->is_success()) {
+		return decode_json($request->content());
+	}
+	else {return "litvar error: $request->status_line()"}
+}
+
 #ajax.pl
 #sub run_myvariantMafs {
 #	my ($var, $email) = @_;

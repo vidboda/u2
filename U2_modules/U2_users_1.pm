@@ -114,6 +114,13 @@ sub isReferee {
 	#return $USERS->{$self->getName()}->[2];
 }
 
+sub isLocalUser {
+	my $self = shift;
+	my $ip = $ENV{'REMOTE_ADDR'};
+	if ($ip =~ /^10\.34\.20\.\d{1,3}$/o || $ip =~ /^194\.167\.35\.\d{1,3}$/o) {return '1'}
+	else {return '0'}
+}
+
 sub isAnalystToString {
 	my $self = shift;
 	if ($self->isAnalyst() == 1) {
