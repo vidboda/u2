@@ -138,13 +138,48 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, b.dfn, b.usher FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
+	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, a.snp_id, b.dfn, b.usher FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
-	my ($text, $semaph) = ($q->start_ul(), 0);#$q->strong('MAFs &amp; databases:').
+	my ($text, $semaph) = ('', 0);#$q->strong('MAFs &amp; databases:').
 	
+	
+	
+	if ($res->{'snp_id'} ne '') {
+		my $test_ncbi = U2_modules::U2_subs_1::test_ncbi();
+		$text .= $q->start_Tr() . $q->td('Pubmed related articles:') . $q->start_td() . $q->start_div({'class' => 'w3-container'});
+		if ($test_ncbi == 1) {
+			my $pubmedids = U2_modules::U2_subs_1::run_litvar($res->{'snp_id'});
+			if ($pubmedids->[0] eq '') {
+				$text .= $q->span('No PubMed ID retrived');
+			}
+			else {
+				$text .= $q->button({'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'value' => 'show Pubmed IDs', 'onclick' => '$("#pubmed").show();'}) .
+				$q->start_div({'class' => 'w3-modal', 'id' => 'pubmed'}) . "\n" .
+					$q->start_div({'class' => 'w3-modal-content w3-display-middle', 'style' => 'z-index:1500'}) . "\n" .
+						"<header class = 'w3-container w3-teal'>" . "\n" .
+							$q->span({'onclick' => '$("#pubmed").hide();', 'class' => 'w3-button w3-display-topright w3-large'}, '&times') . "\n" .
+							$q->h2('PubMed IDs of articles citing this variant:') . "\n" .
+						'</header>' . "\n" .
+						$q->start_div({'class' => 'w3-container'}) . "\n" .
+							$q->start_ul() . "\n";
+				my $pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';
+				if ($user->isLocalUser() == 1) {$pubmed_url = 'https://www-ncbi-nlm-nih-gov.gate2.inist.fr/pubmed/';}
+				foreach my $pmid (@{$pubmedids}) {
+					$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid->{'pmid'}, 'target' => '_blank'}, $pmid->{'pmid'}) . $q->end_li() . "\n"
+					#print $pmid->{'pmid'}
+				}
+				$text .= $q->end_ul() . "\n" . $q->br() . $q->br() .
+						$q->end_div() . "\n" .
+					$q->end_div() . "\n" .
+				$q->end_div() . "\n";
+			}
+		}
+		else {$text .= $q->span('Litvar service unavailable')}
+		$text .= $q->end_div() . $q->end_td() . $q->start_td() . $q->span('Pubmed text mining using ') . $q->a({'href' => 'https://www.ncbi.nlm.nih.gov/CBBresearch/Lu/Demo/LitVar/index.html', 'target' => '_blank'}, 'LitVar') . $q->end_Tr() . "\n";
+	}
 	
 	my $chr = my $position = my $ref = my $alt = '';
-	
+	$text .= $q->start_Tr() . $q->td('MAFs & databases:') . $q->start_td() . $q->start_ul() . "\n";
 	
 	
 	#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
@@ -222,32 +257,32 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			my $myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'all', $user->getEmail());
 			#print Dumper($myvariant);
 			if ($myvariant && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
-				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD exome').$q->span(" AF: ".$myvariant->{'gnomad_exome'}->{'af'}->{'af'}).$q->end_li();
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD exome') . $q->span(" AF: ".$myvariant->{'gnomad_exome'}->{'af'}->{'af'}) . $q->end_li();
 				($semaph, $gnomad) = (1, 1);
 			}
 			#,gnomad_genome.af.af,cadd.esp.af,dbnsfp.1000gp3.af,clinvar.rcv.accession,cadd.rawscore
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'gnomad_genome.af.af', $user->getEmail());
 			if ($myvariant && $myvariant->{'gnomad_genome'}->{'af'}->{'af'} ne '') {
-				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD genome').$q->span(" AF: ".$myvariant->{'gnomad_genome'}->{'af'}->{'af'}).$q->end_li();
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD genome') . $q->span(" AF: ".$myvariant->{'gnomad_genome'}->{'af'}->{'af'}) . $q->end_li();
 				($semaph, $gnomad) = (1, 1);
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'dbnsfp.1000gp3.af', $user->getEmail());
 			if ($myvariant && $myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'} ne '') {
-				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1K genome').$q->span(" AF: ".$myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'}).$q->end_li();
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1K genome') . $q->span(" AF: ".$myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'}) . $q->end_li();
 				$semaph = 1;
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.esp.af', $user->getEmail());
 			if ($myvariant && $myvariant->{'cadd'}->{'esp'}->{'af'} ne '') {
-				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP').$q->span(" AF: ".$myvariant->{'cadd'}->{'esp'}->{'af'}).$q->end_li();
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP') . $q->span(" AF: ".$myvariant->{'cadd'}->{'esp'}->{'af'}) . $q->end_li();
 				$semaph = 1;
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.rawscore', $user->getEmail());
 			if ($myvariant && $myvariant->{'cadd'}->{'rawscore'} ne '') {
-				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD').$q->span(" raw: ".$myvariant->{'cadd'}->{'rawscore'}).$q->end_li();
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD') . $q->span(" raw: ".$myvariant->{'cadd'}->{'rawscore'}) . $q->end_li();
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession', $user->getEmail());
 			if ($myvariant && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
-				$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV').$q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->{'accession'}).$q->end_li();
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV') . $q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->{'accession'}) . $q->end_li();
 			}
 		}
 			#####removed 01/10/2018 replaced wit myvariant.info
@@ -394,9 +429,9 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		my @good_line = grep (/$var/, @dvd);
 		#print "$dvd[0]-$var";
 		my @split_dvd = split(/\t/, $good_line[0]);
-		if ($split_dvd[57] && $split_dvd[57] ne 'NULL') {$text .= $q->start_li().$q->span({'onclick' => "window.open('$url/sources')", 'class' => 'pointer'}, 'OtoDB').$q->span(" MAF: $split_dvd[57]").$q->end_li()} #otoscope_all_af
+		if ($split_dvd[57] && $split_dvd[57] ne 'NULL') {$text .= $q->start_li() . $q->span({'onclick' => "window.open('$url/sources')", 'class' => 'pointer'}, 'OtoDB').$q->span(" MAF: $split_dvd[57]") . $q->end_li()} #otoscope_all_af
 		#print $split_dvd[0];
-		if ($split_dvd[0] && $split_dvd[0] =~ /(\d+)/o) {$text .= $q->start_li().$q->a({'href' => "$url/variant/$1?full", 'target' => '_blank'}, 'Iowa DB full description').$q->end_li()}
+		if ($split_dvd[0] && $split_dvd[0] =~ /(\d+)/o) {$text .= $q->start_li() . $q->a({'href' => "$url/variant/$1?full", 'target' => '_blank'}, 'Iowa DB full description') . $q->end_li()}
 	}
 	
 	
@@ -436,12 +471,12 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			$text .= $q->start_li().$q->strong('LOVD matches: ').$q->start_ul();
 			my $i = 1;
 			foreach (@matches) {
-				if ($_ =~ /https.+Usher_montpellier\//g) {$text .= $q->start_li().$q->a({'href' => $_, 'target' => '_blank'}, 'LOVD USHbases').$q->end_li()}
-				elsif ($_ =~ /http.+databases\.lovd\.nl\/shared\//g) {$text .= $q->start_li().$q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 shared').$q->end_li()}
-				elsif ($_ =~ /http.+databases\.lovd\.nl\/whole_genome\//g) {$text .= $q->start_li().$q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 whole genome').$q->end_li()}
-				else {$text .= $q->start_li().$q->a({'href' => $_, 'target' => '_blank'}, "Link $i").$q->end_li();$i++;}
+				if ($_ =~ /https.+Usher_montpellier\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD USHbases') . $q->end_li()}
+				elsif ($_ =~ /http.+databases\.lovd\.nl\/shared\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 shared') . $q->end_li()}
+				elsif ($_ =~ /http.+databases\.lovd\.nl\/whole_genome\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 whole genome') . $q->end_li()}
+				else {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, "Link $i") . $q->end_li();$i++;}
 			}
-			$text .= $q->end_ul().$q->end_li();
+			$text .= $q->end_ul() . $q->end_li();
 			#$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD').$q->end_li();
 		}
 		else {$lovd_semaph = 1}
@@ -454,14 +489,14 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}			
 			$res->{'nom'} =~ /(\w+\d)/og;
 			my $pos_cdna = $1;
-			$text .= $q->start_li().$q->a({'href' => "https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=$res->{'gene'}&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?').$q->end_li();
+			$text .= $q->start_li() . $q->a({'href' => "https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=$res->{'gene'}&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
 		}
 		else {
-			$text .= $q->start_li().$q->a({'href' => "http://grenada.lumc.nl/LSDB_list/lsdbs/$res->{'gene'}", 'target' => '_blank'}, 'LOVD?').$q->end_li();
+			$text .= $q->start_li() . $q->a({'href' => "http://grenada.lumc.nl/LSDB_list/lsdbs/$res->{'gene'}", 'target' => '_blank'}, 'LOVD?') . $q->end_li();
 		}
 	}
 	
-	$text .= $q->end_ul();
+	$text .= $q->end_ul() .  $q->end_td() . $q->td('Diverse population MAFs and links to LSDBs') . $q->end_Tr() . "\n";
 	print $text;
 	###END NEW style using VEP
 }
