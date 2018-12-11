@@ -753,7 +753,7 @@ if ($res->{'snp_id'} ne '') {
 		else {
 			$litvar_tr .= $q->button({'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'value' => 'show Pubmed IDs', 'onclick' => '$("#pubmed").show();'}) .
 			$q->start_div({'class' => 'w3-modal', 'id' => 'pubmed'}) . "\n" .
-				$q->start_div({'class' => 'w3-modal-content', 'style' => 'z-index:1500'}) . "\n" .
+				$q->start_div({'class' => 'w3-modal-content w3-display-middle', 'style' => 'z-index:1500'}) . "\n" .
 					"<header class = 'w3-container w3-teal'>" . "\n" .
 						$q->span({'onclick' => '$("#pubmed").hide();', 'class' => 'w3-button w3-display-topright w3-large'}, '&times') . "\n" .
 						$q->h2('PubMed IDs of articles citing this variant:') . "\n" .
@@ -869,7 +869,8 @@ if ($user->isPublic != 1) {
 		elsif ($result->{'filter'} eq 'CHM' && $result->{'nom_gene'} eq 'CHM') {next}
 		else {
 			my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
-			$seen =~ s/<div><span>-$result->{'id_pat'}$result->{'num_pat'} \($result->{'statut'}$denovo_txt\)&nbsp;&nbsp;<\/span><a target="_blank" href="patient_file\.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}"><span>patient&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small.png" border="0" \/><\/a><span>&nbsp;&nbsp;&nbsp;<\/span><a target="_blank" href="patient_genotype.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}&amp;gene=$result->{'nom'}[0]"><span>genotype&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small\.png" border="0" \/><\/a><\/div>/<div>-filtered patient<\/div>/g;
+			#$seen =~ s/<div><span>-$result->{'id_pat'}$result->{'num_pat'} \($result->{'statut'}$denovo_txt\)&nbsp;&nbsp;<\/span><a target="_blank" href="patient_file\.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}"><span>patient&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small.png" border="0" \/><\/a><span>&nbsp;&nbsp;&nbsp;<\/span><a target="_blank" href="patient_genotype.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}&amp;gene=$result->{'nom'}[0]"><span>genotype&nbsp;&nbsp;<\/span><img width="15" src="\/ushvam2\/data\/img\/link_small\.png" border="0" \/><\/a><\/div>/<div>-filtered patient<\/div>/g;
+			$seen =~ s/<div><span>-$result->{'id_pat'}$result->{'num_pat'} \($result->{'statut'}$denovo_txt\)&nbsp;&nbsp;<\/span><a href="patient_file\.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}" target="_blank"><span>patient&nbsp;&nbsp;<\/span><img border="0" src="\/ushvam2\/data\/img\/link_small.png" width="15" \/><\/a><span>&nbsp;&nbsp;&nbsp;<\/span><a href="patient_genotype.pl\?sample=$result->{'id_pat'}$result->{'num_pat'}&amp;gene=$result->{'nom'}[0]" target="_blank"><span>genotype&nbsp;&nbsp;<\/span><img border="0" src="\/ushvam2\/data\/img\/link_small\.png" width="15" \/><\/a><\/div>/<div>-filtered patient<\/div>/g;
 			#print "2-$result->{'id_pat'}$result->{'num_pat'}-$result->{'statut'}-$seen-<br/>";
 		}
 	}
