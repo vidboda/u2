@@ -547,7 +547,7 @@ print $q->start_Tr(),
 		$q->td('Absolute genomic HGVS nomenclature (chr), hg19 assembly'),
 	$q->end_Tr(), "\n",
 	$q->start_Tr(),
-		$q->td('hg38 Genomic HGVS: (work in progress)'), "\n",
+		$q->td('hg38 Genomic HGVS:'), "\n",
 		$q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $map2pdb_hg38, $mutalyzer_hg38_pos_conv, $q->end_td(),
 		$q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'),
 	$q->end_Tr(), "\n";
