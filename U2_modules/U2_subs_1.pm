@@ -167,7 +167,6 @@ sub standard_begin_html { #prints top of the pages
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/stats_ngs.pl'}, 'Illumina tables'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/stats_ngs.pl?graph=1'}, 'Illumina graphs'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/ngs_compare.pl'}, 'NGS compare'), "\n",
-				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/dbsnp_info.pl'}, 'dbSNP'), "\n",
 				$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/stats_general_1.pl'}, 'General Stats'), "\n",
 			$q->end_div(), "\n",
 		$q->end_div(), "\n",
