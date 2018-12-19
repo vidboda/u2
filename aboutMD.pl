@@ -121,7 +121,7 @@ print $q->br(), $q->br(),
 		$q->h1('What you need to run MobiDetails:'), "\n",
 	$q->end_div(), "\n",
 	$q->start_div({'class' => 'w3-container w3-padding-64 w3-center', 'style' => 'display:none', 'id' => 'whatyouneed'}), "\n",
-		$q->span('a gene and ...'), "\n",
+		$q->span('Internet, a web browser, a gene and a variant of interest (HGVS c. nomenclature). That\'s all.'), "\n",
 	$q->end_div(), "\n";
 
 
