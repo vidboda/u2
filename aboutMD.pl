@@ -122,7 +122,20 @@ print $q->br(), $q->br(),
 	$q->end_div(), "\n",
 	$q->start_div({'class' => 'w3-container w3-padding-64 w3-center', 'style' => 'display:none', 'id' => 'whatyouneed'}), "\n",
 		$q->span('Internet, a web browser, a gene and a variant of interest (HGVS c. nomenclature). That\'s all.'), "\n",
+	$q->end_div(), "\n",
+	$q->start_div({'class' => 'w3-button w3-block w3-blue', 'onclick' => "accord('video1');"}), "\n",
+		$q->h1('Check out the general video tutorial:'), "\n",
+	$q->end_div(), "\n",
+	$q->start_div({'class' => 'w3-container w3-padding-64 w3-center', 'style' => 'display:none', 'id' => 'video1'}), "\n",
+		"<video controls = 'controls' width = '60%' name = 'MD tutorial' src = '".$HTDOCS_PATH."data/videos/MD1.mp4'></video>", "\n",
+	$q->end_div(), "\n",
+	$q->start_div({'class' => 'w3-button w3-block w3-blue', 'onclick' => "accord('video2');"}), "\n",
+		$q->h1('How to find relevant publications:'), "\n",
+	$q->end_div(), "\n",
+	$q->start_div({'class' => 'w3-container w3-padding-64 w3-center', 'style' => 'display:none', 'id' => 'video2'}), "\n",
+		"<video controls = 'controls' width = '60%' name = 'MD tutorial' src = '".$HTDOCS_PATH."data/videos/MD_pubmed.mp4'></video>", "\n",
 	$q->end_div(), "\n";
+
 
 
 
