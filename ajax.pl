@@ -15,7 +15,7 @@ use SOAP::Lite;
 use File::Temp qw/ :seekable /;
 use List::Util qw(min max);
 #use IPC::Open2;
-#use Data::Dumper;
+use Data::Dumper;
 use URI::Escape;
 use LWP::UserAgent;
 use Net::Ping;
@@ -254,36 +254,44 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		if (U2_modules::U2_subs_1::test_myvariant() == 1) {
 			#use myvariant.info REST API  http://myvariant.info/
 			#my $myvarinput = $variant;
-			#if ($myvarinput =~ /($chr.+[delup]{3})(.+)$/o) {$myvarinput = $1}
+			#if ($myvarinput =~ /($chr.+[delup]{3})(.+)$/o) {$myvarinput = $1}			
 			my $myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'all', $user->getEmail());
-			#print Dumper($myvariant);
-			if ($myvariant && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
+			
+			#$text .= ref($myvariant->{'gnomad_exome'}->{'af'}).$myvariant->{'gnomad_exome'}->{'af'}->{'af'};
+			
+			
+			if (ref($myvariant->{'gnomad_exome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD exome') . $q->span(" AF: ".$myvariant->{'gnomad_exome'}->{'af'}->{'af'}) . $q->end_li();
 				($semaph, $gnomad) = (1, 1);
 			}
 			#,gnomad_genome.af.af,cadd.esp.af,dbnsfp.1000gp3.af,clinvar.rcv.accession,cadd.rawscore
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'gnomad_genome.af.af', $user->getEmail());
-			if ($myvariant && $myvariant->{'gnomad_genome'}->{'af'}->{'af'} ne '') {
+			if (ref($myvariant->{'gnomad_genome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_genome'}->{'af'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD genome') . $q->span(" AF: ".$myvariant->{'gnomad_genome'}->{'af'}->{'af'}) . $q->end_li();
 				($semaph, $gnomad) = (1, 1);
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'dbnsfp.1000gp3.af', $user->getEmail());
-			if ($myvariant && $myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'} ne '') {
+			if (ref($myvariant->{'dbnsfp'}->{'1000gp3'}) eq 'HASH' && $myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1K genome') . $q->span(" AF: ".$myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'}) . $q->end_li();
 				$semaph = 1;
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.esp.af', $user->getEmail());
-			if ($myvariant && $myvariant->{'cadd'}->{'esp'}->{'af'} ne '') {
+			if (ref($myvariant->{'cadd'}->{'esp'}) eq 'HASH' && $myvariant->{'cadd'}->{'esp'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP') . $q->span(" AF: ".$myvariant->{'cadd'}->{'esp'}->{'af'}) . $q->end_li();
 				$semaph = 1;
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.rawscore', $user->getEmail());
-			if ($myvariant && $myvariant->{'cadd'}->{'rawscore'} ne '') {
+			if (ref($myvariant->{'cadd'}) eq 'HASH' && $myvariant->{'cadd'}->{'rawscore'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD') . $q->span(" raw: ".$myvariant->{'cadd'}->{'rawscore'}) . $q->end_li();
 			}
-			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession', $user->getEmail());
-			if ($myvariant && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
+			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession', $user->getEmail());->{'rcv'}->{'accession'}
+			if (ref($myvariant->{'clinvar'}->{'rcv'}) eq 'HASH' && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
+				#print $myvariant->{'clinvar'}->{'rcv'};
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV') . $q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->{'accession'}) . $q->end_li();
+			}
+			elsif (ref($myvariant->{'clinvar'}->{'rcv'}) eq 'ARRAY' && $myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'} ne '') {
+				#print $myvariant->{'clinvar'}->{'rcv'};
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV') . $q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}) . $q->end_li();
 			}
 		}
 			#####removed 01/10/2018 replaced wit myvariant.info
@@ -378,8 +386,10 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	#TO DO: small sub for gnomad treatment DONE
 	if ($chr ne '' && $gnomad == 0) {
 		$chr =~ s/chr//og;
+		my $text_size = length($text);
 		$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz", 'exome', $chr, $position, $ref, $alt, $q);
 		$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_genome_sorted.txt.gz", 'genome', $chr, $position, $ref, $alt, $q);
+		if (length($text) > $text_size) {$semaph = 1}
 		#my @gnomad =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz $chr:$position-$position`);
 		#foreach (@gnomad) {
 		#	my @current = split(/\t/, $_);
