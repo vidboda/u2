@@ -260,36 +260,36 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#$text .= ref($myvariant->{'gnomad_exome'}->{'af'}).$myvariant->{'gnomad_exome'}->{'af'}->{'af'};
 			
 			
-			if (ref($myvariant->{'gnomad_exome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
+			if (ref($myvariant) && ref($myvariant->{'gnomad_exome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD exome') . $q->span(" AF: ".$myvariant->{'gnomad_exome'}->{'af'}->{'af'}) . $q->end_li();
 				($semaph, $gnomad) = (1, 1);
 			}
 			#,gnomad_genome.af.af,cadd.esp.af,dbnsfp.1000gp3.af,clinvar.rcv.accession,cadd.rawscore
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'gnomad_genome.af.af', $user->getEmail());
-			if (ref($myvariant->{'gnomad_genome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_genome'}->{'af'}->{'af'} ne '') {
+			if (ref($myvariant) && ref($myvariant->{'gnomad_genome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_genome'}->{'af'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD genome') . $q->span(" AF: ".$myvariant->{'gnomad_genome'}->{'af'}->{'af'}) . $q->end_li();
 				($semaph, $gnomad) = (1, 1);
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'dbnsfp.1000gp3.af', $user->getEmail());
-			if (ref($myvariant->{'dbnsfp'}->{'1000gp3'}) eq 'HASH' && $myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'} ne '') {
+			if (ref($myvariant) && ref($myvariant->{'dbnsfp'}->{'1000gp3'}) eq 'HASH' && $myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1K genome') . $q->span(" AF: ".$myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'}) . $q->end_li();
 				$semaph = 1;
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.esp.af', $user->getEmail());
-			if (ref($myvariant->{'cadd'}->{'esp'}) eq 'HASH' && $myvariant->{'cadd'}->{'esp'}->{'af'} ne '') {
+			if (ref($myvariant) && ref($myvariant->{'cadd'}->{'esp'}) eq 'HASH' && $myvariant->{'cadd'}->{'esp'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP') . $q->span(" AF: ".$myvariant->{'cadd'}->{'esp'}->{'af'}) . $q->end_li();
 				$semaph = 1;
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.rawscore', $user->getEmail());
-			if (ref($myvariant->{'cadd'}) eq 'HASH' && $myvariant->{'cadd'}->{'rawscore'} ne '') {
+			if (ref($myvariant) && ref($myvariant->{'cadd'}) eq 'HASH' && $myvariant->{'cadd'}->{'rawscore'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD') . $q->span(" raw: ".$myvariant->{'cadd'}->{'rawscore'}) . $q->end_li();
 			}
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession', $user->getEmail());->{'rcv'}->{'accession'}
-			if (ref($myvariant->{'clinvar'}->{'rcv'}) eq 'HASH' && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
+			if (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'HASH' && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
 				#print $myvariant->{'clinvar'}->{'rcv'};
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV') . $q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->{'accession'}) . $q->end_li();
 			}
-			elsif (ref($myvariant->{'clinvar'}->{'rcv'}) eq 'ARRAY' && $myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'} ne '') {
+			elsif (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'ARRAY' && $myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'} ne '') {
 				#print $myvariant->{'clinvar'}->{'rcv'};
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV') . $q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}) . $q->end_li();
 			}
