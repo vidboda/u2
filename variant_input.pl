@@ -707,7 +707,7 @@ elsif ($step == 2) { #insert variant and print
 			$semaph = 1;
 		}
 	}
-	if (($q->param('existing_variant') && $q->param('existing_variant') =~ /c\..+/o) || ($semaph == 1)) {
+	if (($q->param('existing_variant') && $q->param('existing_variant') =~ /[nc]\..+/o) || ($semaph == 1)) {
 		my $cdna = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
 		if ($q->param('single_var') && $q->param('single_var') eq 'y') {
 			my $text = $q->span('Variant already recorded: ').$q->a({'href' => "variant.pl?gene=$gene&amp;accession=$acc_no&nom_c=".uri_escape($cdna)}, $cdna);
