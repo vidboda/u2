@@ -144,7 +144,7 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 		#a || b
 		my ($case, $seg1, $seg2, $seg3, $pos, $label1, $label2) = ('a', '', '', '', 'Intron', 'Intron');
 		my $dist_from_exon = U2_modules::U2_subs_1::get_pos_from_exon($cname);
-		#print $cname."-".$dist_from_exon;
+		#print $cname."-".$segment_type;
 		if ($segment_type eq 'intron' && $dist_from_exon > 100) {
 			#print $q->p('ok man');
 			($case, $seg1, $seg2, $seg3) = ('b', $nom_seg, $nom_seg, &get_neighbouring_nom_seg($segment_num+1, $gene->[0], $gene->[1], $segment_type));
@@ -155,7 +155,7 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 			if ($segment_type eq 'intron' && $cname =~ /[^\.]-/o) {
 				my $segplus = &get_neighbouring_nom_seg($segment_num+1, $gene->[0], $gene->[1], $segment_type);
 				#we need exon size not intron
-				$seg_size  = &get_neighbouring_seg_size($segment_num, $gene->[0], $gene->[1], $segment_type);
+				$seg_size  = &get_neighbouring_seg_size($segment_num+1, $gene->[0], $gene->[1], $segment_type);
 				($seg1, $seg2, $seg3) = ($nom_seg, $segplus, $segplus);
 				($label1, $label2) = &get_label($segment_num, $gene->[1], $segment_type, $cname);
 				$pos = 200 - $dist_from_exon;
@@ -167,7 +167,8 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 				if ($segment_type eq 'intron') {
 					$pos = 400 + $dist_from_exon;
 					#we need exon size not intron
-					$seg_size  = &get_neighbouring_seg_size($segment_num, $gene->[0], $gene->[1], $segment_type);
+					if ($cname =~ /-/o) {$seg_size  = &get_neighbouring_seg_size($segment_num+1, $gene->[0], $gene->[1], $segment_type);}
+					else {$seg_size  = &get_neighbouring_seg_size($segment_num, $gene->[0], $gene->[1], $segment_type)}
 					#print $q->p('ok man');
 				}
 				else {
