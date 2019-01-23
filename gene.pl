@@ -330,7 +330,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 
 		}
 		print $q->end_table(), $q->end_div(), $q->br(), $q->br(), "\n";
-		my $exac_text = '*Based on the ExAC dataset, the probabilities for each gene of being loss-of function intolerant (pLi - haploinsufficients genes),<br/> Recessive (pRec - Premature Termination Variants (PTVs) tolerated heterozygotes but not homozygotes) of null (pNull - tolerant to PTVs) have been computed by the ExAC group. The closer to one, the most likely to fall in the given category. More <a href = \'https://www.nature.com/articles/nature19057\', target = \'_blank\'>here</a> (Supplementary Information, beginning p27). Please note that these metrics will soon be replaced with the more accurate oberved/expected ratio (currently in gnomAD).';
+		my $exac_text = '*Based on the ExAC dataset, the probabilities for each gene of being loss-of function intolerant (pLi - haploinsufficients genes),<br/> Recessive (pRec - Premature Termination Variants (PTVs) tolerated heterozygotes but not homozygotes) of null (pNull - tolerant to PTVs) have been computed by the ExAC group. The closer to one, the most likely to fall in the given category. More <a href = \'https://www.nature.com/articles/nature19057\', target = \'_blank\'>here</a> (Supplementary Information, beginning p27). Please note that these metrics will soon be replaced with the more accurate observed/expected ratio (currently in gnomAD).';
 		print U2_modules::U2_subs_2::info_panel($exac_text, $q);
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 		

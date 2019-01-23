@@ -637,13 +637,13 @@ elsif ($step == 2) { #insert variant and print
 								}
 								my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38, defgen_export) VALUES ('$variant', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38', '$defgen_export');";
 								$insert =~ s/'NULL'/NULL/og;
-								#die $insert;			
+								#die $insert;
+								print STDERR $insert;
 								#print $q->td({'colspan' => '7'}, $insert);exit;
 								$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";
 								
-								if ($id ne '') {
+								if ($id ne '') {									
 									$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$variant', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";
-								
 									print $insert;
 									$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
 								}

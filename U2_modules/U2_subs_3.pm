@@ -1176,7 +1176,7 @@ sub add_variant_button {
 			}";
 	
 	my $html = $q->script({'type' => 'text/javascript'}, $js)."\n".
-		$q->button({'id' => 'add_var', 'value' => 'Create a variant', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'onclick' => "document.getElementById('main_modal').style.display='block';"})."\n".
+		$q->button({'id' => 'add_var', 'type' => 'button', 'value' => 'Create a variant', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'onclick' => "document.getElementById('main_modal').style.display='block';"})."\n".
 		$q->start_div({'id' => 'main_modal', 'class' => 'w3-modal', 'style' => 'z-index:1000'})."\n".
 			$q->start_div({'class' => 'w3-modal-content w3-card-4 w3-display-middle'})."\n".
 				$q->start_div({'class' => 'w3-container w3-blue'}).$q->span({'onclick' => "document.getElementById('main_modal').style.display='none'", 'class' => 'w3-button w3-display-topright w3-xlarge'}, '&times;').$q->h2({'id' => 'main_text'}, "Create a variant ($acc)").$q->end_div()."\n".
@@ -1193,7 +1193,7 @@ sub add_variant_button {
 								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variant', 'value' => 'c.', 'size' => '20', 'maxlength' => '50'})."\n".
 							$q->end_div()."\n".
 							$q->start_div({'class' => 'w3-panel w3-large w3-center'})."\n".
-								$q->button({'name' => 'submit', 'for' => 'creation_form', 'value' => 'Let\'s do it!!', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var();'})."\n".
+								$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Let\'s do it!!', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var();'})."\n".
 							$q->end_div()."\n".
 					$q->end_form()."\n".
 				$q->end_div()."\n".
