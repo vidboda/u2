@@ -159,7 +159,7 @@ print $q->end_p(), $q->end_div(), $q->end_div(), "\n",
 
 my $text = 'WARNING: MobiDetails is in current active development. This is a &beta; version.<br/> If you experience any trouble or have any idea to improve the software, please contact David at david.baux@inserm.fr';
 print U2_modules::U2_subs_2::danger_panel($text, $q);
-$text = 'NEWS:<ul><li>2018-12-19: check our new <a href = \'aboutMD.pl\', target = \'_blank\'>About</a> page!</li><li>2018-12-12: when a variant is known in dbSNP, possibility to retrive PubMed articles citing the variant</li><li>2018-12-12 again: added pLi, pRec, pNull values for each gene.</li><li>2018-12-06: You can modify the RNA impact status depending on what you\'ve found.</li><li>2018-12-07: You can export your variant in a DEFGEN compliant csv format using the dedicated button!</li></ul>';
+$text = 'NEWS:<ul><li>2019-01-24: more than 300 new genes added (potential DSD genes)</li><li>2018-12-19: check our new <a href = \'aboutMD.pl\', target = \'_blank\'>About</a> page!</li><li>2018-12-12: when a variant is known in dbSNP, possibility to retrive PubMed articles citing the variant</li><li>2018-12-12 again: added pLi, pRec, pNull values for each gene.</li><li>2018-12-06: You can modify the RNA impact status depending on what you\'ve found.</li><li>2018-12-07: You can export your variant in a DEFGEN compliant csv format using the dedicated button!</li></ul>';
 print U2_modules::U2_subs_2::info_panel($text, $q);
 print $q->start_div({'id' => 'farside', 'class' => 'appear center'}), $q->end_div(), "\n",
 	$q->br(), $q->br(), $q->start_div({'align' => 'center'}),
