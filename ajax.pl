@@ -424,26 +424,32 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	#$text.= "ping ".$p->ping('deafnessvariationdatabase.org');
 	#if ($p->ping('deafnessvariationdatabase.org')) {
 		#$text.= 'ping ok';
-			
-			
+	
 	my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
-	my $var = $res->{'nom'};
-	$var =~ s/\+/\\\+/og;
-	$var =~ s/\./\\\./og;
-	my $ua = new LWP::UserAgent();
-	$ua->timeout(3);
-	my $response = $ua->get("$url/api?terms=chr$chr:$pos");
-	#http://vvd.eng.uiowa.edu/api?terms=chr1:94461749
-	#print $response->decoded_content();
-	if ($response->is_success()) {
-		my @dvd = split(/\n/, $response->decoded_content());
-		my @good_line = grep (/$var/, @dvd);
-		#print "$dvd[0]-$var";
-		my @split_dvd = split(/\t/, $good_line[0]);
-		if ($split_dvd[57] && $split_dvd[57] ne 'NULL') {$text .= $q->start_li() . $q->span({'onclick' => "window.open('$url/sources')", 'class' => 'pointer'}, 'OtoDB').$q->span(" MAF: $split_dvd[57]") . $q->end_li()} #otoscope_all_af
-		#print $split_dvd[0];
-		if ($split_dvd[0] && $split_dvd[0] =~ /(\d+)/o) {$text .= $q->start_li() . $q->a({'href' => "$url/variant/$1?full", 'target' => '_blank'}, 'Iowa DB full description') . $q->end_li()}
-	}
+	
+	my $test_url = "http://deafnessvariationdatabase.org/hg19s?terms=$chr:$pos";
+	
+	$text .= $q->start_li() . $q->a({'href' => $test_url, 'target' => '_blank'}, 'Try Iowa DB');
+			
+	
+	###my $var = $res->{'nom'};
+	###$var =~ s/\+/\\\+/og;
+	###$var =~ s/\./\\\./og;
+	###my $ua = new LWP::UserAgent();
+	###$ua->timeout(3);
+	###my $response = $ua->get("$url/api?version=8_2&type=hg19coord&method=IO&format=json&terms=$chr:$pos");
+	#http://vvd.eng.uiowa.edu/api?terms=chr1:94461749 - deprecated
+	
+	###if ($response->is_success()) {
+		###$text.= $response->decoded_content() . "\n";
+		###my @dvd = split(/\n/, $response->decoded_content());
+		###my @good_line = grep (/$var/, @dvd);
+		##print "$dvd[0]-$var";
+		###my @split_dvd = split(/\t/, $good_line[0]);
+		###if ($split_dvd[57] && $split_dvd[57] ne 'NULL') {$text .= $q->start_li() . $q->span({'onclick' => "window.open('$url/sources')", 'class' => 'pointer'}, 'OtoDB').$q->span(" MAF: $split_dvd[57]") . $q->end_li()} #otoscope_all_af
+		##print $split_dvd[0];
+		###if ($split_dvd[0] && $split_dvd[0] =~ /(\d+)/o) {$text .= $q->start_li() . $q->a({'href' => "$url/variant/$1?full", 'target' => '_blank'}, 'Iowa DB full description') . $q->end_li()}
+	###}
 	
 	
 			#else {print $response}
