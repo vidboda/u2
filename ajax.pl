@@ -429,7 +429,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	my $test_url = "http://deafnessvariationdatabase.org/hg19s?terms=$chr:$pos";
 	
-	$text .= $q->start_li() . $q->a({'href' => $test_url, 'target' => '_blank'}, 'Try Iowa DB');
+	if ($res->{'dfn'} == 1 || $res->{'usher'} == 1 || $res->{'rp'} == 1) {$text .= $q->start_li() . $q->a({'href' => $test_url, 'target' => '_blank'}, 'Try Iowa DB');}
 			
 	
 	###my $var = $res->{'nom'};
