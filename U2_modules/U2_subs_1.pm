@@ -42,7 +42,7 @@ our @USH1 = ('', 'MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2');
 our @USH2 = ('USH2A', 'GPR98', 'DFNB31', 'PDZD7');
 our @USH3 = ('CLRN1', 'HARS');
 our @CHM = ('CHM');
-our @DFNB = ('ADCY1', 'CABP2', 'CDC14A', 'CIB2', 'CLDN14', 'CLIC5', 'COL11A2', 'DFNB59', 'ESPN', 'EPS8', 'EPS8L2', 'ESRRB', 'FAM65B', 'FOXI1', 'GIPC3', 'GJB2', 'GJB3', 'GJB6', 'GPSM2', 'GRXCR1', 'GRXCR2', 'HGF', 'ILDR1', 'KARS', 'KCNJ10', 'LHFPL5', 'LOXHD1', 'LRTOMT', 'MARVELD2', 'MSRB3', 'MYO3A', 'MYO6', 'MYO15A', 'OTOA', 'OTOF', 'OTOG', 'OTOGL', 'PTPRQ', 'RDX', 'ROR1', 'S1PR2', 'SERPINB6', 'SLC26A4', 'SLC26A5', 'SLITRK6', 'STRC', 'SYNE4', 'TBC1D24', 'TECTA', 'TMC1', 'TMEM132E', 'TMIE', 'TMPRSS3', 'TPRN', 'TRIOBP', 'TSPEAR', 'WBP2');
+our @DFNB = ('ADCY1', 'CABP2', 'CDC14A', 'CIB2', 'CLDN14', 'CLIC5', 'COL11A2', 'DFNB59', 'ESPN', 'EPS8', 'EPS8L2', 'ESRRB', 'FAM65B', 'FOXI1', 'GIPC3', 'GJB2', 'GJB3', 'GJB6', 'GPSM2', 'GRXCR1', 'GRXCR2', 'HGF', 'ILDR1', 'KARS', 'KCNJ10', 'LHFPL5', 'LOXHD1', 'LRTOMT', 'MARVELD2', 'MSRB3', 'MYO3A', 'MYO6', 'MYO15A', 'OTOA', 'OTOF', 'OTOG', 'OTOGL', 'PDZD7', 'PTPRQ', 'RDX', 'ROR1', 'S1PR2', 'SERPINB6', 'SLC26A4', 'SLC26A5', 'SLITRK6', 'STRC', 'SYNE4', 'TBC1D24', 'TECTA', 'TMC1', 'TMEM132E', 'TMIE', 'TMPRSS3', 'TPRN', 'TRIOBP', 'TSPEAR', 'WBP2');
 our @DFNA = ('ACTG1', 'CCDC50', 'CD164', 'CEACAM16', 'COCH', 'COL11A2', 'CRYM', 'DIABLO', 'DFNA5', 'DIAPH1', 'DIAPH3', 'DMXL2', 'DSPP', 'EYA4', 'GJB2', 'GJB6', 'GJB3', 'GRHL2', 'HOMER2', 'KCNQ4', 'KITLG', 'MIR96', 'MIR182', 'MIR183', 'MYH9', 'MYH14', 'MYO1A', 'MYO6', 'NLRP3', 'OSBPL2', 'P2RX2', 'PLS1', 'PTPRQ', 'POU4F3', 'SIX1', 'SLC17A8', 'TBC1D24', 'TECTA', 'TJP2', 'TMC1', 'TNC', 'WFS1','RNR1', 'TRNL1', 'TRNS1');
 our @NSRP = ('ABCA4', 'BBS1', 'BEST1', 'C2orf71', 'C8orf37', 'CERKL', 'CNGA1', 'CNGB1', 'CRB1', 'DHDDS', 'EYS', 'FAM161A', 'FLVCR1', 'IDH3B', 'IMPG2', 'MAK', 'MERTK', 'NR2E3', 'NRL', 'PDE6A', 'PDE6B', 'PDE6G', 'PRCD', 'PROM1', 'PRPF31', 'RP1', 'RP2', 'RBP3', 'RGR', 'RHO', 'RLBP1', 'RPE65', 'RPGR', 'SAG', 'TTC8', 'ZNF513');
 our @DFNX = ('POU3F4', 'PRPS1', 'SMPX', 'COL4A6');
@@ -950,6 +950,23 @@ sub extract_pos_from_genomic { #get chr and genomic positions
 	}
 }
 
+sub extract_dvd_var {#get genomic variant without chr prefix
+	my $genomic = shift;
+	if ($genomic =~ /^chr($CHR_REGEXP:)$HGVS_CHR_TAG\.(\d+[\+-]?\??_?\d*)([^\d]*)/) {return "$1$2:$3"}
+}
+
+sub extract_chrpos_var {#get genomic position and chr w/o prefix formatted for DVD + extended boundaries
+	my $genomic = shift;
+	if ($genomic =~ /^chr($CHR_REGEXP:)$HGVS_CHR_TAG\.(\d+[\+-]?\??_?\d*)[^\d]*/) {
+		my ($chr, $pos) = ($1, $2);
+		if ($pos =~ /(.+)_(.+)/o) {
+			return $chr.($1-4)."-".($2+4)
+		}
+		else {return $chr.($pos-4)."-".($pos+4)}
+		#return "$1$2"
+	}
+}
+
 #in gene_graphs.pl, variant.pl, engine.pl, ajax.pl
 sub get_pos_from_exon {
 	my $name = shift;
@@ -1180,6 +1197,18 @@ sub run_mutalyzer {
 	if ($call->fault()) {print "Mutalyzer Fault $var $gene<br/>"}
 	return $call;
 }
+
+sub test_vv {
+	my $ua = LWP::UserAgent->new();
+	$ua->ssl_opts(verify_hostname => 0);
+	#https://www101.lamp.le.ac.uk/
+	my $request = $ua->get('https://www101.lamp.le.ac.uk/');
+	my $content = $request->content();
+	#print "$content<br/>";
+	if ($content !~ /Accepted/o) {return 0}
+	else {return 1}
+}
+
 #U2_subs_3, variant_input.pl
 sub test_myvariant {
 	my $ua = LWP::UserAgent->new();

@@ -139,7 +139,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, a.snp_id, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
+	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, a.snp_id, a.type_adn, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
 	my ($text, $semaph) = ('', 0);#$q->strong('MAFs &amp; databases:').
 	
@@ -416,24 +416,36 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	####TEMP COMMENT connexion to DVD really slow comment for the moment
-	my $url = 'http://vvd.eng.uiowa.edu';
-	if ($res->{'dfn'} == 1 || $res->{'usher'} == 1) {$url = 'http://deafnessvariationdatabase.org'}#OtoDB university of Iowa deafness and usher genes
-	
-	
-	#ping dvd to ensure host is reachable
-	#my $p = Net::Ping->new("tcp", 2);
-	#$text.= "ping ".$p->ping('deafnessvariationdatabase.org');
-	#if ($p->ping('deafnessvariationdatabase.org')) {
-		#$text.= 'ping ok';
-	
-	#my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
-	
-	my $no_chr_var = U2_modules::U2_subs_1::extract_dvd_var($variant);
-	
-	my $test_url = "http://deafnessvariationdatabase.org/variant/".uri_encode($no_chr_var)."?full";
-	
-	if ($res->{'ns_gene'} == 1) {$text .= $q->start_li() . $q->a({'href' => $test_url, 'target' => '_blank'}, 'Try Iowa DB');}
-
+	if ($res->{'ns_gene'} == 1) {
+		my $url = 'http://vvd.eng.uiowa.edu';
+		if ($res->{'dfn'} == 1 || $res->{'usher'} == 1) {$url = 'http://deafnessvariationdatabase.org'}#OtoDB university of Iowa deafness and usher genes
+		
+		#ping dvd to ensure host is reachable
+		#my $p = Net::Ping->new("tcp", 2);
+		#$text.= "ping ".$p->ping('deafnessvariationdatabase.org');
+		#if ($p->ping('deafnessvariationdatabase.org')) {
+			#$text.= 'ping ok';
+		
+		#my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
+		
+		if ($res->{'type_adn'} eq 'substitution') {
+			my $no_chr_var = U2_modules::U2_subs_1::extract_dvd_var($variant);			
+			my $iowa_url = "$url/variant/".uri_encode($no_chr_var)."?full";			
+			my $ua = LWP::UserAgent->new();
+			$ua->timeout(3);
+			my $fetch = $ua->get($iowa_url);
+			if ($fetch->is_success()) {
+				my $content = $fetch->content();
+				if ($content !~ /Unable\sto\sfind\svariant/o) {$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Iowa DB') . $q->end_li() . "\n"}
+				else {$text .= $q->li('Not recorded in Iowa DB')}
+			}
+		}
+		else {
+			my $no_chr_var = U2_modules::U2_subs_1::extract_chrpos_var($variant);
+			my $iowa_url = "$url/hg19s?terms=".uri_encode($no_chr_var);
+			$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Try Iowa DB?') . $q->end_li() . "\n";
+		}
+	}
 	
 	###my $var = $res->{'nom'};
 	###$var =~ s/\+/\\\+/og;
