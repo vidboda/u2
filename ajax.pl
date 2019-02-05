@@ -19,6 +19,7 @@ use Data::Dumper;
 use URI::Escape;
 use LWP::UserAgent;
 use Net::Ping;
+use URI::Encode qw/uri_encode uri_decode/;
 
 
 #use XML::Compile::WSDL11;      # use WSDL version 1.1
@@ -138,7 +139,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, a.snp_id, b.dfn, b.usher FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
+	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, a.snp_id, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
 	my ($text, $semaph) = ('', 0);#$q->strong('MAFs &amp; databases:').
 	
@@ -425,12 +426,14 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	#if ($p->ping('deafnessvariationdatabase.org')) {
 		#$text.= 'ping ok';
 	
-	my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
+	#my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
 	
-	my $test_url = "http://deafnessvariationdatabase.org/hg19s?terms=$chr:$pos";
+	my $no_chr_var = U2_modules::U2_subs_1::extract_dvd_var($variant);
 	
-	if ($res->{'dfn'} == 1 || $res->{'usher'} == 1 || $res->{'rp'} == 1) {$text .= $q->start_li() . $q->a({'href' => $test_url, 'target' => '_blank'}, 'Try Iowa DB');}
-			
+	my $test_url = "http://deafnessvariationdatabase.org/variant/".uri_encode($no_chr_var)."?full";
+	
+	if ($res->{'ns_gene'} == 1) {$text .= $q->start_li() . $q->a({'href' => $test_url, 'target' => '_blank'}, 'Try Iowa DB');}
+
 	
 	###my $var = $res->{'nom'};
 	###$var =~ s/\+/\\\+/og;
