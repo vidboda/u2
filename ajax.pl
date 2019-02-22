@@ -1133,7 +1133,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	#my $content = "GENE;VARIANT;GENOME_REFERENCE;NOMENCLATURE_HGVS;NOMPROTEINE;VARIANT_C;CHROMOSOME;SEQUENCE_REF;LOCALISATION;POSITION_GENOMIQUE;NM;VARIANT_P;CLASSESUR3;CLASSESUR5;DOMAINE_FCTL;CONSEQUENCES;RS;COSMIC;ENST;DATEDESAISIE;REFERENCES;COMMENTAIRE;ETAT;A_ENREGISTRER;STATUT;RESULTAT;ALLELE;NOTES\n";
 	#updated with defgen file 28/12/2017
 	#my $content = "GENE;VARIANT;A_ENREGISTRER;STATUT;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ALLELE;CLASSESUR3;CLASSESUR5;NOTES;COSMIC;ENST;NM;RS;REFERENCES;CONSEQUENCES;POSITION_GENOMIQUE;COMMENTAIRE\n";
-	my $content =  "GENE;VARIANT;A_ENREGISTRER;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2\r\n";
+	my $content =  "GENE;VARIANT;A_ENREGISTRER;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2\r\n$query";
 	if ($res ne '0E0') {
 		while (my $result = $sth->fetchrow_hashref()) {
 			#check filters
@@ -1173,7 +1173,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
 		my $acmg_class = $res->{'acmg_class'};
 		if ($acmg_class eq '') {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh)}
 		my $defgen_acmg = &u22defgen_acmg($acmg_class);
-		$content .= "$res->{nom}[0];$res->{nom}[1].$res->{acc_version}:$res->{var};;;;$res->{hgvs_prot};$res->{var};$res->{enst};$res->{nom_gene}[1];$pos;$defgen_acmg;;;$res->{snp_id};;$res->{type_prot};$chr;hg19;$res->{nom_g};$res->{type_segment} $res->{num_segment};;;;\r\n";
+		$content .= "$res->{nom}[0];$res->{nom}[1].$res->{acc_version}:$res->{var};;;;$res->{hgvs_prot};$res->{var};$res->{enst};$res->{nom_gene}[1];$pos;$defgen_acmg;;;$res->{snp_id};;$res->{type_prot};;$chr;hg19;$res->{nom_g};$res->{type_segment} $res->{num_segment};;;;\r\n";
 		$nom_g =~ s/>/_/og;
 		$nom_g =~ s/:/_/og;
 		open F, '>'.$ABSOLUTE_HTDOCS_PATH.'data/defgen/'.$nom_g.'_defgen.csv' or die $!;
