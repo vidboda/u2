@@ -368,7 +368,7 @@ if ($result) {
 					$SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 					$SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 					my $partial_path = $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp;		
-					my ($raw_data, $bam_file, $bam_file_suffix, $bam_ftp);
+					my ($raw_data, $alignment_file, $alignment_file_suffix, $alignment_ftp);
 					my $width = '500';
 					my $raw_filter = '';
 					my $library = '';
@@ -503,31 +503,34 @@ if ($result) {
 						#print "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir/";exit;
 						#print "$alignment_dir--";exit;
 						#my $bam_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir/ && ls") or die "remote command failed: " . $ssh->error();
-						my $bam_list;
-						if ($access_method eq 'autofs') {$bam_list = `ls $alignment_dir`}
-						else {$bam_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error()}
+						my $alignment_list;
+						if ($access_method eq 'autofs') {$alignment_list = `ls $alignment_dir`}
+						else {$alignment_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error()}
 						#my $bam_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/$ftp_dir`;
 						#old fashioned replaced with autofs 21/12/2016
 						#my $bam_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error();
 						#print $res_manifest->{'run_id'};
-						my $bai_suffix = '.bam';
+						my ($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.bam', 'bam', '.bai');
 						if ($nenufaar == 0) {
 							#create a hash which looks like {"illumina_run_id" => 0}
-							my %files = map {$_ => '0'} split(/\s/, $bam_list);
+							my %files = map {$_ => '0'} split(/\s/, $alignment_list);
 							foreach my $file_name (keys(%files)) {
-								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.bam/) {
-									$bam_file_suffix = $1;
+								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.(c?[br]am)/) {
+									($alignment_file_suffix, $alignment_ext) = ($1, $2);
 									#$bam_file = "/Data/Intensities/BaseCalls/$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
-									$bam_file = "$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
-									$bam_ftp = "$ftp_dir/$id_tmp$num_tmp$bam_file_suffix";
+									$alignment_file = "$alignment_dir/$id_tmp$num_tmp$alignment_file_suffix";
+									$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp$alignment_file_suffix";
 								}								
 							}
 						}
 						else {
-							$bai_suffix = '';
-							$bam_file = "$alignment_dir/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp";
-							$bam_ftp = "$ftp_dir/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp";
+							$alignment_suffix = '';
+							$alignment_file = "$alignment_dir/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp";
+							$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp";
+							if (-e "$alignment_file.bam") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.bam', 'bam', '.bai')}
+							elsif (-e "$alignment_file.cram") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.cram', 'cram', '.crai')}
 						}
+						if ($alignment_ext eq 'cram') {$alignment_suffix = '.'.$alignment_ext;$alignment_index_ext = '.crai'}
 						$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Aligned bases: $res_manifest->{'aligned_bases'}").
 								$q->li({'class' => 'w3-padding-small'}, "Ontarget bases: $res_manifest->{'ontarget_bases'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_bases'}/$res_manifest->{'aligned_bases'})*100))."%)").
 								$q->li({'class' => 'w3-padding-small'}, "Aligned reads: $res_manifest->{'aligned_reads'}");
@@ -574,13 +577,13 @@ if ($result) {
 									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$partial_path.'.vcf&genome=hg19'}, 'Open VCF in IGV (on configurated computers only)').
 								$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$bam_ftp.'.bam&genome=hg19'}, 'Open BAM in IGV (on configurated computers only)').
+									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'&genome=hg19'}, 'Open '.uc($alignment_ext).' in IGV (on configurated computers only)').
 								$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp.bam", 'target' => '_blank'}, 'Download BAM file')
+									$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp.$alignment_ext", 'target' => '_blank'}, 'Download '.uc($alignment_ext).' file')
 								.$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$bam_ftp$bai_suffix.bai", 'target' => '_blank'}, 'Download indexed BAM file').
+									$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp$alignment_suffix$alignment_index_ext", 'target' => '_blank'}, 'Download indexed '.uc($alignment_ext).' file').
 								$q->end_li();
 								#$q->start_li().$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$SSH_RACKSTATION_FTP_BASE_DIR$res_manifest->{'run_id'}$bam_file", 'target' => '_blank'}, 'Download BAM file');
 								#$q->start_li().$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$SSH_RACKSTATION_FTP_BASE_DIR$res_manifest->{'run_id'}$bam_file.bai", 'target' => '_blank'}, 'Download indexed BAM file');
