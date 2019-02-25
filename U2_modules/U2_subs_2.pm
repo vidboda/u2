@@ -105,23 +105,25 @@ sub print_validation_table {
 			#get filter
 			$display = &gene_to_display($result, $dbh);
 		}
-		my $bam_path;
+		
 		if ($display == 1) {
+			my ($alignement_file_path, $file_type);
 			($id, $number) = ($result->{'id_pat'}, $result->{'num_pat'});
 			#illumina
-			my $addin = '';
+			my ($addin, $index_ext) = ('', 'bai');
 			if ($result->{'manifest_name'} ne 'no_manifest' && $class ne 'global') {
 				#get bam path
-				$bam_path = &get_bam_path($result->{'identifiant'}, $result->{'numero'}, $result->{'type_analyse'}, $dbh);
+				($alignement_file_path, $file_type) = &get_alignement_path($result->{'identifiant'}, $result->{'numero'}, $result->{'type_analyse'}, $dbh);
 				if ($result->{'type_analyse'} =~ /Mi/o) {$addin = '.bam'}
 				#print $bam_path;
 			}
+			if ($file_type eq 'cram') {$index_ext = 'crai';$addin = ".$file_type"}
 			print $q->start_Tr(), "\n",
 				$q->td($result->{'identifiant'}.$result->{'numero'}), "\n";
 			if ($gene eq '') {print $q->start_td(), $q->em($result->{'nom_gene'}), $q->end_td(), "\n"}
 			if ($result->{'manifest_name'} eq 'no_manifest') {print $q->td($result->{'type_analyse'}), "\n"}
 			elsif ($class ne 'global') {
-				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$bam_path.bam', indexURL:'$bam_path$addin.bai', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
+				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$alignement_file_path.$file_type', indexURL:'$alignement_file_path$addin.$index_ext', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 			}
 			else {print $q->td($result->{'type_analyse'}), "\n"}
 			
@@ -169,7 +171,7 @@ sub gene_to_display {
 	return 0;
 }
 
-sub get_bam_path {	
+sub get_alignement_path {	
 	my ($id, $number, $analysis, $dbh) = @_;
 	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 	my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
@@ -196,27 +198,30 @@ sub get_bam_path {
 	#}
 	##print $alignment_dir;
 	
-	my $bam_file;
+	my ($file, $file_type);
 	if ($instrument ne 'nextseq') {
-		my $bam_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir`;
+		my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir`;
 		#print "ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir -- $bam_list";
 		#print $res_manifest->{'run_id'};
 		#create a hash which looks like {"illumina_run_id" => 0}
-		my %files = map {$_ => '0'} split(/\s/, $bam_list);		
+		my %files = map {$_ => '0'} split(/\s/, $file_list);		
 		foreach my $file_name (keys(%files)) {
 			#print $file_name;
-			if ($file_name =~ /$id$number(_S\d+)\.bam/) {
-				my $bam_file_suffix = $1;
-				$bam_file = "$alignment_dir/$id$number$bam_file_suffix";
+			if ($file_name =~ /$id$number(_S\d+)\.(c?[br]am)$/) {
+				my $file_suffix = $1;
+				$file = "$alignment_dir/$id$number$file_suffix";
+				$file_type = $2;
 				#$bam_ftp = "$ftp_dir/$id$number$bam_file_suffix";
 			}								
 		}
 	}
 	else {
 		my ($ana, $ana_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}");
-		$bam_file = "$id$number/$ana_id/$id$number";
+		$file = "$id$number/$ana_id/$id$number";
+		if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$id$number/$ana_id/$id$number.bam") {$file_type = 'bam'}
+		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
 	}
-	return "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$bam_file";
+	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$file", $file_type);
 }
 
 sub get_interval {
