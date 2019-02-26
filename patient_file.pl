@@ -478,7 +478,7 @@ if ($result) {
 						elsif($instrument eq 'miniseq'){
 							#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
 							if ($access_method eq 'autofs') {$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml`}
-							else {$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml")}
+							else {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml")}
 							$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 							$alignment_dir = $1;
 							$alignment_dir =~ s/\\/\//og;
@@ -490,7 +490,7 @@ if ($result) {
 							#($ce_run_id, $ce_id, $ce_num) = ($res_manifest->{'run_id'}, $id_tmp, $num_tmp);
 							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}";
 							if ($access_method eq 'autofs') {$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}"}
-							else {$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}"}
+							else {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}"}
 						}
 						
 						#OLD fashioned 03/08/2016
