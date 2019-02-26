@@ -207,7 +207,7 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 		my ($window3_wt, $window3_mt, $html3_wt, $html3_mt) = &build_window($wt, $mt, $dna_type, $size, '22');
 		my ($score3_wt, $txt3_wt) = &get_maxent_score('3', $window3_wt, $DATABASES_PATH);	
 		my ($score3_mt, $txt3_mt) = &get_maxent_score('3', $window3_mt, $DATABASES_PATH);
-		print $q->br(), $q->br(), $q->p({'class' => 'title'}, '3\'ss (acceptor) MaxEntScan scores'), "\n",
+		print $q->p({'class' => 'title'}, '3\'ss (acceptor) MaxEntScan scores'), "\n",
 			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
 			$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, 'WT sequence'), "\n",
@@ -243,7 +243,7 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 		#if ($segment_type eq 'exon') {&get_natural($start_g, '3', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}
 		#elsif ($segment_type eq 'intron') {&get_natural($end_g, '3', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}
 		
-		print $q->br(), $q->br(), $q->br();
+		#print $q->br(), $q->br(), $q->br();
 		
 		my ($window5_wt, $window5_mt, $html5_wt, $html5_mt) = &build_window($wt, $mt, $dna_type, $size, '8');
 		my ($score5_wt, $txt5_wt) = &get_maxent_score('5', $window5_wt, $DATABASES_PATH);
@@ -301,8 +301,7 @@ if ($q->param('add') && $q->param('add') eq 'spliceai') {
 		#print $_;
 		if (/\t$wt\t$mt\t/) {
 			my @res = split(/\t/, $_);
-			print $q->br(), $q->br(),
-			$q->p({'class' => 'title'}, 'spliceAI Results*'), "\n",
+			print $q->p({'class' => 'title'}, 'spliceAI Results*'), "\n",
 			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
 			$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, 'Variant'), "\n",
@@ -325,9 +324,9 @@ if ($q->param('add') && $q->param('add') eq 'spliceai') {
 		}
 	}
 	print $q->end_table(),$q->end_div(), "\n";	
-	my $text .=$q->span('*').
+	my $text .= $q->span('*').
 		$q->a({'href' => 'https://www.cell.com/cell/fulltext/S0092-8674(18)31629-5', 'target' => '_blank'}, 'spliceAI').
-		$q->span(' is a dataset which provide access, for all SNVs located into an exon or near splice junctions to precomputed splice sites alterations likelyhood scores.').$q->br().
+		$q->span(' is a dataset which provides access, for all SNVs located into an exon or near splice junctions to precomputed splice sites alterations likelyhood scores.').$q->br().
 		$q->span({'class' => 'gras'}, 'The closer to 1, the likely to disrupt splicing. ').$q->br().
 		$q->span('The second number represents the distance to the variant of the affected splice site (positive values upstream to the variant, negative downstream). A quick explanation ').
 		$q->a({'href' => 'https://github.com/Illumina/SpliceAI', 'target' => '_blank'}, 'here').
@@ -345,8 +344,7 @@ if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
 		#print $_;
 		if (/\t$wt\t$mt\t/) {
 			my @res = split(/\t/, $_);
-			print $q->br(), $q->br(),
-			$q->p({'class' => 'title'}, 'Spidex Results**'), "\n",
+			print $q->p({'class' => 'title'}, 'Spidex Results**'), "\n",
 			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
 			$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, 'Variant'), "\n",
@@ -378,8 +376,7 @@ if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
 	foreach (@dbscsnv) {
 		if (/\t$wt\t$mt\t/) {
 			my @res = split(/\t/, $_);
-			print $q->br(), $q->br(),
-			$q->p({'class' => 'title'}, 'dbscSNV Results***'), "\n",
+			print $q->p({'class' => 'title'}, 'dbscSNV Results***'), "\n",
 			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
 			$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, 'Variant'), "\n",
