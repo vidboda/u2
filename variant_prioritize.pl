@@ -373,23 +373,28 @@ elsif ($analysis eq 'Splicing') {
 			$q->strong('unknown').
 			$q->span(" variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5.");
 		print U2_modules::U2_subs_2::info_panel($text, $q);
-		$text = $q->span('They are ranked according to their ability to disturb proper splicing according to ').
-			$q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR').
+		#$text = $q->span('They are ranked according to their ability to disturb proper splicing according to ').
+		#	$q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR').
+		#	$q->span('.').
+		#	$q->strong(' WARNING: does not work for variants located > 300 bp from exons AND ONLY CONSIDERS substitutions.')."\n";
+		#print U2_modules::U2_subs_2::info_panel($text, $q);
+				$text = $q->span('They are ranked according to their ability to disturb proper splicing according to ').
+			$q->a({'href' => 'https://www.cell.com/cell/fulltext/S0092-8674(18)31629-5', 'target' => '_blank'}, 'spliceAI').
 			$q->span('.').
-			$q->strong(' WARNING: does not work for variants located > 300 bp from exons AND ONLY CONSIDERS substitutions.')."\n";
+			$q->strong(' WARNING: ONLY CONSIDERS substitutions in exons and introns boundaries.')."\n";
 		print U2_modules::U2_subs_2::info_panel($text, $q);
 		
 		#print $q->start_p(), $q->span('You will find below a table ranking all '), $q->strong('unknown'), $q->span(" variants reported for $first_name $last_name, except variants occuring in filtered genes AND variants occuring in DSPP exon 5."), $q->end_p(), $q->br(), $q->br(), $q->start_p(), $q->span('They are ranked according to their ability to disturb proper splicing according to '), $q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR'), $q->span('.'), $q->strong(' WARNING: does not work for variants located > 300 bp from exons AND ONLY CONSIDERS substitutions.'), "\n", $q->br(), $q->br(), "\n"; 
 			
-		print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'priorisation_splicing_table'}), $q->caption("Splicing table:"), $q->start_thead(),
-			$q->start_Tr(), "\n",
-				$q->th({'class' => 'left_general'}, 'gene'), "\n",
-				$q->th({'class' => 'left_general'}, 'DNA'), "\n",
-				$q->th({'class' => 'left_general'}, 'IVS - Protein'), "\n",
-				$q->th({'class' => 'left_general'}, 'Status'), "\n",
-				$q->th({'class' => 'left_general'}, 'dPSI (%)'), "\n",
-				$q->th({'class' => 'left_general'}, 'dPSI z-score'), "\n",
-				$q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";	
+		#print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'priorisation_splicing_table2'}), $q->caption("Splicing table:"), $q->start_thead(),
+		#	$q->start_Tr(), "\n",
+		#		$q->th({'class' => 'left_general'}, 'gene'), "\n",
+		#		$q->th({'class' => 'left_general'}, 'DNA'), "\n",
+		#		$q->th({'class' => 'left_general'}, 'IVS - Protein'), "\n",
+		#		$q->th({'class' => 'left_general'}, 'Status'), "\n",
+		#		$q->th({'class' => 'left_general'}, 'dPSI (%)'), "\n",
+		#		$q->th({'class' => 'left_general'}, 'dPSI z-score'), "\n",
+		#		$q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";	
 		#print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br();
 		#my $tempfile = File::Temp->new();
 		my ($pos_list, $hash);#we need a position list for tabix such as chr1:1112554-1122554 and a hash to store variants
@@ -411,40 +416,102 @@ elsif ($analysis eq 'Splicing') {
 		}
 
 		
-		my @spidex = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz $pos_list`);
-		my $sortable;
-		foreach (@spidex) {
+		#my @spidex = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz $pos_list`);
+		#my $sortable;
+		#foreach (@spidex) {
+		#	my @res = split(/\t/, $_);
+		#	if (exists($hash->{"$res[0]:g.$res[1]$res[2]>$res[3]"})) {
+		#		$sortable->{"$res[4]"} = $hash->{"$res[0]:g.$res[1]$res[2]>$res[3]"};
+		#		push @{$sortable->{"$res[4]"}}, $res[5];
+		#	}				
+		#}
+		#
+		#
+		#foreach my $dpsi (sort {$a <=> $b} keys %{$sortable}) {
+		#	my $class = 'one_quarter';
+		#	if ($dpsi < -20) {$class = 'four_quarter'}
+		#	elsif ($dpsi < -10) {$class = 'three_quarter'}
+		#	elsif ($dpsi < -5) {$class = 'two_quarter'}			
+		#	
+		#	
+		#	print $q->start_Tr(), "\n",
+		#		$q->start_td({'class' => $class}), $q->em({'onclick' => "gene_choice('$sortable->{$dpsi}[0]');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $sortable->{$dpsi}[0]), $q->end_td(), "\n",
+		#		$q->td({'onclick' => "window.open('patient_genotype.pl?sample=$id$number&amp;gene=$sortable->{$dpsi}[0]')", 'class' => "ital $class", 'title' => 'Go to the genotype page'}, $sortable->{$dpsi}[3]), "\n",
+		#		$q->td({'onclick' => "window.open('variant.pl?gene=".$sortable->{$dpsi}[0]."&accession=".$sortable->{$dpsi}[1]."&nom_c='+encodeURIComponent('".$sortable->{$dpsi}[3]."')+'')", 'class' => "ital $class", 'title' => 'Go to the variant page'}, "$sortable->{$dpsi}[4] - $sortable->{$dpsi}[5]"), "\n",
+		#		$q->td($sortable->{$dpsi}[2]), "\n",
+		#		$q->td(sprintf('%.2f', $dpsi)), "\n",
+		#		$q->td(sprintf('%.2f', $sortable->{$dpsi}[6])), "\n",
+		#	$q->end_Tr(), "\n";
+		#}
+		#
+		#print $q->end_tbody(), $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br();
+		#$text = $q->start_ul().
+		#	$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).').
+		#	$q->start_li().$q->span('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP.').$q->br().$q->span('0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.').
+		#$q->end_ul()."\n";
+		#print U2_modules::U2_subs_2::info_panel($text, $q);
+		
+		
+		#spliceAI results
+		$pos_list =~ s/chr//og;
+		
+		print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'priorisation_splicing_table'}), $q->caption("spliceAI table:"), $q->start_thead(),
+			$q->start_Tr(), "\n",
+				$q->th({'class' => 'left_general'}, 'gene'), "\n",
+				$q->th({'class' => 'left_general'}, 'DNA'), "\n",
+				$q->th({'class' => 'left_general'}, 'IVS - Protein'), "\n",
+				$q->th({'class' => 'left_general'}, 'Status'), "\n",
+				$q->th({'class' => 'left_general'}, 'Donor gain'), "\n",
+				$q->th({'class' => 'left_general'}, 'Donor loss'), "\n",
+				$q->th({'class' => 'left_general'}, 'Acc gain'), "\n",
+				$q->th({'class' => 'left_general'}, 'Acc loss'), "\n",
+				$q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";	
+		
+		
+		
+		my @spiceai = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spliceAI/exome_spliceai_scores.vcf.gz $pos_list`);
+		my $sortable_sai;
+		foreach (@spiceai) {
 			my @res = split(/\t/, $_);
-			if (exists($hash->{"$res[0]:g.$res[1]$res[2]>$res[3]"})) {
-				$sortable->{"$res[4]"} = $hash->{"$res[0]:g.$res[1]$res[2]>$res[3]"};
-				push @{$sortable->{"$res[4]"}}, $res[5];
-			}				
+			#print "chr$res[0]:g.$res[1]$res[3]>$res[4]", $q->br(), $_, $q->br(), $hash->{"chr$res[0]:g.$res[1]$res[3]>$res[4]"}, $q->br();
+			if (exists($hash->{"chr$res[0]:g.$res[1]$res[3]>$res[4]"})) {
+				my @spiceai_res = split(/;/, $res[7]);
+				my @ds_ag = split(/=/, $spiceai_res[4]);
+				my @ds_al = split(/=/, $spiceai_res[5]);
+				my @ds_dg = split(/=/, $spiceai_res[6]);
+				my @ds_dl = split(/=/, $spiceai_res[7]);
+				#my ($ds, $al, $dg, $dl) = ($ds_ag[1],$ds_al[1],$ds_dg[1],$ds_dl[1]);
+				my $top_score = max($ds_ag[1],$ds_al[1],$ds_dg[1],$ds_dl[1]);
+				#print $top_score."---$res[7]";
+				#print "$ds_ag[1]-$ds_al[1]-$ds_dg[1]-$ds_dl[1]";
+				#undef $hash->{"chr$res[0]:g.$res[1]$res[3]>$res[4]"}[6];#removes previous spidex score - remove when removing spidex
+				$sortable_sai->{"$top_score-chr$res[0]_$res[1]_$res[3]_$res[4]"} = $hash->{"chr$res[0]:g.$res[1]$res[3]>$res[4]"};
+				push @{$sortable_sai->{"$top_score-chr$res[0]_$res[1]_$res[3]_$res[4]"}}, $ds_ag[1];
+				push @{$sortable_sai->{"$top_score-chr$res[0]_$res[1]_$res[3]_$res[4]"}}, $ds_al[1];
+				push @{$sortable_sai->{"$top_score-chr$res[0]_$res[1]_$res[3]_$res[4]"}}, $ds_dg[1];
+				push @{$sortable_sai->{"$top_score-chr$res[0]_$res[1]_$res[3]_$res[4]"}}, $ds_dl[1];
+			}
 		}
-		
-		
-		foreach my $dpsi (sort {$a <=> $b} keys %{$sortable}) {
+		foreach my $spiceai_top (sort {$b <=> $a} keys %{$sortable_sai}) {
 			my $class = 'one_quarter';
-			if ($dpsi < -20) {$class = 'four_quarter'}
-			elsif ($dpsi < -10) {$class = 'three_quarter'}
-			elsif ($dpsi < -5) {$class = 'two_quarter'}			
-			
-			
+			$spiceai_top =~ /^([01]\.\d{4})-chr/o;
+			my $spiceai_top_value = $1;
+			if ($spiceai_top_value > 0.8) {$class = 'four_quarter'}
+			elsif ($spiceai_top_value > 0.5) {$class = 'three_quarter'}
+			elsif ($spiceai_top_value > 0.2) {$class = 'two_quarter'}
 			print $q->start_Tr(), "\n",
-				$q->start_td({'class' => $class}), $q->em({'onclick' => "gene_choice('$sortable->{$dpsi}[0]');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $sortable->{$dpsi}[0]), $q->end_td(), "\n",
-				$q->td({'onclick' => "window.open('patient_genotype.pl?sample=$id$number&amp;gene=$sortable->{$dpsi}[0]')", 'class' => "ital $class", 'title' => 'Go to the genotype page'}, $sortable->{$dpsi}[3]), "\n",
-				$q->td({'onclick' => "window.open('variant.pl?gene=".$sortable->{$dpsi}[0]."&accession=".$sortable->{$dpsi}[1]."&nom_c='+encodeURIComponent('".$sortable->{$dpsi}[3]."')+'')", 'class' => "ital $class", 'title' => 'Go to the variant page'}, "$sortable->{$dpsi}[4] - $sortable->{$dpsi}[5]"), "\n",
-				$q->td($sortable->{$dpsi}[2]), "\n",
-				$q->td(sprintf('%.2f', $dpsi)), "\n",
-				$q->td(sprintf('%.2f', $sortable->{$dpsi}[6])), "\n",
+				$q->start_td({'class' => $class}), $q->em({'onclick' => "gene_choice('$sortable_sai->{$spiceai_top}[0]');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $sortable_sai->{$spiceai_top}[0]), $q->end_td(), "\n",
+				$q->td({'onclick' => "window.open('patient_genotype.pl?sample=$id$number&amp;gene=$sortable_sai->{$spiceai_top}[0]')", 'class' => "ital $class", 'title' => 'Go to the genotype page'}, $sortable_sai->{$spiceai_top}[3]), "\n",
+				$q->td({'onclick' => "window.open('variant.pl?gene=".$sortable_sai->{$spiceai_top}[0]."&accession=".$sortable_sai->{$spiceai_top}[1]."&nom_c='+encodeURIComponent('".$sortable_sai->{$spiceai_top}[3]."')+'')", 'class' => "ital $class", 'title' => 'Go to the variant page'}, "$sortable_sai->{$spiceai_top}[4] - $sortable_sai->{$spiceai_top}[5]"), "\n",
+				$q->td($sortable_sai->{$spiceai_top}[2]), "\n",
+				$q->td($sortable_sai->{$spiceai_top}[6]), "\n",
+				$q->td($sortable_sai->{$spiceai_top}[7]), "\n",
+				$q->td($sortable_sai->{$spiceai_top}[8]), "\n",
+				$q->td($sortable_sai->{$spiceai_top}[9]), "\n",
 			$q->end_Tr(), "\n";
 		}
-		
+		#print $pos_list;
 		print $q->end_tbody(), $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br();
-		$text = $q->start_ul().
-			$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).').
-			$q->start_li().$q->span('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP.').$q->br().$q->span('0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.').
-		$q->end_ul()."\n";
-		print U2_modules::U2_subs_2::info_panel($text, $q);
 		
 	}
 	else {print $q->p('No candidate variant to test.')}
