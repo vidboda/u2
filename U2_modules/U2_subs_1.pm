@@ -87,6 +87,9 @@ our $PPH2_THRESHOLD = 0.447;
 our $FATHMM_THRESHOLD = -1.5;
 our $METALR_THRESHOLD = 0.5;
 our $MCAP_THRESHOLD = 0.025;
+our $SPLICEAI_THRESHOLD_MIN = 0.2;
+our $SPLICEAI_THRESHOLD_MED = 0.4;
+our $SPLICEAI_THRESHOLD_MAX = 0.8;
 
 #regexp to capture chromosomes
 our $CHR_REGEXP = '[\dXYM]{1,2}';
@@ -894,6 +897,15 @@ sub mcap_color {
 	else {return '#00A020'}	
 }
 
+sub spliceAI_color {
+	my $score = shift;
+	if ($score > $SPLICEAI_THRESHOLD_MAX) {return '#FF0000'}
+	elsif ($score > $SPLICEAI_THRESHOLD_MED) {return '#FF6020'}
+	elsif ($score > $SPLICEAI_THRESHOLD_MIN) {return '#FFA020'}
+	else {return '#00A020'}	
+}
+
+
 #in variant.pl, engine.pl, gene.pl, ajax.pl
 #sub get_interpreted_position2 {
 #	my ($result, $dbh, , $q) = @_;
@@ -1201,8 +1213,7 @@ sub run_mutalyzer {
 sub test_vv {
 	my $ua = LWP::UserAgent->new();
 	$ua->ssl_opts(verify_hostname => 0);
-	#https://www101.lamp.le.ac.uk/
-	my $request = $ua->get('https://www101.lamp.le.ac.uk/');
+	my $request = $ua->get('https://rest.variantvalidator.org');
 	my $content = $request->content();
 	#print "$content<br/>";
 	if ($content !~ /Accepted/o) {return 0}

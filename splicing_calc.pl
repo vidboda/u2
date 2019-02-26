@@ -293,6 +293,47 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 }
 my @hyphen = split(/-/, U2_modules::U2_subs_1::getExacFromGenoVar($var));
 my ($chr, $pos, $wt, $mt) = ($hyphen[0], $hyphen[1], $hyphen[2], $hyphen[3]);
+if ($q->param('add') && $q->param('add') eq 'spliceai') {
+	
+	my @spliceai = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spliceAI/exome_spliceai_scores.vcf.gz $chr:$pos-$pos`);
+	my $spliceai_content = U2_modules::U2_subs_2::info_panel('no spliceAI score', $q);
+	foreach (@spliceai) {
+		#print $_;
+		if (/\t$wt\t$mt\t/) {
+			my @res = split(/\t/, $_);
+			print $q->br(), $q->br(),
+			$q->p({'class' => 'title'}, 'spliceAI Results*'), "\n",
+			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
+			$q->start_Tr(), "\n",
+				$q->th({'class' => 'left_general'}, 'Variant'), "\n",
+				$q->th({'class' => 'left_general'}, 'Closest natural site'), "\n",
+				$q->th({'class' => 'left_general'}, 'Acceptor gain'), "\n",
+				$q->th({'class' => 'left_general'}, 'Acceptor loss'), "\n",
+				$q->th({'class' => 'left_general'}, 'Donor gain'), "\n",
+				$q->th({'class' => 'left_general'}, 'Donor loss'), "\n",
+			$q->end_Tr(), "\n",
+			$q->start_Tr(), "\n";
+			my @spliceai_res = split(/;/, $res[7]);
+			my @dist_values = split(/=/, $spliceai_res[3]);
+			print $q->td($var), "\n", $q->td("$dist_values[1] bp"), "\n";
+			foreach my $i (4..7) {
+				my @fields = split(/=/, $spliceai_res[$i]);
+				my @distances = split(/=/, $spliceai_res[$i+4]);
+				print $q->start_td(), $q->span({'style' => 'color:'.U2_modules::U2_subs_1::spliceAI_color($fields[1])}, $fields[1]).$q->span(" ($distances[1]bp)"), $q->end_td(), "\n";
+			}
+			print $q->end_Tr(), "\n";			
+		}
+	}
+	print $q->end_table(),$q->end_div(), "\n";	
+	my $text .=$q->span('*').
+		$q->a({'href' => 'https://www.cell.com/cell/fulltext/S0092-8674(18)31629-5', 'target' => '_blank'}, 'spliceAI').
+		$q->span(' is a dataset which provide access, for all SNVs located into an exon or near splice junctions to precomputed splice sites alterations likelyhood scores.').$q->br().
+		$q->span({'class' => 'gras'}, 'The closer to 1, the likely to disrupt splicing. ').$q->br().
+		$q->span('The second number represents the distance to the variant of the affected splice site (positive values upstream to the variant, negative downstream). A quick explanation ').
+		$q->a({'href' => 'https://github.com/Illumina/SpliceAI', 'target' => '_blank'}, 'here').
+		$q->span('. Thresholds: 0.2 (possibly alter splicing, orange), 0.5 (likely, strong orange), 0.8 (very likely, red).').$q->end_p()."\n";
+	print U2_modules::U2_subs_2::info_panel($text, $q);
+}
 if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
 	#my $var = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 	#my @hyphen = split(/-/, U2_modules::U2_subs_1::getExacFromGenoVar($var));
@@ -305,7 +346,7 @@ if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
 		if (/\t$wt\t$mt\t/) {
 			my @res = split(/\t/, $_);
 			print $q->br(), $q->br(),
-			$q->p({'class' => 'title'}, 'Spidex Results*'), "\n",
+			$q->p({'class' => 'title'}, 'Spidex Results**'), "\n",
 			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
 			$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, 'Variant'), "\n",
@@ -319,7 +360,7 @@ if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
 			$q->end_Tr(), "\n",
 			$q->end_table(),$q->end_div(), $q->br(), $q->br(), "\n";
 			
-			my $text = $q->span('*').
+			my $text = $q->span('**').
 				$q->a({'href' => 'http://www.deepgenomics.com/spidex', 'target' => '_blank'}, 'Spidex').$q->span(' is a dataset which provide access, for all variants in and around 300bp of exons, to ').$q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR').$q->span(' predictions').$q->br().$q->span('percent inclusion ratio (PSI) of the affected exon given the wildtype and the mutant sequence).')."\n".
 				$q->start_ul().
 					$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).').
@@ -338,7 +379,7 @@ if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
 		if (/\t$wt\t$mt\t/) {
 			my @res = split(/\t/, $_);
 			print $q->br(), $q->br(),
-			$q->p({'class' => 'title'}, 'dbscSNV Results*'), "\n",
+			$q->p({'class' => 'title'}, 'dbscSNV Results***'), "\n",
 			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
 			$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, 'Variant'), "\n",
@@ -353,7 +394,7 @@ if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
 	}
 	print $q->td($rf_content), $q->td($ada_content), $q->end_Tr(), "\n",
 			$q->end_table(),$q->end_div(), "\n";	
-	my $text .=$q->span('**').
+	my $text .=$q->span('***').
 		$q->a({'href' => 'http://nar.oxfordjournals.org/content/42/22/13534.full', 'target' => '_blank'}, 'dbscSNV').
 		$q->span(' is a dataset which provide access, for all variants located into identified intron/exon junctions ').$q->br().
 		$q->span({'class' => 'gras'}, '(-3 to +8 at the 5\' splice site and -12 to +2 at the 3\' splice site)').

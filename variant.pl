@@ -432,7 +432,7 @@ if ($res->{'taille'} < 10 && $res->{'type_adn'} ne 'indel') {
 		#	else {print $q->button({'value' => 'MaxEntScan', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&nom_g=$res->{'nom_g'}')"}), "\n"}
 		#}
 		#else {print $q->button({'value' => 'Splicing predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&retrieve=spidex&nom_g=$res->{'nom_g'}')"}), "\n"}
-		print $q->button({'value' => 'Predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&retrieve=spidex&find=dbscSNV&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"
+		print $q->button({'value' => 'Predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&retrieve=spidex&find=dbscSNV&add=spliceai&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"
 	}
 	else {print $q->button({'value' => 'MaxEntScan', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"}
 }
