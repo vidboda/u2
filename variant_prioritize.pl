@@ -378,7 +378,7 @@ elsif ($analysis eq 'Splicing') {
 		#	$q->span('.').
 		#	$q->strong(' WARNING: does not work for variants located > 300 bp from exons AND ONLY CONSIDERS substitutions.')."\n";
 		#print U2_modules::U2_subs_2::info_panel($text, $q);
-				$text = $q->span('They are ranked according to their ability to disturb proper splicing according to ').
+		$text = $q->span('They are ranked according to their ability to disturb proper splicing according to ').
 			$q->a({'href' => 'https://www.cell.com/cell/fulltext/S0092-8674(18)31629-5', 'target' => '_blank'}, 'spliceAI').
 			$q->span('.').
 			$q->strong(' WARNING: ONLY CONSIDERS substitutions in exons and introns boundaries.')."\n";
@@ -454,7 +454,7 @@ elsif ($analysis eq 'Splicing') {
 		
 		#spliceAI results
 		$pos_list =~ s/chr//og;
-		
+		#print $pos_list;
 		print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 'technical great_table', 'id' => 'priorisation_splicing_table'}), $q->caption("spliceAI table:"), $q->start_thead(),
 			$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, 'gene'), "\n",
