@@ -1152,7 +1152,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 			my $defgen_acmg = &u22defgen_acmg($acmg_class);
 			my ($defgen_a1, $defgen_a2) = U2_modules::U2_subs_3::get_defgen_allele($result->{'allele'});
 			#$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{'allele'};;;$result->{type_segment} $result->{num_segment};;$result->{enst};$result->{nom_gene}[1];$result->{snp_id};hg19;$result->{type_prot};;$result->{nom_prot}\n";
-			$content .= "$result->{nom_gene}[0];$result->{nom_gene}[1].$result->{acc_version}:$result->{nom_c};;".&u22defgen_status($result->{'statut'}).";;$result->{hgvs_prot};$result->{nom_c};$result->{enst};$result->{nom_gene}[1];$pos;$defgen_acmg;;;$result->{snp_id};;$result->{type_prot};$result->{classe};$chr;hg19;$result->{nom_g};$result->{type_segment} $result->{num_segment};;;$defgen_a1;$defgen_a2\r\n";
+			$content .= "$result->{nom_gene}[0];$result->{nom_gene}[1].$result->{acc_version}:$result->{nom_c};;".&u22defgen_status($result->{'statut'}).";;$result->{hgvs_prot};$result->{nom_c};$result->{enst};$result->{nom_gene}[1].$result->{acc_version};$pos;$defgen_acmg;;;$result->{snp_id};;$result->{type_prot};$result->{classe};$chr;hg19;$result->{nom_g};$result->{type_segment} $result->{num_segment};;;$defgen_a1;$defgen_a2\r\n";
 			#$content .= "$result->{nom_gene}[0];$result->{nom_c};hg19;$result->{nom_g};$result->{nom_prot};$result->{nom_c};chr$chr;;$result->{type_segment} $result->{num_segment};$pos;$result->{nom_gene}[1].$result->{acc_version};$result->{hgvs_prot};;;;$result->{type_prot};$result->{snp_id};;$result->{enst};;;$result->{classe};;;$result->{'statut'};;$result->{'allele'};\n";
 		}
 	}
@@ -1173,7 +1173,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
 		my $acmg_class = $res->{'acmg_class'};
 		if ($acmg_class eq '') {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh)}
 		my $defgen_acmg = &u22defgen_acmg($acmg_class);
-		$content .= "$res->{nom}[0];$res->{nom}[1].$res->{acc_version}:$res->{var};;;;$res->{hgvs_prot};$res->{var};$res->{enst};$res->{nom_gene}[1];$pos;$defgen_acmg;;;$res->{snp_id};;$res->{type_prot};;$chr;hg19;$res->{nom_g};$res->{type_segment} $res->{num_segment};;;;\r\n";
+		$content .= "$res->{nom}[0];$res->{nom}[1].$res->{acc_version}:$res->{var};;;;$res->{hgvs_prot};$res->{var};$res->{enst};$res->{nom}[1].$res->{acc_version};$pos;$defgen_acmg;;;$res->{snp_id};;$res->{type_prot};;$chr;hg19;$res->{nom_g};$res->{type_segment} $res->{num_segment};;;;\r\n";
 		$nom_g =~ s/>/_/og;
 		$nom_g =~ s/:/_/og;
 		open F, '>'.$ABSOLUTE_HTDOCS_PATH.'data/defgen/'.$nom_g.'_defgen.csv' or die $!;
