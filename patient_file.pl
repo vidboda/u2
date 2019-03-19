@@ -515,8 +515,9 @@ if ($result) {
 							#create a hash which looks like {"illumina_run_id" => 0}
 							my %files = map {$_ => '0'} split(/\s/, $alignment_list);
 							foreach my $file_name (keys(%files)) {
-								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.(c?[br]am)/) {
+								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)/) {
 									($alignment_file_suffix, $alignment_ext) = ($1, $2);
+									$alignment_ext =~ s/^\.//o;
 									#$bam_file = "/Data/Intensities/BaseCalls/$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
 									$alignment_file = "$alignment_dir/$id_tmp$num_tmp$alignment_file_suffix";
 									$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp$alignment_file_suffix";
@@ -528,9 +529,11 @@ if ($result) {
 							$alignment_file = "$alignment_dir/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp";
 							$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp";
 							if (-e "$alignment_file.bam") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.bam', 'bam', '.bai')}
+							elsif (-e "$alignment_file.crumble.cram") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.crumble.cram', 'crumble.cram', '.crai')}
 							elsif (-e "$alignment_file.cram") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.cram', 'cram', '.crai')}
 						}
 						if ($alignment_ext eq 'cram') {$alignment_suffix = '.'.$alignment_ext;$alignment_index_ext = '.crai'}
+						elsif ($alignment_ext eq 'crumble.cram') {$alignment_suffix = '.'.$alignment_ext;$alignment_index_ext = '.crai'}
 						$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Aligned bases: $res_manifest->{'aligned_bases'}").
 								$q->li({'class' => 'w3-padding-small'}, "Ontarget bases: $res_manifest->{'ontarget_bases'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_bases'}/$res_manifest->{'aligned_bases'})*100))."%)").
 								$q->li({'class' => 'w3-padding-small'}, "Aligned reads: $res_manifest->{'aligned_reads'}");
