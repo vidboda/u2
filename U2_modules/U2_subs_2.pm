@@ -117,7 +117,8 @@ sub print_validation_table {
 				if ($result->{'type_analyse'} =~ /Mi/o) {$addin = '.bam'}
 				#print $bam_path;
 			}
-			if ($file_type eq 'cram') {$index_ext = 'crai';$addin = ".$file_type"}
+			if ($file_type eq 'crumble.cram') {$index_ext = 'crai';$addin = ".$file_type"}
+			elsif ($file_type eq 'cram') {$index_ext = 'crai';$addin = ".$file_type"}
 			print $q->start_Tr(), "\n",
 				$q->td($result->{'identifiant'}.$result->{'numero'}), "\n";
 			if ($gene eq '') {print $q->start_td(), $q->em($result->{'nom_gene'}), $q->end_td(), "\n"}
@@ -207,10 +208,11 @@ sub get_alignement_path {
 		my %files = map {$_ => '0'} split(/\s/, $file_list);		
 		foreach my $file_name (keys(%files)) {
 			#print $file_name;
-			if ($file_name =~ /$id$number(_S\d+)\.(c?[br]am)$/) {
+			if ($file_name =~ /$id$number(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
 				my $file_suffix = $1;
 				$file = "$alignment_dir/$id$number$file_suffix";
 				$file_type = $2;
+				$file_type =~ s/^\.//o;
 				#$bam_ftp = "$ftp_dir/$id$number$bam_file_suffix";
 			}								
 		}
@@ -219,6 +221,7 @@ sub get_alignement_path {
 		my ($ana, $ana_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}");
 		$file = "$id$number/$ana_id/$id$number";
 		if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$id$number/$ana_id/$id$number.bam") {$file_type = 'bam'}
+		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$id$number/$ana_id/$id$number.crumble.cram") {$file_type = 'crumble.cram'}
 		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
 	}
 	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$file", $file_type);
