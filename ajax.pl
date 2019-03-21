@@ -633,29 +633,29 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 	# gene: '$gene', accession: '$acc', nom_c: '$var->{'nom'}', analysis_all: '$type_analyse', depth: '$var->{'depth'}', current_analysis: '$var->{'type_analyse'}, frequency: '$var->{'frequency'}', wt_f: '$var->{'wt_f'}', wt_r: '$var->{'wt_r'}, mt_f: '$var->{'mt_f'}, mt_r: '$var->{'mt_r'}, last_name: '$var->{'last_name'}', first_name: '$var->{'first_name'}', msr_filter: '$var->{'msr_filter'}', nb: '$nb'
 	my ($gene, $second, $acc, $nom_c, $analyses, $current_analysis, $depth, $frequency, $wt_f, $wt_r, $mt_f, $mt_r, $msr_filter, $last_name, $first_name, $nb) = (U2_modules::U2_subs_1::check_gene($q, $dbh), U2_modules::U2_subs_1::check_acc($q, $dbh), U2_modules::U2_subs_1::check_nom_c($q, $dbh), $q->param('analysis_all'), $q->param('current_analysis'), $q->param('depth'), $q->param('frequency'), $q->param('wt_f'), $q->param('wt_r'), $q->param('mt_f'), $q->param('mt_r'), $q->param('msr_filter'), $q->param('last_name'), $q->param('first_name'), $q->param('nb'));
 	
-	my $info = $q->start_ul().$q->start_li().$q->start_strong().$q->em("$gene:").$q->span($nom_c).$q->end_strong().$q->end_li().$q->br();
+	my $info = $q->start_ul().$q->start_li().$q->start_strong().$q->em("$gene:").$q->span($nom_c).$q->end_strong().$q->end_li();
 	
 	#MAFs
-	my ($MAF, $maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA', 'NA');
-	#if ($var->{'type_analyse'} eq 'NGS-454') { 
-	#MAF 454
-	$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '454-\d+');
-	#MAF SANGER
-	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, 'SANGER');
-	#MAF MiSeq
-	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, $ANALYSIS_ILLUMINA_PG_REGEXP);
-	#my $maf_url = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";
-	#$MAF = "MAF 454: <strong>$maf_454</strong> / MAF Sanger: <strong>$maf_sanger</strong><br/>MAF MiSeq: <strong>$maf_miseq</strong>";
-	$MAF = $q->start_li().$q->span("MAF 454: ").$q->strong($maf_454).$q->end_li().$q->start_li().$q->span("MAF Sanger: ").$q->strong($maf_sanger).$q->end_li().$q->start_li().$q->span("MAF Illumina: ").$q->strong($maf_miseq).$q->end_li();
-	#454-USH2A for only a few patients
-	my $maf_454_ush2a = '';
-	if ($gene eq 'USH2A' && $analyses =~ /454-USH2A/o) {
-		$maf_454_ush2a = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '454-USH2A');
-		#$maf_url = "MAF 454-USH2A: $maf_454_ush2a / $maf_url";
-		#$MAF = "MAF 454-USH2A: <strong>$maf_454_ush2a</strong><br/>$MAF";
-		$MAF .= $q->li("MAF 454-USH2A: $maf_454_ush2a");
-	}
-	$info .= $q->start_li().$q->strong("MAFs:").$q->start_ul().$MAF.$q->end_ul().$q->end_li();
+	#my ($MAF, $maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA', 'NA');
+	##if ($var->{'type_analyse'} eq 'NGS-454') { 
+	##MAF 454
+	#$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '454-\d+');
+	##MAF SANGER
+	#$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, 'SANGER');
+	##MAF MiSeq
+	#$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, $ANALYSIS_ILLUMINA_PG_REGEXP);
+	##my $maf_url = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";
+	##$MAF = "MAF 454: <strong>$maf_454</strong> / MAF Sanger: <strong>$maf_sanger</strong><br/>MAF MiSeq: <strong>$maf_miseq</strong>";
+	#$MAF = $q->start_li().$q->span("MAF 454: ").$q->strong($maf_454).$q->end_li().$q->start_li().$q->span("MAF Sanger: ").$q->strong($maf_sanger).$q->end_li().$q->start_li().$q->span("MAF Illumina: ").$q->strong($maf_miseq).$q->end_li();
+	##454-USH2A for only a few patients
+	#my $maf_454_ush2a = '';
+	#if ($gene eq 'USH2A' && $analyses =~ /454-USH2A/o) {
+	#	$maf_454_ush2a = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '454-USH2A');
+	#	#$maf_url = "MAF 454-USH2A: $maf_454_ush2a / $maf_url";
+	#	#$MAF = "MAF 454-USH2A: <strong>$maf_454_ush2a</strong><br/>$MAF";
+	#	$MAF .= $q->li("MAF 454-USH2A: $maf_454_ush2a");
+	#}
+	#$info .= $q->start_li().$q->strong("MAFs:").$q->start_ul().$MAF.$q->end_ul().$q->end_li();
 	#print $MAF;
 	my $print_ngs = '';
 	if ($depth) {
