@@ -787,27 +787,28 @@ print $q->start_Tr({'id' => 'ext_data'}), $q->td('MAFs & databases & Pubmed:'), 
 
 #infos on cohort: # of seen, MAFS, 454: mean depth, mean freq, mean f/r
 if ($user->isPublic != 1) {
-	my ($maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA');
-	if ($maf eq '') {	
-		#MAF 454
-		$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '454-[[:digit:]]+');
-		#MAF SANGER
-		$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'SANGER');
-		#MAF MISEQ
-		$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, $ANALYSIS_ILLUMINA_PG_REGEXP);
-		$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF Illumina: $maf_miseq";	
-	}
-	else {
-		$maf =~ /MAF\s454:\s([\w\.]+)\s\/.+/o;
-		$maf_454 = $1;
-	}
-	print $q->start_Tr(), $q->td('U2 MAFs:'), $q->td($maf), $q->td('MAFs in Ushvam 2 with different techniques'), $q->end_Tr(), "\n";
+	#my ($maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA');
+	#if ($maf eq '') {	
+	#	#MAF 454
+	#	$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '454-[[:digit:]]+');
+	#	#MAF SANGER
+	#	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'SANGER');
+	#	#MAF MISEQ
+	#	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, $ANALYSIS_ILLUMINA_PG_REGEXP);
+	#	$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF Illumina: $maf_miseq";	
+	#}
+	#else {
+	#	$maf =~ /MAF\s454:\s([\w\.]+)\s\/.+/o;
+	#	$maf_454 = $1;
+	#}
+	#print $q->start_Tr(), $q->td('U2 MAFs:'), $q->td($maf), $q->td('MAFs in Ushvam 2 with different techniques'), $q->end_Tr(), "\n";
 	
 	###TO DO mean freq and doc for MiSeq
 	
-	if ($maf_454 ne 'NA') {	
-		my $query_454 = "SELECT AVG(depth) as a, AVG(frequency) as b, AVG(wt_f) as c, AVG(wt_r) as d, AVG(mt_f) as e, AVG(mt_r) as f, COUNT(nom_c) as g FROM variant2patient WHERE type_analyse LIKE '454-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-		my $res_454 = $dbh->selectrow_hashref($query_454);
+	#if ($maf_454 ne 'NA') {	
+	my $query_454 = "SELECT AVG(depth) as a, AVG(frequency) as b, AVG(wt_f) as c, AVG(wt_r) as d, AVG(mt_f) as e, AVG(mt_r) as f, COUNT(nom_c) as g FROM variant2patient WHERE type_analyse LIKE '454-%' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+	my $res_454 = $dbh->selectrow_hashref($query_454);
+	if ($res_454->{'g'} > 0) {
 		print $q->start_Tr(), $q->td('454 mean values:'), $q->start_td(), $q->span("Seen in $res_454->{'g'} runs"),
 			$q->start_ul(),
 				$q->li("depth: ".sprintf('%.2f', $res_454->{'a'})), "\n",
@@ -817,9 +818,10 @@ if ($user->isPublic != 1) {
 			$q->end_ul(),
 			$q->end_td(), $q->td('Metrics related to all occurences within 454 sequencing'), $q->end_Tr(), "\n";
 	}
-	if ($maf_miseq ne 'NA') {
-		my $query_illu = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
-		my $res_illu = $dbh->selectrow_hashref($query_illu);
+	#if ($maf_miseq ne 'NA') {
+	my $query_illu = "SELECT AVG(depth) as a, AVG(frequency) as b, COUNT(nom_c) as c FROM variant2patient WHERE type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var';";
+	my $res_illu = $dbh->selectrow_hashref($query_illu);
+	if ($res_illu->{'c'} > 0) {
 		print $q->start_Tr(), $q->td('MiSeq mean values:'), $q->start_td(), $q->span("Seen $res_illu->{'c'} times in Illumina sequencing"),
 			$q->start_ul(),
 				$q->li("depth: ".sprintf('%.2f', $res_illu->{'a'})), "\n",
