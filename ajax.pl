@@ -139,7 +139,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, a.snp_id, a.type_adn, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
+	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, a.snp_id, a.type_adn, a.type_segment, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
 	my ($text, $semaph) = ('', 0);#$q->strong('MAFs &amp; databases:').
 	
@@ -239,6 +239,20 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#		$semaph = 1;
 			#	}
 			#}
+		}
+		if ($res->{'type_segment'} =~ /UTR/o) {
+			my $uORF_file = 'stop-removing_all_possible_annotated_sorted.txt.gz';
+			if ($res->{'type_segment'} eq '5UTR') {$uORF_file = 'uAUG-creating_all_possible_annotated_sorted.txt.gz'}
+			my @uorf = split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$uORF_file $chr:$position-$position`);
+			foreach (@uorf) {
+				my @current = split(/\t/, $_);
+				if (($current[2] eq $ref) && ($current[3] eq $alt)) {
+					$text .= $q->start_li().
+							$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
+							$q->span(" AF (allele $alt):  $current[7]").
+						$q->end_li()."\n";
+				}
+			}
 		}
 	}
 	my $gnomad = 0;
