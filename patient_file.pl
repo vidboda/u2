@@ -519,7 +519,7 @@ if ($result) {
 								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
 									($alignment_file_suffix, $alignment_ext) = ($1, $2);
 									$alignment_ext =~ s/^\.//o;
-									print $alignment_ext.$q->br();
+									#print $alignment_ext.$q->br();
 									#$bam_file = "/Data/Intensities/BaseCalls/$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
 									$alignment_file = "$alignment_dir/$id_tmp$num_tmp$alignment_file_suffix";
 									$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp$alignment_file_suffix";
