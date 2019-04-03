@@ -515,9 +515,11 @@ if ($result) {
 							#create a hash which looks like {"illumina_run_id" => 0}
 							my %files = map {$_ => '0'} split(/\s/, $alignment_list);
 							foreach my $file_name (keys(%files)) {
-								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)/) {
+								#print $file_name.$q->br();
+								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
 									($alignment_file_suffix, $alignment_ext) = ($1, $2);
 									$alignment_ext =~ s/^\.//o;
+									print $alignment_ext.$q->br();
 									#$bam_file = "/Data/Intensities/BaseCalls/$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
 									$alignment_file = "$alignment_dir/$id_tmp$num_tmp$alignment_file_suffix";
 									$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp$alignment_file_suffix";
