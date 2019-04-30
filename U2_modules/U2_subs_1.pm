@@ -110,7 +110,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $PATIENT_IDS = $config->PATIENT_IDS();
 my $PATIENT_PHENOTYPE = $config->PATIENT_PHENOTYPE();
 my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
-
+my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 
@@ -1209,16 +1209,32 @@ sub run_mutalyzer {
 	if ($call->fault()) {print "Mutalyzer Fault $var $gene<br/>"}
 	return $call;
 }
-
+#variant_input_vv.pl
 sub test_vv {
 	my $ua = LWP::UserAgent->new();
 	$ua->ssl_opts(verify_hostname => 0);
+	$ua->proxy('https', 'http://194.167.35.151:3128/');
 	my $request = $ua->get('https://rest.variantvalidator.org');
-	my $content = $request->content();
+	#my $content = $request->content();
 	#print "$content<br/>";
-	if ($content !~ /Accepted/o) {return 0}
+	if ($request->content() !~ /variantvalidator/o) {return 0}
 	else {return 1}
 }
+#variant_input_vv.pl
+sub run_vv_cdna {
+	my ($genome, $nm, $var) = @_;
+	#my $ua = LWP::UserAgent->new();
+	#$ua->ssl_opts(verify_hostname => 0);
+	#$ua->proxy('https', 'http://194.167.35.151:3128/');
+	my $url = "https://rest.variantvalidator.org/variantvalidator/$genome/$nm:$var/$nm";
+	if ($nm eq 'all') {$url = "https://rest.variantvalidator.org/variantvalidator/$genome/$var/$nm";}
+	my $vv_result = `/usr/local/bin/python $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"`;
+	#my $request = $ua->get($url);
+	#if ($request->is_success()) {return $request->content()}
+	if ($vv_result ne '0') {return $vv_result}
+	else {return '0'}
+}
+
 
 #U2_subs_3, variant_input.pl
 sub test_myvariant {

@@ -482,6 +482,7 @@ if ($user->isAnalyst() == 1) {
                                                                 $ssh = U2_modules::U2_subs_1::nas_connexion($link, $q);
                                                                 $run_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR && ls") or die "remote command failed: " . $ssh->error()
                                                 }
+                                                #print STDERR $access_method."\n";
                                                 #if automunt fails, use SSH
                                                 #print "$run_list<br/>";
                                                 #$run_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR && ls") or die "remote command failed: " . $ssh->error()
@@ -710,7 +711,7 @@ if ($user->isAnalyst() == 1) {
 							#foreach my $keys (sort keys (%patients)) {print $keys.$patients{$keys}.$q->br();}
 							
 							#build form
-							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, 'import_illumina.pl', '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $access_method);
+							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, 'import_illumina_vv.pl', '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $access_method);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
 							#print $q->p("In addition to $id$number, I have found ".(keys(%patients)-1)." other patients eligible for import in U2 for this run ($run)."), $q->start_p(), $q->span("Please select those you are interested in"), "\n";
 							#if ($filtered == '1') {print $q->span(" and specify your filtering options for each of them")}

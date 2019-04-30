@@ -2,9 +2,10 @@ package U2_modules::U2_subs_3;
 
 use strict;
 use warnings;
+use Data::Dumper;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
-
+use REST::Client;
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -1150,19 +1151,19 @@ sub get_filter_from_idlist {
 #in gene.pl
 sub add_variant_button {
 	my ($q, $gene, $acc, $ng) = @_;
-	my $js = "function create_var() {
+	my $js = "function create_var(url) {
 				//alert(\$(\"#new_variant\").val());
 				var begin = \$('#main_text\').html();
-				if (\$(\"#new_variant\").val() !== 'c.') {
+				if (\$(\"#new_variantblue\").val() !== 'c.') {
 					\$(\'html\').css(\'cursor\', \'progress\');
 					\$(\'.w3-btn\').css(\'cursor\', \'progress\');
-					var nom_c = \$(\"#new_variant\").val();
+					var nom_c = \$(\"#new_variantblue\").val();
 					\$(\"#main_text\").append(\"&nbsp;Please Wait While Creating Variant\");
 					\$(\"#creation_form :input\").prop(\"disabled\", true);					
 					\$.ajax({
 							type: \"POST\",
-							url: \"variant_input.pl\",
-							data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, ng_accno: \$(\"#ng_accno\").val(), single_var: \'y\'}
+							url: url,
+							data: {type: \$(\"#typeblue\").val(), nom: \$(\"#nomblue\").val(), numero: \$(\"#numeroblue\").val(), gene: \$(\"#geneblue\").val(), accession: \$(\"#acc_noblue\").val(), step: 2, new_variant: \$(\"#new_variantblue\").val(), nom_c: nom_c, ng_accno: \$(\"#ng_accnoblue\").val(), single_var: \'y\'}
 					})
 					.done(function(msg) {
 						if (msg !== '') {\$(\'#created_variant\').append(msg)};
@@ -1170,30 +1171,33 @@ sub add_variant_button {
 						\$(\'html\').css(\'cursor\', \'default\');
 						\$(\'#main_modal\').hide();
 						\$(\'#main_text\').html(begin);
+						\$(\"#new_variantblue\").val(\'c.\');
 						\$(\'#creation_form :input\').prop(\'disabled\', false);
+						
 					});
 				}
 			}";
 	
 	my $html = $q->script({'type' => 'text/javascript'}, $js)."\n".
-		$q->button({'id' => 'add_var', 'type' => 'button', 'value' => 'Create a variant', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'onclick' => "document.getElementById('main_modal').style.display='block';"})."\n".
+		$q->button({'id' => 'add_var', 'type' => 'button', 'value' => 'Create a variant', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'onclick' => "document.getElementById('main_modal').style.display='block';\$(\'#creation_form :input\').prop(\'disabled\', false);"})."\n".
 		$q->start_div({'id' => 'main_modal', 'class' => 'w3-modal', 'style' => 'z-index:1000'})."\n".
 			$q->start_div({'class' => 'w3-modal-content w3-card-4 w3-display-middle'})."\n".
 				$q->start_div({'class' => 'w3-container w3-blue'}).$q->span({'onclick' => "document.getElementById('main_modal').style.display='none'", 'class' => 'w3-button w3-display-topright w3-xlarge'}, '&times;').$q->h2({'id' => 'main_text'}, "Create a variant ($acc)").$q->end_div()."\n".
 				$q->start_div({'class' => 'w3-container'})."\n".
 					$q->start_form({'id' => 'creation_form', 'class' => 'u2_form', 'method'=> 'post', 'action' => '', 'enctype' => &CGI::URL_ENCODED})."\n".
-						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'gene', 'id' => 'gene', 'value' => "$gene"})."\n".
-						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'acc_no', 'id' => 'acc_no', 'value' => "$acc"})."\n".
-						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'type', 'id' => 'type', 'value' => 'exon'})."\n".
-						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'numero', 'id' => 'numero', 'value' => '1'})."\n".
-						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'nom', 'id' => 'nom', 'value' => '1'})."\n".
-						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'ng_accno', 'id' => 'ng_accno', 'value' => "$ng"})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'gene', 'id' => 'geneblue', 'value' => "$gene"})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'acc_no', 'id' => 'acc_noblue', 'value' => "$acc"})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'type', 'id' => 'typeblue', 'value' => 'exon'})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'numero', 'id' => 'numeroblue', 'value' => '1'})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'nom', 'id' => 'nomblue', 'value' => '1'})."\n".
+						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'ng_accno', 'id' => 'ng_accnoblue', 'value' => "$ng"})."\n".
 							$q->start_div({'class' => 'w3-panel w3-large'})."\n".
-								$q->label({'for' => 'new_variant'}, 'New variant (HGVS DNA):')."\n".'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.
-								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variant', 'value' => 'c.', 'size' => '20', 'maxlength' => '50'})."\n".
+								$q->label({'for' => 'new_variantblue'}, 'New variant (HGVS DNA):')."\n".'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.
+								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variantblue', 'value' => 'c.', 'size' => '20', 'maxlength' => '50'})."\n".
 							$q->end_div()."\n".
 							$q->start_div({'class' => 'w3-panel w3-large w3-center'})."\n".
-								$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Let\'s do it!!', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var();'})."\n".
+								$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Use Mutalyzer', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var(\'variant_input.pl\');'})."\n".
+								$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Use VariantValidator', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var(\'variant_input_vv.pl\');'})."\n".
 							$q->end_div()."\n".
 					$q->end_form()."\n".
 				$q->end_div()."\n".
@@ -1202,5 +1206,331 @@ sub add_variant_button {
 	return $html;
 	
 }
+#variant_input_vv.pl
+sub create_variant_vv {
+	my ($vv_results, $vvkey, $gene, $cdna, $acc_no, $acc_ver, $ng_accno, $user, $q, $dbh, $calling) = @_;
+	my ($nom_g, $nom_ng, $nom_g_38, $nom_ivs, $nom_prot, $seq_wt, $seq_mt, $type_adn, $type_arn, $type_prot, $type_segment, $type_segment_end, $num_segment, $num_segment_end, $taille, $snp_id, $snp_common, $classe, $variant, $defgen_export, $chr);
+	($nom_prot, $nom_ivs, $type_arn, $classe, $defgen_export, $nom_g_38, $snp_id, $snp_common, $seq_wt, $seq_mt) = ('NULL', 'NULL', 'neutral', 'unknown', 'f', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL');
+	#print Dumper($vv_results);
+	my $error = '';
+	foreach my $key (keys %{$vv_results}) {
+		#print $key;
+		#bad wt nt => sometimes key = new NMvar (autoremapped) ->{'validation_warnings}
+		if ($key =~ /NM_.+/o &&  $vv_results->{$key}->{'validation_warnings'}[0] =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
+			if ($calling eq 'web') {
+				my $text = $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
+				print U2_modules::U2_subs_2::danger_panel($text, $q);
+				exit;
+			}
+			elsif($calling = 'background') {$error .= "ERROR: $vv_results->{$key}->{'validation_warnings'}[0]"; return $error}
+		}
+		elsif ($key =~ /validation_warning/) {
+			#print $vv_results->{$key}->{'validation_warnings'}[0];
+			my $text = '';
+			foreach my $warning (@{$vv_results->{$key}->{'validation_warnings'}}) {
+				if ($_ eq "$acc_no.$acc_ver:$cdna") {
+					#bad wt  nt sometimes validation_warnings = key directly
+					$text = "VariantValidator error: $_".$vv_results->{$key}->{'validation_warnings'}[1];
+				}
+				elsif ($_ =~ /length must be/o) {
+					$text = "VariantValidator error for $cdna : $_";
+				}
+				elsif ($_ =~ /RefSeqGene record not available/o) {
+					$nom_ng = 'NULL';
+				}
+				elsif ($_ =~ /does not agree with reference/o) {
+					$text = "VariantValidator error for $cdna ($_): ".$vv_results->{$key}->{'validation_warnings'}[1];
+				}
+			}
+			#if ($vv_results->{$key}->{'validation_warnings'}[0] eq "$acc_no.$acc_ver:$cdna") {
+			#	#bad wt  nt sometimes validation_warnings = key directly
+			#	$text = "VariantValidator error: ".$vv_results->{$key}->{'validation_warnings'}[1];
+			#}
+			#elsif ($vv_results->{$key}->{'validation_warnings'}[0] =~ /length must be/o) {
+			#	$text = "VariantValidator error for $cdna : ".$vv_results->{$key}->{'validation_warnings'}[0];
+			#}
+			#elsif ($vv_results->{$key}->{'validation_warnings'}[0] =~ /RefSeqGene record not available/o) {
+			#	$nom_ng = 'NULL';
+			#}
+			#elsif ($vv_results->{$key}->{'validation_warnings'}[0] =~ /does not agree with reference/o) {
+			#	$text = "VariantValidator error for $cdna : ".$vv_results->{$key}->{'validation_warnings'}[1];
+			#}
+			if ($text ne '') {
+				if ($calling eq 'web') {
+					print U2_modules::U2_subs_2::danger_panel($text, $q);
+					exit;
+				}
+				elsif($calling = 'background') {$error .= "ERROR: $text"; return $error}
+			}
+		}
+		if ($calling eq 'web' && !$vv_results->{$vvkey}) {#VV changed variant name (ex with delAGinsT)
+			if (ref($vv_results->{$key}) eq ref {} && $vv_results->{$key}->{'submitted_variant'} eq $vvkey) {$vvkey = $key;print "<br/>".$vv_results->{$key}->{'submitted_variant'}."<br/>"}
+		}
+	}
+	
+	#print $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'}."--<br/>";#->{'hgvs_genomic_description'}
+	my @full_nom_g_19 = split(/:/, $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
+	if ($full_nom_g_19[0] =~ /NC_0+([^0]{1,2}0?)\.\d{1,2}$/o) {
+		$chr = $1;
+		if ($chr == 23) {$chr = 'X'}
+		elsif ($chr == 24) {$chr = 'Y'}
+		$nom_g = "chr$chr:".pop(@full_nom_g_19);
+	}
+	else {
+		my $text = "There has been an issue with VariantValidator. Please double check your variant and resubmit. If this issue persists, contact an admin.\n";;
+		if ($calling eq 'web') {
+			print U2_modules::U2_subs_2::danger_panel($text, $q);
+			exit;
+		}
+		elsif($calling =~ /background(.+)/o) {$error .= "ERROR: $text $vvkey$1"; return $error}
+	}#"Pb with variantvalidator full_nom_g_19: $full_nom_g_19[0]"}
+	#print "<br/>".$nom_g."<br/>";
+	
+	if ($vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'} ne '') {				
+		$nom_g_38 = "chr$chr:".(split(/:/, $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'}))[1];
+		#print $nom_g_38."<br/>";
+	}
+	else {#SLOW
+		my $chr_tmp = "chr$chr";
+		if ($nom_g =~ /g\.(\d+)_(\d+)([^\d]+)$/o) {
+			my ($s19, $e19, $rest) = ($1, $2, $3);
+			my $s38 = U2_modules::U2_subs_3::liftover($s19, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG19TOHG38CHAIN);
+			my $e38 = U2_modules::U2_subs_3::liftover($e19, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG19TOHG38CHAIN);
+			if ($s38 eq 'f' || $e38 eq 'f') {$nom_g_38 = 'NULL'}
+			else {$nom_g_38 = "$chr_tmp:g.".$s38."_$e38$rest"}
+		}
+		elsif ($nom_g =~ /g\.(\d+)([^\d]+)$/o) {
+			my ($s19, $rest) = ($1, $2);
+			my $s38 = U2_modules::U2_subs_3::liftover($s19, $chr_tmp, $ABSOLUTE_HTDOCS_PATH, $U2_modules::U2_subs_3::HG19TOHG38CHAIN);
+			if ($s38 eq 'f') {$nom_g_38 = 'NULL'}
+			else {$nom_g_38 = "$chr_tmp:g.$s38$rest"}
+		}
+	}
+	#print $nom_g_38."<br/>";
+	
+	if ($nom_g =~ />/o) {$type_adn = 'substitution'}
+	elsif ($nom_g =~ /delins/o) {$type_adn = 'indel'}
+	elsif ($nom_g =~ /del/o) {$type_adn = 'deletion'}
+	elsif ($nom_g =~ /ins/o) {$type_adn = 'insertion'}
+	elsif ($nom_g =~ /dup/o) {$type_adn = 'duplication'}
+	elsif ($nom_g =~ /inv/o) {$type_adn = 'inversion'}
+	#print $type_adn."<br/>";
+	#my @full_nom_ng = split(/:/, $vv_results->{"$acc_no.$acc_ver:$cdna"}->{'hgvs_refseqgene_variant'});
+	#$nom_ng = pop(@full_nom_ng);
+	$nom_ng = (split(/:/, $vv_results->{$vvkey}->{'hgvs_refseqgene_variant'}))[1];
+	#print $nom_ng."<br/>"; 
+	
+	$nom_prot = (split(/:/, $vv_results->{$vvkey}->{'hgvs_predicted_protein_consequence'}->{'tlr'}))[1];
+	#print "-$nom_prot-<br/>";
+	if ($nom_prot =~ /=/o) {$type_prot = 'silent'}
+	elsif ($nom_prot =~ /^p\.\([A-Z][a-z]{2}\d+Ter\)$/o) {$type_prot = 'nonsense';$classe = 'pathogenic';$defgen_export = 't'}
+	elsif ($nom_prot =~ /^p\.\([A-Z][a-z]{2}\d+[A-Z][a-z]{2}\)$/o) {$type_prot = 'missense'}
+	elsif ($nom_prot =~ /fsTer/o) {$type_prot = 'frameshift';$classe = 'pathogenic';$defgen_export = 't'}
+	elsif ($nom_prot =~ /Met1?/o) {$type_prot = 'start codon'}
+	elsif ($nom_prot =~ /ext/o) {$type_prot = 'stop codon'}
+	elsif ($type_adn eq 'deletion' && $nom_prot =~ /del/o) {$type_prot = 'inframe deletion'}
+	elsif ($type_adn eq 'insertion' && $nom_prot =~ /ins/o) {$type_prot = 'inframe insertion'}
+	elsif ($type_adn eq 'duplication' && $nom_prot =~ /ins/o) {$type_prot = 'inframe duplication'}
+	#elsif ($nom_prot =~ /\?/o) {$type_prot = 'unknown'}
+	else {$type_prot = 'unknown'}
+	if ($cdna =~ /[cn]\.\d+[\+-][12]\D.+/o) {$type_arn = 'altered';$nom_prot = 'p.(?)';$type_prot = 'NULL';}
+	#replace nom_prot for variants after stop codon and before start
+	if ($cdna =~ /c\.\*/o) {$nom_prot = 'p.(=)'}
+	elsif ($cdna =~ /c\.-[^-\+]+/o) {$nom_prot = 'p.(=)'}
+	
+	if ($vv_results->{$vvkey}->{'refseqgene_context_intronic_sequence'} ne '') {
+		$nom_ivs = (split(/:/, $vv_results->{$vvkey}->{'refseqgene_context_intronic_sequence'}))[1];
+		$type_prot = 'NULL';
+	}				
+	#print $nom_ivs."<br/>";
+	
+	
+	#replace Ter with *
+	if ($nom_prot =~ /Ter/o) {$nom_prot =~ s/Ter/\*/o}
+	#print $nom_prot."<br/>";
+	#print $type_prot."<br/>";
+	my $res;
+	#taille num, type segment + end
+	if ($nom_g =~ /^chr\w+:g\.(\d+)_(\d+)[^\d]+$/o) {
+		#>1bp event
+		my ($start, $end) = ($1, $2);
+		$taille = $end-$start+1;
+		my $query = "SELECT numero, type FROM segment WHERE nom_gene[2] = '$acc_no' AND $start BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g AND $end BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g;";
+		$res = $dbh->selectrow_hashref($query);
+		if ($res) {$num_segment_end = $num_segment = $res->{'numero'};$type_segment_end = $type_segment = $res->{'type'};}
+		else {
+			my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);#strand is ASC (+) or DESC (-)
+			my $query = "SELECT numero, type FROM segment WHERE nom_gene[2] = '$acc_no' AND $start BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g;";
+			
+			###if nom_c contains ? => intron
+			
+			$res = $dbh->selectrow_hashref($query);
+			if ($res) {
+				if ($strand eq 'ASC' && $cdna =~ /\?/o && $res->{'type'} ne '5UTR') {
+					$num_segment = $res->{'numero'}-1;
+					$type_segment = 'intron';
+				}
+				elsif ($strand eq 'ASC') {$num_segment = $res->{'numero'};$type_segment = $res->{'type'}}
+				elsif ($strand eq 'DESC' && $cdna =~ /\?/o && $res->{'type'} ne '3UTR') {
+					$num_segment_end = $res->{'numero'};
+					$type_segment_end = 'intron';
+				}
+				else {$num_segment_end = $res->{'numero'};$type_segment_end = $res->{'type'};}
+			}
+			$query = "SELECT numero, type FROM segment WHERE nom_gene[2] = '$acc_no' AND $end BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g;";
+			$res = $dbh->selectrow_hashref($query);
+			if ($res) {
+				if ($strand eq 'ASC' && $cdna =~ /\?/o && $res->{'type'} ne '3UTR') {
+					$num_segment_end = $res->{'numero'};
+					$type_segment_end = 'intron';
+				}
+				elsif ($strand eq 'ASC') {$num_segment_end = $res->{'numero'};$type_segment_end = $res->{'type'}}
+				elsif ($strand eq 'DESC' && $cdna =~ /\?/o && $res->{'type'} ne '5UTR') {
+					$num_segment = $res->{'numero'}-1;
+					$type_segment = 'intron';
+				}
+				else {$num_segment = $res->{'numero'};$type_segment = $res->{'type'}}
+			}
+			else {
+				if ($calling eq 'web') {
+					my $text = "Segment error with $cdna. Contact an admin"; print U2_modules::U2_subs_2::danger_panel($text, $q); exit;
+				}
+				elsif ($calling eq 'background') {$error = "Segment error with $cdna"; return $error}
+			}
+		}
+	}
+	elsif ($nom_g =~ /^chr\w+:g\.(\d+)[^\d]+$/o) {
+		#1bp event
+		my $pos = $1;
+		$taille = 1;
+		my $query = "SELECT numero, type FROM segment WHERE nom_gene[2] = '$acc_no' AND $pos BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g;";
+		#print STDERR "$query\n";
+		$res = $dbh->selectrow_hashref($query);
+		if ($res) {$num_segment_end = $num_segment = $res->{'numero'};$type_segment_end = $type_segment = $res->{'type'};}
+	}
+	#print "$num_segment-$type_segment-$num_segment_end-$type_segment_end-$taille<br/>";
+	#fix IVS name when no NG
+	if ($type_segment eq 'intron' && ($nom_ivs eq 'NULL' || $nom_ivs !~ /IVS/o)) {
+		my $query = "SELECT nom FROM segment WHERE nom_gene[2] = '$acc_no' AND numero = '$num_segment';";
+		my $res = $dbh->selectrow_hashref($query);
+		my $nom_segment = $res->{'nom'};
+		if ($cdna =~ /c\.[-*]?(\d+[\+-].+_[-*]?\d+[\+-].+)/o){$nom_ivs = $1;$nom_ivs =~ s/\d+([\+-].+)_[-*]?\d+([\+-].+)/IVS$nom_segment$1_IVS$nom_segment$2/og;}
+		elsif ($cdna =~ /c\.[-*]?(\d+[\+-][^\+-]+)/o) {$nom_ivs = $1;$nom_ivs =~ s/\d+([\+-][^\+-]+)/IVS$nom_segment$1/og;}
+	}
+	if ($type_segment eq 'intron' && $type_arn ne 'altered') {
+		$nom_prot = 'p.(=)';
+	}
+	
+	
+	
+	
+	if ($taille > 50) {$nom_prot = 'p.?'}
+	#print $q->td({'colspan' => '7'}, "$nom_prot-$type_prot-$gene-$true_version-");exit;
+	#snp
+
+	my $snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var = '$ng_accno:$nom_ng';";
+	if ($nom_ng =~ /d[eu][lp]/o) {$snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var like '$ng_accno:$nom_ng%';"}
+	my $res_snp = $dbh->selectrow_hashref($snp_query);
+	if ($res_snp) {$snp_id  = $res_snp->{rsid};$snp_common = $res_snp->{common};}
+	elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
+		my $myvariant = U2_modules::U2_subs_1::run_myvariant($nom_g, 'dbsnp.rsid', $user->getEmail());
+		if ($myvariant && $myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
+	}
+	
+	my $date = U2_modules::U2_subs_1::get_date();
+	
+	#print $snp_id."<br/>";
+	
+	#need to run toogows to get seq_wt and seq_mt OR use togows such as in splicing calc
+	if ($taille < 50) {
+		#get positions
+		my ($pos1, $pos2) = U2_modules::U2_subs_3::get_start_end_pos($nom_g);
+		my ($x, $y) = ($pos1 - 25, $pos2 + 25);
+		my $client = REST::Client->new();
+		#print "http://togows.org/api/ucsc/hg19/$chr:$x-$y<br/>";
+		#exit;
+		$client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
+		
+		#my ($i, $j) = (0, $#seq-25);
+		
+		
+		if ($client->responseContent() =~ /^[ATGC]+$/o) {
+			push my @seq, $client->responseContent();
+			my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
+			#print "--$strand--<br/>";
+			if ($strand eq 'DESC') {
+				my $seqrev = reverse $seq[0];
+				$seqrev =~ tr/acgtACGT/tgcaTGCA/;
+				$seq[0] = $seqrev;
+			}
+			#print $seq[0].'<br/>';
+			my ($begin, $middle, $end) ;
+			($begin, $middle, $end) = (substr($seq[0], 0, 25), substr($seq[0], 25, $#seq-25), substr($seq[0], $#seq-25));
+			#print "$begin-$middle-$end<br/>";
+			
+			if ($cdna =~ />([ATCG])$/o) {#substitutions
+				$seq_wt = "$begin $middle $end";
+				$seq_mt = "$begin $1 $end";
+			}
+			elsif ($nom_g =~ /delins([ATGC]+)/) {
+				my $exp = '';
+				my $exp_size = abs(length($middle)-length($1));
+				for (my $i=0;$i<$exp_size;$i++) {$exp.='-'}
+				if (length($middle) > length($1)) {
+					$seq_wt = "$begin $middle $end";
+					$seq_mt = "$begin $1$exp $end";
+				}
+				else {
+					$seq_wt = "$begin $middle$exp $end";
+					$seq_mt = "$begin $1 $end";
+				}
+			}
+			elsif ($nom_g =~ /ins([ATGC]+)/) {
+				my $exp;
+				for (my $i=0;$i<length($1);$i++) {$exp.='-'}
+				$seq_wt = "$begin $exp $end";
+				$seq_mt = "$begin $1 $end";
+			}
+			elsif ($nom_g =~ /del/o) {
+				$seq_wt = "$begin $middle $end";
+				my $exp;
+				for (my $i=0;$i<$taille;$i++) {$exp.='-'}
+				$seq_mt = "$begin $exp $end";
+			}
+			elsif ($nom_g =~ /dup/o) {				
+				my $exp;
+				for (my $i=0;$i<$taille;$i++) {$exp.='-'}
+				$seq_wt = "$begin $middle$exp $end";
+				$seq_mt = "$begin $middle$middle $end";
+			}
+		}
+		#print "$seq_wt<br/>";
+		#print "$seq_mt<br/>";
+	}
+	#to get seq back - requires seq_wt
+	if (($type_adn =~ /(deletion|insertion|duplication)/o) && ($taille < 5) && ($cdna =~ /(.+d[eu][lp])$/o)) {
+		my $tosend = $seq_mt;
+		if ($type_adn eq 'deletion') {$tosend = $seq_wt}								
+		my $sequence = U2_modules::U2_subs_1::get_deleted_sequence($tosend);
+		if ($cdna =~ /dup/o) {$cdna .= substr($sequence, 0, $taille)}
+		else {$cdna .= $sequence}
+		if ($nom_ivs ne 'NULL') {$nom_ivs .= $sequence}
+	}
+	#print "$cdna<br/>";
+	my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38, defgen_export) VALUES ('$cdna', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38', '$defgen_export');";
+	$insert =~ s/'NULL'/NULL/og;
+	#die $insert;
+	#print STDERR $insert;
+	$error .= "NEWVAR: $insert\n";
+	#print $q->td({'colspan' => '7'}, $insert);exit;
+	$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";
+	return ($error, $type_segment, $classe, $cdna);
+	#if ($id ne '') {									
+	#	$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$cdna', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";
+	#	print $insert;
+	#	$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
+	#}
+}
+
 
 1;

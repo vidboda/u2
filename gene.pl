@@ -93,7 +93,7 @@ my $js = "
 			    title: \'Variants lying in \' + type + \' \' + nom + \':\' + \$(\"#new_variant\").val(),
 			    width: 650,
 			    buttons: {
-			       \"Create a variant\": function() {
+			       \"Create a variant using VariantValidator\": function() {
 						\$(\'html\').css(\'cursor\', \'progress\');
 						\$(\'.ui-dialog\').css(\'cursor\', \'progress\');
 						var nom_c = \$(\"#new_variant\").val();
@@ -101,7 +101,7 @@ my $js = "
 						\$(\"#creation_form :input\").prop(\"disabled\", true);
 						\$.ajax({
 							type: \"POST\",
-							url: \"variant_input.pl\",
+							url: \"variant_input_vv.pl\",
 							data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, ng_accno: \$(\"#ng_accno\").val(), single_var: \'y\'}
 					    })
 				       .done(function(msg) {
@@ -447,7 +447,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	if ($nb_exons > 200) {$canvas_height = '1700';$img_suffix = '3';$css_suffix = '_1700'}
 	if ($nb_exons > 300) {$canvas_height = '2500';$img_suffix = '4';$css_suffix = '_2500'}
 	
-	my $text = "Beware: non 'main' accession isoforms do not currently work.<br/> This will be fixed in a future release.";
+	my $text = "Warning: non 'main' accession isoforms do not currently work.<br/> This will be fixed in a future release.";
 	print U2_modules::U2_subs_2::danger_panel($text, $q);
 	
 	print	$q->p('Click on an exon/intron on the picture below to get the variants lying in it:'),
@@ -533,7 +533,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		#missense
 		my ($missense, $missense_text) = &variants_div('missense', "AND a.type_prot = 'missense'" , $dbh, $q, 'Missense', $gene);
 		#silent
-		my ($silent, $silent_text) = &variants_div('silent', "AND a.nom_prot IN  ('p.(=)', 'p.=') AND a.type_segment = 'exon' AND a.type_segment_end = 'exon'", $dbh, $q, 'Silent*', $gene);
+		my ($silent, $silent_text) = &variants_div('silent', "AND a.nom_prot ~ '=' AND a.type_segment = 'exon' AND a.type_segment_end = 'exon'", $dbh, $q, 'Silent*', $gene);#IN  ('p.(=)', 'p.=')
 		#intronic
 		my ($intronic, $intronic_text) = &variants_div('intronic', "AND (a.type_segment = 'intron' OR a.type_segment_end = 'intron')", $dbh, $q, 'Intronic**', $gene);
 		#ptc
