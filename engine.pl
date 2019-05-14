@@ -151,12 +151,14 @@ sub main {
 					last;
 				}
 				elsif ($keyword->{$key} !~ /gene/) {
-					#print "$key -- $keyword->{$key} -- $recherche";exit;
-					$key =~ s/\\d\+/number/o;
-					if ($keyword->{$key} =~ /ID/o) {
+					#print "$key -- $keyword->{$key} -- $recherche";
+					$key =~ s/\\d\+/number/o;					
+					if ($keyword->{$key} =~ /ID/o) {						
 						$key =~ s/number/\\d\+/o;
-						if ($recherche =~ /^$key\d+$/) {
-							$key =~ s/\\d\+/number/o;
+						#print "$key -- $keyword->{$key} -- $recherche";exit;
+						if ($recherche =~ /^$key$/) {
+							#print "$key -- $keyword->{$key} -- $recherche";
+							$key =~ s/\\d\+/number/o;							
 							$motif = $keyword->{$key};
 							last;
 						}
