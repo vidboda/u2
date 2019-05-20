@@ -1214,60 +1214,108 @@ sub create_variant_vv {
 	#print Dumper($vv_results);
 	my $error = '';
 	foreach my $key (keys %{$vv_results}) {
-		#print $key;
+		if ($key ne 'metadata' && $key ne 'flag' && ($key eq $vvkey || $key =~ /validation_warning/o )) {
+			#print STDERR $key."-$vv_results->{$key}-\n";
+			if (ref($vv_results->{$key}) eq ref {}) {
+				foreach my $key2 (keys(%{$vv_results->{$key}})) {
+					#print STDERR $key2."\n";
+					if ($key2 eq 'validation_warnings') {
+						my $text = '';
+						foreach my $warning (@{$vv_results->{$key}->{$key2}}) {
+							#print STDERR "WARNING: $vvkey : $warning : $calling\n";
+							if ($warning eq "$acc_no.$acc_ver:$cdna") {
+								#bad wt  nt sometimes validation_warnings = key directly
+								$text = "VariantValidator error: $warning".$vv_results->{$key}->{'validation_warnings'}[1];
+							}
+							elsif ($warning =~ /length must be/o) {$text .= "VariantValidator error for $cdna : $warning"}
+							elsif ($warning =~ /RefSeqGene record not available/o) {$nom_ng = 'NULL'}
+							elsif ($warning =~ /does not agree with reference/o) {$text .= "VariantValidator error for $cdna ($warning): ".$vv_results->{$key}->{'validation_warnings'}[1]}
+							elsif ($warning =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
+								if ($calling eq 'web') {
+									$text .= $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
+								}
+								elsif($calling =~ /background/o) {$text .= "VariantValidator error for $cdna : $warning"}
+							}
+						}
+						if ($text ne '') {
+							if ($calling eq 'web') {
+								print U2_modules::U2_subs_2::danger_panel($text, $q);
+								exit;
+							}
+							elsif($calling =~ /background/o) {$error .= "ERROR: $text\n"; return $error}
+						}
+					}
+				}
+			}
+		}
 		#bad wt nt => sometimes key = new NMvar (autoremapped) ->{'validation_warnings}
-		if ($key =~ /NM_.+/o &&  $vv_results->{$key}->{'validation_warnings'}[0] =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
-			if ($calling eq 'web') {
-				my $text = $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
-				print U2_modules::U2_subs_2::danger_panel($text, $q);
-				exit;
-			}
-			elsif($calling = 'background') {$error .= "ERROR: $vv_results->{$key}->{'validation_warnings'}[0]"; return $error}
-		}
-		elsif ($key =~ /validation_warning/) {
-			#print $vv_results->{$key}->{'validation_warnings'}[0];
-			my $text = '';
-			foreach my $warning (@{$vv_results->{$key}->{'validation_warnings'}}) {
-				if ($_ eq "$acc_no.$acc_ver:$cdna") {
-					#bad wt  nt sometimes validation_warnings = key directly
-					$text = "VariantValidator error: $_".$vv_results->{$key}->{'validation_warnings'}[1];
-				}
-				elsif ($_ =~ /length must be/o) {
-					$text = "VariantValidator error for $cdna : $_";
-				}
-				elsif ($_ =~ /RefSeqGene record not available/o) {
-					$nom_ng = 'NULL';
-				}
-				elsif ($_ =~ /does not agree with reference/o) {
-					$text = "VariantValidator error for $cdna ($_): ".$vv_results->{$key}->{'validation_warnings'}[1];
-				}
-			}
-			#if ($vv_results->{$key}->{'validation_warnings'}[0] eq "$acc_no.$acc_ver:$cdna") {
-			#	#bad wt  nt sometimes validation_warnings = key directly
-			#	$text = "VariantValidator error: ".$vv_results->{$key}->{'validation_warnings'}[1];
-			#}
-			#elsif ($vv_results->{$key}->{'validation_warnings'}[0] =~ /length must be/o) {
-			#	$text = "VariantValidator error for $cdna : ".$vv_results->{$key}->{'validation_warnings'}[0];
-			#}
-			#elsif ($vv_results->{$key}->{'validation_warnings'}[0] =~ /RefSeqGene record not available/o) {
-			#	$nom_ng = 'NULL';
-			#}
-			#elsif ($vv_results->{$key}->{'validation_warnings'}[0] =~ /does not agree with reference/o) {
-			#	$text = "VariantValidator error for $cdna : ".$vv_results->{$key}->{'validation_warnings'}[1];
-			#}
-			if ($text ne '') {
-				if ($calling eq 'web') {
-					print U2_modules::U2_subs_2::danger_panel($text, $q);
-					exit;
-				}
-				elsif($calling = 'background') {$error .= "ERROR: $text"; return $error}
-			}
-		}
+		#if ($key =~ /NM_.+/o) {
+		#	if (defined($vv_results->{$key}->{'validation_warnings'}[0]) && $vv_results->{$key}->{'validation_warnings'}[0] =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
+		#		if ($calling eq 'web') {
+		#			my $text = $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
+		#			print U2_modules::U2_subs_2::danger_panel($text, $q);
+		#			exit;
+		#		}
+		#		elsif($calling = 'background') {$error .= "ERROR: $vv_results->{$key}->{'validation_warnings'}[0]\n"; return $error}
+		#	}
+		#}
+		#elsif ($vv_results->{$key} =~ /validation_warning/) {
+		#	#print STDERR "1- ".$vv_results->{$key}->{'validation_warnings'}[0]."\n";
+		#	my $text = '';
+		#	foreach my $warning (@{$vv_results->{$key}->{'validation_warnings'}}) {
+		#		if ($warning eq "$acc_no.$acc_ver:$cdna") {
+		#			#bad wt  nt sometimes validation_warnings = key directly
+		#			$text = "VariantValidator error: $_".$vv_results->{$key}->{'validation_warnings'}[1];
+		#		}
+		#		elsif ($warning =~ /length must be/o) {$text = "VariantValidator error for $cdna : $_"}
+		#		elsif ($warning =~ /RefSeqGene record not available/o) {$nom_ng = 'NULL'}
+		#		elsif ($warning =~ /does not agree with reference/o) {$text = "VariantValidator error for $cdna ($_): ".$vv_results->{$key}->{'validation_warnings'}[1]}
+		#		else {$text = $warning}
+		#		#print STDERR $warning."\n";
+		#	}
+		#	if ($text ne '') {
+		#		if ($calling eq 'web') {
+		#			print U2_modules::U2_subs_2::danger_panel($text, $q);
+		#			exit;
+		#		}
+		#		elsif($calling = 'background') {$error .= "ERROR: $text\n"; return $error}
+		#	}
+		#}
+		#if ($calling eq 'web' && !$vv_results->{$vvkey}) {#VV changed variant name (ex with delAGinsT)
+		#	if (ref($vv_results->{$key}) eq ref {} && $vv_results->{$key}->{'submitted_variant'} eq $vvkey) {$vvkey = $key;print "<br/>".$vv_results->{$key}->{'submitted_variant'}."<br/>"}
+		#}
+		
+		#if (($key =~ /NM_.+/o || $key =~ /validation_warning/o) && defined($vv_results->{$key}->{'validation_warnings'}[0])) {#there is a warning
+		#	my $text = '';
+		#	foreach my $warning (@{$vv_results->{$key}->{'validation_warnings'}}) {
+		#		if ($warning eq "$acc_no.$acc_ver:$cdna") {
+		#			#bad wt  nt sometimes validation_warnings = key directly
+		#			$text = "VariantValidator error: $_".$vv_results->{$key}->{'validation_warnings'}[1];
+		#		}
+		#		elsif ($warning =~ /length must be/o) {$text .= "VariantValidator error for $cdna : $warning"}
+		#		elsif ($warning =~ /RefSeqGene record not available/o) {$nom_ng = 'NULL'}
+		#		elsif ($warning =~ /does not agree with reference/o) {$text .= "VariantValidator error for $cdna ($warning): ".$vv_results->{$key}->{'validation_warnings'}[1]}
+		#		elsif ($warning =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
+		#			if ($calling eq 'web') {
+		#				$text .= $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
+		#			}
+		#			elsif($calling = 'background') {$text .= "VariantValidator error for $cdna : $warning"}
+		#		}
+		#	}
+		#	if ($text ne '') {
+		#		if ($calling eq 'web') {
+		#			print U2_modules::U2_subs_2::danger_panel($text, $q);
+		#			exit;
+		#		}
+		#		elsif($calling = 'background') {$error .= "ERROR: $text\n"; return $error}
+		#	}
+		#}
 		if ($calling eq 'web' && !$vv_results->{$vvkey}) {#VV changed variant name (ex with delAGinsT)
 			if (ref($vv_results->{$key}) eq ref {} && $vv_results->{$key}->{'submitted_variant'} eq $vvkey) {$vvkey = $key;print "<br/>".$vv_results->{$key}->{'submitted_variant'}."<br/>"}
 		}
+		
+		
 	}
-	
 	#print $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'}."--<br/>";#->{'hgvs_genomic_description'}
 	my @full_nom_g_19 = split(/:/, $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
 	if ($full_nom_g_19[0] =~ /NC_0+([^0]{1,2}0?)\.\d{1,2}$/o) {
@@ -1277,16 +1325,16 @@ sub create_variant_vv {
 		$nom_g = "chr$chr:".pop(@full_nom_g_19);
 	}
 	else {
-		my $text = "There has been an issue with VariantValidator. Please double check your variant and resubmit. If this issue persists, contact an admin.\n";;
+		my $text = "There has been an issue with VariantValidator. Please double check your variant and resubmit. If this issue persists, contact an admin. \nDEBUG: ".$full_nom_g_19[0].":".$full_nom_g_19[1];
 		if ($calling eq 'web') {
 			print U2_modules::U2_subs_2::danger_panel($text, $q);
 			exit;
 		}
-		elsif($calling =~ /background(.+)/o) {$error .= "ERROR: $text $vvkey$1"; return $error}
+		elsif($calling =~ /background(.+)/o) {$error .= "ERROR: $text-$vvkey-$1\n"; return $error}
 	}#"Pb with variantvalidator full_nom_g_19: $full_nom_g_19[0]"}
 	#print "<br/>".$nom_g."<br/>";
 	
-	if ($vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'} ne '') {				
+	if (defined($vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'}) && $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'} ne '') {				
 		$nom_g_38 = "chr$chr:".(split(/:/, $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'}))[1];
 		#print $nom_g_38."<br/>";
 	}
@@ -1317,7 +1365,7 @@ sub create_variant_vv {
 	#print $type_adn."<br/>";
 	#my @full_nom_ng = split(/:/, $vv_results->{"$acc_no.$acc_ver:$cdna"}->{'hgvs_refseqgene_variant'});
 	#$nom_ng = pop(@full_nom_ng);
-	$nom_ng = (split(/:/, $vv_results->{$vvkey}->{'hgvs_refseqgene_variant'}))[1];
+	if ($vv_results->{$vvkey}->{'hgvs_refseqgene_variant'} ne '') {$nom_ng = (split(/:/, $vv_results->{$vvkey}->{'hgvs_refseqgene_variant'}))[1]};
 	#print $nom_ng."<br/>"; 
 	
 	$nom_prot = (split(/:/, $vv_results->{$vvkey}->{'hgvs_predicted_protein_consequence'}->{'tlr'}))[1];
@@ -1356,6 +1404,7 @@ sub create_variant_vv {
 		my ($start, $end) = ($1, $2);
 		$taille = $end-$start+1;
 		my $query = "SELECT numero, type FROM segment WHERE nom_gene[2] = '$acc_no' AND $start BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g AND $end BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g;";
+		#print STDERR "$query\n";
 		$res = $dbh->selectrow_hashref($query);
 		if ($res) {$num_segment_end = $num_segment = $res->{'numero'};$type_segment_end = $type_segment = $res->{'type'};}
 		else {
@@ -1395,7 +1444,7 @@ sub create_variant_vv {
 				if ($calling eq 'web') {
 					my $text = "Segment error with $cdna. Contact an admin"; print U2_modules::U2_subs_2::danger_panel($text, $q); exit;
 				}
-				elsif ($calling eq 'background') {$error = "Segment error with $cdna"; return $error}
+				elsif ($calling =~ /background(.+)/o) {$error = "Segment error with $cdna-$1"; return $error}
 			}
 		}
 	}
@@ -1407,8 +1456,17 @@ sub create_variant_vv {
 		#print STDERR "$query\n";
 		$res = $dbh->selectrow_hashref($query);
 		if ($res) {$num_segment_end = $num_segment = $res->{'numero'};$type_segment_end = $type_segment = $res->{'type'};}
+		else {
+			if ($calling eq 'web') {
+				my $text = "Segment error with $cdna. Contact an admin"; print U2_modules::U2_subs_2::danger_panel($text, $q); exit;
+			}
+			elsif ($calling =~ /background(.+)/o) {$error = "Segment error with $cdna-$1"; return $error}
+		}
 	}
-	#print "$num_segment-$type_segment-$num_segment_end-$type_segment_end-$taille<br/>";
+	#else {
+	#	print STDERR "$nom_g - last\n";
+	#}
+	#print STDERR "$num_segment-$type_segment-$num_segment_end-$type_segment_end-$taille<br/>\n";
 	#fix IVS name when no NG
 	if ($type_segment eq 'intron' && ($nom_ivs eq 'NULL' || $nom_ivs !~ /IVS/o)) {
 		my $query = "SELECT nom FROM segment WHERE nom_gene[2] = '$acc_no' AND numero = '$num_segment';";
@@ -1427,16 +1485,16 @@ sub create_variant_vv {
 	if ($taille > 50) {$nom_prot = 'p.?'}
 	#print $q->td({'colspan' => '7'}, "$nom_prot-$type_prot-$gene-$true_version-");exit;
 	#snp
-
-	my $snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var = '$ng_accno:$nom_ng';";
-	if ($nom_ng =~ /d[eu][lp]/o) {$snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var like '$ng_accno:$nom_ng%';"}
-	my $res_snp = $dbh->selectrow_hashref($snp_query);
-	if ($res_snp) {$snp_id  = $res_snp->{rsid};$snp_common = $res_snp->{common};}
-	elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
-		my $myvariant = U2_modules::U2_subs_1::run_myvariant($nom_g, 'dbsnp.rsid', $user->getEmail());
-		if ($myvariant && $myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
+	if ($nom_ng ne 'NULL') {
+		my $snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var = '$ng_accno:$nom_ng';";
+		if ($nom_ng =~ /d[eu][lp]/o) {$snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var like '$ng_accno:$nom_ng%';"}
+		my $res_snp = $dbh->selectrow_hashref($snp_query);
+		if ($res_snp) {$snp_id  = $res_snp->{rsid};$snp_common = $res_snp->{common};}
+		elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
+			my $myvariant = U2_modules::U2_subs_1::run_myvariant($nom_g, 'dbsnp.rsid', $user->getEmail());
+			if ($myvariant && exists $myvariant->{'dbsnp'}->{'rsid'} && $myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
+		}
 	}
-	
 	my $date = U2_modules::U2_subs_1::get_date();
 	
 	#print $snp_id."<br/>";

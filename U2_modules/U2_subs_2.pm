@@ -664,7 +664,7 @@ sub send_manual_mail {
 	#	$mailer->datasend($new_var);
 	#}
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
-	$mailer->dataend() or print STDERR "End Pb with gmail before sending: ".$mailer->message();
+	$mailer->dataend() or print STDERR " End Pb with gmail before sending: ".$mailer->message();
 	$mailer->quit();	
 }
 

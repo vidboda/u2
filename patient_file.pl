@@ -260,12 +260,11 @@ if ($result) {
 	###frame 2
 	
 	my $filter = 'ALL'; #for NGS stuff
-	my $valid_import = '';
 	my $illumina_semaph = 0;
 	my @illumina_analysis;
-	my $query_filter = "SELECT filter, valid_import FROM miseq_analysis WHERE num_pat IN ($num_list) AND id_pat IN ($id_list) AND filter <> 'ALL';";
+	my $query_filter = "SELECT filter FROM miseq_analysis WHERE num_pat IN ($num_list) AND id_pat IN ($id_list) AND filter <> 'ALL';";
 	my $res_filter = $dbh->selectrow_hashref($query_filter);
-	if ($res_filter) {$filter = $res_filter->{'filter'};$valid_import = $res_filter->{'valid_import'}}
+	if ($res_filter) {$filter = $res_filter->{'filter'}}
 	print $q->start_div({'id' => 'defgen', 'class' => 'w3-modal'}), $q->end_div();
 	print $q->start_div({'class' => 'w3-cell-row'}), $q->start_div({'class' => 'w3-border w3-cell w3-padding-16 w3-margin'}),
 		#$q->start_p(), $q->start_big(), $q->strong('Investigation summary:'), $q->end_big(), $q->end_p(),
@@ -756,7 +755,12 @@ if ($result) {
 						if (grep(/2/, @illumina_analysis)) {$star = '**'}#clinical exomes
 						print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $raw_filter, $q->span("&nbsp;$star");
 					}
-					if ($valid_import eq '1') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;-&nbsp;&nbsp;IMPORT VALIDATED')}
+					my $valid_import = '';
+					my $query_valid = "SELECT valid_import FROM miseq_analysis WHERE num_pat IN ($num_list) AND id_pat IN ($id_list);";
+					my $res_valid = $dbh->selectrow_hashref($query_valid);
+					if ($res_valid) {$valid_import = $res_valid->{'valid_import'}}
+					if ($valid_import eq '1') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT VALIDATED')}
+					else {print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT VALIDATED')}
 					print  $q->end_li(), "\n";#$q->span('&nbsp;&nbsp;,&nbsp;&nbsp;');
 				}
 				else{print $q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "$result_done->{'type_analyse'}");}

@@ -247,6 +247,7 @@ if ($step && $step == 2) {
 	
 	#################################UNCOMMENT when sub
 	#create roi hash
+	my $new_var  = '';
 	my $interval = U2_modules::U2_subs_3::build_roi($dbh);
 	my ($general, $sample_end, $message) = ('', '', '');#$general global data for final email, $sample_end last treated patient for redirection
 	while (my ($sampleid, $filter) = each(%sample_hash)) {
@@ -512,6 +513,7 @@ if ($step && $step == 2) {
 				my $interest = 0;
 				foreach my $key (keys %{$interval}) {
 					$key =~ /(\d+)-(\d+)/o;
+					#print STDERR "$var_chr-$var_pos-$interval->{$key}-$1-$2\n";
 					if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr			
 						if ($var_chr eq $interval->{$key}) {$interest = 1;last;}
 					}
@@ -575,128 +577,180 @@ if ($step && $step == 2) {
 	
 				
 				#ok let's deal with VV
-				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv_cdna('hg19', "all", "$var_chr-$var_pos-$var_ref-$var_alt"));
+				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
 				#run variantvalidator API
 				#my $vvkey = "$acc_no.$acc_ver:$cdna";
 				my ($type_segment, $classe, $var_final, $cdna);
 				if ($vv_results ne '0') {
 					#find vvkey and cdna
-					my ($vvkey, $hashvar);
-					my $nm_list = '';
-					foreach my $var (keys %{$vv_results}) {
-						#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
-						my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
-						#print STDERR $nm."\n";
-						if ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] !~ /=/o) {
-							$hashvar->{$nm} = [(split(/:/, $var))[1], $acc_ver, ''];#NM => [c., acc_ver, main]
-							$nm_list .= " '$nm',";
-							#get genomic hgvs and check direct submission again
-							my $tmp_nom_g = '';
-							my @full_nom_g_19 = split(/:/, $vv_results->{$var}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
-							if ($full_nom_g_19[0] =~ /NC_0+([^0]{1,2}0?)\.\d{1,2}$/o) {
-								#print STDERR $full_nom_g_19[0]."\n";
-								$chr = $1;
-								if ($chr == 23) {$chr = 'X'}
-								elsif ($chr == 24) {$chr = 'Y'}
-								$tmp_nom_g = "chr$chr:".pop(@full_nom_g_19);
-							}
-							if ($tmp_nom_g ne '') {
-								#print STDERR $tmp_nom_g."-\n";
-								$insert = U2_modules::U2_subs_3::direct_submission($tmp_nom_g, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-								if ($insert ne '') {
-									$dbh->do($insert);
-									$j++;
-									next VCF;
-								}
-							}
-							if ($vv_results->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
-								#patches
-								if ($vv_results->{$var}->{'gene_symbol'} eq 'ADGRV1') {$vv_results->{$var}->{'gene_symbol'} = 'GPR98'}
-								my $last_query = "SELECT nom_g FROM variant WHERE nom LIKE '".(split(/:/, $var))[1]."%' and nom_gene[1] = '$vv_results->{$var}->{'gene_symbol'}';";
-								#print STDERR $last_query."\n";
-								my $res_last = $dbh->selectrow_hashref($last_query);
-								if ($res_last->{'nom_g'}) {
-									print STDERR $res_last->{'nom_g'}."\n";
-									$insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-									if ($insert ne '') {
-										$dbh->do($insert);
-										$j++;
-										next VCF;
-									}
-								}
-							}
-						}
-						
+					my ($hashvar, $tmp_message);
+					my ($vvkey, $nm_list, $tag) = ('', '', '');
+					($tmp_message, $insert, $hashvar, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					if ($tmp_message ne '') {$message .= $tmp_message;next VCF}
+					elsif ($insert ne '') {
+						$dbh->do($insert);
+						$j++;
+						next VCF;
 					}
+					
+					#foreach my $var (keys %{$vv_results}) {
+					#	#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
+					#	if ($var eq 'flag' && $vv_results->{$var} eq 'intergenic') {$message .= "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
+					#	my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
+					#	#print STDERR $nm."\n";
+					#	if ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] !~ /=/o) {
+					#		#$hashvar->{$nm} = [(split(/:/, $var))[1], $acc_ver, ''];#NM => [c., acc_ver, main]
+					#		$hashvar->{$nm}->{$acc_ver} = [(split(/:/, $var))[1], $acc_ver, ''];#NM => acc_ver => [c., acc_ver, main]
+					#		########
+					#		##$hashvar is BAD if vv returns several times the same transcript with different acc no => bug
+					#		## Faire un deuxième niveau de clé avec acc_no
+					#		########
+					#		$nm_list .= " '$nm',";
+					#		#get genomic hgvs and check direct submission again
+					#		my $tmp_nom_g = '';
+					#		my @full_nom_g_19 = split(/:/, $vv_results->{$var}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
+					#		if ($full_nom_g_19[0] =~ /NC_0+([^0]{1,2}0?)\.\d{1,2}$/o) {
+					#			#print STDERR $full_nom_g_19[0]."\n";
+					#			$chr = $1;
+					#			if ($chr == 23) {$chr = 'X'}
+					#			elsif ($chr == 24) {$chr = 'Y'}
+					#			$tmp_nom_g = "chr$chr:".pop(@full_nom_g_19);
+					#		}
+					#		if ($tmp_nom_g ne '') {
+					#			#print STDERR $tmp_nom_g."-\n";
+					#			$insert = U2_modules::U2_subs_3::direct_submission($tmp_nom_g, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					#			if ($insert ne '') {
+					#				$dbh->do($insert);
+					#				$j++;
+					#				next VCF;
+					#			}
+					#		}
+					#		if ($vv_results->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
+					#			#patches
+					#			if ($vv_results->{$var}->{'gene_symbol'} eq 'ADGRV1') {$vv_results->{$var}->{'gene_symbol'} = 'GPR98'}
+					#			my $last_query = "SELECT nom_g FROM variant WHERE nom LIKE '".(split(/:/, $var))[1]."%' and nom_gene[1] = '$vv_results->{$var}->{'gene_symbol'}';";
+					#			#print STDERR $last_query."\n";
+					#			my $res_last = $dbh->selectrow_hashref($last_query);
+					#			if ($res_last->{'nom_g'}) {
+					#				print STDERR $res_last->{'nom_g'}."\n";
+					#				$insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					#				if ($insert ne '') {
+					#					$dbh->do($insert);
+					#					$j++;
+					#					next VCF;
+					#				}
+					#			}
+					#		}
+					#	}
+					#	elsif ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] =~ /=/o) {
+					#		#create a tag for hom WT
+					#		$tag = "$id$number: WARNING: Variant $var_alt equals Reference in $nm $var_chr-$var_pos-$var_ref-$var_alt\n"
+					#	}
+					#	
+					#}
 					#print STDERR $nm_list."\n";
-					if ($nm_list eq '') {$message .= "$id$number: ERROR: No NM found for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}#intergenic
+					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
+					elsif ($nm_list eq '' && $tag ne '') {$message .= $tag;next VCF}
 					#query U2 to get NM
 					chop($nm_list);#remove last ,
 					#print STDERR $nm_list."\n";
 					my ($acc_no, $acc_ver, $gene, $ng_accno, @possible);
-					my $query = "SELECT nom[1] as gene, nom[2] as nm, acc_version, acc_g, main FROM gene WHERE nom[2] IN ($nm_list);";
+					my $query = "SELECT nom[1] as gene, nom[2] as nm, acc_version, acc_g, main FROM gene WHERE nom[2] IN ($nm_list) ORDER BY main DESC;";
 					my $sth = $dbh->prepare($query);
 					my $res = $sth->execute();
 					while (my $result = $sth->fetchrow_hashref()) {
 						#print STDERR $hashvar->{$result->{'nm'}}[1].'-'.$result->{'acc_version'}.'-'.$result->{'main'}."\n";
 						($gene, $ng_accno) = ($result->{'gene'}, $result->{'acc_g'});#needed to be sent to create_variant_vv for consistency with other callings of the same sub in different scripts
-						if (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] eq $result->{'acc_version'} && $result->{'main'} == 1) {	#best case								
-							$hashvar->{$result->{'nm'}}[2] = $result->{'main'};												
-							$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}[0];
-							$cdna = $hashvar->{$result->{'nm'}}[0];
+						#if (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] eq $result->{'acc_version'} && $result->{'main'} == 1) {	#best case
+						if (exists $hashvar->{$result->{'nm'}} && exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}} && $result->{'main'} == 1) {	#best case	
+							$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[1] = $result->{'main'};
+							$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
+							$cdna = $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
+							#$hashvar->{$result->{'nm'}}[2] = $result->{'main'};												
+							#$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}[0];
+							#$cdna = $hashvar->{$result->{'nm'}}[0];
 							($acc_no, $acc_ver) = ($result->{'nm'}, $result->{'acc_version'});
+							last;
 							#print STDERR "VV 1\n";
 						}
-						elsif (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] ne $result->{'acc_version'} && $result->{'main'} == 1) {
-							#bad acc not in U2
-							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv_cdna('hg19', $result->{'nm'}.".".$result->{'acc_version'}, $hashvar->{$result->{'nm'}}[0]));
-							$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}[0];
-							$cdna = $hashvar->{$result->{'nm'}}[0];
-							($acc_no, $acc_ver) = ($result->{'nm'}, $result->{'acc_version'});
+						#elsif (exists $hashvar->{$result->{'nm'}} && !exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}} && $result->{'main'} == 1) {
+						#elsif (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] ne $result->{'acc_version'} && $result->{'main'} == 1) {
+						if (exists $hashvar->{$result->{'nm'}} && !exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}) {
+							#bad acc not in U2 => retry with U2 acc_no
+							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $result->{'nm'}.".".$result->{'acc_version'}, $var_chr-$var_pos-$var_ref-$var_alt, 'VCF'));
+							#get new cdna
+							my ($tmp_message, $hashvar_tmp);
+							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+							if ($tmp_message ne '') {$message .= $tmp_message;next VCF}#should not happen
+							elsif ($insert ne '') {#should not happen
+								$dbh->do($insert);
+								$j++;
+								next VCF;
+							}
+							if ($result->{'main'} == 1) {
+								$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
+								$cdna = $hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
+								#$vv_results = decode_json(U2_modules::U2_subs_1::run_vv_cdna('hg19', $result->{'nm'}.".".$result->{'acc_version'}, $hashvar->{$result->{'nm'}}[0]));
+								#$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}[0];
+								#$cdna = $hashvar->{$result->{'nm'}}[0];
+								($acc_no, $acc_ver) = ($result->{'nm'}, $result->{'acc_version'});
+								#main => last
+								last
+							} else {
+								#replace acc_no in hashvar
+								#https://stackoverflow.com/questions/1490356/how-to-replace-a-perl-hash-key
+								delete $hashvar->{$result->{'nm'}};
+								$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}} = $hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}};
+							}
 							#print STDERR "VV 2\n";
 						}
-						elsif (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] ne $result->{'acc_version'} && $result->{'main'} == 0) {
-							#bad acc no in U2 on non main isoform
-							#tag version name in hash table
-							$hashvar->{$result->{'nm'}}[1] .= ".".$result->{'acc_version'};
-							$hashvar->{$result->{'nm'}}[2] = $result->{'main'};
-							$cdna = $hashvar->{$result->{'nm'}}[0];
-							#print STDERR "VV 3\n";
-						}
+						#elsif (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] ne $result->{'acc_version'} && $result->{'main'} == 0) {
+						#elsif (exists $hashvar->{$result->{'nm'}} && !exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}} && $result->{'main'} == 0) {
+						#	#bad acc no in U2 on non main isoform
+						#	#tag version name in hash table
+						#	$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}
+						#	$hashvar->{$result->{'nm'}}[1] .= ".".$result->{'acc_version'};
+						#	$hashvar->{$result->{'nm'}}[2] = $result->{'main'};
+						#	$cdna = $hashvar->{$result->{'nm'}}[0];
+						#	#print STDERR "VV 3\n";
+						#}
 					}
 					if ($vvkey ne '') {
 						($message_tmp, $type_segment, $classe, $var_final) = U2_modules::U2_subs_3::create_variant_vv($vv_results, $vvkey, $gene, $cdna, $acc_no, $acc_ver, $ng_accno, $user, $q, $dbh, "background $var_chr-$var_pos-$var_ref-$var_alt");
 						if ($message_tmp =~ /ERROR/o) {$message .= "$id$number: $message_tmp"}
-						$j++;
-						print STDERR "$var_chr-$var_pos-$var_ref-$var_alt: $message_tmp\n";
+						#$j++;
+						#print STDERR "$var_chr-$var_pos-$var_ref-$var_alt: $message_tmp\n";
 					}
 					else {
 						#2 cases:
-						#non main with good acc_ver => choose the most impactant (exonic > intronic > UTR) : $hashvar contains a value 0 for main (to be checked)
+						#non main  => choose the most impactant (exonic > intronic > UTR) : $hashvar contains a value 0 for main (to be checked)
+						#or nothing => no suitable NM
 						my ($candidates, $candidate);
 						my ($semaph1, $semaph2) = (0, 0);
 						foreach my $nm (keys (%{$hashvar})) {
 							#check if in U2:
-							my $query_nm = "SELECT nom FROM gene WHERE nom[2] = '$nm';";
+							my $query_nm = "SELECT nom, acc_version FROM gene WHERE nom[2] = '$nm';";
 							my $res_nm = $dbh->selectrow_hashref($query_nm);
 							if ($res_nm->{'nom'}) {
-								if ($hashvar->{$nm}[2] != 1) {
+								if ($hashvar->{$nm}->{$res_nm->{'acc_version'}}[1] != 1) {#non main - should be
 									$semaph1 = 1;
-									if ($hashvar->{$nm}[0] =~ /^c\.[^-][^\+\*-]+$/o) {#exonic
-										if (!exists $candidates->{'exonic'}) {$candidates->{'exonic'} = "$nm.".$hashvar->{$nm}[1].":".$hashvar->{$nm}[0]}
+									if ($hashvar->{$nm}->{$res_nm->{'acc_version'}}[0] =~ /^c\.[^-][^\+\*-]+$/o) {#exonic
+										if (!exists $candidates->{'exonic'}) {$candidates->{'exonic'} = "$nm.".$res_nm->{'acc_version'}.":".$hashvar->{$nm}->{$res_nm->{'acc_version'}}[0]}
 									}
-									elsif ($hashvar->{$nm}[0] =~ /^c\.[\*-].+$/o) {#UTR
-										if (!exists $candidates->{'UTR'}) {$candidates->{'UTR'} = "$nm.".$hashvar->{$nm}[1].":".$hashvar->{$nm}[0]}
+									elsif ($hashvar->{$nm}->{$res_nm->{'acc_version'}}[0] =~ /^c\.[\*-].+$/o) {#UTR
+										if (!exists $candidates->{'UTR'}) {$candidates->{'UTR'} = "$nm.".$res_nm->{'acc_version'}.":".$hashvar->{$nm}->{$res_nm->{'acc_version'}}[0]}
 									}
-									elsif ($hashvar->{$nm}[0] =~ /^c\.[^-].+[\+-].+$/o) {#intronic
-										if (!exists $candidates->{'intronic'}) {$candidates->{'intronic'} = "$nm.".$hashvar->{$nm}[1].":".$hashvar->{$nm}[0]}
+									elsif ($hashvar->{$nm}->{$res_nm->{'acc_version'}}[0] =~ /^c\.[^-].+[\+-].+$/o) {#intronic
+										if (!exists $candidates->{'intronic'}) {$candidates->{'intronic'} = "$nm.".$res_nm->{'acc_version'}.":".$hashvar->{$nm}->{$res_nm->{'acc_version'}}[0]}
 									}
 								}
-								elsif ($semaph1 == 0 && $semaph2 == 0) {#non main with bad acc_ver => choose the 1st one and rerun with other acc_ver and create : $hashvar contains 2 values for accver => take the second
-									my $new_acc = (split(/\./, $hashvar->{$nm}[1]))[1];
-									$candidate = "$nm.$new_acc:".$hashvar->{$nm}[0];
-									$semaph2 = 1;
-								}
+								#elsif ($semaph1 == 0 && $semaph2 == 0) {
+									#non main with bad acc_ver => choose the 1st one and rerun with other acc_ver and create : $hashvar contains 2 values for accver => take the second
+									#
+									#my $new_acc = (split(/\./, $hashvar->{$nm}[1]))[1];
+									#$candidate = "$nm.$new_acc:".$hashvar->{$nm}[0];
+									#$semaph2 = 1;
+								#}
 							}
 						}
 						if ($semaph1 == 1) {
@@ -707,13 +761,13 @@ if ($step && $step == 2) {
 						if ($candidate =~ /(NM_\d+)\.(\d):c\..+/) {
 							($acc_no, $acc_ver) = ($1, $2);
 							#run vv again
-							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv_cdna('hg19', $acc_no.".".$acc_ver, $hashvar->{$acc_no}[0]));
-							$vvkey = "$acc_no.$acc_ver:".$hashvar->{$acc_no}[0];
-							$cdna = $hashvar->{$acc_no}[0];							
-							($message_tmp, $type_segment, $classe, $var_final) = U2_modules::U2_subs_3::create_variant_vv($vv_results, $vvkey, $gene, $cdna, $acc_no, $acc_ver, $ng_accno, $user, $q, $dbh, 'background');
+							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna'));
+							$vvkey = "$acc_no.$acc_ver:".$hashvar->{$acc_no}->{$acc_ver}[0];
+							$cdna = $hashvar->{$acc_no}->{$acc_ver}[0];							
+							($message_tmp, $type_segment, $classe, $var_final) = U2_modules::U2_subs_3::create_variant_vv($vv_results, $vvkey, $gene, $cdna, $acc_no, $acc_ver, $ng_accno, $user, $q, $dbh, "background $var_chr-$var_pos-$var_ref-$var_alt");
 							if ($message_tmp =~ /ERROR/o) {$message .= "$id$number: $message_tmp"}
-							$j++;
-							print STDERR "$var_chr-$var_pos-$var_ref-$var_alt: $message_tmp\n";
+							#$j++;
+							#print STDERR "$var_chr-$var_pos-$var_ref-$var_alt: $message_tmp\n";
 						}
 						else {
 							#ERROR
@@ -722,29 +776,33 @@ if ($step && $step == 2) {
 					}
 					
 					if ($message_tmp =~ /NEWVAR/o) {
-						my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele) VALUES ('$var_final', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$analysis', '$status', '$allele');\n";
+						#my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele) VALUES ('$var_final', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$analysis', '$status', '$allele');\n";
 						$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
 						#‡print STDERR $insert."\n";
 						$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
-						$i++;
+						$i++;$j++;
+						$new_var .= $message_tmp;
 					}
+					#else {
+					#	print STDERR "$var_chr-$var_pos-$var_ref-$var_alt: $message_tmp - not in V2P\n";
+					#}
 				}
 				else {
 					$message .= "$id$number: ERROR: Impossible to run VariantValidator (vv_results empty) for variant $var_chr-$var_pos-$var_ref-$var_alt\n";
 				}
 			}
 		}
-		close F;
-		print STDERR "$id$number VCF imported.\n";
+		close F;		
 		$general .= "Insertion for $id$number:\n\n- $j/$k variants (".(sprintf('%.2f', ($j/$k)*100))."%) have been automatically inserted,\nincluding $i new variants that have been successfully created\n\n";
 		my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
 		$dbh->do($valid);
-		
+		print STDERR "$id$number VCF imported.\n";
+		#print STDERR $valid."\n";
 	}
 	#if ($manual ne '' || $not_inserted ne '') {U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run)}
 	
 	open F, ">>$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/import.log" or print STDERR $!;
-	print F $user->getName()."\n$date\n$run\n$general\n$message\n";
+	print F $user->getName()."\n$date\n$run\n$general\n$message\n$new_var\n";
 	close F;
 	
 	U2_modules::U2_subs_2::send_manual_mail($user, '', '', $run, $general, '', $message);
@@ -775,37 +833,6 @@ sub search_position {
 	
 }
 
-#sub build_hgvs_from_illumina {
-#	my ($var_chr, $var_pos, $var_ref, $var_alt) = @_;
-#	#we keep only the first variants if more than 1 e.g. alt = TAA, TA
-#	if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
-#	
-#	#subs
-#	if ($var_ref =~ /^[ATGC]$/ && $var_alt =~ /^[ATGC]$/) {return "$var_chr:g.$var_pos$var_ref>$var_alt"}
-#	#dels
-#	elsif (length($var_ref) > length($var_alt)) {
-#		if (length($var_ref) == 2) {return "$var_chr:g.".($var_pos+1)."del".substr($var_ref, 1)}
-#		else {return "$var_chr:g.".($var_pos+1)."_".($var_pos+(length($var_ref)-1))."del".substr($var_ref, 1)}
-#	}
-#	#insdup
-#	elsif (length($var_alt) > length($var_ref)) {return "$var_chr:g.".($var_pos)."_".($var_pos+1)."ins".substr($var_alt, 1)}
-#}
-
-#sub direct_submission {
-#	#my ($toquery, $value, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
-#	
-#	my ($value, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
-#	#print STDERR $value."\n";
-#	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} #we remove what is deleted or duplicated	
-#	my $query = "SELECT nom, nom_gene FROM variant WHERE nom_g = '$value';";
-#	#print $query;
-#	my $res = $dbh->selectrow_hashref($query);
-#	if ($res) {
-#		return "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$res->{'nom'}', '$number', '$id', '{\"$res->{'nom_gene'}[0]\",\"$res->{'nom_gene'}[1]\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
-#	}
-#	else {return ''}
-#}
-
 sub get_detailed_pos {
 	my ($pos1, $pos2) = @_;
 	$pos1 =~ /(\d+)_(\d+)/o;
@@ -822,44 +849,58 @@ sub get_start_end_pos {
 	elsif ($var =~ /chr$U2_modules::U2_subs_1::CHR_REGEXP:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
 }
 
+sub run_vv_results {
+	my ($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
+	#expected return ($tmp_message, $insert, $hashvar, $nm_list, $tag)
+	my ($hashvar, $nm_list, $tag);
+	($nm_list, $tag) = ('', '');
+	foreach my $var (keys %{$vv_results}) {
+		#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
+		if ($var eq 'flag' && $vv_results->{$var} eq 'intergenic') {return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n"}
+		my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
+		#print STDERR $nm."\n";
+		if ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] !~ /=/o) {
+			#$hashvar->{$nm} = [(split(/:/, $var))[1], $acc_ver, ''];#NM => [c., acc_ver, main]
+			$hashvar->{$nm}->{$acc_ver} = [(split(/:/, $var))[1], ''];#NM => acc_ver => [c., main]
+			########
+			##$hashvar is BAD if vv returns several times the same transcript with different acc no => bug
+			## Faire un deuxième niveau de clé avec acc_no
+			########
+			$nm_list .= " '$nm',";
+			#get genomic hgvs and check direct submission again
+			my $tmp_nom_g = '';
+			my @full_nom_g_19 = split(/:/, $vv_results->{$var}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
+			if ($full_nom_g_19[0] =~ /NC_0+([^0]{1,2}0?)\.\d{1,2}$/o) {
+				#print STDERR $full_nom_g_19[0]."\n";
+				my $chr = $1;
+				if ($chr == 23) {$chr = 'X'}
+				elsif ($chr == 24) {$chr = 'Y'}
+				$tmp_nom_g = "chr$chr:".pop(@full_nom_g_19);
+			}
+			if ($tmp_nom_g ne '') {
+				#print STDERR $tmp_nom_g."-\n";
+				my $insert = U2_modules::U2_subs_3::direct_submission($tmp_nom_g, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+				if ($insert ne '') {return ('', $insert)}
+			}
+			if ($vv_results->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
+				#patches
+				if ($vv_results->{$var}->{'gene_symbol'} eq 'ADGRV1') {$vv_results->{$var}->{'gene_symbol'} = 'GPR98'}
+				my $last_query = "SELECT nom_g FROM variant WHERE nom LIKE '".(split(/:/, $var))[1]."%' and nom_gene[1] = '$vv_results->{$var}->{'gene_symbol'}';";
+				#print STDERR $last_query."\n";
+				my $res_last = $dbh->selectrow_hashref($last_query);
+				if ($res_last->{'nom_g'}) {
+					#print STDERR $res_last->{'nom_g'}."\n";
+					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					if ($insert ne '') {return ('', $insert)}
+				}
+			}
+		}
+		elsif ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] =~ /=/o) {
+			#create a tag for hom WT
+			$tag = "$id$number: WARNING: Variant $var_alt equals Reference in $nm $var_chr-$var_pos-$var_ref-$var_alt\n"
+		}
+	}
+	return ('', '', $hashvar, $nm_list, $tag);
+}
 
-#####
-#####
-#####
-#The following subs have been implemented to try to deal with PTPRQ-hg19 issues. But the issues are too big with this gene in hg19. Hope will be fixed when we move on to hg38. However they work on strand + for a gene that starts with ATG in exon 1 (exon 1 +1 = ATG +1)
-#####
-#####
-#####
-#sub position_converter {
-#	my $genomic_var = shift; #add $dbh if put in .pm
-#	#print "$genomic_var<br/>";
-#	if ($genomic_var =~ /chr12:g\.(\d+)([dATCG][e>][lATGC])/o) {
-#		#my ($pos_geno, $consequence) = ($1, $2);
-#		#print "$1 - $2<br/>";
-#		return "NM_001145026.1:c.".&map_on_gene($1).$2;
-#	}#chr12:g.80878181_80878182insT
-#	elsif ($genomic_var =~ /chr12:g\.(\d+)_(\d+)(del|ins)([ATGC]+)/o) {
-#		#my ($pos_geno1, $pos_geno2, $consequence) = ($1, $2, $3);
-#		#print "$1 - $2 - $3 - $4<br/>";
-#		return "NM_001145026.1:c.".&map_on_gene($1)."_".(&map_on_gene($2)).$3.$4;
-#	}
-#}
-#
-#sub map_on_gene {
-#	my $pos_geno = shift;
-#	my $query = "SELECT type, numero, start_g, end_g, taille FROM segment WHERE nom_gene[1] = 'PTPRQ' AND '$pos_geno' BETWEEN SYMMETRIC start_g AND end_g";
-#	#print "$query<br/>";
-#	my $res = $dbh->selectrow_hashref($query);
-#	if ($res) {
-#		my ($type, $num, $start_g, $end_g, $size) = ($res->{'type'}, $res->{'numero'}, $res->{'start_g'}, $res->{'end_g'}, $res->{'taille'});
-#		$query = "SELECT SUM(taille) as taille FROM segment WHERE nom_gene[1] = 'PTPRQ' AND type = 'exon' AND numero < '$num';";
-#		print "$query<br/>";
-#		my $res = $dbh->selectrow_hashref($query);
-#		if ($type eq 'exon') {return (($pos_geno - $start_g) + $res->{'taille'})}
-#		else {
-#			if (($pos_geno - $start_g) <= ($size/2)) {return "$res->{'taille'}+".($pos_geno - $start_g)}
-#			else {return ($res->{'taille'}+1)."-".($end_g - $pos_geno)}
-#		}
-#	}
-#}
 
