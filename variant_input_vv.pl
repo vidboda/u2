@@ -219,6 +219,13 @@ elsif ($step == 2) { #insert variant and print
 			#my $semaph_error = 0;
 			#remove nts in dups before submitting
 			if ($cdna =~ /dup[ATGC]+/o) {$cdna =~ s/dup[ATGC]+/dup/o}
+			if ($cdna =~ /c.-?(\d+)[+-][\?\d]+_(\d+)[+-][\?\d][di][eun][lps].*/o) {#LR not handled by VV (server timeout)
+					if ($2-$1 > 100) {
+						my $text = "Large rearrangements are not yet handled by VV. Please try using Mutalyzer.";
+						print U2_modules::U2_subs_2::danger_panel($text, $q);
+						exit;
+					}
+			}
 			my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv('GRCh38', "$acc_no.$acc_ver", $cdna, 'cdna'));
 			#run variantvalidator API
 			my $vvkey = "$acc_no.$acc_ver:$cdna";
