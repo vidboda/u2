@@ -1228,7 +1228,7 @@ sub run_vv {
 	#$ua->proxy('https', 'http://194.167.35.151:3128/');
 	my $url = "https://rest.variantvalidator.org/variantvalidator/$genome/$nm:$var/$nm";
 	if ($mode eq 'VCF') {$url = "https://rest.variantvalidator.org/variantvalidator/$genome/$var/$nm";}
-	my $vv_result = `/usr/local/bin/python $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"`;
+	my $vv_result = `/usr/local/bin/python $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"` or die $!;
 	#my $request = $ua->get($url);
 	#if ($request->is_success()) {return $request->content()}
 	if ($vv_result ne '0') {return $vv_result}
