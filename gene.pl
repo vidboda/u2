@@ -56,6 +56,7 @@ my $CSS_DEFAULT = $config->CSS_DEFAULT();
 my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
+my $DATABASES_PATH = $config->DATABASES_PATH();
 my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'form.css', $CSS_PATH.'jquery.alerts.css');
@@ -218,21 +219,31 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	
 	
-	my ($pli, $prec, $pnull) = ('No pLi*', 'No pRec*', 'No pNull*');
-	if (U2_modules::U2_subs_1::test_mygene() == 1) {
-		#use mygene.info REST API
-		my $gene_api = $gene;
-		if ($gene eq 'GPR98') {$gene_api = 'ADGRV1'}
-		my $mygene = U2_modules::U2_subs_1::run_mygene($gene_api, 'exac.all', $user->getEmail());
-		if ($mygene && $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'} ne '') {
-			$pli = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'});
-			$prec = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_rec'});
-			$pnull = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_null'});
+	#my ($pli, $prec, $pnull) = ('No pLi*', 'No pRec*', 'No pNull*');
+	#if (U2_modules::U2_subs_1::test_mygene() == 1) {
+	#	#use mygene.info REST API
+	#	my $gene_api = $gene;
+	#	if ($gene eq 'GPR98') {$gene_api = 'ADGRV1'}
+	#	my $mygene = U2_modules::U2_subs_1::run_mygene($gene_api, 'exac.all', $user->getEmail());
+	#	if ($mygene && $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'} ne '') {
+	#		$pli = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'});
+	#		$prec = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_rec'});
+	#		$pnull = sprintf('%.6f', $mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_null'});
+	#	}
+	#	#else {print $mygene->{'hits'}->[0]->{'exac'}."-"}
+	#	#print Dumper($mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'});
+	#}
+	#directly get gnomad oe
+	my ($synoe, $misoe, $lofoe) = ('No Syn oe*', 'No Mis oe*', 'No Lof oe*');
+	my $synoel = my $synoeu = my $misoel = my $misoeu = my $lofoel = my $lofoeu = 'NA';
+	open GNOMAD, $DATABASES_PATH."/gnomad/gnomad.v2.1.1.lof_metrics.by_gene.txt" or die $!;
+	while (<GNOMAD>) {
+		if (/^$gene\s+/) {
+			my @line = split(/\t/, $_);
+			($synoe, $misoe, $lofoe, $synoel, $synoeu, $misoel, $misoeu, $lofoel, $lofoeu) = ($line[13], $line[4], $line[23], $line[24], $line[25], $line[26], $line[27], $line[28], $line[29]);
+			last;
 		}
-		#else {print $mygene->{'hits'}->[0]->{'exac'}."-"}
-		#print Dumper($mygene->{'hits'}->[0]->{'exac'}->{'all'}->{'p_li'});
 	}
-	
 	
 	my $query = "SELECT * FROM gene WHERE nom[1] = '$gene' ORDER BY main DESC;";
 	#my $order = 'ASC';
@@ -264,18 +275,24 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 						$q->th({'class' => 'left_general'}, 'Strand'), "\n",
 						$q->th({'class' => 'left_general'}, 'Protein name'), "\n",
 						$q->th({'class' => 'left_general'}, 'Genomic Accession #'), "\n",
-						$q->th({'class' => 'left_general'}, 'pLi*'), "\n",
-						$q->th({'class' => 'left_general'}, 'pRec*'), "\n",
-						$q->th({'class' => 'left_general'}, 'pNull*'), "\n",
+						$q->th({'class' => 'left_general'}, "Synonymous <br/>obs/exp* (CI)"), "\n",
+						$q->th({'class' => 'left_general'}, "Missense <br/>obs/exp* (CI)"), "\n",
+						$q->th({'class' => 'left_general'}, "Loss of function <br/>obs/exp* (CI)"), "\n",
+						#$q->th({'class' => 'left_general'}, 'pLi*'), "\n",
+						#$q->th({'class' => 'left_general'}, 'pRec*'), "\n",
+						#$q->th({'class' => 'left_general'}, 'pNull*'), "\n",
 					$q->end_Tr(), "\n",
 					$q->start_Tr(), "\n",
 						$q->start_td(), $q->span("chr$chr"), $q->end_td(), "\n",
 						$q->start_td(), $q->span($result->{'brin'}), $q->end_td(), "\n",
 						$q->start_td(), $q->span("$result->{'nom_prot'} ($result->{'short_prot'})"), $q->end_td(), "\n",
 						$q->start_td(), $q->span($ng_td), $q->end_td(), "\n",
-						$q->start_td(), $q->span($pli), $q->end_td(), "\n",
-						$q->start_td(), $q->span($prec), $q->end_td(), "\n",
-						$q->start_td(), $q->span($pnull), $q->end_td(), "\n",
+						$q->start_td(), $q->span(sprintf('%.2f',$synoe)."<br/>(".sprintf('%.2f',$synoel)."-".sprintf('%.2f',$synoeu).")"), $q->end_td(), "\n",
+						$q->start_td(), $q->span(sprintf('%.2f',$misoe)."<br/>(".sprintf('%.2f',$misoel)."-".sprintf('%.2f',$misoeu).")"), $q->end_td(), "\n",
+						$q->start_td(), $q->span(sprintf('%.2f',$lofoe)."<br/>(".sprintf('%.2f',$lofoel)."-".sprintf('%.2f',$lofoeu).")"), $q->end_td(), "\n",
+						#$q->start_td(), $q->span($pli), $q->end_td(), "\n",
+						#$q->start_td(), $q->span($prec), $q->end_td(), "\n",
+						#$q->start_td(), $q->span($pnull), $q->end_td(), "\n",
 					$q->end_Tr(), "\n", $q->end_table(), $q->end_div(), "\n";				
 					#$q->start_ul({'class' => ' w3-large'}),						
 					#	$q->li("chr$chr, strand $result->{'brin'}"), "\n",
@@ -330,8 +347,9 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 
 		}
 		print $q->end_table(), $q->end_div(), $q->br(), $q->br(), "\n";
-		my $exac_text = '*Based on the ExAC dataset, the probabilities for each gene of being loss-of function intolerant (pLi - haploinsufficients genes),<br/> Recessive (pRec - Premature Termination Variants (PTVs) tolerated heterozygotes but not homozygotes) of null (pNull - tolerant to PTVs) have been computed by the ExAC group. The closer to one, the most likely to fall in the given category. More <a href = \'https://www.nature.com/articles/nature19057\', target = \'_blank\'>here</a> (Supplementary Information, beginning p27). Please note that these metrics will soon be replaced with the more accurate observed/expected ratio (currently in gnomAD).';
-		print U2_modules::U2_subs_2::info_panel($exac_text, $q);
+		#my $exac_text = '*Based on the ExAC dataset, the probabilities for each gene of being loss-of function intolerant (pLi - haploinsufficients genes),<br/> Recessive (pRec - Premature Termination Variants (PTVs) tolerated heterozygotes but not homozygotes) of null (pNull - tolerant to PTVs) have been computed by the ExAC group. The closer to one, the most likely to fall in the given category. More <a href = \'https://www.nature.com/articles/nature19057\', target = \'_blank\'>here</a> (Supplementary Information, beginning p27). Please note that these metrics will soon be replaced with the more accurate observed/expected ratio (currently in gnomAD).';
+		my $gnomad_text = '*In gnomAD, the previous pLi, pRec and pNull scores have been replaced by the more accurate observed/expected scores.<br/> Synonymous variants, nsSNVs (missense) and Loss of functions variants are reported for each gene, and compared with the expected numbers based on size and compositon of the gene. A Confidence Interval is given to better appreciate the value and if needed a threshold is defined: a class of variants is considered under constraint if the upper bound of the CI is &lt; 0.35. See "Gene constraint" explanations in gnomAD browser for more details (e.g. <a href="https://gnomad.broadinstitute.org/gene/ENSG00000042781" target="_blank" title="go to USH2A gene page and click the question mark near Gene Constraint">here</a>).';
+		print U2_modules::U2_subs_2::info_panel($gnomad_text, $q);
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 		
 		
