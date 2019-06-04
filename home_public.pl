@@ -160,6 +160,8 @@ print $q->end_p(), $q->end_div(), $q->end_div(), "\n",
 my $text = 'WARNING: MobiDetails is in current active development. This is a &beta; version.<br/> If you experience any trouble or have any idea to improve the software, please contact David at david.baux@inserm.fr';
 print U2_modules::U2_subs_2::danger_panel($text, $q);
 $text = 'NEWS:<ul>
+		<li>2019-06-04: Added gnomAD obs/exp scores instead of ExAC pLI.</li>
+		<li>2019-05-15: Added <a href = \'https://variantvalidator.org/\', target = \'_blank\'>VariantValidator</a> API to create variants. Use it in priority except for SHANK3 gene.</li>
 		<li>2019-02-26: Added <a href = \'https://www.cell.com/cell/fulltext/S0092-8674(18)31629-5\', target = \'_blank\'>spliceAI</a> scores for SNVs!</li>
 		<li>2019-01-24: more than 300 new genes added (potential DSD genes)</li>
 		<li>2018-12-19: check out our new <a href = \'aboutMD.pl\', target = \'_blank\'>About</a> page!</li>
