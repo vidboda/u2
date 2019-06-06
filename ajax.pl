@@ -20,6 +20,7 @@ use URI::Escape;
 use LWP::UserAgent;
 use Net::Ping;
 use URI::Encode qw/uri_encode uri_decode/;
+use JSON;
 
 
 #use XML::Compile::WSDL11;      # use WSDL version 1.1
@@ -240,7 +241,19 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#	}
 			#}
 		}
-		if ($res->{'type_segment'} =~ /UTR/o) {
+		#Intervar new API 06/2019
+		#http://wintervar.wglab.org/api_new.php?queryType=position&build=hg19_updated.v.201904&chr=1&pos=115828756&ref=G&alt=A
+		if ($res->{'type_segment'} eq 'exon') {
+			my $ua = new LWP::UserAgent();
+			$ua->timeout(3);
+			my $response = $ua->get("http://wintervar.wglab.org/api_new.php?queryType=position&build=hg19_updated.v.201904&chr=$chr&pos=$position&ref=$ref&alt=$alt");
+			if ($response->is_success()) {
+				my $intervar_result = decode_json($response->decoded_content());
+				$text .= $q->li("Intervar: $intervar_result->{'Intervar'}");
+			}
+			#else {$text .= $q->li($response->status_line())}
+		}
+		elsif ($res->{'type_segment'} =~ /UTR/o) {
 			my $uORF_file = 'stop-removing_all_possible_annotated_sorted.txt.gz';
 			if ($res->{'type_segment'} eq '5UTR') {$uORF_file = 'uAUG-creating_all_possible_annotated_sorted.txt.gz'}
 			my @uorf = split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$uORF_file $chr:$position-$position`);
@@ -309,6 +322,8 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV') . $q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}) . $q->end_li();
 			}
 		}
+			
+		
 			#####removed 01/10/2018 replaced wit myvariant.info
 			#####my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz --plugin CADD,$DATABASES_PATH/CADD/whole_genome_SNVs.tsv.gz,$DATABASES_PATH/CADD/InDels.tsv.gz  -o STDOUT`); ###VEP81;
 			#for unknwon reasons VEP78 does not work anymore with indels (error) and VEP 81 with substitutions (does not retrieve gmaf esp_maf) - FINALLY works with assembly v75
