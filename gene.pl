@@ -465,8 +465,8 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	if ($nb_exons > 200) {$canvas_height = '1700';$img_suffix = '3';$css_suffix = '_1700'}
 	if ($nb_exons > 300) {$canvas_height = '2500';$img_suffix = '4';$css_suffix = '_2500'}
 	
-	my $text = "Warning: non 'main' accession isoforms do not currently work.<br/> This will be fixed in a future release.";
-	print U2_modules::U2_subs_2::danger_panel($text, $q);
+	#my $text = "Warning: non 'main' accession isoforms do not currently work.<br/> This will be fixed in a future release.";
+	#print U2_modules::U2_subs_2::danger_panel($text, $q);
 	
 	print	$q->p('Click on an exon/intron on the picture below to get the variants lying in it:'),
 		$q->br(),
