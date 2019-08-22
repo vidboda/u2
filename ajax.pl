@@ -989,7 +989,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 
 if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 	my ($type, $nom, $num_seg, $order);
-	if ($q->param('type') && $q->param('type') =~ /(exon|intron|5UTR|3UTR)/o) {$type = $1}
+	if ($q->param('type') && $q->param('type') =~ /(exon|intron|5UTR|3UTR|intergenic)/o) {$type = $1}
 	else {print 1;U2_modules::U2_subs_1::standard_error(15, $q)}
 	if ($q->param('nom') && $q->param('nom') =~ /(\w+)/o || $q->param('nom') == '0') {$nom = '0';if ($1) {$nom = $1}}
 	else {print 2;U2_modules::U2_subs_1::standard_error(15, $q)}
@@ -1172,7 +1172,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 			elsif ($filter eq 'USH' && $result->{'usher'} == 0) {next}
 			elsif ($filter eq 'DFN-USH' && ($result->{'dfn'} == 0 && $result->{'usher'} == 0)) {next}
 			elsif ($filter eq 'RP-USH' && ($result->{'rp'} == 0 && $result->{'usher'} == 0)) {next}
-			elsif ($filter eq 'CHM' && $result->{'nom_gene'} ne 'CHM') {next}
+			elsif ($filter eq 'CHM' && $result->{'nom_gene'}[0] ne 'CHM') {next}
 			
 			
 			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($result->{'nom_g'}, 'clinvar');
@@ -1570,6 +1570,68 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen_status') {
 	my $query = "UPDATE variant SET defgen_export = '$new_status' WHERE nom_g = '$variant';";
 	$dbh->do($query);	
 	print $q->span(U2_modules::U2_subs_3::defgen_status_html($new_html, $q));
+}
+
+if ($q->param('asked') && $q->param('asked') eq 'parents') {
+	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+	my ($id_father, $number_father) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('father')), $q);
+	my ($id_mother, $number_mother) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('mother')), $q);
+	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
+	if ($id_father.$number_father eq $id_mother.$number_mother) {print "Please choose different samples for mother and father.";exit;}
+	#check if everybody has the same analysis
+	my $query_check_analysis = "SELECT COUNT(num_pat) as a FROM miseq_analysis WHERE type_analyse = '$analysis' AND (id_pat || num_pat) IN ('$id$number','$id_father$number_father','$id_mother$number_mother');";
+	my $res = $dbh->selectrow_hashref($query_check_analysis);
+	if ($res->{'a'} != 3) {print 'Sorry the analyses types for the 3 samples do not match.';exit;}
+	
+	my $query = "SELECT nom_c, nom_gene, depth FROM variant2patient WHERE type_analyse  = '$analysis' AND id_pat = '$id' AND num_pat = '$number' AND statut <> 'homozygous' AND allele = 'unknown';";
+	my $sth = $dbh->prepare($query);
+	$res = $sth->execute();
+	my ($i, $j, $k) = (0, 0, 0);#counter for changing alleles
+	my $denovo = '';
+	my $content;
+	while (my $result = $sth->fetchrow_hashref()) {
+		if ($result->{'depth'} > 30) {#if bad coverage in CI, possibly also in parents and error prone
+			my $query_assign = "SELECT allele, statut, id_pat, num_pat FROM variant2patient WHERE nom_c = '$result->{'nom_c'}' AND nom_gene = '{$result->{'nom_gene'}[0],$result->{'nom_gene'}[1]}' AND (id_pat || num_pat) IN ('$id_father$number_father', '$id_mother$number_mother') AND  type_analyse  = '$analysis';";
+			my $sth_assign = $dbh->prepare($query_assign);
+			my $res_assign = $sth_assign->execute();
+			if ($res_assign ne '0E0') {			
+				if ($res_assign == 2) {next}#fat & mot
+				my $allele = '2';#otherwise default mother
+				while (my $result_assign = $sth_assign->fetchrow_hashref()) {
+					if ($result_assign->{'id_pat'}.$result_assign->{'num_pat'} eq $id_father.$number_father) {
+						#father
+						$allele = 1;
+						$j++;
+					}				
+				}
+				my $update = "UPDATE variant2patient SET allele = '$allele' WHERE id_pat = '$id' AND num_pat = '$number' AND nom_gene = '{$result->{'nom_gene'}[0],$result->{'nom_gene'}[1]}' AND nom_c = '$result->{'nom_c'}';";
+				$dbh->do($update);
+				$i++;
+				#$content .= $result->{'nom_gene'}[0]." - ".$result->{'nom_gene'}[1]." - ".$result->{'nom_c'}." - ".$allele."\n";
+			}
+			else {
+				#not in mother nor in father
+				#denovo?
+				#remove neutral from list
+				$k++;
+				my $query_class = "SELECT classe FROM variant WHERE nom_gene = '{$result->{'nom_gene'}[0],$result->{'nom_gene'}[1]}' AND nom = '$result->{'nom_c'}';";
+				my $res_classe = $dbh->selectrow_hashref($query_class);
+				#print $res_classe->{'classe'}."\n";
+				if ($res_classe->{'classe'} eq 'neutral' || $res_classe->{'classe'} eq 'R8' || $res_classe->{'classe'} eq 'VUCS Class F' || $res_classe->{'classe'} eq 'VUCS Class U' || $res_classe->{'classe'} eq 'artefact') {next}
+				$denovo .= $result->{'nom_gene'}[0]." - ".$result->{'nom_gene'}[1]." - ".$result->{'nom_c'}." - ".$res_classe->{'classe'}.$q->br();
+			}
+		}
+	}
+	my $percent_unassigned = sprintf('%.2f', ($k/$i)*100);
+	my $warning = '';
+	my $threshold = 10.34;
+	if ($percent_unassigned > $threshold) {$warning = " - Beware this percentage is suspect (>$threshold)."}
+	if ($denovo ne '') {$content .= "Potential de novo variants:".$q->br().$denovo}
+	$content .= "$i variants assigned to mother (".($i-$j).") or father ($j).".$q->br()."$k could not be assigned (".$q->strong($percent_unassigned."% of assigned variants".$warning).").";
+	my $trio_update = "UPDATE patient SET trio_assigned = 'true' WHERE identifiant = '$id' AND numero = '$number';";
+	$dbh->do($trio_update);
+	print $content;
+	
 }
 
 sub miseq_details {
