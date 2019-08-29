@@ -225,7 +225,8 @@ if ($res->{'type_adn'} eq 'substitution') {
 		print $q->a({'href' => "http://gnomad.broadinstitute.org/variant/$exac", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'gnomAD'), "\n";
 		if ($res->{'type_segment'} eq 'exon') {
 			my @hyphen = split(/-/, $exac);
-			my $intervar_url = "http://wintervar.wglab.org/results.pos.php?queryType=position&build=hg19_update&chr=$evs_chr&pos=$evs_pos_start&ref=$hyphen[2]&alt=$hyphen[3]";
+			#my $intervar_url = "http://wintervar.wglab.org/results.pos.php?queryType=position&build=hg19_updated.v.201904&chr=$evs_chr&pos=$evs_pos_start&ref=$hyphen[2]&alt=$hyphen[3]";
+			my $intervar_url = "http://wintervar.wglab.org/";
 			print $q->a({'href' => $intervar_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'InterVar'), "\n"
 		}			
 	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/gnomad_button.png'}, 'gnomAD'), "\n";

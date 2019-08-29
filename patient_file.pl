@@ -63,6 +63,7 @@ my $CLINICAL_EXOME_SHORT_BASE_DIR = $config->CLINICAL_EXOME_SHORT_BASE_DIR();
 my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
 my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
+my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
@@ -101,6 +102,98 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 #	}
 #";
 
+my $js = "
+	function setDialogTrio(ci, formulary, type_analyse) {
+		//open pop up with select to select father and mother via ajax call - must be sequenced on same panel
+		var \$dialog = \$('<div></div>')
+			.html(formulary)
+			.dialog({
+			    autoOpen: false,
+			    title: \'Choose father and mother:\',
+			    width: 450,
+				buttons: {
+					\"Launch assignation\": function() {
+						\$.ajax({
+							type: \"POST\",
+							url: \"ajax.pl\",
+							data: {asked: 'parents', sample: ci, father: \$(\"#father\").val(), mother: \$(\"#mother\").val(), analysis: type_analyse},
+							beforeSend: function() {
+								\$(\".ui-dialog\").css(\"cursor\", \"progress\");
+								\$(\"html\").css(\"cursor\", \"progress\");
+							}
+						})
+						.done(function(assigned) {
+							//location.reload();
+							\$(\"#trio_div\").html(\"<span>Yes</span>\");					
+							\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS
+							setDialogResultTrio(assigned);
+							\$(\".ui-dialog\").css(\"cursor\", \"default\");
+							\$(\"html\").css(\"cursor\", \"default\");
+							//\$(\".message\").html(assigned);	
+							//\$(\"#type_arn\").html(status);	
+							//if (status === 'neutral') {
+							//	\$(\"#type_arn\").css('color', '#00A020');
+							//	\$(\"#rna_status_select\").val('neutral').change();
+							//}
+							//else {
+							//	\$(\"#type_arn\").css('color', '#FF0000');
+							//	\$(\"#rna_status_select\").val('altered').change();
+							//}
+							//var col = new RegExp(\"#[A-Z0-9]+\");
+							//var classe = new RegExp(\"[a-zA-Z ]+\");
+							//\$(\"#variant_class\").html(classe+class_col);
+							//\$(\"#variant_class\").html(classe.exec(class_col)+'');
+							//\$(\"#variant_class\").css(\"color\", \"\");							
+							//\$(\"#variant_class\").css(\"color\", \"col.exec(class_col)+''\");
+							//\$(this).dialog(\"close\"); //DOES NOT WANT TO CLOSE
+						});			
+					},
+					Cancel: function() {
+						\$(this).dialog(\"close\");
+					}					
+				}
+			})
+			;
+		\$dialog.dialog(\'open\');
+		if (\$(\"#parent_selection\").length) {
+			 \$(\"#parent_selection\").validate({
+				errorElement: \"label\",
+				wrapper: \"span\",
+				errorPlacement: function(error, element) {
+				error.insertBefore( element.parent().parent().parent() );
+				},
+				rules: {
+					\"father\": {\"required\":true},
+					\"mother\": {\"required\":true},
+					\"sample\": {\"required\":true},
+				},
+				messages: {
+					\"father\": {\"required\":\"Please select a father.\"},
+					\"mother\": {\"required\":\"Please select a mother.\"},
+					\"sample\": {\"required\":\"Please select a sample (this is a bug, please report).\"},
+				},
+				submitHandler: function(form) {
+					\$(\"html\").css(\'cursor\', \'progress\');
+					form.submit();					
+				}
+			});
+		}
+		//\$(\'.ui-dialog\').zIndex(\'1002\');
+	}
+	function setDialogResultTrio(text) {
+		//alert(text);
+		new ClipboardJS('.w3-button');
+		var \$dialogResult = \$('<div></div>')
+			.html('<p id=\"denovoinfo\">'+text+'</p><button class=\"w3-button w3-blue w3-large\" data-clipboard-target=\"#denovoinfo\"><i class=\"fa fa-copy\" alt=\"Copy to clipboard\"></button>')
+			.dialog({
+			    autoOpen: true,
+			    title: \'Assignation results:\',
+			    width: 550
+			});
+		\$dialogResult.dialog(\'open\');
+	}
+";
+
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 	$q->start_html(-title=>"U2 patient file",
                         -lang => 'en',
@@ -130,9 +223,12 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.alerts.js'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'jquery-ui-1.12.1.min.js'},				
+				-src => $JS_PATH.'jquery-ui-1.12.1.min.js'},
+				{-language => 'javascript',
+				-src => $JS_PATH.'clipboard.min.js'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.autocomplete.min.js'},
+				$js,
 				{-language => 'javascript',
 				-src => $JS_DEFAULT}],
                         -encoding => 'ISO-8859-1');
@@ -194,6 +290,24 @@ if ($result) {
 	
 	###frame1
 	
+	#check the number of members in the family
+	my $trio_semaph = 0;
+	#$result->{'famille'} =~ /[A-Z]+(\d+)$/o;
+	#my $query_fam = "SELECT COUNT(DISTINCT(numero)) as number FROM patient WHERE famille ~ '[A-Z]+$1';";
+	#my $res = $dbh->selectrow_hashref($query_fam);
+	##print $result->{'trio_assigned'};
+	#if ($res->{'number'} > 2) {$trio_semaph = 1}
+	#select family members that have the same analysis than sample
+	my ($query_fam, $sth, $res);
+	if ($proband eq 'yes') {
+		$query_fam = "SELECT a.identifiant, a.numero, a.identifiant, a.numero, b.type_analyse FROM patient a, miseq_analysis b WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND a.famille = '$result->{'famille'}' AND a.first_name <> '$result->{'first_name'}' AND b.type_analyse IN (SELECT type_analyse FROM miseq_analysis WHERE id_pat = '$result->{'identifiant'}' AND num_pat = '$result->{'numero'}');";
+		$sth = $dbh->prepare($query_fam);
+		$res = $sth->execute();
+		#print "$res-$query_fam";
+		if ($res > 1) {$trio_semaph = 1}
+	}
+	
+	
 	print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong($result->{'identifiant'}.$result->{'numero'}), $q->span(": Sample from "), $q->strong("$result->{'first_name'} $result->{'last_name'}"), $q->end_big(), $q->end_p(), "\n";
 	if ($result->{'commentaire'} ne 'NULL' && $result->{'commentaire'} ne '') {print $q->span({'class' => 'color1'}, 'Comments: '), $q->span("$result->{'commentaire'}")};
 	print $q->br(), $q->br(), $q->start_div({'class' => 'container'}), "\n",
@@ -210,6 +324,7 @@ if ($result) {
 				$q->th({'class' => 'left_general'}, 'Created'),
 #				$q->th({'class' => 'left_general'}, 'Last analysis'),
 				$q->th({'class' => 'left_general'}, 'Other sample(s)'),
+				$q->th({'class' => 'left_general'}, 'Trio allele assignation'),
 			$q->end_Tr(), "\n",
 			$q->start_Tr(), "\n",
 				$q->start_td(), $q->span({'class' => 'pointer', 'onclick' => "window.open('engine.pl?search=$result->{'famille'}', '_blank')"}, $result->{'famille'}), $q->end_td(), "\n",
@@ -252,6 +367,33 @@ if ($result) {
 		}
 	}
 	else {print $q->span("No")}
+
+	if ($trio_semaph == 1 && $result->{'trio_assigned'} != 1) {
+		my $select_father = $q->label({'for' => 'father'}, 'Select the father: ').$q->start_Select({'name' => 'father', 'id' => 'father', 'form' => 'parent_selection'});
+		my $select_mother = $q->label({'for' => 'mother'}, ' Select the mother: ').$q->start_Select({'name' => 'mother', 'id' => 'mother', 'form' => 'parent_selection'});
+		my $analysis = ''; #must be the same for the 2 parents
+		while (my $result_fam = $sth->fetchrow_hashref()) {
+			#if ($analysis ne '' and $analysis ne $result_fam->{'type_analyse') {}
+			$analysis = $result_fam->{'type_analyse'};
+			$select_father .= $q->option({'value' => $result_fam->{'identifiant'}.$result_fam->{'numero'}}, $result_fam->{'identifiant'}.$result_fam->{'numero'}).$q->end_option();
+			$select_mother .= $q->option({'value' => $result_fam->{'identifiant'}.$result_fam->{'numero'}}, $result_fam->{'identifiant'}.$result_fam->{'numero'}).$q->end_option();
+		}
+		$select_father .= $q->end_Select();
+		$select_mother .= $q->end_Select();
+		my $family_form = $q->start_div({'align' => 'center'}).$q->start_form({'action' => '', 'method' => 'post', 'class' => 'u2form', 'id' => 'parent_selection', 'enctype' => &CGI::URL_ENCODED}).$q->br().$select_father.$q->br().$q->br().$select_mother.$q->end_form().$q->end_div();
+		print $q->start_td({'id' => 'trio_div'}), $q->button({'onclick' => "setDialogTrio('$id$number', '$family_form', '$analysis');", 'value' => 'Trio allele assignation', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue'}), $q->end_td();
+		#print $family_form;
+	}
+	elsif ($result->{'trio_assigned'} == 1) {
+		#get stats on assignement
+		#my $query_assign = "SELECT COUNT(nom_c), allele FROM variant2patient WHERE id_pat IN ($id_list) AND num_pat IN ($num_list) AND type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' GROUP BY allele;";
+		#my $sth_assign = $dbh->prepare($query);
+		#my $res_assign = $sth->execute();
+		#print $query_assign;
+		print $q->start_td(), $q->div({'id' => 'trio_div'}, 'Yes'), $q->end_td(), "\n";
+	}
+	else {print $q->start_td(), $q->div({'id' => 'trio_div'}, 'No'), $q->end_td(), "\n"}	
+	
 	print $q->end_td(), $q->end_Tr(), "\n", $q->end_table(), $q->end_div(), $q->br(), $q->br(), "\n";
 	#print $q->end_li(), $q->end_ul(), $q->end_div(), "\n";
 	

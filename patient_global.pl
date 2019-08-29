@@ -57,6 +57,7 @@ my $CSS_PATH = $config->CSS_PATH();
 my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
+my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 
 #my @styles = ($CSS_DEFAULT, $CSS_PATH.'jquery-bubble-popup-v3.css');
 #my @style_print = ($CSS_PATH.'u2_print.css');$CSS_PATH.'w3.css',
@@ -161,14 +162,14 @@ $first_name =~ s/'/''/og;
 
 #reports technical table
 if ($type eq 'analyses') {
-	my $text = 'You will find below a timeline and a global validation table summarising all analyses performed for the patient.';
-	print U2_modules::U2_subs_2::info_panel($text, $q);
+	
 	#print $q->p({'class' => 'w3-margin'}, "You will find below a timeline and a global validation table summarising all analyses performed for the patient."), $q->br(), $q->br();
 	#print $q->start_td({'class' => 'zero_td right_general'});
+
 	
 	#ok for the timeline we get the analyses, and the result multiple from valid_type_analyse to group e.g. NGS experiments
 	#1st query to get patient info
-	my $query = "SELECT numero, identifiant, famille, pathologie, proband, date_creation FROM patient WHERE first_name = '$first_name' AND last_name = '$last_name' ORDER BY date_creation, numero;";
+	my $query = "SELECT numero, identifiant, famille, pathologie, proband, date_creation, trio_assigned FROM patient WHERE first_name = '$first_name' AND last_name = '$last_name' ORDER BY date_creation, numero;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $i = 0;
@@ -176,11 +177,14 @@ if ($type eq 'analyses') {
 	my $dates = "\"date\": [
 	";
 	my $proband = 'no';
+	my $trio_assigned = 'no';
 	my $headline;
 	#my $tag = 'Creation';
+	my ($num_list, $id_list) = ("'$number'", "'$id'");
 	while (my $result = $sth->fetchrow_hashref()) {
 		$i++;		
 		if ($result->{'proband'} == 1) {$proband = 'yes'}
+		if ($result->{'trio_assigned'} == 1) {$trio_assigned = 'yes'}
 		if ($i == 1) {$headline = "Creation in U2 $result->{'identifiant'}$result->{'numero'}";$creation_date = U2_modules::U2_subs_1::date_pg2tjs($result->{'date_creation'});}
 		else {$headline = "New sample $result->{'identifiant'}$result->{'numero'}"}#$tag = 'New sample';}
 		$dates .= "			
@@ -195,11 +199,31 @@ if ($type eq 'analyses') {
 				\"thumbnail\":\"".$HTDOCS_PATH."data/img/favicon.ico\",
 			    }
 			},
-		";		
+		";
+		if ($result->{'numero'} ne $number) {($num_list, $id_list) .= (", '$result->{'numero'}'", ", '$result->{'identifiant'}'")}
 	}
-	
-	
-	
+	if ($trio_assigned eq 'yes') {
+		#allele assignation
+		my $query_assign = "SELECT COUNT(nom_c) as a, allele FROM variant2patient WHERE id_pat IN ($id_list) AND num_pat IN ($num_list) AND type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' GROUP BY allele;";
+		my $sth_assign = $dbh->prepare($query_assign);
+		my $res_assign = $sth_assign->execute();
+		if ($res_assign ne '0E0') {
+			print $q->br(), $q->start_div({'width' => '50%'}), $q->start_table({'class' => 'great_table technical'}), $q->caption("Allele assignation table: $first_name variants have been assigned thanks to parents' data."), $q->start_Tr(), "\n",
+					$q->th('Allele'),
+					$q->th('Number of variants'),
+				$q->end_Tr(), "\n";
+			while (my $result_assign = $sth_assign->fetchrow_hashref()) {
+				print $q->start_Tr(), "\n",
+					$q->td($result_assign->{'allele'}),
+					$q->td($result_assign->{'a'}),
+				$q->end_Tr(), "\n";
+			}
+			print $q->end_table(), $q->end_div(), $q->br(), "\n";
+		}
+		#print $query_assign;
+	}
+	my $text = 'You will find below a timeline and a global validation table summarising all analyses performed for the patient.';
+	print U2_modules::U2_subs_2::info_panel($text, $q);
 	#2nd query for non-groupable analyses
 	
 	$query = "SELECT DISTINCT(a.nom_gene[1]), a.type_analyse, a.valide, a.result, a.date_analyse, a.date_valid, a.date_result, a.analyste, a.validateur, a.referee, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND c.multiple = 'f' AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY date_analyse;";
@@ -399,7 +423,7 @@ else {#reports genotype table
 			my ($mini, $maxi) = U2_modules::U2_subs_2::get_interval($first_name, $last_name, $gene, $dbh);
 			#get vars for specific gene/sample
 			#my $query = "SELECT a.*, b.*, c.first_name, c.last_name, d.filtering_possibility, e.rp, e.dfn FROM variant2patient a, variant b, patient c, valid_type_analyse d, gene e WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND a.type_analyse = d.type_analyse AND b.nom_gene = e.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I') ORDER BY num_segment, b.nom_g $direction, type_analyse;";
-			my $query = "SELECT b.nom, b.nom_gene, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.nom_gene = d.nom_gene AND b.type_segment = d.type AND b.num_segment = d.numero AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I', 'R8', 'VUCS Class F') ORDER BY b.num_segment, b.nom_g $direction, a.type_analyse;";
+			my $query = "SELECT DISTINCT(b.nom), b.nom_gene, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.nom_gene = d.nom_gene AND b.type_segment = d.type AND b.num_segment = d.numero AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I', 'R8', 'VUCS Class F') ORDER BY b.num_segment, b.nom_g $direction, a.type_analyse;";
 			#my $query = "SELECT a.*, b.*, c.first_name, c.last_name FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I') ORDER BY b.num_segment, b.nom_g $direction, a.type_analyse;";
 			#order by type_analyse because 454 before sanger for doc, etc in popup - TODO: be sure sanger = last for point mutations
 			my $list;

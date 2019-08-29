@@ -84,7 +84,7 @@ if ($step == 1 || $q->param('sample')) {
 	($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	$technique = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
 }
-if ($q->param('type') && $q->param('type') =~ /(exon|intron|5UTR|3UTR)/o) {$type = $1}
+if ($q->param('type') && $q->param('type') =~ /(exon|intron|5UTR|3UTR|intergenic)/o) {$type = $1}
 else {print 1;U2_modules::U2_subs_1::standard_error(15, $q)}
 if ($q->param('nom') && $q->param('nom') =~ /(\w+)/o || $q->param('nom') == '0') {$nom = '0';if ($1) {$nom = $1}}
 else {print 2;U2_modules::U2_subs_1::standard_error(15, $q)}

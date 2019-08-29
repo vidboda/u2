@@ -107,7 +107,7 @@ sub print_validation_table {
 		}
 		
 		if ($display == 1) {
-			my ($alignement_file_path, $file_type);
+			my ($alignement_file_path, $file_type) = ('', '');
 			($id, $number) = ($result->{'id_pat'}, $result->{'num_pat'});
 			#illumina
 			my ($addin, $index_ext) = ('', 'bai');
@@ -732,7 +732,7 @@ sub gene_canvas {
 	my ($acc, $i, $x_txt_intron, $y_txt_intron, $x_line_intron, $x_intron_exon, $y_line_intron, $y_up_exon, $x_txt_exon, $y_txt_exon) = ('', 0, 125, 19.5, 100, 150, 25, 12.5, 170, 30);
 	while (my $result = $sth->fetchrow_hashref()) {
 		($main, $ng) = ($result->{'gene'}[1], $result->{'acc_g'});
-		if ($i == 20) {$i = 0;$y_txt_intron += 50;$y_line_intron += 50;$y_txt_exon += 50;$y_up_exon += 50;$x_txt_intron = 125;$x_line_intron = 100;$x_intron_exon = 150;$x_txt_exon = 170;}
+		if ($i == 20 || ($result->{'type'} eq 'intergenic' && $i == 10)) {$i = 0;$y_txt_intron += 50;$y_line_intron += 50;$y_txt_exon += 50;$y_up_exon += 50;$x_txt_intron = 125;$x_line_intron = 100;$x_intron_exon = 150;$x_txt_exon = 170;}
 		if ($acc ne $result->{'gene'}[1]) {#new -> print acc
 			$js.= "context.fillText(\"$result->{'gene'}[1]\", 0, $y_line_intron);";
 			$acc = $result->{'gene'}[1];
