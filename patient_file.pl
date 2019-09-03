@@ -300,7 +300,9 @@ if ($result) {
 	#select family members that have the same analysis than sample
 	my ($query_fam, $sth, $res);
 	if ($proband eq 'yes') {
-		$query_fam = "SELECT a.identifiant, a.numero, a.identifiant, a.numero, b.type_analyse FROM patient a, miseq_analysis b WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND a.famille = '$result->{'famille'}' AND a.first_name <> '$result->{'first_name'}' AND b.type_analyse IN (SELECT type_analyse FROM miseq_analysis WHERE id_pat = '$result->{'identifiant'}' AND num_pat = '$result->{'numero'}');";
+		#$query_fam = "SELECT a.identifiant, a.numero, b.type_analyse FROM patient a, miseq_analysis b WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND a.famille = '$result->{'famille'}' AND a.first_name <> '$result->{'first_name'}' AND b.type_analyse IN (SELECT type_analyse FROM miseq_analysis WHERE id_pat = '$result->{'identifiant'}' AND num_pat = '$result->{'numero'}');";
+		#for testing negative cases (one parent being anybody)
+		$query_fam = "SELECT a.identifiant, a.numero, b.type_analyse FROM patient a, miseq_analysis b WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND a.first_name <> '$result->{'first_name'}' AND b.type_analyse IN (SELECT type_analyse FROM miseq_analysis WHERE id_pat = '$result->{'identifiant'}' AND num_pat = '$result->{'numero'}');";
 		$sth = $dbh->prepare($query_fam);
 		$res = $sth->execute();
 		#print "$res-$query_fam";

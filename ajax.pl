@@ -1586,23 +1586,36 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 	my $query = "SELECT nom_c, nom_gene, depth FROM variant2patient WHERE type_analyse  = '$analysis' AND id_pat = '$id' AND num_pat = '$number' AND statut <> 'homozygous' AND allele = 'unknown';";
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
-	my ($i, $j, $k) = (0, 0, 0);#counter for changing alleles
+	my ($i, $j, $k, $l, $m) = (0, 0, 0, 0, 0);#counter for changing alleles
 	my $denovo = '';
 	my $content;
 	while (my $result = $sth->fetchrow_hashref()) {
 		if ($result->{'depth'} > 30) {#if bad coverage in CI, possibly also in parents and error prone
+			$l++;
 			my $query_assign = "SELECT allele, statut, id_pat, num_pat FROM variant2patient WHERE nom_c = '$result->{'nom_c'}' AND nom_gene = '{$result->{'nom_gene'}[0],$result->{'nom_gene'}[1]}' AND (id_pat || num_pat) IN ('$id_father$number_father', '$id_mother$number_mother') AND  type_analyse  = '$analysis';";
 			my $sth_assign = $dbh->prepare($query_assign);
 			my $res_assign = $sth_assign->execute();
-			if ($res_assign ne '0E0') {			
-				if ($res_assign == 2) {next}#fat & mot
-				my $allele = '2';#otherwise default mother
-				while (my $result_assign = $sth_assign->fetchrow_hashref()) {
-					if ($result_assign->{'id_pat'}.$result_assign->{'num_pat'} eq $id_father.$number_father) {
-						#father
-						$allele = 1;
-						$j++;
-					}				
+			if ($res_assign ne '0E0') {
+				my $allele = 2;#default mother
+				if ($res_assign == 2) {#fat & mot
+					#next if both het/hom, if one het one hom => assign to hom
+					my ($fat_allele, $mom_allele);
+					while (my $result_assign = $sth_assign->fetchrow_hashref()) {
+						if ($result_assign->{'id_pat'}.$result_assign->{'num_pat'} eq $id_father.$number_father) {$fat_allele = $result_assign->{'statut'}}
+						elsif ($result_assign->{'id_pat'}.$result_assign->{'num_pat'} eq $id_mother.$number_mother) {$mom_allele = $result_assign->{'statut'}}
+					}
+					if ($fat_allele eq 'heterozygous' && $mom_allele eq 'homozygous') {$allele = 2;}
+					elsif ($fat_allele eq 'homozygous' && $mom_allele eq 'heterozygous') {$allele = 1;$j++;}
+					else {$m++;next}
+				}
+				else {
+					while (my $result_assign = $sth_assign->fetchrow_hashref()) {
+						if ($result_assign->{'id_pat'}.$result_assign->{'num_pat'} eq $id_father.$number_father) {
+							#father
+							$allele = 1;
+							$j++;
+						}			
+					}
 				}
 				my $update = "UPDATE variant2patient SET allele = '$allele' WHERE id_pat = '$id' AND num_pat = '$number' AND nom_gene = '{$result->{'nom_gene'}[0],$result->{'nom_gene'}[1]}' AND nom_c = '$result->{'nom_c'}';";
 				$dbh->do($update);
@@ -1622,12 +1635,13 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 			}
 		}
 	}
-	my $percent_unassigned = sprintf('%.2f', ($k/$i)*100);
+	my $percent_unassigned = sprintf('%.2f', ($k/$l)*100);
 	my $warning = '';
-	my $threshold = 10.34;
-	if ($percent_unassigned > $threshold) {$warning = " - Beware this percentage is suspect (>$threshold)."}
+	$content .= "$l non homozygous variants considered (DoC > 30X):".$q->br()."Of which $m could not be assigned due to het/het or hom/hom in parents.".$q->br();
+	my $threshold = 7.83;
+	if ($percent_unassigned > $threshold) {$warning = " - Beware this percentage is suspect (>$threshold)"}
 	if ($denovo ne '') {$content .= "Potential de novo variants:".$q->br().$denovo}
-	$content .= "$i variants assigned to mother (".($i-$j).") or father ($j).".$q->br()."$k could not be assigned (".$q->strong($percent_unassigned."% of assigned variants".$warning).").";
+	$content .= "$i variants assigned to mother (".($i-$j).") or father ($j).".$q->br()."$k could not be assigned because they were absent in father and mother (".$q->strong($percent_unassigned."% of assigned variants".$warning).").";
 	my $trio_update = "UPDATE patient SET trio_assigned = 'true' WHERE identifiant = '$id' AND numero = '$number';";
 	$dbh->do($trio_update);
 	print $content;
