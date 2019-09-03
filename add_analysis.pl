@@ -398,42 +398,7 @@ if ($user->isAnalyst() == 1) {
 	print					#$q->end_fieldset(), $q->br(),
 					$q->end_div(),
 				$q->end_div(), "\n",
-		#				$q->start_li({'id' => 'gene_selection', 'class' => 'w3-padding-16'}),
-		#					$q->label({'for' => 'gene', 'class' => 'w3-padding-16'}, 'Gene:');
-		#U2_modules::U2_subs_1::select_genes_grouped($q, 'genes', 'analysis_form');
-		#print 					$q->br(), "\n",
-		#				$q->end_li(), "\n",
-		#				$q->start_li({'id' => 'illumina_filter_selection', 'style' => 'display:none;', 'class' => 'w3-padding-16'}),
-		#					$q->label({'for' => 'filter', 'class' => 'w3-padding-16'}, 'Filter:');
-		#print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
-		#print 					$q->br(), "\n",
-		#				$q->end_li(), "\n",
-		#			$q->end_div(),
-		#		$q->end_fieldset(),
-				
-				
-				
-		#		$q->start_fieldset(),
-		#			$q->legend('Analysis details'),
-		#			$q->start_ol(), "\n",
-		#				$q->start_li({'class' => 'w3-padding-16'}),
-		#					#$q->start_fieldset(),label behind was previously legend, no 'for', with radio button preceeding style
-		#						$q->label({'for' => 'analysis', 'class' => 'w3-padding-16'}, 'Analysis type:');
-		#print U2_modules::U2_subs_1::select_analysis($q, $dbh, 'analysis_form');
-		#print					#$q->end_fieldset(), $q->br(),
-		#				$q->end_li(), "\n",
-		#				$q->start_li({'id' => 'gene_selection', 'class' => 'w3-padding-16'}),
-		#					$q->label({'for' => 'gene', 'class' => 'w3-padding-16'}, 'Gene:');
-		#U2_modules::U2_subs_1::select_genes_grouped($q, 'genes', 'analysis_form');
-		#print 					$q->br(), "\n",
-		#				$q->end_li(), "\n",
-		#				$q->start_li({'id' => 'illumina_filter_selection', 'style' => 'display:none;', 'class' => 'w3-padding-16'}),
-		#					$q->label({'for' => 'filter', 'class' => 'w3-padding-16'}, 'Filter:');
-		#print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
-		#print 					$q->br(), "\n",
-		#				$q->end_li(), "\n",
-		#			$q->end_ol(),
-		#		$q->end_fieldset(),
+
 				
 				
 				$q->br(),
@@ -600,17 +565,6 @@ if ($user->isAnalyst() == 1) {
 						#<NumberOfUnindexedClustersPF>568151</NumberOfUnindexedClustersPF>
 						#
 						
-						#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-						#$alignment_dir =~ /\\(Alignment\d*)<$/o;
-						#$alignment_dir = $1;
-						#
-						#my $noc_pf = &getMetrics("NumberOfClustersPF>[0-9]+<", $alignment_dir, $SSH_RACKSTATION_BASE_DIR, $run, $ssh);
-						#my $noc_raw = &getMetrics("NumberOfClustersRaw>[0-9]+<", $alignment_dir, $SSH_RACKSTATION_BASE_DIR, $run, $ssh);
-						#my $nodc = &getMetrics("NumberOfDuplicateClusters>[0-9]+<", $alignment_dir, $SSH_RACKSTATION_BASE_DIR, $run, $ssh);
-						#my $nouc = &getMetrics("NumberOfUnalignedClusters>[0-9]+<", $alignment_dir, $SSH_RACKSTATION_BASE_DIR, $run, $ssh);
-						#my $nouc_pf = &getMetrics("NumberOfUnalignedClustersPF>[0-9]+<", $alignment_dir, $SSH_RACKSTATION_BASE_DIR, $run, $ssh);
-						#my $nouic = &getMetrics("NumberOfUnindexedClusters>[0-9]+<", $alignment_dir, $SSH_RACKSTATION_BASE_DIR, $run, $ssh);
-						#my $nouic_pf = &getMetrics("NumberOfUnindexedClustersPF>[0-9]+<", $alignment_dir, $SSH_RACKSTATION_BASE_DIR, $run, $ssh);
 						
 						my $noc_pf = &getMetrics("NumberOfClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
 						my $noc_raw = &getMetrics("NumberOfClustersRaw>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
@@ -677,35 +631,7 @@ if ($user->isAnalyst() == 1) {
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
-							#above command replaces the whole block below
-							##select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
-							#$query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; #num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
-							#my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
-							#my $count_hash = 0;
-							#foreach my $totest (keys(%patients)) {
-							#	$totest =~ /^$PATIENT_IDS\s*(\d+)$/o;						
-							#	$query .= "(num_pat = '$2' AND id_pat = '$1') ";
-							#	$query2 .= "(numero = '$2' AND identifiant = '$1') ";
-							#	$count_hash++;
-							#	if ($count_hash < keys(%patients)) {$query .= "OR ";$query2 .= "OR ";}								
-							#}
-							#$query .= ") GROUP BY num_pat, id_pat;";
-							#$query2 .= ";";
-							##print $query2;exit;
-							#$sth = $dbh->prepare($query2);
-							#$res = $sth->execute();
-							##modify hash
-							#
-							#while (my $result = $sth->fetchrow_hashref()) {
-							#	$patients{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
-							#}
-							#$sth = $dbh->prepare($query);
-							#$res = $sth->execute();
-							##cleanup hash
-							#while (my $result = $sth->fetchrow_hashref()) {
-							#	if (exists($patients{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients{$result->{'id_pat'}.$result->{'num_pat'}} = 2} #remove patients with that type of analysis already recorded
-							#}
-							
+												
 							
 							
 							#foreach my $keys (sort keys (%patients)) {print $keys.$patients{$keys}.$q->br();}
@@ -713,79 +639,7 @@ if ($user->isAnalyst() == 1) {
 							#build form
 							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, 'import_illumina_vv.pl', '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $access_method);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
-							#print $q->p("In addition to $id$number, I have found ".(keys(%patients)-1)." other patients eligible for import in U2 for this run ($run)."), $q->start_p(), $q->span("Please select those you are interested in"), "\n";
-							#if ($filtered == '1') {print $q->span(" and specify your filtering options for each of them")}
-							#print $q->span("."), $q->end_p();
-							#
-							#print $q->start_p(), $q->strong('You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet. In this case, please insert them via the Excel file and reload the page.'), $q->end_p();
-							#
-							##Filtering or not?
-							#my $filter = '';
-							#if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
-							#	
-							#
-							#print 					$q->br(), $q->br(), $q->start_div({'align' => 'center'}), "\n",
-							#	$q->button({'id' => "select_all_illumina_form_$run", 'value' => 'Unselect all', 'onclick' => "select_toggle('illumina_form_$run');"}), $q->br(), $q->br(),
-							#	$q->start_form({'action' => 'import_illumina.pl', 'method' => 'post', 'class' => 'u2form', 'id' => "illumina_form_$run", 'onsubmit' => 'return illumina_form_submit();', 'enctype' => &CGI::URL_ENCODED}), "\n",
-							#	$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', form => "illumina_form_$run"}), "\n",
-							#	$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"}), "\n",
-							#	$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"}), "\n",
-							#	$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"}), "\n";
-							#if ($filter ne '') {print $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"}), "\n"}								
-							#	
-							#print					$q->start_fieldset(),
-							#		$q->legend('Import '.ucfirst($instrument).' data'),
-							#		$q->start_ol(), "\n";
-							#		
-							##new implementation to get an idea of the sequencing quality per patient
-							##get last alignment dir
-							##my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-							##$alignment_dir =~ /\\(Alignment\d*)<$/o;
-							##$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
-							#
-							#
-							#my $i = 2;
-							#foreach my $sample (sort keys(%patients)) {
-							#	#$sample =~ s/\n//og;
-							#	if (($sample ne $id.$number) && ($patients{$sample} == 1)) {#other eligible patients
-							#		print 					$q->start_li(), $q->start_div({'class' => 'container_div'}), $q->start_div({'class' => 'fixed'}), $q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, $sample), $q->end_div(), "\n";
-							#		if ($filtered == '1') {
-							#			print $q->start_div({'class' => 'fixed'}), "\n",
-							#				$q->label({'for' => 'filter'}, 'Filter:'), "\n", $q->end_div(), $q->start_div({'class' => 'fixed'}), "\n",;
-							#			print U2_modules::U2_subs_1::select_filter($q, $i.'_filter', "illumina_form_$run");
-							#			print $q->end_div();
-							#		}
-							#		print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), $q->end_div(), "\n";
-							#	}
-							#	elsif (($sample ne $id.$number) && ($patients{$sample} == 0)) {#unknown patient
-							#		print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample not yet recorded in U2. Please proceed if you want to import Illumina data."), "\n";
-							#	}
-							#	elsif (($sample ne $id.$number) && ($patients{$sample} == 2)) {#patient with a run already recorded
-							#		print 					$q->start_li(), $q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "$sample has already a run recorded as $analysis."), "\n";
-							#	}
-							#	else {#original patient									
-							#		print 					$q->start_li(), $q->div({'class' => 'fixed'}, $sample), "\n";
-							#		if ($filtered == '1') {
-							#			print $q->div({'class' => 'fixed'}, "Filter:"), $q->div({'class' => 'fixed'}, $filter), "\n",
-							#		}
-							#		print &get_raw_data($alignment_dir, $sample, $ssh, $summary_file, $instrument), "\n";
-							#	}
-							#	print	$q->end_li(), "\n";
-							#	$i++;
-							#}
-							#
-							#print		$q->end_ol(),
-							#	$q->end_fieldset(),
-							#	$q->br(),
-							#	$q->submit({'value' => 'Import', 'class' => 'submit', form => "illumina_form_$run"}), $q->br(), $q->br(), "\n",
-							#$q->end_form(), $q->end_div(), "\n",
-							#$q->span('Criteria for FAIL:'), "\n",
-							#$q->start_ul(), "\n",
-							#	$q->li('% Q30 < '.$U2_modules::U2_subs_1::Q30), "\n",
-							#	$q->li('% 50X bp < '.$U2_modules::U2_subs_1::PC50X), "\n",
-							#	$q->li('Ts/Tv ratio < '.$U2_modules::U2_subs_1::TITV), "\n",
-							#	$q->li('mean DOC < '.$U2_modules::U2_subs_1::MDOC), "\n",
-							#$q->end_ul(), "\n";
+
 
 						}
 					}
@@ -817,8 +671,7 @@ if ($user->isAnalyst() == 1) {
 			
 			if ($step == 2) {$order = U2_modules::U2_subs_1::get_strand($gene, $dbh)}
 			if ($res->{'num_pat'} ne '') { #print variants already recorded
-				#$to_fill_table = $q->start_div({'class' => 'fented_noleft container'}).$q->start_table({'class' => 'great_table technical', 'id' => 'genotype'});
-				#if ($res->{'analyste'} ne '') {$to_fill = $q->li("$analysis by $res->{'analyste'}, $res->{'date_analyse'}");$to_fill_table .= $q->caption("$analysis by $res->{'analyste'}, $res->{'date_analyse'}")."\n";}
+
 				if ($res->{'analyste'} ne '') {$to_fill_table .= $q->caption("$analysis by $res->{'analyste'}, $res->{'date_analyse'}")."\n"}
 				$to_fill_table .= $q->start_Tr().
 							$q->th({'class' => 'left_general'}, 'Position').
@@ -839,7 +692,7 @@ if ($user->isAnalyst() == 1) {
 					$to_fill_table .= $q->start_Tr({'id' => "v$j", 'class' => 'var'}).$q->start_td();#.$q->td().$q->td().$q->td().$q->td().$q->td().$q->td().$q->td().$q->end_Tr();
 					#if ($result->{'type_segment'} =~ /on/o) {$to_fill .= $q->span(ucfirst($result->{'type_segment'}));$to_fill_table .= $q->span(ucfirst($result->{'type_segment'}));}
 					if ($result->{'type_segment'} =~ /on/o) {$to_fill_table .= $q->span(ucfirst($result->{'type_segment'}));}
-					#$to_fill .= $q->span(" $result->{'nom'}: $result->{'nom_c'}, ").$q->span({'id' => "w$j"}, "$result->{'statut'}, allele: $result->{'allele'}, class: ").$q->span({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh).";"}, $result->{'classe'}."&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$analysis', '".uri_encode($result->{'nom_c'})."', 'v$j');"}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'javascript:;', 'title' => 'click to modifiy status and/or alleles', 'onclick' => "createFormStatus('".uri_encode($result->{'nom_c'})."', '$gene', '$id$number', '$analysis', 'v$j', '$result->{'statut'}', '$result->{'allele'}');"}).$q->span({'class' => 'list'}, "Status&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_li()."\n";
+
 					my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
 					#if ($result->{'denovo'} == 1) {$denovo_txt = '_denovo'}
 					$to_fill_table .= $q->span(" $result->{'nom'}").
@@ -866,11 +719,6 @@ if ($user->isAnalyst() == 1) {
 				$bio_val = U2_modules::U2_subs_1::translate_boolean($res->{'valide'});
 				$bio_val_class = U2_modules::U2_subs_1::translate_boolean_class($res->{'valide'});
 				
-				#if ($res->{'technical_valid'} == 1) {$tech_val = '+'}
-				#if ($res->{'result'} == 1) {$result_ana = '+'}
-				#elsif ($res->{'result'}  eq '') {$result_ana = 'UNDEFINED'}
-				#elsif ($res->{'result'} == 0) {$result_ana = '-'}			
-				#if ($res->{'valide'} == 1) {$bio_val = '+'}
 				
 				#print $res->{'result'};
 			}
@@ -922,126 +770,12 @@ if ($user->isAnalyst() == 1) {
 				print U2_modules::U2_subs_2::danger_panel($text, $q);			
 				
 				print $q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
-				#print $q->start_p(), $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-ripple w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants."), $q->end_p(), "\n",
-				#$q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
+
 				
 				my @js_params = ('createForm', $id.$number, $analysis);
 				my ($js, $map) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
 			
-				###create an exon radio table
-				###or no a canvas!!!! HTML5
-				###ok this is relou as canvas don't accept links, so I put a transparent picture above with a map
-				##
-				##$query = "SELECT b.nom as gene, a.numero as numero, a.nom as nom, a.type as type FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.nom[1] = '$gene' AND b.main = 't' AND a.nom NOT LIKE '%bis' order by a.start_g $order;";
-				##my $sth = $dbh->prepare($query);
-				##my $res = $sth->execute();
-				##my $js = "	var canvas = document.getElementById(\"exon_selection\");
-				##		var context = canvas.getContext(\"2d\");
-				##		//context.drawImage(document.getElementById('transparent_image'), 0, 0);
-				##		context.fillStyle = \"#000000\";
-				##		context.font = \"bold 14px sans-serif\";
-				##		context.strokeStyle = \"#FF0000\";
-				##	";
-				##my $map = "\n<map name='segment'>\n";
-				##my ($acc, $i, $x_txt_intron, $y_txt_intron, $x_line_intron, $x_intron_exon, $y_line_intron, $y_up_exon, $x_txt_exon, $y_txt_exon) = ('', 0, 125, 19.5, 100, 150, 25, 12.5, 170, 30);
-				##while (my $result = $sth->fetchrow_hashref()) {
-				##	if ($i == 20) {$i = 0;$y_txt_intron += 50;$y_line_intron += 50;$y_txt_exon += 50;$y_up_exon += 50;$x_txt_intron = 125;$x_line_intron = 100;$x_intron_exon = 150;$x_txt_exon = 170;}
-				##	if ($acc ne $result->{'gene'}[1]) {#new -> print acc
-				##		$js.= "context.fillText(\"$result->{'gene'}[1]\", 0, $y_line_intron);";
-				##		$acc = $result->{'gene'}[1];
-				##	}
-				##	if ($result->{'type'} ne 'exon') { #for intron, 5UTR, 3UTR=> print name of segment and a line + a map (left, top, right, bottom)
-				##		#my $html_id = 'intron';
-				##		if ($result->{'type'} ne 'intron') {$js .= "context.fillText(\"$result->{'nom'}\", ".($x_txt_intron-15).", $y_txt_intron);";}#$html_id =''}
-				##		else {$js .= "\t\t\t\t\tcontext.fillText(\"$result->{'nom'}\", $x_txt_intron, $y_txt_intron);"}
-				##		$js .= "context.moveTo($x_line_intron,$y_line_intron);
-				##			context.lineTo($x_intron_exon,$y_line_intron);
-				##			context.stroke();\n";
-				##		#$js .=  "\$( \"#$html_id$result->{'nom'}\" )
-				##		#		.button()
-				##		#		.click(function() {
-				##		#			var segment = \"$html_id$result->{'nom'}\";
-				##		#		      \$(\"#dialog-form\").dialog(\"open\");
-				##		#		});\n";
-				##		$map .= "<area shape = 'rect' coords = '".($x_line_intron-100).",".($y_line_intron-25).",".($x_line_intron-50).",".($y_line_intron+25)."' onclick = 'createForm(\"$result->{'type'}\", \"$result->{'nom'}\", \"$result->{'numero'}\", \"$gene\", \"$acc\", \"$id$number\", \"$analysis\");' href = 'javascript:;'/>\n";
-				##		$i++;
-				##		$x_line_intron += 100;
-				##		$x_txt_intron += 100;
-				##		
-				##	}
-				##	elsif ($result->{'type'} eq 'exon') { #for exons print name of segment and a box + a map (left, top, right, bottom)
-				##		$js .= "\t\t\t\t\tcontext.fillText(\"$result->{'nom'}\", $x_txt_exon, $y_txt_exon);
-				##			context.strokeRect($x_intron_exon,$y_up_exon,50,25);\n";
-				##		$map .= "<area shape = 'rect' coords = '".($x_intron_exon-100).",".($y_line_intron-25).",".($x_intron_exon-50).",".($y_line_intron+25)."' onclick = 'createForm(\"$result->{'type'}\", \"$result->{'nom'}\", \"$result->{'numero'}\", \"$gene\", \"$acc\", \"$id$number\", \"$analysis\");' href = 'javascript:;'/>\n";
-				##		$i++;
-				##		$x_intron_exon += 100;
-				##		$x_txt_exon += 100;					
-				##	}
-				##}
-				##
-				##
-				###secondary acc#
-				##$query = "SELECT b.nom as gene, a.numero as numero, a.nom as nom, a.type as type FROM segment a, gene b WHERE a.nom_gene = b.nom AND nom_gene[1] = '$gene' AND b.main = 'f' AND (a.start_g NOT IN (SELECT a.start_g FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.main = 't' AND b.nom[1] = '$gene') OR a.end_g NOT IN (SELECT a.end_g FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.main = 't' AND b.nom[1] = '$gene'));";
-				##$sth = $dbh->prepare($query);
-				##$res = $sth->execute();
-				###reinitialize - change line - we need to check if exons follow
-				##($acc, $i, $x_txt_intron, $y_txt_intron, $x_line_intron, $x_intron_exon, $y_line_intron, $y_up_exon, $x_txt_exon, $y_txt_exon) = ('', 0, 125, $y_txt_intron, 100, 150, $y_line_intron, $y_up_exon, 170, $y_txt_exon);
-				##my ($num, $type);
-				##while (my $result = $sth->fetchrow_hashref()) {
-				##	if (($result->{'type'} eq 'intron' && $result->{'numero'} > $num)) {###JUMP-non contiguous segment
-				##		$x_intron_exon += 100;
-				##		$x_txt_exon += 100;
-				##		if ($type eq 'exon') {$x_txt_intron += 100;$x_line_intron += 100}
-				##	}
-				##	elsif ($result->{'type'} eq 'exon' && $type eq 'exon') {$x_txt_intron += 100;$x_line_intron += 100} #2 exons
-				##	$num = $result->{'numero'};
-				##	$type = $result->{'type'};
-				##	if ($i == 20) {$i = 0;$y_txt_intron += 50;$y_line_intron += 50;$y_txt_exon += 50;$y_up_exon += 50;$x_txt_intron = 125;$x_line_intron = 100;$x_intron_exon = 150;$x_txt_exon = 170;}
-				##	if ($acc ne $result->{'gene'}[1]) {#new -> print acc
-				##		$i = 0;$y_txt_intron += 50;$y_line_intron += 50;$y_txt_exon += 50;$y_up_exon += 50;$x_txt_intron = 125;$x_line_intron = 100;$x_intron_exon = 150;$x_txt_exon = 170;
-				##		$js.= "context.fillText(\"$result->{'gene'}[1]\", 0, $y_line_intron);";
-				##		$acc = $result->{'gene'}[1];
-				##	}
-				##	if ($result->{'type'} ne 'exon') { #for intron, 5UTR, 3UTR=> print name of segment and a line + a map (left, top, right, bottom)
-				##		if ($result->{'type'} ne 'intron') {$js .= "context.fillText(\"$result->{'nom'}\", ".($x_txt_intron-15).", $y_txt_intron);"}
-				##		else {$js .= "\t\t\t\t\tcontext.fillText(\"$result->{'nom'}\", $x_txt_intron, $y_txt_intron);"}
-				##		$js .= "context.moveTo($x_line_intron,$y_line_intron);
-				##			context.lineTo($x_intron_exon,$y_line_intron);
-				##			context.stroke();\n";
-				##		$map .= "<area shape = 'rect' coords = '".($x_line_intron-100).",".($y_line_intron-25).",".($x_line_intron-50).",".($y_line_intron+25)."' onclick = 'createForm(\"$result->{'type'}\", \"$result->{'nom'}\", \"$result->{'numero'}\", \"$gene\", \"$acc\", \"$id$number\", \"$analysis\");' href = 'javascript:;'/>\n";
-				##		$i++;
-				##		$x_line_intron += 100;
-				##		$x_txt_intron += 100;
-				##		
-				##	}
-				##	elsif ($result->{'type'} eq 'exon') { #for exons print name of segment and a box + a map (left, top, right, bottom)
-				##		$js .= "\t\t\t\t\tcontext.fillText(\"$result->{'nom'}\", $x_txt_exon, $y_txt_exon);
-				##			context.strokeRect($x_intron_exon,$y_up_exon,50,25);\n";
-				##		$map .= "<area shape = 'rect' coords = '".($x_intron_exon-100).",".($y_line_intron-25).",".($x_intron_exon-50).",".($y_line_intron+25)."' onclick = 'createForm(\"$result->{'type'}\", \"$result->{'nom'}\", \"$result->{'numero'}\", \"$gene\", \"$acc\", \"$id$number\", \"$analysis\");' href = 'javascript:;'/>\n";
-				##		$i++;
-				##		$x_intron_exon += 100;
-				##		$x_txt_exon += 100;					
-				##	}
-				##}
-				##
-				##
-				##
-				##$map .= "</map>\n";
-				
-				#my $js = "	var canvas = document.getElementById(\"exon_selection\");
-				#		var context = canvas.getContext(\"2d\");
-				#		//context.drawImage(document.getElementById('transparent_image'), 0, 0);
-				#		context.font = \"bold 14px sans-serif\";
-				#		context.fillText(\"NM_001145853\", 0, 25);
-				#		context.fillText(\"1\", 125, 19.5);
-				#		context.strokeStyle = \"#FF0000\";
-				#		context.moveTo(100,25);
-				#		context.lineTo(150,25);					
-				#		context.stroke();					
-				#		//context.fillText(\"1\", 125, 19.5);
-				#		context.strokeRect(150,12.5,50,25);
-				#		context.fillText(\"1\", 170, 30);";
-				#print $q->start_div({'class' => 'container'}), "\n<map name='segment'><area shape='rect' coords='0,0,1100,500' href='/U2/'/></map>\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}), $q->end_div(), "\n", $q->script({'type' => 'text/javascript'}, $js);
+
 				print $q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}), $q->end_div(), "\n", $q->script({'type' => 'text/javascript'}, $js), "\n",
 					$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}), $q->p({'id' => 'fill_in'}), $q->end_div(), "\n";
 			
@@ -1070,11 +804,7 @@ if ($user->isAnalyst() == 1) {
 					$q->start_td({'class' => 'td_border'}), "\n",
 						$q->span({'id' => 'technical_valid', 'class' => $tech_val_class}, $tech_val), "\n";
 			
-			
-			
-			#print $q->start_ul({'id' => 'validations'}), "\n",
-			#			$q->start_li(),
-			#				$q->span("Technical validation: "), $q->span({'id' => 'technical_valid', 'class' => $tech_val_class}, $tech_val), "\n";
+
 			if ($tech_val ne '+') {
 				print $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'id' => 'technical_valid_2', 'value' => 'Validate', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'technical_valid');", 'class' => 'w3-button w3-ripple w3-blue'});
 			}
@@ -1082,9 +812,7 @@ if ($user->isAnalyst() == 1) {
 					$q->end_td(), "\n",
 					$q->start_td({'class' => 'td_border'}), "\n",
 						$q->span({'id' => 'result', 'class' => $result_ana_class}, $result_ana), "\n";
-			#print $q->end_li(),
-			#	$q->start_li(),
-			#		$q->span("Analysis result: "), $q->span({'id' => 'result', 'class' => $result_ana_class}, $result_ana), "\n";
+
 			if ($user->isReferee() == 1) {
 				if ($result_ana eq 'UNDEFINED') {
 					print $q->start_span({'id' => 'result_2'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'value' => 'Negative', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'negatif');", 'class' => 'w3-button w3-ripple w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'value' => 'Positive', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'positif');", 'class' => 'w3-button w3-ripple w3-blue'}),  $q->end_span();
@@ -1094,9 +822,7 @@ if ($user->isAnalyst() == 1) {
 					$q->end_td(), "\n",
 					$q->start_td({'class' => 'td_border'}), "\n",
 						$q->span({'id' => 'valide', 'class' => $bio_val_class}, $bio_val), "\n";
-			#print	$q->end_li(),
-			#	$q->start_li(),
-			#		$q->span("Biological validation: "), $q->span({'id' => 'valide', 'class' => $bio_val_class}, $bio_val), "\n";
+
 			if ($user->isValidator() == 1) {
 				if ($bio_val ne '+') {
 					print $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'id' => 'valide_2', 'value' => 'Validate', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'valide');", 'class' => 'w3-button w3-ripple w3-blue'});
@@ -1110,50 +836,12 @@ if ($user->isAnalyst() == 1) {
 				$q->end_Tr(), "\n",
 			$q->end_table(), "\n",
 			$q->end_div(), "\n";
-			#print	$q->end_li(),
-			#	$q->start_li(),
-			#		$q->button({'value' => 'Jump to genotype view', 'onclick' => "window.location = 'patient_genotype.pl?sample=$id$number&gene=$gene';"}),
-			#	$q->end_li(),
-			#		$q->end_ul(), "\n",
-			#	$q->end_div(), "\n";
+
 			
 		}
-		#$html .= $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->button({'value' => 'Validate', 'onclick' => "validate('$id', '$number', 'USH2A', 'SANGER', 'technical');"});
+
 	}
-	#elsif ($step == 3) {
-	#	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh);
-	#	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
-	#	my $date = U2_modules::U2_subs_1::get_date();
-	#	#record analysis
-	#	#1st, check if experience already exists
-	#	my ($tech_val, $result_ana, $bio_val) = ("NO", "UNDEFINED", "NO");
-	#	my $query = "SELECT num_pat, analyste, date_analyse, technical_valid, result, valide FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND nom_gene[1] = '$gene' AND type_analyse = '$analysis';";
-	#	my $res = $dbh->selectrow_hashref($query);
-	#	my $to_fill = '';
-	#	
-	#	if ($res->{'num_pat'} ne '') { #print variants already recorded
-	#		if ($res->{'analyste'} ne '') {$to_fill = $q->li("$analysis by $res->{'analyste'}, $res->{'date_analyse'}")}
-	#		$query = "SELECT a.nom_c, a.statut, a.allele, b.type_segment, b.classe, c.nom FROM variant2patient a, variant b, segment c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene = c.nom_gene AND b.num_segment = c.numero AND b.type_segment = c.type AND a.num_pat = '$number' AND a.id_pat = '$id' AND a.nom_gene[1] = '$gene' AND a.type_analyse = '$analysis' ORDER by b.nom_g $order;";	
-	#		my $sth = $dbh->prepare($query);
-	#		my $res2 = $sth->execute();
-	#		my $j;
-	#		while (my $result = $sth->fetchrow_hashref()) {
-	#			$j++;
-	#			$to_fill .= $q->start_li({'id' => "v$j", 'class' => 'var'});
-	#			if ($result->{'type_segment'} =~ /on/o) {$to_fill .= $q->span(ucfirst($result->{'type_segment'}))}				
-	#			$to_fill .= $q->span("$result->{'nom'}: $result->{'nom_c'}, $result->{'statut'}, allele: $result->{'allele'}, classe: ").$q->span({'style' => "color:".U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh).";"}, $result->{'classe'}."&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->img({'src' => $HTDOCS_PATH.'data/img/buttons/delete.png', 'class' => 'pointer text_img', 'width' => '15', height => '15', 'onclick' => "delete_var('$id$number', '$gene', '$analysis', '".uri_encode($result->{'nom_c'})."', 'v$j');"}).$q->end_li()."\n";
-	#		}
-	#		$to_fill .= $q->br();
-	#		if ($res->{'technical_valid'} == 1) {$tech_val = 'YES'}
-	#		if ($res->{'result'} == 1) {$result_ana = 'YES'}
-	#		elsif ($res->{'result'}  eq '') {$result_ana = 'UNDEFINED'}
-	#		elsif ($res->{'result'} == 0) {$result_ana = 'NO'}			
-	#		if ($res->{'valide'} == 1) {$bio_val = 'YES'}
-	#		
-	#		#print $res->{'result'};
-	#	}
-	#	
-	#}
+
 }
 else {U2_modules::U2_subs_1::standard_error('13', $q)}
 
@@ -1170,48 +858,7 @@ exit();
 
 ##specific subs for current script
 
-#sub get_raw_data {
-#	my ($dir, $sample, $ssh, $file, $instrument) = @_;
-#	#we want - miseq
-#	#Percent Q30:,
-#	#Target coverage at 50X:,
-#	#SNV Ts/Tv ratio:,
-#	#Mean region coverage depth:,
-#	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads);
-#	
-#	if ($instrument eq 'miseq') {
-#		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
-#	}
-#	elsif ($instrument eq 'miniseq') {
-#		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Padded target aligned reads,');
-#	}
-#	
-#	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file);
-#	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file);
-#	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file);
-#	my $doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file);
-#	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
-#	#return ($q30, $x50, $tstv, $doc);
-#	my $criteria = '';
-#	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}	
-#	if ($x50 < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
-#	if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
-#	if ($doc < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
-#	if ($ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
-#	if ($criteria ne '') {return $q->div({'class' => 'fixed_200 red'}, "FAILED $criteria")}
-#	else {return $q->div({'class' => 'fixed_200 green'}, 'PASS')}
-#}
-#
-#sub get_raw_detail {
-#	my ($dir, $sample, $ssh, $expr, $file) = @_;
-#	#print "grep -e \"$expr\" $dir/".$sample."_S*.$file";
-#	my $data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file");
-#	#print "-$data-<br/>";
-#	if ($data =~ /$expr([\d\.]+)[%\s]{0,2}$/) {$data = $1}
-#	else {print "pb with $expr:$data:"}
-#	#print "_".$data."_<br/>";
-#	return $data,;
-#}
+
 
 
 sub insert_analysis {
