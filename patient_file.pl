@@ -356,7 +356,7 @@ if ($result) {
 	$first_name =~ s/'/''/og;
 	$last_name =~ s/'/''/og;
 	
-	my $query2 = "SELECT numero, identifiant FROM patient WHERE first_name = '$first_name' AND last_name = '$last_name' AND numero <> '$number'";
+	my $query2 = "SELECT numero, identifiant FROM patient WHERE LOWER(first_name) = LOWER('$first_name') AND LOWER(last_name) = LOWER('$last_name') AND numero <> '$number'";
 	my ($num_list, $id_list) = ("'$number'", "'$id'");
 	#print $query2;
 	my $sth2 = $dbh->prepare($query2);
