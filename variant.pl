@@ -317,12 +317,16 @@ my $nom_seg = $dbh->selectrow_hashref($query);
 my $toprint = ucfirst($res->{'type_segment'});
 if ($res->{'type_segment'} ne $nom_seg->{'nom'}) {$toprint .= " $nom_seg->{'nom'}"}
 
+my $warning = "There is an issue with a number of hg38 nomenclatures in MD and U2. Hg38 links and info are disabled until fixed.";
+print U2_modules::U2_subs_2::danger_panel($warning, $q);
+
 print $q->end_ul(), "\n",
 	$q->start_div({'class' => 'decale'});
 
 #changed 05/12/2016 non main acc no will use NM for mutalyzer instead of NG for main acc-no
 my $mutalyzer_request = "$res->{'acc_g'}($gene$res->{'mutalyzer_version'}):$var";
 if ($res->{'main'} ne 't') {$mutalyzer_request = "$acc.$res->{'acc_version'}:$var"}
+
 
 
 print $q->start_div({'class' => 'fitin', 'id' => 'main'}), $q->start_table({'class' => "technical great_table variant"}), $q->caption("Variant information:"),
