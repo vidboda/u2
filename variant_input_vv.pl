@@ -226,7 +226,7 @@ elsif ($step == 2) { #insert variant and print
 						exit;
 					}
 			}
-			my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv('GRCh38', "$acc_no.$acc_ver", $cdna, 'cdna'));
+			my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', "$acc_no.$acc_ver", $cdna, 'cdna'));
 			#run variantvalidator API
 			my $vvkey = "$acc_no.$acc_ver:$cdna";
 			if ($vv_results ne '0') {

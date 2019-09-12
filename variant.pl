@@ -285,9 +285,9 @@ my $varsome_url = "https://varsome.com/variant/hg19/$acc.$res->{'acc_version'}:$
 
 print	$q->a({'href' => $dbsnp_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'dbSNP'), "\n",
 	$q->a({'href' => $ucsc_link, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg19 UCSC'), "\n",
-	$q->a({'href' => $ucsc_link_hg38, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 UCSC'), "\n",
+	#$q->a({'href' => $ucsc_link_hg38, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 UCSC'), "\n",
 	$q->a({'href' => $map2pdb_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg19 Map2PDB'), "\n",
-	$q->a({'href' => $map2pdb_hg38_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 Map2PDB'), "\n",
+	#$q->a({'href' => $map2pdb_hg38_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 Map2PDB'), "\n",
 	$q->a({'href' => $varsome_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'VarSome'), "\n",
 	$q->end_div();
 		#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvar_button.png'}), $q->end_a(),
@@ -546,12 +546,13 @@ print $q->start_Tr(),
 		$q->td('hg19 Genomic HGVS:'), "\n",
 		$q->start_td({'id' => 'nom_g'}), $q->span("$res->{'nom_g'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link, 'target' => '_blank'}, 'UCSC'), $map2pdb, $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => "/perl/led/engine.pl?research=hg19:$evs_chr:$evs_pos_start", 'target' => '_blank'}, 'LED'), $q->end_td(),
 		$q->td('Absolute genomic HGVS nomenclature (chr), hg19 assembly'),
-	$q->end_Tr(), "\n",
-	$q->start_Tr(),
-		$q->td('hg38 Genomic HGVS:'), "\n",
-		$q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $map2pdb_hg38, $mutalyzer_hg38_pos_conv, $q->end_td(),
-		$q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'),
 	$q->end_Tr(), "\n";
+	
+	#$q->start_Tr(),
+	#	$q->td('hg38 Genomic HGVS:'), "\n",
+	#	$q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $map2pdb_hg38, $mutalyzer_hg38_pos_conv, $q->end_td(),
+	#	$q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'),
+	#$q->end_Tr(), "\n";
 	
 my $js = "
 	function getAllNom() {
