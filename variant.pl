@@ -255,7 +255,7 @@ if ($res->{'type_adn'} eq 'deletion' && ($res->{'taille'} > 4 && $res->{'taille'
 
 
 #print $q->start_li(),
-print	$q->a({'href' => "http://www.ncbi.nlm.nih.gov/clinvar?term=\"".uri_escape("$acc.$res->{'acc_version'}:$var$added")."\" [Variant name]", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'Clinvar'), "\n";
+print	$q->a({'href' => "http://www.ncbi.nlm.nih.gov/clinvar?term=\"".uri_escape("$gene:$var$added")."\" [Variant name]", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'Clinvar'), "\n";
 
 #define links for dbsnp, ucsc, pdb
 
