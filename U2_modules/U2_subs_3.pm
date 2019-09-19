@@ -1196,7 +1196,7 @@ sub add_variant_button {
 								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variantblue', 'value' => 'c.', 'size' => '20', 'maxlength' => '50'})."\n".
 							$q->end_div()."\n".
 							$q->start_div({'class' => 'w3-panel w3-large w3-center'})."\n".
-								#$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Use Mutalyzer', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var(\'variant_input.pl\');'})."\n".
+								$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Use Mutalyzer', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var(\'variant_input.pl\');'})."\n".
 								$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Use VariantValidator', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var(\'variant_input_vv.pl\');'})."\n".
 							$q->end_div()."\n".
 					$q->end_form()."\n".
