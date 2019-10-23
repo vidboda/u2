@@ -1378,7 +1378,7 @@ sub create_variant_vv {
 	elsif ($nom_prot =~ /ext/o) {$type_prot = 'stop codon'}
 	elsif ($type_adn eq 'deletion' && $nom_prot =~ /del/o) {$type_prot = 'inframe deletion'}
 	elsif ($type_adn eq 'insertion' && $nom_prot =~ /ins/o) {$type_prot = 'inframe insertion'}
-	elsif ($type_adn eq 'duplication' && $nom_prot =~ /ins/o) {$type_prot = 'inframe duplication'}
+	elsif ($type_adn eq 'duplication' && $nom_prot =~ /dup/o) {$type_prot = 'inframe duplication'}
 	#elsif ($nom_prot =~ /\?/o) {$type_prot = 'unknown'}
 	else {$type_prot = 'unknown'}
 	if ($cdna =~ /[cn]\.\d+[\+-][12]\D.+/o) {$type_arn = 'altered';$nom_prot = 'p.(?)';$type_prot = 'NULL';}
