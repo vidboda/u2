@@ -156,6 +156,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 				$text .= $q->span('No PubMed ID retrived');
 			}
 			else {
+				#$text .= $pubmedids->[0]{'pmids'}[0];
 				$text .= $q->button({'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'value' => 'show Pubmed IDs', 'onclick' => '$("#pubmed").show();'}) .
 				$q->start_div({'class' => 'w3-modal', 'id' => 'pubmed'}) . "\n" .
 					$q->start_div({'class' => 'w3-modal-content w3-display-middle', 'style' => 'z-index:1500'}) . "\n" .
@@ -167,8 +168,9 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 							$q->start_ul() . "\n";
 				my $pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';
 				if ($user->isLocalUser() == 1) {$pubmed_url = 'https://www-ncbi-nlm-nih-gov.gate2.inist.fr/pubmed/';}
-				foreach my $pmid (@{$pubmedids}) {
-					$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid->{'pmid'}, 'target' => '_blank'}, $pmid->{'pmid'}) . $q->end_li() . "\n"
+				foreach my $pmid (@{$pubmedids->[0]{'pmids'}}) {
+					$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid, 'target' => '_blank'}, $pmid) . $q->end_li() . "\n"
+					#$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid->{'pmid'}, 'target' => '_blank'}, $pmid->{'pmid'}) . $q->end_li() . "\n"
 					#print $pmid->{'pmid'}
 				}
 				$text .= $q->end_ul() . "\n" . $q->br() . $q->br() .
