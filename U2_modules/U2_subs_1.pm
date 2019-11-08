@@ -1284,10 +1284,12 @@ sub test_ncbi {
 sub run_litvar {
 	my $snp_id = shift;
 	my $ua = LWP::UserAgent->new();
-	my $request = $ua->get("https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/pmids?query=%7B%22variant%22%3A%5B%22litvar%40$snp_id%23%23%22%5D%7D");
+	#my $request = $ua->get("https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/pmids?query=%7B%22variant%22%3A%5B%22litvar%40$snp_id%23%23%22%5D%7D");
+	my $request = $ua->get("https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/rsids2pmids?rsids=$snp_id");
 	#print "http://mygene.info/v3/query?q=$gene?fields=$fields";
 	if ($request->is_success()) {
 		return decode_json($request->content());
+		#return $request->content();
 	}
 	else {return "litvar error: $request->status_line()"}
 }
