@@ -545,7 +545,7 @@ if ($step && $step == 2) {
 					if ($res_hemi->{'sexe'} eq 'M' && $var_chr eq 'X') {($status, $allele) = ('hemizygous', '2')}
 				}
 				elsif ($var_chr eq 'Y') {($status, $allele) = ('hemizygous', '1')}
-				elsif ($var_chr eq 'M') {($status, $allele) = ('hemizygous', '2')}
+				elsif ($var_chr eq 'M') {($status, $allele) = ('heteroplasmic', '2');if ($var_vf >= 0.8) {$status = 'homoplasmic'}}
 				
 				my $genomic_var = &U2_modules::U2_subs_3::build_hgvs_from_illumina($var_chr, $var_pos, $var_ref, $var_alt);
 				#print "$genomic_var<br/>";

@@ -623,7 +623,7 @@ sub check_ens {
 
 sub check_status {
 	my ($q) = shift;
-	if ($q->param('status') =~ /(homozygous|heterozygous|hemizygous)/o) {return $1}
+	if ($q->param('status') =~ /(homozygous|heterozygous|hemizygous|homoplasmic|heteroplasmic)/o) {return $1}
 	else {&standard_error('16', $q)}
 }
 sub check_allele {
@@ -638,7 +638,7 @@ sub check_denovo {
 }
 sub check_status_modify {
 	my ($q) = shift;
-	if ($q->param('status_modify') =~ /(homozygous|heterozygous|hemizygous)/o) {return $1}
+	if ($q->param('status_modify') =~ /(homozygous|heterozygous|hemizygous|homoplasmic|heteroplasmic)/o) {return $1}
 	else {&standard_error('16', $q)}
 }
 sub check_allele_modify {

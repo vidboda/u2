@@ -122,8 +122,9 @@ sub print_validation_table {
 			print $q->start_Tr(), "\n",
 				$q->td($result->{'identifiant'}.$result->{'numero'}), "\n";
 			if ($gene eq '') {print $q->start_td(), $q->em($result->{'nom_gene'}), $q->end_td(), "\n"}
+			my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 			if ($result->{'manifest_name'} eq 'no_manifest') {print $q->td($result->{'type_analyse'}), "\n"}
-			elsif ($class ne 'global') {
+			elsif ($class ne 'global' && $chr ne 'M') {
 				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$alignement_file_path.$file_type', indexURL:'$alignement_file_path$addin.$index_ext', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 			}
 			else {print $q->td($result->{'type_analyse'}), "\n"}
@@ -397,7 +398,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		#my ($direction, $main_acc, $acc_g, $acc_v) = U2_modules::U2_subs_2::get_direction($gene, $dbh);
 		#my ($igv_start, $igv_end) = ($var->{'start_g'}-10, $var->{'end_g'}+10);
 		#if ($direction eq 'DESC') {($igv_start, $igv_end) = ($var->{'end_g'}-10, $var->{'start_g'}+10)}
-		if ($global ne 't' && ($type_analyse =~ /Mi/o || $type_analyse =~ /Next/o)) {
+		if ($global ne 't' && ($type_analyse =~ /Mi/o || $type_analyse =~ /Next/o) && $var->{'nom_g'} !~ /chrM:.+/o) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
 			my $igv_padding = 40;
 			#my $igv_search = "chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding);

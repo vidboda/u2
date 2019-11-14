@@ -659,9 +659,8 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 			
 			
 			
-			
 			if (!exists($hash_done->{$result->{'id_pat'}.$result->{'num_pat'}})) {$hash_done->{$result->{'id_pat'}.$result->{'num_pat'}} = 0}			
-			if ($result->{'statut'} ne 'homozygous') {
+			if ($result->{'statut'} !~ /homo/) {
 				$het_count++;
 				if (($current_patient->[1] eq $result->{'id_pat'}) && ($current_patient->[2] eq $result->{'num_pat'})) {#compound het
 					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $result->{'pathologie'}, $result->{'id_pat'}, $result->{'num_pat'}, 1, $gene);
@@ -672,7 +671,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 					$het_count = 0;			}				
 			}
 			else {
-				if ($current_patient->[3] ne 'homozygous' && $hash_done->{$current_patient->[1].$current_patient->[2]} == 0) {
+				if ($current_patient->[3] !~ /homo/ && $hash_done->{$current_patient->[1].$current_patient->[2]} == 0) {
 					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
 					$het_count = 0;
 					
@@ -681,7 +680,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 			}
 			$current_patient = [$result->{'pathologie'}, $result->{'id_pat'}, $result->{'num_pat'}, $result->{'statut'}];
 		}
-		if ($current_patient->[3] ne 'homozygous' && $hash_done->{$current_patient->[1].$current_patient->[2]} == 0) {
+		if ($current_patient->[3] !~ /homo/ && $hash_done->{$current_patient->[1].$current_patient->[2]} == 0) {
 			($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
 		}	
 		
@@ -698,21 +697,23 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 					});
 				\$dialog.dialog('open');
 			};";
+		my ($homo_title, $het_title, $chr_type) = ('homozygotes', 'heterozygotes/hemizygotes', 'non_M');
+		if (U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh) eq 'M') {($homo_title, $het_title, $chr_type) = ('homoplasmics', 'heteroplasmics', 'M')}
 		print $q->br(), $q->br(), $q->start_p(), $q->span('A summary of the pathogenic genotypes for '), $q->em($gene), $q->span(' are shown below. Click on a cell to get the sample list. Results respect NGS filtering options.'), $q->br(), $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->start_div({'class' => 'container patient_file_frame', 'id' => 'info_table'}), $q->start_table({'class' => 'great_table technical'}), $q->caption("Genotypes table:"),
 					$q->start_Tr(), "\n",
 					$q->th({'class' => 'twenty_five left_general'}, 'Phenotype'), "\n",
-					$q->th({'class' => 'twenty_five left_general'}, '# heterozygotes/hemizygotes'), "\n",
-					$q->th({'class' => 'twenty_five left_general'}, '# compound heterozygotes'), "\n",
-					$q->th({'class' => 'twenty_five left_general'}, '# homozygotes'), "\n",
+					$q->th({'class' => 'twenty_five left_general'}, "# $het_title"), "\n";
+		if ($chr_type eq 'non_M') {print $q->th({'class' => 'twenty_five left_general'}, '# compound heterozygotes'), "\n"}
+		print		$q->th({'class' => 'twenty_five left_general'}, "# $homo_title"), "\n",
 					$q->end_Tr(), "\n";			 
 		
 		foreach my $disease (sort keys(%{$hash_count})) {
 			if ($disease ne '') {
 				print $q->start_Tr(),
 					$q->td($disease),
-					$q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[0].'\',\'heterozygotes\')'}, $hash_count->{$disease}[0]),
-					$q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[1].'\',\'compound heterozygotes\')'}, $hash_count->{$disease}[1]),
-					$q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[2].'\',\'homozygotes\')'}, $hash_count->{$disease}[2]),
+					$q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[0].'\',\''.$het_title.'\')'}, $hash_count->{$disease}[0]);
+				if ($chr_type eq 'non_M') {$q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[1].'\',\'compound heterozygotes\')'}, $hash_count->{$disease}[1])}
+				print $q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[2].'\',\''.$homo_title.'\')'}, $hash_count->{$disease}[2]),
 				$q->end_Tr(), "\n";
 			}
 		}

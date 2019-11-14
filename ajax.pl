@@ -245,7 +245,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		}
 		#Intervar new API 06/2019
 		#http://wintervar.wglab.org/api_new.php?queryType=position&build=hg19_updated.v.201904&chr=1&pos=115828756&ref=G&alt=A
-		if ($res->{'type_segment'} eq 'exon') {
+		if ($res->{'type_segment'} eq 'exon' && $res->{'nom_g_38'} !~ /chrM.+./o) {
 			my $ua = new LWP::UserAgent();
 			$ua->timeout(3);
 			my $response = $ua->get("http://wintervar.wglab.org/api_new.php?queryType=position&build=hg19_updated.v.201904&chr=$chr&pos=$position&ref=$ref&alt=$alt");
@@ -1585,7 +1585,7 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 	my $res = $dbh->selectrow_hashref($query_check_analysis);
 	if ($res->{'a'} != 3) {print 'Sorry the analyses types for the 3 samples do not match.';exit;}
 	
-	my $query = "SELECT nom_c, nom_gene, depth FROM variant2patient WHERE type_analyse  = '$analysis' AND id_pat = '$id' AND num_pat = '$number' AND statut <> 'homozygous' AND allele = 'unknown';";
+	my $query = "SELECT nom_c, nom_gene, depth FROM variant2patient WHERE type_analyse  = '$analysis' AND id_pat = '$id' AND num_pat = '$number' AND statut NOT IN ('homozygous', 'heteroplasmic', 'homoplasmic') AND allele = 'unknown';";
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	my ($i, $j, $k, $l, $m) = (0, 0, 0, 0, 0);#counter for changing alleles
@@ -1703,6 +1703,8 @@ sub u22defgen_status {
 	if ($u2_status eq 'homozygous') {return 'Homozygote'}
 	elsif ($u2_status eq 'heterozygous') {return 'Hétérozygote'}
 	elsif ($u2_status eq 'hemizygous') {return 'Hémizygote'}
+	elsif ($u2_status eq 'heteroplasmic') {return 'Hétéroplasmique'}
+	elsif ($u2_status eq 'heteroplasmic') {return 'Homoplasmique'}
 }
 
 sub u22defgen_acmg {

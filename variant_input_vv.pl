@@ -112,11 +112,13 @@ if ($step == 1) { #insert form and possibility to create variants.
 	if ($res->{'brin'} eq '-'){$order = 'DESC';}
 	#get patient gender => if M and chrX => hemizygous
 	my ($default_status, $default_allele) = ('heterozygous', 'unknown');
-	if ($res->{'chr'} eq 'X') {
+	my $chr = $res->{'chr'};
+	if ($chr eq 'X') {
 		$query = "SELECT sexe FROM patient WHERE numero = '$number' AND identifiant = '$id';";
 		my $res2 = $dbh->selectrow_hashref($query);		
 		if ($res2->{'sexe'} eq 'M') {$default_status = 'hemizygous';$default_allele = '2';}
 	}
+	if ($chr eq 'M') {$default_status = 'heteroplasmic';$default_allele = '2'}
 	my $ng_accno = $res->{'acc_g'};
 	#select name to query
 	my $name = 'nom_prot';
@@ -152,6 +154,10 @@ if ($step == 1) { #insert form and possibility to create variants.
 						
 	my @status = ('heterozygous', 'homozygous', 'hemizygous');
 	my @alleles = ('unknown', 'both', '1', '2');
+	if ($chr eq 'M') {
+		@status = ('heteroplasmic', 'homoplasmic');
+		@alleles = ('2');
+	}
 	my $js = "if (\$(\"#status\").val() === 'homozygous') {\$(\"#allele\").val('both')}else {\$(\"#allele\").val('unknown')}";
 	print $q->end_Select(), $q->end_li(), $q->br(), $q->br(), "\n",
 		$q->start_li(), "\n",

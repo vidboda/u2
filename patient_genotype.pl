@@ -141,7 +141,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				#{-language => 'javascript',
 				#-src => 'https://igv.org/web/release/2.0.1/dist/igv.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => 'https://cdn.jsdelivr.net/npm/igv@2.2.5/dist/igv.min.js', 'defer' => 'defer'},
+				-src => 'https://cdn.jsdelivr.net/npm/igv@2.3.5/dist/igv.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_DEFAULT, 'defer' => 'defer'}],		
 			-encoding => 'ISO-8859-1');
@@ -293,21 +293,26 @@ print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(), $q->st
 	#	}								
 	#}
 	#my $bam_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$bam_file";
-my $igv_script = '
-$(document).ready(function () {
-	var div = $("#igv_div"),
-	options = {
-	    showNavigation: true,
-	    showRuler: true,
-	    genome: "hg19",
-	    locus: "'.$gene.'"
-	};
-
-	igv.createBrowser(div, options);
-
-    });
-';
-print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
+my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
+if ($chr ne 'M') {
+	my $igv_script = '
+	$(document).ready(function () {
+		var div = $("#igv_div"),
+		options = {
+			showNavigation: true,
+			showRuler: true,
+			genome: "hg19",
+			locus: "'.$gene.'"
+		};
+	
+		igv.createBrowser(div, options).
+			then(function (browser) {
+				igv.browser = browser;
+			});	
+		});
+	';
+	print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
+}
 #tracks: [
 #		{
 #		    name: "Genes",

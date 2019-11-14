@@ -178,7 +178,7 @@ my $js = "
 	function createForm(type, nom, numero, gene, acc_no, sample, technique) {
 		\$.ajax({
 			type: \"POST\",
-			url: \"variant_input.pl\",
+			url: \"variant_input_vv.pl\",
 			data: {type: type, nom: nom, numero: numero, gene: gene, accession: acc_no, step: 1, sample: sample, analysis: technique}
 			})
 		.done(function(msg) {

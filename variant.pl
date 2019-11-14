@@ -471,7 +471,7 @@ if ($res->{'protein'} ne '') {
 		elsif ($u1_gene eq 'CLRN1') {$u1_gene = 'USH3A'}
 		
 		my $one_letter = U2_modules::U2_subs_1::nom_three2one($res->{'protein'});
-		#print $one_letter;
+		#print $q->span("--$one_letter--");
 		if (-f "/Library/WebServer/Documents/USHVaM/data/faux-sens/$u1_gene/$one_letter.pdf") {
 			print $q->span(", check "), $q->a({'href' => "/USHVaM/data/faux-sens/$u1_gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');	
 		}
@@ -859,7 +859,7 @@ if ($user->isPublic != 1) {
 	my $hom = 0;
 	
 	while (my $result = $sth->fetchrow_hashref()) {
-		if ($result->{'statut'} eq 'homozygous') {$hom += 2}
+		if ($result->{'statut'} =~ /homo/o) {$hom += 2}
 		#if ($result->{'filter'} eq 'RP' && $result->{'dfn'} == 1) {next}
 		#elsif ($result->{'filter'} eq 'DFN' && $result->{'rp'} == 1) {next}
 		my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});

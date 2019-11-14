@@ -85,9 +85,13 @@ if ($step == 1) { #insert form
 	my ($status, $allele, $denovo) = ($res->{'statut'}, $res->{'allele'}, $res->{'denovo'});
 	my $checked = '';
 	if ($denovo == 1) {$checked = 'checked'}
-	print $q->p({'class' => 'title'}, "$id$number $gene $cdna");	
+	print $q->p({'class' => 'title'}, "$id$number $gene $cdna");
 	my @status = ('heterozygous', 'homozygous', 'hemizygous');
 	my @alleles = ('unknown', 'both', '1', '2');
+	if (U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh) eq 'M') {
+		@status = ('heteroplasmic', 'homoplasmic');
+		@alleles = ('2');
+	}
 	my $js = "if (\$(\"#status_modify\").val() === 'homozygous') {\$(\"#allele_modify\").val('both')}else {\$(\"#allele_modify\").val('unknown')}";
 	print $q->start_form({'action' => '', 'method' => 'post', 'class' => 'u2form', 'id' => 'modify_form', 'enctype' => &CGI::URL_ENCODED}),
 				$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => $id.$number, 'id' => 'sample', 'form' => 'modify_form'}), "\n",
