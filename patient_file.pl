@@ -248,7 +248,7 @@ my $ABSOLUTE_HTDOCS_PATH  = $config->ABSOLUTE_HTDOCS_PATH();
 my $HOME_IP = $config->HOME_IP();
 my $DATABASES_PATH = $config->DATABASES_PATH();
 #do not exactly need home, just IP
-$HOME_IP =~ /(https*:\/\/[\d\.]+)\/.+/o;
+$HOME_IP =~ /(https*:\/\/[\w\.-]+)\/.+/o;
 $HOME_IP = $1;
 #specific args for remote login to RS
 my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
