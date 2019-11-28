@@ -958,7 +958,7 @@ if ($res->{'taille'} > 100) {
 	print $q->br(), $q->br(), $q->start_p();
 	if (-e $image_absolute_url) {print $q->img({'src' => $image_url, 'border' => '0'})}
 	else {
-		my $url = 'https://194.167.35.158/cgi-bin/u2/draw_del.cgi';
+		my $url = 'https://pp-gb-gen.iurc.montp.inserm.fr/cgi-bin/u2/draw_del.cgi';
 		my $ua = new LWP::UserAgent(ssl_opts => {verify_hostname => 0});
 		#$ua->ssl_opts('verify_hostname' => 0);
 		my $req = POST $url,

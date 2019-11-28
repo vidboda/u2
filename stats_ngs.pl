@@ -386,7 +386,7 @@ if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o){
 		print $q->br(), $q->br(), $q->p('List of Samples:'), $q->start_ul(), "\n";
 		foreach (@tags) {
 			print $q->start_li(), $q->a({'href' => "patient_file.pl?sample=$_", 'target' => '_blank', 'title' => 'Go to the patient\'s page'}, $_), $q->end_li(), "\n";
-			$files .= "'https://194.167.35.158/ushvam2/data/ngs/$analysis_type/$_/$_.coverage.tsv',"
+			$files .= "'https://pp-gb-gen.iurc.montp.inserm.fr/ushvam2/data/ngs/$analysis_type/$_/$_.coverage.tsv',"
 		}
 		chop $files;
 		$files .= ']';

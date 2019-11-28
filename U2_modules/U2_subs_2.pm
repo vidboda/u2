@@ -1108,8 +1108,8 @@ sub RNA_pie {
 		}
 		my ($data, $i);
 		foreach my $label (sort keys %{$raw_data}) {$data .= "\t\t\t\t\t['$label', $raw_data->{$label}],\n";$i += $raw_data->{$label}}
-		my $base_url = 'https://194.167.35.158/perl/U2/engine.pl?search=RNA&dynamic=';
-		if ($query =~ /nom_gene\[1\]\s=/o) {$base_url = "https://194.167.35.158/perl/U2/gene.pl?gene=$gene&info=all_vars&sort=type_arn&dynamic="}#called from gene sepcific page}
+		my $base_url = 'https://pp-gb-gen.iurc.montp.inserm.fr/perl/U2/engine.pl?search=RNA&dynamic=';
+		if ($query =~ /nom_gene\[1\]\s=/o) {$base_url = "https://pp-gb-gen.iurc.montp.inserm.fr/perl/U2/gene.pl?gene=$gene&info=all_vars&sort=type_arn&dynamic="}#called from gene sepcific page}
 		
 		U2_modules::U2_subs_2::graph_pie('rna-variant-type', 'Variants causing RNA alterations', 'variant_rna_pie_chart', '', $i, "Alteration types causing RNA variations among pathogenic variants<br/>(Total: X variants)", $date, "variant types", $base_url, 'variant', 'false', '', $data, $q, $dbh);
 	}

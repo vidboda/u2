@@ -141,7 +141,7 @@ my $user = U2_modules::U2_users_1->new();
 if ($user->isPublic != 1) {
 	$js .= "function chooseSortingType(gene) {
 		var \$dialog = \$(\'<div></div>\')
-			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=classe\' target = \'_self\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_adn\' target = \'_self\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_prot\' target = \'_self\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_arn\' target = \'_self\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=taille\' target = \'_self\'>Variant size (get only large rearrangements)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
+			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=classe\' target = \'_self\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_adn\' target = \'_self\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_prot\' target = \'_self\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=type_arn\' target = \'_self\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=taille\' target = \'_self\'>Variant size (get only large rearrangements)</a></li><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Orphan variants (not linked to any sample)</a></li><li><a href = \'https://pp-gb-gen.iurc.montp.inserm.fr/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
 			.dialog({
 			    autoOpen: false,
 			    title: \'U2 choice\',
@@ -154,7 +154,7 @@ if ($user->isPublic != 1) {
 else {
 	$js .= "function chooseSortingType(gene) {
 		var \$dialog = \$(\'<div></div>\')
-			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Variants in MobiDetails</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
+			.html(\"<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene=\"+gene+\"&info=all_vars&sort=orphan\' target = \'_self\'>Variants in MobiDetails</a></li><li><a href = \'https://pp-gb-gen.iurc.montp.inserm.fr/perl/led/engine.pl?research=\"+gene+\"\' target = \'_blank\'>LED rare variants</a></li></ul>\")
 			.dialog({
 			    autoOpen: false,
 			    title: \'MD choice\',
