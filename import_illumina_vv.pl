@@ -807,7 +807,7 @@ if ($step && $step == 2) {
 	
 	U2_modules::U2_subs_2::send_manual_mail($user, '', '', $run, $general, '', $message);
 	
-	$q->redirect($PERL_SCRIPTS_HOME."patient_file.pl?sample=$sample_end"); 
+	$q->redirect("patient_file.pl?sample=$sample_end"); 
 	
 }
 

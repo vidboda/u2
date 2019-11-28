@@ -80,7 +80,7 @@ my $js = "
 
 my $user = U2_modules::U2_users_1->new();
 
-if ($user->isPublic()) {$q->redirect($PERL_SCRIPTS_HOME."home_public.pl");exit;}
+if ($user->isPublic()) {$q->redirect("home_public.pl");exit;}
 else {U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh)}
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),

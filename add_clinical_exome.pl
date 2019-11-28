@@ -296,7 +296,7 @@ if ($user->isAnalyst() == 1) {
 		}
 		########UNCOMMENT WHEN READY
 		U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run, $general, $mutalyzer_no_answer, $to_follow);
-		$q->redirect($PERL_SCRIPTS_HOME."patient_file.pl?sample=$sample_end");
+		$q->redirect("patient_file.pl?sample=$sample_end");
 		#print "$general<br/>$manual<br/>$not_inserted<br/>$mutalyzer_no_answer<br/>$to_follow<br/>";
 	}	
 }

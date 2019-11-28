@@ -78,7 +78,7 @@ sub main {
 	my ($recherche, $motif, $query, $url, $original);
 	
 	my $user = U2_modules::U2_users_1->new();
-	if ($user->isPublic()) {$q->redirect($PERL_SCRIPTS_HOME."engine_public.pl?search=".$q->param('search'));exit;}
+	if ($user->isPublic()) {$q->redirect("engine_public.pl?search=".$q->param('search'));exit;}
 	#print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 	#	$q->start_html(
 	#		-title=>"U2 search engine",
@@ -192,7 +192,7 @@ sub main {
 		if ($motif =~ /gene/ || $motif eq 'patientID') {
 			if ($motif eq 'gene_lc') {$recherche = uc($recherche)}
 			$url = &build_link($motif, $recherche);
-			$q->redirect("$PERL_SCRIPTS_HOME$url");
+			$q->redirect("$url");
 			exit;
 		}
 		elsif ($motif eq '') {#try to define a motif, then treat it afterwards
@@ -309,7 +309,7 @@ sub print_results {
 			if ($motif eq 'patient_name' || $motif eq 'familyID') {$url = "patient_file.pl?sample=$result->{'identifiant'}$result->{'numero'}"}
 			else {$url = "variant.pl?gene=$result->{'nom_gene'}[0]&accession=$result->{'nom_gene'}[1]&nom_c=".uri_escape($result->{'nom'})}
 			#print $url;
-			$q->redirect("$PERL_SCRIPTS_HOME$url");
+			$q->redirect("$url");
 			exit;
 		}
 		else {#multiple result
@@ -368,7 +368,7 @@ sub print_results {
 			my $result = $dbh->selectrow_hashref($query);
 			if ($result->{'u2_name'} ne '') {
 				$url = "engine.pl?search=$result->{'u2_name'}";
-				$q->redirect("$PERL_SCRIPTS_HOME$url");
+				$q->redirect("$url");
 			}
 		}
 		if ($call != 3) {
