@@ -113,7 +113,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				#{-language => 'javascript',
 				#-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => 'https://igv.org/web/release/2.0.1/dist/igv.min.js', 'defer' => 'defer'},
+				-src => 'https://cdn.jsdelivr.net/npm/igv@2.3.5/dist/igv.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
                                 -src => $JS_DEFAULT}],		
                         -encoding => 'ISO-8859-1', 'defer' => 'defer');
@@ -132,12 +132,12 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 
 my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
-my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id, $bam_path);
+my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id, $ali_path, $index_ext, $file_type, $file_ext);
 if ($q->param('type') && $q->param('type') eq 'ce') {
 	#1st get poor coverage file
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-	$bam_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number;
+	$ali_path = "$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number;
 	#create roi hash
 	$interval = U2_modules::U2_subs_3::build_roi($dbh);
 }
@@ -148,7 +148,7 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiSeq-\d+)/o) {
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
 	$nenufaar_ana = $nenufaar_ana_tmp;
 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-	$bam_path = "$HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
+	$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 }
 elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 	#1st get poor coverage file
@@ -157,10 +157,27 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
 	$nenufaar_ana = $nenufaar_ana_tmp;
 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-	$bam_path = "$HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
+	$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 }
 else {
 	U2_modules::U2_subs_1::standard_error ('16', $q);
+}
+
+
+if (-e "$ABSOLUTE_HTDOCS_PATH$ali_path.bam") {
+	$index_ext = '.bai';
+	$file_type = 'bam';
+	$file_ext = '.bam'
+}
+elsif (-e "$ABSOLUTE_HTDOCS_PATH$ali_path.crumble.cram") {
+	$index_ext = '.crumble.cram.crai';
+	$file_type = 'cram';
+	$file_ext = '.crumble.cram'
+}
+elsif (-e "$ABSOLUTE_HTDOCS_PATH$ali_path.cram") {
+	$index_ext = '.cram.crai';
+	$file_type = 'cram';
+	$file_ext = '.cram'
 }
 
 
@@ -262,25 +279,26 @@ $(document).ready(function () {
 	    showNavigation: true,
 	    showRuler: true,
 	    genome: "hg19",
-	    tracks: [
-		
-		{
-		    name: "'.$id.$number.' '.$nenufaar_ana.' BAM file",
-		    type: "alignment",
-		    format: "bam",
-		    sourceType: "file",
-		    url: "'.$bam_path.'.bam",
-		    indexURL: "'.$bam_path.'.bai",
-		}
+	    tracks: [		
+			{
+				name: "'.$id.$number.' '.$nenufaar_ana.' '.$file_type.' file",
+				type: "alignment",
+				sourceType: "file",
+				format: "'.$file_type.'",
+				url: "'.$HTDOCS_PATH.$ali_path.$file_ext.'",
+				indexURL: "'.$HTDOCS_PATH.$ali_path.$index_ext.'",
+			}
 	    ]
 	};
 
-	igv.createBrowser(div, options);
-
+	//igv.createBrowser(div, options);
+	igv.createBrowser(div, options).
+		then(function (browser) {
+			igv.browser = browser;
+		});	
     });
 ';
 print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
-
 
 
 #{

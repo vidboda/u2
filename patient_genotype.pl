@@ -58,7 +58,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $HOME_IP = $config->HOME_IP();
 #do not exactly need home, just IP
-$HOME_IP =~ /(https*:\/\/[\d\.]+)\/.+/o;
+$HOME_IP =~ /(https*:\/\/[\w\.-]+)\/.+/o;
 $HOME_IP = $1;
 my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
 #my $REF_GENE_URI = $config->REF_GENE_URI();
