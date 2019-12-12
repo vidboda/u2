@@ -575,7 +575,8 @@ if ($step && $step == 2) {
 					}
 				}
 	
-				
+				#we keep only the first variants if more than 1 e.g. alt = TAA, TA
+				if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				#ok let's deal with VV
 				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
 				#run variantvalidator API

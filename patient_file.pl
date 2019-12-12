@@ -904,7 +904,7 @@ if ($result) {
 					my $res_valid = $dbh->selectrow_hashref($query_valid);
 					if ($res_valid) {$valid_import = $res_valid->{'valid_import'}}
 					if ($valid_import eq '1') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT VALIDATED')}
-					else {print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT VALIDATED')}
+					else {print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT NOT VALIDATED')}
 					print  $q->end_li(), "\n";#$q->span('&nbsp;&nbsp;,&nbsp;&nbsp;');
 				}
 				else{print $q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "$result_done->{'type_analyse'}");}
