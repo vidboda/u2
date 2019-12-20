@@ -712,7 +712,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 				print $q->start_Tr(),
 					$q->td($disease),
 					$q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[0].'\',\''.$het_title.'\')'}, $hash_count->{$disease}[0]);
-				if ($chr_type eq 'non_M') {$q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[1].'\',\'compound heterozygotes\')'}, $hash_count->{$disease}[1])}
+				if ($chr_type eq 'non_M') {print $q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[1].'\',\'compound heterozygotes\')'}, $hash_count->{$disease}[1])}
 				print $q->td({'class' => 'pointer', 'onclick' => 'getPatients(\''.$hash_html->{$disease}[2].'\',\''.$homo_title.'\')'}, $hash_count->{$disease}[2]),
 				$q->end_Tr(), "\n";
 			}
