@@ -7,7 +7,7 @@ use strict;
 use Net::OpenSSH;
 use SOAP::Lite;
 use JSON;
-#use Data::Dumper;
+use Data::Dumper;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
@@ -650,7 +650,7 @@ if ($step && $step == 2) {
 					#	
 					#}
 					#print STDERR $nm_list."\n";
-					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
+					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:https://rest.variantvalidator.org/variantvalidator/hg19/$var_chr-$var_pos-$var_ref-$var_alt/all\n";next VCF}
 					elsif ($nm_list eq '' && $tag ne '') {$message .= $tag;next VCF}
 					#query U2 to get NM
 					chop($nm_list);#remove last ,
