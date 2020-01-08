@@ -857,6 +857,7 @@ if ($result) {
 							#$illumina_semaph = 1;#gene panel < 152
 							my $num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS;
 							if ($analysis =~ /-152/o) {push @illumina_analysis, 5;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_152}#152 genes panel $illumina_semaph = 5;
+							elsif ($analysis =~ /-158/o) {push @illumina_analysis, 6;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_158}#152 genes panel $illumina_semaph = 6;
 							else {push @illumina_analysis, 1}
 							if ($res_manifest->{'ontarget_reads'} < $num_ontarget_reads) {$criteria .= ' (on target reads &lt; '.$num_ontarget_reads.') '}
 							
@@ -953,7 +954,8 @@ if ($result) {
 			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'});
 			foreach my $ngs (@illumina_analysis) {
 				if ($ngs != 2) {
-					my $gene_tag = '152';
+					my $gene_tag = '158';
+					if ($ngs == 5) {$gene_tag = '152'}
 					if ($ngs == 4) {$gene_tag = 'whole genes'}
 					elsif ($ngs == 1) {$gene_tag = '<= 132'}
 					print $q->span("*Gene panel $gene_tag raw data must fulfill the following criteria to pass:"), "\n",
@@ -970,6 +972,10 @@ if ($result) {
 					}
 					if ($ngs == 5) {
 						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_152), "\n",
+					$q->end_ul();
+					}
+					elsif ($ngs == 6) {
+						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_158), "\n",
 					$q->end_ul();
 					}
 					else {
