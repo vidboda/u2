@@ -391,7 +391,7 @@ if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o){
 		chop $files;
 		$files .= ']';
 		print $q->start_li(), $q->a({'href' => "stats_ngs.pl?run=global&current=$current_tab", 'title' => 'Get stats for all runs'}, 'global analysis'), $q->end_li(), "\n",
-			$q->start_li(), $q->a({'href' => "search_controls.pl?iv=1&step=3&run=$run_id", 'title' => 'Get private SNPs for each sample'}, 'Sample tracking'), $q->end_li(), "\n",
+			$q->start_li(), $q->a({'href' => "search_controls.pl?iv=1&step=3&run=$run_id&analysis=$analysis_type", 'title' => 'Get private SNPs for each sample'}, 'Sample tracking'), $q->end_li(), "\n",
 			$q->start_li(), $q->a({'href' => '#', 'onclick' => "download_files($files);"},'Download all coverage files of the run'), $q->end_li(), "\n";
 			#$q->start_li(), $q->a({'href' => "https://194.167.35.158/ushvam2/data/ngs/MiSeq-121/R582/R582.coverage.tsv.download"}, 'test2'), $q->end_li(), "\n";
 	}

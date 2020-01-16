@@ -113,7 +113,6 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 
 ##Init of specific cgi params
-
 my $step = U2_modules::U2_subs_1::check_step($q);
 
 
@@ -194,25 +193,47 @@ elsif ($step == 2) {
 	}
 	print $q->end_ul(), $q->end_div(), $q->br(), $q->br(),
 		$q->start_p({'class' => 'w3-margin'}), $q->span("Try another "), $q->a({'href' => 'search_controls.pl?step=1'}, "exon"), $q->end_p();
-	
-	#SELECT numero, identifiant FROM patient WHERE (ROW(numero, identifiant) IN (SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse IN ('SANGER', '454-19', '454-28') AND nom_gene[1] = 'USH2A')) AND (ROW (numero, identifiant) NOT IN (SELECT num_pat, id_pat FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene[1] = 'USH2A' AND b.num_segment = '50' AND b.type_segment = 'exon')) AND (ROW(numero, identifiant) NOT IN (SELECT num_pat, id_pat FROM segment_non_analyse WHERE nom_gene[1] = 'USH2A' and num_segment = '50')) ORDER BY identifiant, numero;
 }
 if ($q->param('iv') && $q->param('iv') == 1 && $step == 3) {
 	#identitovigilance
 	if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o) {
 		my $run_id = $1;
-		print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong('Sample Tracking'), $q->end_strong(), $q->end_big(), $q->end_p(), $q->end_div(), "\n";
-		print $q->br(), $q->start_p(), $q->span("This function will alow you to select candidates SNP for the patients of run $run_id based on the following rules:"), $q->start_ul(),
-			$q->li("The variants have to be substitutions AND "),
-			$q->li("must have a filter 'PASS' AND "),
-			$q->li("must not be classified as VUCS Class III, IV or pathogenic AND"),
-			$q->li("must not be carried by another patient in the same run."),
-			$q->end_ul(), $q->end_p(), "\n";
+		&intro_text($q, $run_id);
+		#print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong('Sample Tracking'), $q->end_strong(), $q->end_big(), $q->end_p(), $q->end_div(), "\n";
+		#print $q->br(), $q->start_p(), $q->span("This function will allow you to select candidates SNP for the patients of run $run_id based on the following rules:"), $q->start_ul(),
+		#	$q->li("The variants have to be substitutions AND "),
+		#	$q->li("must have a filter 'PASS' AND "),
+		#	$q->li("must not be classified as VUCS Class III, IV or pathogenic AND"),
+		#	$q->li("must not be carried by another patient in the same run."),
+		#	$q->end_ul(), $q->end_p(), "\n";
+			
+		#get all runs of the same analysis type
+		my ($run_list, $run_list_html) = ('', '');
+		if ($q->param('analysis')) {
+			my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
+			my $query_runs = "SELECT DISTINCT(run_id) FROM miseq_analysis WHERE type_analyse = '$analysis' AND run_id <> '$run_id' ORDER BY run_id;";
+			my $sth = $dbh->prepare($query_runs);
+			my $res = $sth->execute();
+			if ($res ne '0E0') {
+				$run_list_html = $q->h3('Select one or more runs to add to the query:');
+					#$q->start_p() .
+					#	$q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'run_ids', 'value' => $run_id.";", 'checked' => 'checked', 'disabled' => 'disabled'}) .
+					#	$q->label($run_id) .
+					#$q->br()."\n";
+				while (my $result = $sth->fetchrow_hashref()) {
+					$run_list_html .= $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'run_ids', 'value' => $result->{'run_id'}}) .
+										$q->label($result->{'run_id'}) .
+									$q->br();
+				}
+				$run_list_html .= $q->end_p();
+			}
+		}
+		
 		#get patients for the run
 		print $q->start_ul();
 		if ($q->param('sample')) {
 			my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
-			&get_patient_table($id, $number, $run_id);
+			&get_patient_table($id, $number, $run_id, '0', $run_list, $run_list_html, '0');
 		}
 		else {
 			my $query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE run_id = '$run_id';";
@@ -220,15 +241,42 @@ if ($q->param('iv') && $q->param('iv') == 1 && $step == 3) {
 			my $res = $sth->execute();
 			while (my $result = $sth->fetchrow_hashref()) {
 				#build patient list
-				&get_patient_table($result->{'id_pat'}, $result->{'num_pat'}, $run_id);
+				&get_patient_table($result->{'id_pat'}, $result->{'num_pat'}, $run_id, '0', $run_list, $run_list_html, '1');
 			}
 		}
-		#my $query_snp = "SELECT nom_c, nom_gene FORM variant2patient";
-		#SELECT DISTINCT(a.nom_c), a.nom_gene FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = '4236' AND a.id_pat = 'SU' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.nom_gene) NOT IN (SELECT a.nom_c, a.nom_gene FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id = '160325_M02792_0171_000000000-AKHNU' AND (CONCAT(b.id_pat, b.num_pat) <> 'SU4236'));
 	}	
 	
 }
-
+if ($q->param('iv') && $q->param('iv') == 2 && $step == 4) {
+	#print $q->param('run_ids');
+	my @runs = $q->param('run_ids');
+	if ($q->param('run_id') && $q->param('run_id') =~ /([\w-]+)/o) {
+		my $run_id = $1;
+		my $run_list_sql = '(';
+		foreach (@runs) {
+			$run_list_sql .= "'".$_."', "
+		}
+		$run_list_sql .= "'".$run_id."')";
+		my $run_list_html = '';
+		#print $run_list_sql;
+		&intro_text($q, $run_id);
+		#get patients for the run
+		print $q->start_ul();
+		if ($q->param('sample')) {
+			my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+			&get_patient_table($id, $number, $run_id, '1', $run_list_sql, $run_list_html, '0');
+		}
+		else {
+			my $query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE run_id = '$run_id';";
+			my $sth = $dbh->prepare($query);
+			my $res = $sth->execute();
+			while (my $result = $sth->fetchrow_hashref()) {
+				#build patient list
+				&get_patient_table($result->{'id_pat'}, $result->{'num_pat'}, $run_id, '1', $run_list_sql, $run_list_html, '1');
+			}
+		}		
+	}	
+}
 
 
 
@@ -245,9 +293,12 @@ exit();
 ##specific subs for current script
 
 sub get_patient_table {
-	my ($id, $num, $run_id) = @_;
-	#my $query_snp = "SELECT DISTINCT(a.nom_c), a.nom_gene, a.statut FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.nom_gene) NOT IN (SELECT a.nom_c, a.nom_gene FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id = '$run_id' AND CONCAT(b.id_pat, b.num_pat) <> '$id$num') ORDER BY a.nom_gene, a.nom_c;"; postgresql compatibility betwwen 158 (9.1) and 137 (9.3??? does not know concat), removed concat
+	my ($id, $num, $run_id, $multiple_run, $run_list, $run_list_html, $multiple_sample) = @_;
 	my $query_snp = "SELECT DISTINCT(a.nom_c), a.nom_gene, a.statut FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.nom_gene) NOT IN (SELECT a.nom_c, a.nom_gene FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id = '$run_id' AND (b.id_pat || b.num_pat) <> '$id$num') ORDER BY a.nom_gene, a.nom_c;";
+	if ($multiple_run == 1) {#multiple runs processed at the same time (automated library prep)
+		$query_snp = "SELECT DISTINCT(a.nom_c), a.nom_gene, a.statut FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.nom_gene) NOT IN (SELECT a.nom_c, a.nom_gene FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id IN $run_list AND (b.id_pat || b.num_pat) <> '$id$num') ORDER BY a.nom_gene, a.nom_c;";
+	}
+	
 	my $sth_snp = $dbh->prepare($query_snp);
 	my $res_snp = $sth_snp->execute();
 	
@@ -256,13 +307,41 @@ sub get_patient_table {
 		paging: false
 		//scrollY: 400
 	});";
-	print $q->start_li(), $q->start_big({'name' => "$id$num"}), $q->a({'href' => "patient_file.pl?sample=$id$num", 'target' => '_blank'}, "$id$num"), $q->end_big(), $q->end_li(),
-		$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table', 'id' => $id.$num.'_table'}), $q->caption("Private SNPs of $id$num in run $run_id:"), $q->start_thead(),
-			$q->start_Tr(), "\n",
+	print $q->start_li(), "\n",
+			$q->start_big({'name' => "$id$num"}), "\n",
+				$q->a({'href' => "patient_file.pl?sample=$id$num", 'target' => '_blank'}, "$id$num"), "\n", "&nbsp;&nbsp;&nbsp;&nbsp;";
+	if ($multiple_run == 0){
+		print $q->span({'onclick' => '$("#run_list").toggle();', 'class' => 'w3-button w3-ripple w3-blue w3-rest w3-hover-light-grey'}, 'Click to add one or several runs to the analysis')
+	}
+	print		$q->end_big(), "\n", $q->br(), $q->br(), "\n";
+	if ($multiple_run == 0) {
+		print	$q->start_div({'style' => 'display:none;width:50%;', 'class' => 'w3-margin w3-container', 'id' => 'run_list'}), "\n",
+				$q->start_form({'class' => 'w3-container w3-card-4', 'id' => 'multiple_runs', 'name' => 'multiple_runs', 'action' => 'search_controls.pl', 'method' => 'get'}), "\n",
+					$q->input({'type' => 'hidden', 'name' => 'iv', 'value' => '2', 'form' => 'multiple_runs'}), "\n";
+		if ($multiple_sample != 1) {print $q->input({'type' => 'hidden', 'name' => 'sample', 'value' => $id.$num, 'form' => 'multiple_runs'}), "\n"}
+			print			$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '4', 'form' => 'multiple_runs'}), "\n",
+					$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run_id, 'form' => 'multiple_runs'}), "\n",
+					$run_list_html, "\n",
+					$q->input({'type' => 'submit', 'onclick' => '$("html").css("cursor", "progress");$(".w3-button").css("cursor", "progress");$("#submit_btn").css("disabled","disabled");', 'class' => 'w3-button w3-ripple w3-blue w3-rest w3-hover-light-grey', 'value' => 'Multiple run tracking', 'id' => 'submit_btn', 'form' => 'multiple_runs'}), $q->br(), $q->br(), "\n",
+				$q->end_form(), "\n",
+			$q->end_div(), "\n", $q->br(), "\n",
+			$q->br(), "\n";
+	}
+	print	$q->end_li(), "\n",
+		$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table', 'id' => $id.$num.'_table'});
+	if ($multiple_run == 0) {
+		print $q->caption("Private SNPs of $id$num in run $run_id:"), $q->start_thead(), "\n";
+	}
+	else {
+		print $q->caption("Private SNPs of $id$num in run $run_list:"), $q->start_thead(), "\n";
+	}
+	print		$q->start_Tr(), "\n",
 				$q->th({'class' => 'left_general'}, "$res_snp Variants"), "\n",
 				$q->th({'class' => 'left_general'}, 'Gene / Transcript'), "\n",
 				$q->th({'class' => 'left_general'}, 'Status'), "\n",
-			$q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";
+			$q->end_Tr(), "\n",
+			$q->end_thead(), "\n",
+			$q->start_tbody(), "\n";
 	while (my $result_snp = $sth_snp->fetchrow_hashref()) {
 		print $q->start_Tr(), "\n",
 			$q->start_td(), $q->a({'href' => "variant.pl?nom_c=".uri_escape($result_snp->{'nom_c'})."&gene=$result_snp->{'nom_gene'}[0]&accession=$result_snp->{'nom_gene'}[1]", 'target' => '_blank', 'title' => 'Click to open variant page in new tab'}, $result_snp->{'nom_c'}),$q->end_td(), "\n",
@@ -272,4 +351,15 @@ sub get_patient_table {
 	}
 	print $q->end_tbody(), $q->end_table(), $q->end_div(), $q->end_li(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $table_js);
 	
+}
+
+sub intro_text {
+	my ($q, $run_id) = @_;
+	print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong('Sample Tracking'), $q->end_strong(), $q->end_big(), $q->end_p(), $q->end_div(), "\n";
+		print $q->br(), $q->start_p(), $q->span("This function will allow you to select candidates SNP for the patients of run $run_id based on the following rules:"), $q->start_ul(),
+			$q->li("The variants have to be substitutions AND "),
+			$q->li("must have a filter 'PASS' AND "),
+			$q->li("must not be classified as VUCS Class III, IV or pathogenic AND"),
+			$q->li("must not be carried by another patient in the same run."),
+			$q->end_ul(), $q->end_p(), "\n";
 }
