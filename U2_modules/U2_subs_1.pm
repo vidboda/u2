@@ -1227,9 +1227,9 @@ sub run_vv {
 	#my $ua = LWP::UserAgent->new();
 	#$ua->ssl_opts(verify_hostname => 0);
 	#$ua->proxy('https', 'http://194.167.35.151:3128/');
-	my $url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$nm:$var/$nm?content-type=application/json";
+	my $url = "https://www35.lamp.le.ac.uk/VariantValidator/variantvalidator/$genome/$nm:$var/$nm?content-type=application/json";
 	if ($mode eq 'VCF') {$url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json";}
-	print STDERR $url;
+	#print STDERR $url;
 	my $vv_result = `/usr/local/bin/python $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"` or die $!;
 	#my $request = $ua->get($url);
 	#if ($request->is_success()) {return $request->content()}

@@ -6,6 +6,7 @@ use Data::Dumper;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use REST::Client;
+use JSON;
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -1504,17 +1505,24 @@ sub create_variant_vv {
 	if ($taille < 50) {
 		#get positions
 		my ($pos1, $pos2) = U2_modules::U2_subs_3::get_start_end_pos($nom_g);
-		my ($x, $y) = ($pos1 - 25, $pos2 + 25);
+		#UCSC => $pos1 - 26 (0-based)
+		#togows => $pos1 - 25
+		my ($x, $y) = ($pos1 - 26, $pos2 + 25);
 		my $client = REST::Client->new();
 		#print "http://togows.org/api/ucsc/hg19/$chr:$x-$y<br/>";
 		#exit;
-		$client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
+		
+		$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y");
+		#print STDERR $client;
+		my $ucsc_response = decode_json($client->responseContent());
+		#$client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
 		
 		#my ($i, $j) = (0, $#seq-25);
+		if ($ucsc_response->{'dna'} =~ /^[ATGC]+$/o) {
 		
-		
-		if ($client->responseContent() =~ /^[ATGC]+$/o) {
-			push my @seq, $client->responseContent();
+		#if ($client->responseContent() =~ /^[ATGC]+$/o) {
+			#push my @seq, $client->responseContent();
+			push my @seq, $ucsc_response->{'dna'};
 			my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 			#print "--$strand--<br/>";
 			if ($strand eq 'DESC') {
