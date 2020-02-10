@@ -839,7 +839,7 @@ if ($result) {
 						$filter = $res_manifest->{'filter'}; #in case of bug of code l190 we rebuild $filter
 						$raw_filter = $q->span({'class' => 'green'}, 'PASS');
 						my $criteria = '';
-						#@illumina_analysis code: 1 => gene panel < 152 genes; 2 clinical exome; 3 ?; 4 whole genes; 5 gene panel 152
+						#@illumina_analysis code: 1 => gene panel < 152 genes; 2 clinical exome; 3 ?; 4 whole genes; 5 gene panel 152; 6 panel 158
 						if ($nenufaar == 0) {
 							$illumina_semaph = 1;
 							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
@@ -1106,6 +1106,7 @@ if ($result) {
 				if ($("#CHM").length) {$("#CHM").hide();}
 				if ($("#OTHER_NS").length) {$("#OTHER_NS").hide();}
 				if ($("#DAV").length) {$("#DAV").hide();}
+				if ($("#CEVA").length) {$("#CEVA").hide();}
 				
 				//$(location).attr(\'href\', \'#tag\');
 				var screentop = $(\'html\').offset().top;
@@ -1121,7 +1122,7 @@ if ($result) {
 			}';
 	
 	print $q->script({'type' => 'text/javascript'}, $javascript), $q->start_div({'class' => 'patient_file_frame mother appear'}), $q->p({'class' => 'title'}, "Or click on a group to see genes and then on genes to display:"), $q->br(), "\n";
-	
+	if (grep(/6/, @illumina_analysis)) {&create_group(\@U2_modules::U2_subs_1::CEVA, 'CEVA')}#requires panel >= 158 genes
 	if ($filter eq 'ALL') {
 		&create_group(\@U2_modules::U2_subs_1::USHER, 'USHER');
 		&create_group(\@U2_modules::U2_subs_1::USH1, 'USH1');
@@ -1281,6 +1282,7 @@ if ($result) {
 	&create_frame(\@U2_modules::U2_subs_1::LCA, 'LCA', $list);
 	&create_frame(\@U2_modules::U2_subs_1::OTHER_NS, 'OTHER_NS', $list);
 	&create_frame(\@U2_modules::U2_subs_1::DAV, 'DAV', $list);
+	&create_frame(\@U2_modules::U2_subs_1::CEVA, 'CEVA', $list);
 	print $q->end_div(), $q->start_div({'class' => 'invisible'}), $q->end_div(), "\n";
 	#######end new
 		
