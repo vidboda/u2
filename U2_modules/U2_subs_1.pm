@@ -141,8 +141,8 @@ sub standard_begin_html { #prints top of the pages
 			$q->start_div({'class' => 'w3-dropdown-content w3-bar-block w3-card-4'});
 	#get patients' pathologies
 	my $query = "SELECT pathologie FROM valid_pathologie ORDER BY id;";
-	print $q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=all'}, 'ALL'),
-		$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=USHER'}, 'USHER');	
+	print $q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=all'}, 'ALL');
+		#$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=USHER'}, 'USHER');	
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();	
 	while (my $result = $sth->fetchrow_hashref()) {
@@ -439,6 +439,7 @@ sub select_genes_grouped { #insert a list of genes in a pop up menu - group by p
 					$q->optgroup (-name => 'USH2', -values => \@USH2),
 					$q->optgroup (-name => 'USH3', -values => \@USH3),
 					$q->optgroup (-name => 'CHM', -values => \@CHM),
+					$q->optgroup (-name => 'CEVA', -values => \@CEVA),
 					$q->optgroup (-name => 'DFNB', -values => \@DFNB),
 					$q->optgroup (-name => 'DFNA', -values => \@DFNA),
 					$q->optgroup (-name => 'DFNX', -values => \@DFNX),
