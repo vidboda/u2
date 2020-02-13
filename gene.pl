@@ -635,8 +635,9 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 	#if (grep($gene, @U2_modules::U2_subs_1::USHER) || grep($gene, @U2_modules::U2_subs_1::DFNB) || grep($gene, @U2_modules::U2_subs_1::NSRP) ||  grep($gene, @U2_modules::U2_subs_1::LCA)) {
 	#my $query = "SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.nom_gene[1] = '$gene' AND c.proband = 't' ORDER BY c.pathologie, a.id_pat, a.num_pat, a.statut;";
 	
-	my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.nom_gene[1] = '$gene' AND c.proband = 't')\nSELECT a.id_pat, a.num_pat, a.statut, a.pathologie, b.filter FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;";
+	my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.nom_gene[1] = '$gene' AND c.proband = 't')\nSELECT DISTINCT(a.id_pat, a.num_pat, a.statut, b.filter, a.nom_c), a.pathologie, a.id_pat, a.num_pat, a.statut FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;";
 	
+	#SELECT a.id_pat, a.num_pat, a.statut, a.pathologie, b.filter FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;
 	
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -657,33 +658,39 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 			elsif ($result->{'filter'} eq 'RP-USH' && ($rp == 0 && $usher == 0)) {next}
 			elsif ($result->{'filter'} eq 'CHM' && $gene ne 'CHM') {next}
 			
-			
-			
+			print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-1\n";
 			if (!exists($hash_done->{$result->{'id_pat'}.$result->{'num_pat'}})) {$hash_done->{$result->{'id_pat'}.$result->{'num_pat'}} = 0}			
 			if ($result->{'statut'} !~ /homo/) {
 				$het_count++;
 				if (($current_patient->[1] eq $result->{'id_pat'}) && ($current_patient->[2] eq $result->{'num_pat'})) {#compound het
+					print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-2\n";
 					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $result->{'pathologie'}, $result->{'id_pat'}, $result->{'num_pat'}, 1, $gene);
-					$het_count = 0;
+					$het_count -= 1;
 				}
 				elsif ($het_count == 2) { #het/hemi
+					print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-3\n";
 					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
-					$het_count = 0;			}				
+					$het_count -= 1;
+				}				
 			}
 			else {
 				if ($current_patient->[3] !~ /homo/ && $hash_done->{$current_patient->[1].$current_patient->[2]} == 0) {
+					print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-4\n";
 					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
-					$het_count = 0;
-					
+					$het_count -= 1;					
 				}
+				print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-5\n";
 				($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $result->{'pathologie'}, $result->{'id_pat'}, $result->{'num_pat'}, 2, $gene);			
 			}
 			$current_patient = [$result->{'pathologie'}, $result->{'id_pat'}, $result->{'num_pat'}, $result->{'statut'}];
 		}
 		if ($current_patient->[3] !~ /homo/ && $hash_done->{$current_patient->[1].$current_patient->[2]} == 0) {
+			print STDERR $current_patient->[1].$current_patient->[2]."-6\n";
 			($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
 		}	
-		
+		#foreach my $pat (keys %{$hash_done}) {
+		#	print STDERR "$pat\n"
+		#}
 		my $js = "
 			function getPatients(content, type) {
 				if (!content) {content = 'No sample to display'}
@@ -708,6 +715,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 					$q->end_Tr(), "\n";			 
 		
 		foreach my $disease (sort keys(%{$hash_count})) {
+			print STDERR "$disease-".$hash_count->{$disease}[0]."-".$hash_count->{$disease}[1]."-".$hash_count->{$disease}[1]."-\n";
 			if ($disease ne '') {
 				print $q->start_Tr(),
 					$q->td($disease),
@@ -777,7 +785,9 @@ sub variants_div {
 
 sub build_hash {
 	my ($hash_count, $hash_html, $hash_done, $disease, $id, $num, $index, $gene) = @_;
-	if (!exists $hash_count->{$disease}) {$hash_count->{$disease} = [0, 0, 0]}	
+	if (!exists $hash_count->{$disease}) {$hash_count->{$disease} = [0, 0, 0]}
+	#if (!exists $hash_html->{$disease}) {$hash_html->{$disease} = ['', '', '']}
+	print STDERR $id.$num."-inside\n";
 	$hash_count->{$disease}[$index]++;
 	$hash_html->{$disease}[$index] .= $q->start_div().$q->span("-$id$num&nbsp;&nbsp;").$q->start_a({'href' => "patient_file.pl?sample=$id$num", 'target' => '_blank'}).$q->span('patient&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->span('&nbsp;&nbsp;&nbsp;').$q->start_a({'href' => "patient_genotype.pl?sample=$id$num&gene=$gene", 'target' => '_blank'}).$q->span('genotype&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_div();
 	$hash_done->{$id.$num} = 1;
