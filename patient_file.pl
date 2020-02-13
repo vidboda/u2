@@ -192,6 +192,26 @@ my $js = "
 			});
 		\$dialogResult.dialog(\'open\');
 	}
+	function launchCovReport(sample, analysis, align_file, filter) {
+		\$.ajax({
+			type: \"POST\",
+			url: \"ajax.pl\",
+			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, asked: 'covreport'},
+			beforeSend: function() {
+				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
+				\$(\".w3-button\").css(\"cursor\", \"progress\");
+				\$(\"html\").css(\"cursor\", \"progress\");
+				\$(\"#covreport_link\").html(\"<span>Please wait while report is being generated.....</span>\");
+			}
+		})
+		.done(function(covreport_link) {
+			//location.reload();
+			\$(\"#covreport_link\").html(\"<span><a href=\"+covreport_link+\" _target='_blank'>Download CovReport</a></span>\");
+			\$(\".ui-dialog\").css(\"cursor\", \"default\");
+			\$(\".w3-button\").css(\"cursor\", \"default\");
+			\$(\"html\").css(\"cursor\", \"default\");
+		});	
+	}
 ";
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
@@ -749,17 +769,29 @@ if ($result) {
 										$q->end_li()
 						}
 						if (-e "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx") {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 											$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
 										$q->end_li();
 						}
 						elsif (-e "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}/$res_manifest->{'run_id'}.xlsx") {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 											$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
 										$q->end_li();
 						}
+						#covreport launch button
+						#print STDERR $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."_coverage.pdf\n";
+						if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'}).
+										$q->a({'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').
+									$q->end_li();
+						}						
+						else {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'}).
+										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'");', 'value' => 'Launch CovReport'}).
+									$q->end_li();
+						}
 						if (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 											$q->a({'href' => "$link_panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report').
 										$q->end_li();
 							#my @nenuf_id = split (/\s/,`ls $panel_nenufaar_path/$id_tmp$num_tmp/`);
@@ -768,20 +800,20 @@ if ($result) {
 							#my $nenuf_id;
 							#print "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenuf_id[0]/".$id_tmp.$num_tmp."_poor_coverage.txt";
 							if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 												$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.xlsx", 'target' => '_blank'}, 'Download poor coverage file (Excel)').
 											$q->end_li();
 							}
 							if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.txt") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 												$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp."_poor_coverage.txt", 'target' => '_blank'}, 'View poor coverage file (txt)').
 											$q->end_li();
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 												$q->a({'href' => "ngs_poor_coverage.pl?type=$analysis&sample=$id_tmp$num_tmp&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, "Display $analysis poor coverage table").
 											$q->end_li();
 							}
 							if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 												$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$nenufaar_id/".$id_tmp.$num_tmp.".final.vcf.final.xlsx", 'target' => '_blank'}, 'Download Nenufaar variant file (Excel)').
 											$q->end_li();
 							}

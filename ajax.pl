@@ -1652,6 +1652,28 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 	
 }
 
+if ($q->param('asked') && $q->param('asked') eq 'covreport') {
+	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
+	my $filter = U2_modules::U2_subs_1::check_filter($q);
+	if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_data\/data\//o) {
+		my $align_file = $q->param ('align_file');
+		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
+		my $cov_report_sh = $cov_report_dir.'covreport.sh';
+		print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt";
+		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt`;
+		
+		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
+			print $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf"
+		}
+		else {
+			print 'Failed to generate coverage file'
+		}
+	}
+	#my $align_file = $q->param ('align_file');
+	
+}
+
 sub miseq_details {
 	my ($miseq_analysis, $first_name, $last_name, $gene, $acc, $nom_c) = @_;
 	$first_name =~ s/'/''/og;
