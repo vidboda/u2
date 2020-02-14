@@ -206,13 +206,13 @@ my $js = "
 			// covreport is ran on dev server coz prod server cannot run covreport (java version)
 		})
 		.done(function(covreport_res) {
-			if (covreport_res !== '<span>Failed to generate coverage file</span>') {
-				\$.ajax({
-					type: \"POST\",
-					url: \"ajax.pl\",
-					data: {sample: sample, analysis: analysis, filter: filter, asked: 'confirm_covreport'},
-				})
-			}        
+			//if (covreport_res !== '<span>Failed to generate coverage file</span>') {
+			//	\$.ajax({
+			//		type: \"POST\",
+			//		url: \"ajax.pl\",
+			//		data: {sample: sample, analysis: analysis, filter: filter, asked: 'confirm_covreport'},
+			//	})
+			//}        
 			//location.reload();
 			\$(\"#\" + html_tag).html(covreport_res);
 			\$(\".ui-dialog\").css(\"cursor\", \"default\");
@@ -788,16 +788,24 @@ if ($result) {
 						}
 						#covreport launch button
 						#print STDERR $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."_coverage.pdf\n";
-						if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.txt") {
+						if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 										# covreport is stored on dev server coz prod server cannot run covreport (java version)
-										$q->a({'href' => "http://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').
+										$q->a({'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf"}, 'Download CovReport').
 									$q->end_li();
 						}						
 						else {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
+							if ($HOME_IP == '194.167.35.158') {
+                                # prod server need to be redirected on dev server to run covreport
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
+										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'window.open("http://194.167.35.137/perl/U2/patient_file.pl?sample='.$id_tmp.$num_tmp.'");', 'value' => 'Launch CovReport'}).
+									$q->end_li();
+                            }
+                            else {
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'");', 'value' => 'Launch CovReport'}).
 									$q->end_li();
+							}
 						}
 						if (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).

@@ -1664,7 +1664,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt`;
 		
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
-			print $q->start_span().$q->a({ 'href' => "http://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
+			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf"}, 'Download CovReport').$q->end_span();
 		}
 		else {
 			print $q->span('Failed to generate coverage file')
@@ -1674,14 +1674,14 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	
 }
 
-if ($q->param('asked') && $q->param('asked') eq 'covreport') {
-	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
-	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
-	my $filter = U2_modules::U2_subs_1::check_filter($q);
-	open(F, '>'.$ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.txt") or die $!;
-	print F '1';
-	close F;
-}
+#if ($q->param('asked') && $q->param('asked') eq 'covreport') {
+#	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+#	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
+#	my $filter = U2_modules::U2_subs_1::check_filter($q);
+#	open(F, '>'.$ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.txt") or die $!;
+#	print F '1';
+#	close F;
+#}
 
 sub miseq_details {
 	my ($miseq_analysis, $first_name, $last_name, $gene, $acc, $nom_c) = @_;
