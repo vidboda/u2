@@ -1664,10 +1664,10 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt`;
 		
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
-			print $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf"
+			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
 		}
 		else {
-			print 'Failed to generate coverage file'
+			print $q->span('Failed to generate coverage file')
 		}
 	}
 	#my $align_file = $q->param ('align_file');

@@ -192,7 +192,7 @@ my $js = "
 			});
 		\$dialogResult.dialog(\'open\');
 	}
-	function launchCovReport(sample, analysis, align_file, filter) {
+	function launchCovReport(sample, analysis, align_file, filter, html_tag) {
 		\$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
@@ -201,12 +201,12 @@ my $js = "
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
 				\$(\".w3-button\").css(\"cursor\", \"progress\");
 				\$(\"html\").css(\"cursor\", \"progress\");
-				\$(\"#covreport_link\").html(\"<span>Please wait while report is being generated.....</span>\");
+				\$(\"#\" + html_tag).html(\"<span>Please wait while report is being generated.....</span>\");
 			}
 		})
-		.done(function(covreport_link) {
+		.done(function(covreport_res) {
 			//location.reload();
-			\$(\"#covreport_link\").html(\"<span><a href=\"+covreport_link+\" _target='_blank'>Download CovReport</a></span>\");
+			\$(\"#\" + html_tag).html(covreport_res);
 			\$(\".ui-dialog\").css(\"cursor\", \"default\");
 			\$(\".w3-button\").css(\"cursor\", \"default\");
 			\$(\"html\").css(\"cursor\", \"default\");
@@ -781,13 +781,13 @@ if ($result) {
 						#covreport launch button
 						#print STDERR $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."_coverage.pdf\n";
 						if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'}).
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 										$q->a({'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').
 									$q->end_li();
 						}						
 						else {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'}).
-										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'");', 'value' => 'Launch CovReport'}).
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
+										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'");', 'value' => 'Launch CovReport'}).
 									$q->end_li();
 						}
 						if (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
