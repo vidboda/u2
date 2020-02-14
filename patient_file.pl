@@ -195,7 +195,7 @@ my $js = "
 	function launchCovReport(sample, analysis, align_file, filter, html_tag) {
 		\$.ajax({
 			type: \"POST\",
-			url: \"ajax.pl\",
+			url: \"http://194.167.35.137/perl/U2/ajax.pl\",
 			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, asked: 'covreport'},
 			beforeSend: function() {
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
@@ -203,8 +203,16 @@ my $js = "
 				\$(\"html\").css(\"cursor\", \"progress\");
 				\$(\"#\" + html_tag).html(\"<span>Please wait while report is being generated.....</span>\");
 			}
+			// covreport is ran on dev server coz prod server cannot run covreport (java version)
 		})
 		.done(function(covreport_res) {
+			if (covreport_res !== '<span>Failed to generate coverage file</span>') {
+				\$.ajax({
+					type: \"POST\",
+					url: \"ajax.pl\",
+					data: {sample: sample, analysis: analysis, filter: filter, asked: 'confirm_covreport'},
+				})
+			}        
 			//location.reload();
 			\$(\"#\" + html_tag).html(covreport_res);
 			\$(\".ui-dialog\").css(\"cursor\", \"default\");
@@ -780,9 +788,10 @@ if ($result) {
 						}
 						#covreport launch button
 						#print STDERR $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."_coverage.pdf\n";
-						if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
+						if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.txt") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
-										$q->a({'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').
+										# covreport is stored on dev server coz prod server cannot run covreport (java version)
+										$q->a({'href' => "http://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').
 									$q->end_li();
 						}						
 						else {
