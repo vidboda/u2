@@ -795,7 +795,7 @@ if ($result) {
 									$q->end_li();
 						}						
 						else {
-							print $HOME_IP."\n";
+							#print $HOME_IP."\n";
 							if ($HOME_IP == 'https://pp-gb-gen.iurc.montp.inserm.fr') {
                                 # prod server need to be redirected on dev server to run covreport
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
