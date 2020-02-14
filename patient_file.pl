@@ -795,7 +795,8 @@ if ($result) {
 									$q->end_li();
 						}						
 						else {
-							if ($HOME_IP == '194.167.35.158') {
+							print $HOME_IP."\n";
+							if ($HOME_IP == 'https://pp-gb-gen.iurc.montp.inserm.fr') {
                                 # prod server need to be redirected on dev server to run covreport
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'window.open("http://194.167.35.137/perl/U2/patient_file.pl?sample='.$id_tmp.$num_tmp.'");', 'value' => 'Launch CovReport'}).
