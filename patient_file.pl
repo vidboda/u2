@@ -192,6 +192,60 @@ my $js = "
 			});
 		\$dialogResult.dialog(\'open\');
 	}
+	function setDialogDisease(sample, disease_html) {
+		//open pop up with select to select a new disease via ajax call
+		var \$dialog = \$('<div></div>')
+			.html(disease_html)
+			.dialog({
+			    autoOpen: false,
+			    title: \'Choose a new phenotype:\',
+			    width: 450,
+				buttons: {
+					\"Change Disease\": function() {
+						\$.ajax({
+							type: \"POST\",
+							url: \"ajax.pl\",
+							data: {asked: 'disease', sample: sample, phenotype: \$(\"#phenotype\").val()},
+							beforeSend: function() {
+								\$(\".ui-dialog\").css(\"cursor\", \"progress\");
+								\$(\"html\").css(\"cursor\", \"progress\");
+							}
+						})
+						.done(function(new_disease) {
+							\$(\"#disease\").html(new_disease);					
+							\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS
+							\$(\".ui-dialog\").css(\"cursor\", \"default\");
+							\$(\"html\").css(\"cursor\", \"default\");
+						});			
+					},
+					Cancel: function() {
+						\$(this).dialog(\"close\");
+					}					
+				}
+			})
+			;
+		\$dialog.dialog(\'open\');
+		if (\$(\"#disease_selection\").length) {
+			 \$(\"#disease_selection\").validate({
+				errorElement: \"label\",
+				wrapper: \"span\",
+				errorPlacement: function(error, element) {
+				error.insertBefore( element.parent().parent().parent() );
+				},
+				rules: {
+					\"disease\": {\"required\":true},
+				},
+				messages: {
+					\"disease\": {\"required\":\"Please select a phenotype.\"},
+				},
+				submitHandler: function(form) {
+					\$(\"html\").css(\'cursor\', \'progress\');
+					form.submit();					
+				}
+			});
+		}
+		//\$(\'.ui-dialog\').zIndex(\'1002\');
+	}
 	function launchCovReport(sample, analysis, align_file, filter, html_tag) {
 		\$.ajax({
 			type: \"POST\",
@@ -337,6 +391,16 @@ if ($result) {
 		if ($res > 1) {$trio_semaph = 1}
 	}
 	
+	#form to modify pathology
+	my $query_disease = "SELECT pathologie FROM valid_pathologie WHERE pathologie <> '$result->{'pathologie'}' ORDER BY id;";
+	my $sth_disease = $dbh->prepare($query_disease);
+	my $res_disease = $sth_disease->execute();
+	my $disease_form = $q->start_div({'align' => 'center'}).$q->start_form({'action' => '', 'method' => 'post', 'class' => 'u2form', 'id' => 'disease_selection', 'enctype' => &CGI::URL_ENCODED}).$q->br().$q->label({'for' => 'phenotype'}, 'Select the new Phenotype: ').$q->start_Select({'name' => 'phenotype', 'id' => 'phenotype', 'form' => 'disease_selection'});
+	while (my $result = $sth_disease->fetchrow_hashref()) {
+        $disease_form .= $q->option({'value' => $result->{'pathologie'}}, $result->{'pathologie'});
+    }
+	$disease_form .= $q->end_Select().$q->end_form().$q->end_div();
+    
 	
 	print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong($result->{'identifiant'}.$result->{'numero'}), $q->span(": Sample from "), $q->strong("$result->{'first_name'} $result->{'last_name'}"), $q->end_big(), $q->end_p(), "\n";
 	if ($result->{'commentaire'} ne 'NULL' && $result->{'commentaire'} ne '') {print $q->span({'class' => 'color1'}, 'Comments: '), $q->span("$result->{'commentaire'}")};
@@ -358,7 +422,12 @@ if ($result) {
 			$q->end_Tr(), "\n",
 			$q->start_Tr(), "\n",
 				$q->start_td(), $q->span({'class' => 'pointer', 'onclick' => "window.open('engine.pl?search=$result->{'famille'}', '_blank')"}, $result->{'famille'}), $q->end_td(), "\n",
-				$q->start_td(), $q->span({'class' => 'pointer', 'onclick' => "window.open('patients.pl?phenotype=$result->{'pathologie'}', '_blank')"}, $result->{'pathologie'}), $q->end_td(), "\n",
+				$q->start_td({'id' => 'disease'}), "\n",
+					$q->span({'class' => 'pointer', 'onclick' => "window.open('patients.pl?phenotype=$result->{'pathologie'}', '_blank')"}, $result->{'pathologie'}), "\n",
+					$q->start_span(), "\n",
+						$q->button({'onclick' => "setDialogDisease('$id$number', '$disease_form');", 'value' => 'Modify', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue'}), "\n",
+					$q->end_span(), "\n",
+				$q->end_td(), "\n",
 				$q->td($result->{'date_of_birth'}), "\n",
 				$q->td($result->{'defgen_num'}), "\n",
 				$q->td($result->{'defgen_fam'}), "\n",
@@ -405,8 +474,8 @@ if ($result) {
 		while (my $result_fam = $sth->fetchrow_hashref()) {
 			#if ($analysis ne '' and $analysis ne $result_fam->{'type_analyse') {}
 			$analysis = $result_fam->{'type_analyse'};
-			$select_father .= $q->option({'value' => $result_fam->{'identifiant'}.$result_fam->{'numero'}}, $result_fam->{'identifiant'}.$result_fam->{'numero'}).$q->end_option();
-			$select_mother .= $q->option({'value' => $result_fam->{'identifiant'}.$result_fam->{'numero'}}, $result_fam->{'identifiant'}.$result_fam->{'numero'}).$q->end_option();
+			$select_father .= $q->option({'value' => $result_fam->{'identifiant'}.$result_fam->{'numero'}}, $result_fam->{'identifiant'}.$result_fam->{'numero'});
+			$select_mother .= $q->option({'value' => $result_fam->{'identifiant'}.$result_fam->{'numero'}}, $result_fam->{'identifiant'}.$result_fam->{'numero'});
 		}
 		$select_father .= $q->end_Select();
 		$select_mother .= $q->end_Select();

@@ -1674,6 +1674,16 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	
 }
 
+if ($q->param('asked') && $q->param('asked') eq 'disease') {
+	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+	#print $q->param('sample').$q->param('phenotype')."\n";
+	my $new_disease = U2_modules::U2_subs_1::check_phenotype($q);
+	#print $new_disease;
+	my $update = "UPDATE patient SET pathologie = '$new_disease' WHERE identifiant = '$id' AND numero = '$number';";
+	$dbh->do($update);
+	print $q->span({'class' => 'pointer', 'onclick' => "window.open('patients.pl?phenotype=$new_disease', '_blank')"}, $new_disease);
+}
+
 #if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 #	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 #	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
