@@ -200,6 +200,7 @@ my $js = "
 			    autoOpen: false,
 			    title: \'Choose a new phenotype:\',
 			    width: 450,
+				//position: { my: 'top', at: 'center', of: window },
 				buttons: {
 					\"Change Disease\": function() {
 						\$.ajax({
