@@ -1376,7 +1376,7 @@ sub create_variant_vv {
 	elsif ($nom_prot =~ /^p\.\([A-Z][a-z]{2}\d+Ter\)$/o) {$type_prot = 'nonsense';$classe = 'pathogenic';$defgen_export = 't'}
 	elsif ($nom_prot =~ /^p\.\([A-Z][a-z]{2}\d+[A-Z][a-z]{2}\)$/o) {$type_prot = 'missense'}
 	elsif ($nom_prot =~ /fsTer/o) {$type_prot = 'frameshift';$classe = 'pathogenic';$defgen_export = 't'}
-	elsif ($nom_prot =~ /Met1?/o) {$type_prot = 'start codon'}
+	elsif ($nom_prot =~ /Met1\?/o) {$type_prot = 'start codon'}
 	elsif ($nom_prot =~ /ext/o) {$type_prot = 'stop codon'}
 	elsif ($type_adn eq 'deletion' && $nom_prot =~ /del/o) {$type_prot = 'inframe deletion'}
 	elsif ($type_adn eq 'insertion' && $nom_prot =~ /ins/o) {$type_prot = 'inframe insertion'}
