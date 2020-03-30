@@ -167,7 +167,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 						$q->start_div({'class' => 'w3-container'}) . "\n" .
 							$q->start_ul() . "\n";
 				my $pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';
-				if ($user->isLocalUser() == 1) {$pubmed_url = 'https://www-ncbi-nlm-nih-gov.gate2.inist.fr/pubmed/';}
+				if ($user->isLocalUser() == 1) {$pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';}
 				foreach my $pmid (@{$pubmedids->[0]{'pmids'}}) {
 					$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid, 'target' => '_blank'}, $pmid) . $q->end_li() . "\n"
 					#$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid->{'pmid'}, 'target' => '_blank'}, $pmid->{'pmid'}) . $q->end_li() . "\n"
