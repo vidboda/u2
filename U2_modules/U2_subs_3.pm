@@ -847,7 +847,7 @@ sub insert_variant {
 						if ($type_adn eq 'deletion') {$tosend = $seq_wt}								
 						my $sequence = U2_modules::U2_subs_1::get_deleted_sequence($tosend);
 						$nom .= $sequence;
-						if ($nom_ivs ne 'NULL') {$nom_ivs .= $sequence}
+						#if ($nom_ivs ne 'NULL') {$nom_ivs .= $sequence}
 					}										
 					#
 					### let's go
@@ -1523,7 +1523,7 @@ sub create_variant_vv {
 		#if ($client->responseContent() =~ /^[ATGC]+$/o) {
 			#push my @seq, $client->responseContent();
 			my $intermediary_seq = uc($ucsc_response->{'dna'});
-			push my @seq, $intermediary_seq;
+			push my (@seq), $intermediary_seq;
 			my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 			#print "--$strand--<br/>";
 			if ($strand eq 'DESC') {

@@ -1656,6 +1656,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	my $filter = U2_modules::U2_subs_1::check_filter($q);
+	my $user = U2_modules::U2_users_1->new();
 	if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_data\/data\//o) {
 		my $align_file = $q->param ('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
@@ -1665,9 +1666,11 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 		
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
 			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf"}, 'Download CovReport').$q->end_span();
+			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can downlaod the CovReport file here:\nhttp://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."_coverage.pdf\nDon't forget to close the dev server page!!!!!\n");
 		}
 		else {
-			print $q->span('Failed to generate coverage file')
+			print $q->span('Failed to generate coverage file');
+			U2_modules::U2_subs_2::send_general_mail($user, "CovReport failed for $id$number-$analysis-$filter\n\n", "Hi ".$user->getName().",\nUnfortunately, your CovReport generation failed. You can forward this message to David for debugging.\n");
 		}
 	}
 	#my $align_file = $q->param ('align_file');

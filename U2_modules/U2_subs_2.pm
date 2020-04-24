@@ -669,6 +669,34 @@ sub send_manual_mail {
 	$mailer->quit();	
 }
 
+sub send_general_mail {
+	my ($user, $subject, $text) = @_;
+	#print "($user, $text, $text2, $run, $general, $mutalyzer_no_answer, $to_follow, $new_var)";
+	my $config_file = U2_modules::U2_init_1->getConfFile();
+	my $config = U2_modules::U2_init_1->initConfig();
+	$config->file($config_file);# or die $!;
+	my $ADMIN_EMAIL = $config->ADMIN_EMAIL();
+	my $ADMIN_EMAIL_DEST = $config->ADMIN_EMAIL_DEST();
+	my $EMAIL_SMTP = $config->EMAIL_SMTP();
+	my $EMAIL_PORT = $config->EMAIL_PORT();
+	my $EMAIL_PASSWORD = $config->EMAIL_PASSWORD();
+	my $mailer = Net::SMTP->new (
+		$EMAIL_SMTP,
+		Hello   =>      $EMAIL_SMTP,
+		Port    =>      $EMAIL_PORT);
+	$mailer->starttls();
+	$mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);# or print STDERR  "Auth Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
+	$mailer->mail($ADMIN_EMAIL);
+	$mailer->to($user->getEmail());
+	$mailer->data();
+	$mailer->datasend("Subject: $subject\n\n");
+	$mailer->datasend($text);
+
+	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
+	$mailer->dataend() or print STDERR " End Pb with gmail before sending: ".$mailer->message();
+	$mailer->quit();	
+}
+
 sub request_variant_classification {
 	my ($user, $var, $gene) = @_;
 	my $config_file = U2_modules::U2_init_1->getConfFile();

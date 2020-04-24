@@ -82,10 +82,10 @@ my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT
 my $q = new CGI;
 
 my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
-                        $DB_USER,
-                        $DB_PASSWORD,
-                        {'RaiseError' => 1}
-                ) or die $DBI::errstr;
+	$DB_USER,
+	$DB_PASSWORD,
+	{'RaiseError' => 1}
+) or die $DBI::errstr;
 
 ### Creation of a pop up with form
 #my $analysis_filtered = 'MiSeq-112';
@@ -330,11 +330,11 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                         -src => $JS_PATH.'jquery-1.7.2.min.js', 'defer' => 'defer'},
                         {-language => 'javascript',
                         -src => $JS_PATH.'jquery.fullsize.pack.js', 'defer' => 'defer'},
-			 {-language => 'javascript',
+						{-language => 'javascript',
                         -src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
-			 {-language => 'javascript',
+						{-language => 'javascript',
                         -src => $JS_PATH.'jquery.alerts.js', 'defer' => 'defer'},
-			{-language => 'javascript',
+						{-language => 'javascript',
                         -src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
                         {-language => 'javascript',
                         -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
@@ -365,8 +365,8 @@ if ($user->isAnalyst() == 1) {
 				$q->end_p(), "\n",
 				$q->start_div({'align' => 'center'}), "\n",
 				$q->start_form({'action' => '', 'method' => 'post', 'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'id' => 'analysis_form', 'enctype' => &CGI::URL_ENCODED, 'style' => 'width:50%'}), "\n",
-				$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', form => 'analysis_form'}), "\n",
-				$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => $id.$number, form => 'analysis_form'}), "\n",
+				$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2', 'form' => 'analysis_form'}), "\n",
+				$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => $id.$number, 'form' => 'analysis_form'}), "\n",
 				$q->h2({'class' => 'w3-center w3-padding-32'}, 'Analysis details'),
 				$q->start_div({'class' => 'w3-row w3-section w3-padding-16'}), "\n",
 					$q->start_div({'class' => 'w3-col w3-right-align',  'style' => 'width:40%'}),
@@ -397,12 +397,9 @@ if ($user->isAnalyst() == 1) {
 	print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
 	print					#$q->end_fieldset(), $q->br(),
 					$q->end_div(),
-				$q->end_div(), "\n",
-
-				
-				
+				$q->end_div(), "\n",				
 				$q->br(),
-				$q->submit({'value' => 'Confirm', 'class' => 'w3-btn w3-blue', form => 'analysis_form'}), $q->br(), $q->br(), "\n", $q->br(),
+				$q->submit({'value' => 'Confirm', 'class' => 'w3-btn w3-blue', 'form' => 'analysis_form'}), $q->br(), $q->br(), "\n", $q->br(),
 			$q->end_form(), $q->end_div(), "\n";
 	}
 	elsif ($step == 2 || $step == 3) {

@@ -100,7 +100,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 #		\$dialog.dialog(\'open\');
 #		\$(\'.ui-dialog\').zIndex(\'1002\');
 #	}
-#";
+#";s
 
 my $js = "
 	function setDialogTrio(ci, formulary, type_analyse) {
@@ -247,11 +247,11 @@ my $js = "
 		}
 		//\$(\'.ui-dialog\').zIndex(\'1002\');
 	}
-	function launchCovReport(sample, analysis, align_file, filter, html_tag) {
+	function launchCovReport(sample, analysis, align_file, filter, html_tag, user) {
 		\$.ajax({
 			type: \"POST\",
 			url: \"http://194.167.35.137/perl/U2/ajax.pl\",
-			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, asked: 'covreport'},
+			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, user: user, asked: 'covreport'},
 			beforeSend: function() {
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
 				\$(\".w3-button\").css(\"cursor\", \"progress\");
@@ -862,6 +862,8 @@ if ($result) {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 										# covreport is stored on dev server coz prod server cannot run covreport (java version)
 										$q->a({'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf"}, 'Download CovReport').
+										$q->span("&nbsp;&nbsp;OR&nbsp;&nbsp;").
+										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$alignment_ftp.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
 									$q->end_li();
 						}						
 						else {
@@ -874,7 +876,9 @@ if ($result) {
                             }
                             else {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
-										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'");', 'value' => 'Launch CovReport'}).
+										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'", "'.$user.'");', 'value' => 'Launch CovReport auto'}).
+										$q->span("&nbsp;&nbsp;").
+										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$alignment_ftp.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
 									$q->end_li();
 							}
 						}

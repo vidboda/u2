@@ -589,6 +589,7 @@ if ($step && $step == 2) {
 					($tmp_message, $insert, $hashvar, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					if ($tmp_message ne '') {$message .= $tmp_message;next VCF}
 					elsif ($insert ne '') {
+						#print STDERR $k." - ".$insert."\n";
 						$dbh->do($insert);
 						$j++;
 						next VCF;
