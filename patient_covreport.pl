@@ -121,12 +121,13 @@ if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_da
 
 	my ($dfn, $usher, $rp) = &assign_values($filter);
 	my $filter_subquery = '';
-	if ($filter == 'DFN') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
-	elsif ($filter == 'DFN-USH') {$filter_subquery = "(dfn = '$dfn' OR usher = '$usher') AND rp = '$rp' AND"}
-	elsif ($filter == 'USH') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
-	elsif ($filter == 'RP') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
-	elsif ($filter == 'RP-USH') {$filter_subquery = "(rp = '$rp' OR usher = '$usher') AND dfn = '$dfn' AND"}
-	elsif ($filter == 'CHM') {$filter_subquery = "name[1] = 'CHM'"}	
+	# print $filter;
+	if ($filter eq 'DFN') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
+	elsif ($filter eq 'DFN-USH') {$filter_subquery = "(dfn = '$dfn' OR usher = '$usher') AND rp = '$rp' AND"}
+	elsif ($filter eq 'USH') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
+	elsif ($filter eq 'RP') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
+	elsif ($filter eq 'RP-USH') {$filter_subquery = "(rp = '$rp' OR usher = '$usher') AND dfn = '$dfn' AND"}
+	elsif ($filter eq 'CHM') {$filter_subquery = "name[1] = 'CHM'"}	
 	
 	my $query = "SELECT nom[1] AS gene_name, nom[2] AS nm FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND nom[1] <> 'CEVA' ORDER BY nom[1];";
 	# print $query;
