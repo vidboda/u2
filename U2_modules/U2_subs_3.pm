@@ -1125,17 +1125,22 @@ sub get_sampleID_list {
 	my $query = "SELECT * FROM patient WHERE numero = '$number' AND identifiant = '$id';";
 	my $result = $dbh->selectrow_hashref($query);
 	if ($result) {
-		my ($first_name, $last_name) = ($result->{'first_name'}, $result->{'last_name'});
+		my ($first_name, $last_name, $dob) = ($result->{'first_name'}, $result->{'last_name'}, $result->{'date_of_birth'});
 		$first_name =~ s/'/''/og;
 		$last_name =~ s/'/''/og;
 		
-		my $query2 = "SELECT numero, identifiant FROM patient WHERE LOWER(first_name) = LOWER('$first_name') AND LOWER(last_name) = LOWER('$last_name') AND numero <> '$number'";
+		my $query2 = "SELECT numero, identifiant, date_of_birth FROM patient WHERE LOWER(first_name) = LOWER('$first_name') AND LOWER(last_name) = LOWER('$last_name') AND numero <> '$number' ORDER BY identifiant, numero";
 		my $list = "('$id', '$number')";
 		my $sth2 = $dbh->prepare($query2);
 		my $res2 = $sth2->execute();
 		if ($res2 ne '0E0') {
 			while (my $result2 = $sth2->fetchrow_hashref()) {
-				$list .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}')";
+				if ($dob =~ /^\d{4}-\d{2}-\d{2}$/o && $result2->{'date_of_birth'} =~ /^\d{4}-\d{2}-\d{2}$/o) {
+					if ($dob eq $result2->{'date_of_birth'}) {
+						$list .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}')"
+					}
+				}
+				else {$list .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}')"}
 			}
 		}
 		return $list, $first_name, $last_name;

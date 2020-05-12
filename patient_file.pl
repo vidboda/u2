@@ -450,23 +450,58 @@ if ($result) {
 	#$q->start_li(), $q->span({'class' => 'color1'}, 'Last analysis: '), $q->span($last_analysis), $q->end_li();
 	#if ($result->{'commentaire'} ne 'NULL') {print $q->start_li(), $q->span({'class' => 'color1'}, 'Comments: '), $q->span($result->{'commentaire'}), $q->end_li()}
 	#looks for other sample
-	my ($first_name, $last_name) = ($result->{'first_name'}, $result->{'last_name'});
+	my ($first_name, $last_name, $dob) = ($result->{'first_name'}, $result->{'last_name'}, $result->{'date_of_birth'});
+	# print $q->span("--$dob--");
 	$first_name =~ s/'/''/og;
 	$last_name =~ s/'/''/og;
 	
-	my $query2 = "SELECT numero, identifiant FROM patient WHERE LOWER(first_name) = LOWER('$first_name') AND LOWER(last_name) = LOWER('$last_name') AND numero <> '$number'";
+	##my $query2 = "SELECT numero, identifiant, date_of_birth FROM patient WHERE LOWER(first_name) = LOWER('$first_name') AND LOWER(last_name) = LOWER('$last_name') AND numero <> '$number'";
 	my ($num_list, $id_list) = ("'$number'", "'$id'");
-	#print $query2;
-	my $sth2 = $dbh->prepare($query2);
-	my $res2 = $sth2->execute();
-	#print $q->start_li(), $q->span({'class' => 'color1'}, 'Other sample(s): ');
-	if ($res2 ne '0E0') {
-		while (my $result2 = $sth2->fetchrow_hashref()) {
-			print $q->span('&nbsp;'), $q->a({'href' => "patient_file.pl?sample=$result2->{'identifiant'}$result2->{'numero'}"}, "$result2->{'identifiant'}$result2->{'numero'}"), $q->span(';');
-			($num_list, $id_list) .= (", '$result2->{'numero'}'", ", '$result2->{'identifiant'}'");
+	my ($list, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
+	# print $query2;
+	##my $sth2 = $dbh->prepare($query2);
+	##my $res2 = $sth2->execute();
+	my $other_sample_semaph = 0;
+	my @liste = split(/, \(/, $list);
+	if (($#liste > 0)) {#more than one sample
+		$other_sample_semaph++;
+		foreach (@liste) {
+			my @sublist = split(/,/, $_);
+			my ($ident, $number) = ($sublist[0], $sublist[1]);
+			$ident =~ s/['\(\)\s]//og;
+			$number =~ s/['\(\)\s]//og;
+			if ($ident ne $result->{'identifiant'} || $number != $result->{'numero'}) {
+				print $q->span('&nbsp;'), $q->a({'href' => "patient_file.pl?sample=$ident$number"}, $ident.$number), $q->span('&nbsp;')
+			}			
 		}
 	}
-	else {print $q->span("No")}
+	
+	
+	#print $q->start_li(), $q->span({'class' => 'color1'}, 'Other sample(s): ');
+	##if ($res2 ne '0E0') {
+	##	while (my $result2 = $sth2->fetchrow_hashref()) {
+	##		if ($dob =~ /^\d{4}-\d{2}-\d{2}$/o && $result2->{'date_of_birth'} =~ /^\d{4}-\d{2}-\d{2}$/o) {
+	##			if ($dob eq $result2->{'date_of_birth'}) {
+	##				print $q->span('&nbsp;'), $q->a({'href' => "patient_file.pl?sample=$result2->{'identifiant'}$result2->{'numero'}"}, "$result2->{'identifiant'}$result2->{'numero'}"), $q->span(';');
+	##				# ($num_list, $id_list) .= (", '$result2->{'numero'}'", ", '$result2->{'identifiant'}'");
+	##				$num_list .= ", '$result2->{'numero'}'";
+	##				$id_list .= ", '$result2->{'identifiant'}'";
+	##				$other_sample_semaph++;
+	##			}				
+	##		}
+	##		else {
+	##			print $q->span('&nbsp;'), $q->a({'href' => "patient_file.pl?sample=$result2->{'identifiant'}$result2->{'numero'}"}, "$result2->{'identifiant'}$result2->{'numero'}"), $q->span(';');
+	##			# ($num_list, $id_list) .= (", '$result2->{'numero'}'", ", '$result2->{'identifiant'}'");
+	##			$num_list .= ", '$result2->{'numero'}'";
+	##			$id_list .= ", '$result2->{'identifiant'}'";
+	##			$other_sample_semaph++;
+	##		}
+	##	}
+	##}
+	
+	# else {print $q->span("No")}
+	if ($other_sample_semaph == 0) {print $q->span("No")}
+	
 
 	if ($trio_semaph == 1 && $result->{'trio_assigned'} != 1) {
 		my $select_father = $q->label({'for' => 'father'}, 'Select the father: ').$q->start_Select({'name' => 'father', 'id' => 'father', 'form' => 'parent_selection'});
@@ -504,7 +539,8 @@ if ($result) {
 	my $filter = 'ALL'; #for NGS stuff
 	my $illumina_semaph = 0;
 	my @illumina_analysis;
-	my $query_filter = "SELECT filter FROM miseq_analysis WHERE num_pat IN ($num_list) AND id_pat IN ($id_list) AND filter <> 'ALL';";
+	# my $query_filter = "SELECT filter FROM miseq_analysis WHERE num_pat IN ($num_list) AND id_pat IN ($id_list) AND filter <> 'ALL';";
+	my $query_filter = "SELECT filter FROM miseq_analysis WHERE (id_pat, num_pat) IN ($list) AND filter <> 'ALL';";
 	my $res_filter = $dbh->selectrow_hashref($query_filter);
 	if ($res_filter) {$filter = $res_filter->{'filter'}}
 	print $q->start_div({'id' => 'defgen', 'class' => 'w3-modal'}), $q->end_div();
@@ -515,7 +551,10 @@ if ($result) {
 		
 	#we need to consider filtering options
 		
-	my $important = "SELECT DISTINCT(a.nom_c), a.statut, a.denovo, b.classe, b.nom_gene[1], d.rp, d.dfn, d.usher FROM variant2patient a, variant b, patient c, gene d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND a.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND (b.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') OR (a.denovo = 't') OR b.defgen_export = 't');";	
+	# my $important = "SELECT DISTINCT(a.nom_c), a.statut, a.denovo, b.classe, b.nom_gene[1], d.rp, d.dfn, d.usher FROM variant2patient a, variant b, patient c, gene d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND a.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND (b.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') OR (a.denovo = 't') OR b.defgen_export = 't');";
+	# my $important = "SELECT DISTINCT(a.nom_c), a.statut, a.denovo, b.classe, b.nom_gene[1], d.rp, d.dfn, d.usher FROM variant2patient a, variant b, gene d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.nom_gene = d.nom AND a.num_pat IN ($num_list) AND a.id_pat IN ($id_list) AND (b.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') OR (a.denovo = 't') OR b.defgen_export = 't');";
+	my $important = "SELECT DISTINCT(a.nom_c), a.statut, a.denovo, b.classe, b.nom_gene[1], d.rp, d.dfn, d.usher FROM variant2patient a, variant b, gene d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.nom_gene = d.nom AND (a.id_pat, a.num_pat) IN ($list) AND (b.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') OR (a.denovo = 't') OR b.defgen_export = 't');";
+	# print $important;
 	my $sth3 = $dbh->prepare($important);
 	my $res_important = $sth3->execute();
 	if ($res_important ne '0E0') {
@@ -553,7 +592,8 @@ if ($result) {
 	#Changed CONCAT function (appears in postgre 9.1) to comply with previous versions. 24/11/2014
 	#my $unknown_important = "SELECT DISTINCT(a.nom), a.type_prot, a.nom_gene[1], b.id_pat, b.num_pat, b.statut, d.rp, d.dfn FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.classe = 'unknown' AND (((a.type_prot IN ('frameshift', 'nonsense', 'no protein')) OR (a.nom ~ 'c\..+[\+-][12][ATCGdelins>]+\$')) OR (a.type_prot = 'start codon' AND a.snp_id NOT IN (SELECT rsid FROM restricted_snp WHERE common = 't' AND ng_var = CONCAT(d.acc_g, ':', a.nom_ng))));";
 	#my $unknown_important = "SELECT DISTINCT(a.nom), a.type_prot, a.nom_gene[1], b.id_pat, b.num_pat, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.classe = 'unknown' AND (((a.type_prot IN ('frameshift', 'nonsense', 'no protein')) OR (a.nom ~ 'c\..+[\+-][12][ATCGdelins>]+\$') OR (a.nom ~ 'c\.\d+_\d+[\+-]\d+.+') OR (a.nom ~ 'c\.\d+[\+-]\d+_\d+[ATCGdelins>]+\$')) OR (a.type_prot = 'start codon' AND a.snp_id NOT IN (SELECT rsid FROM restricted_snp WHERE common = 't' AND ng_var = d.acc_g||':'||a.nom_ng)));";
-	my $unknown_important = 'SELECT DISTINCT ON (a.nom) a.nom, a.type_prot, a.nom_gene[1], b.id_pat, b.num_pat, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, patient c, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.nom_gene = d.nom AND c.first_name = \''.$first_name.'\' AND c.last_name = \''.$last_name.'\' AND a.classe = \'unknown\' AND (((a.type_prot IN (\'frameshift\', \'nonsense\', \'no protein\')) OR (a.nom ~ E\'c\..+[\+-][12][ATCGdelins>]+$\') OR (a.nom ~ E\'c\.\d+_\d+[\+-]\d+.+\') OR (a.nom ~ E\'c\.\d+[\+-]\d+_\d+[ATCGdelins>]+$\')) OR (a.type_prot = \'start codon\' AND a.snp_id NOT IN (SELECT rsid FROM restricted_snp WHERE common = \'t\' AND ng_var = d.acc_g||\':\'||a.nom_ng)));';
+	# my $unknown_important = 'SELECT DISTINCT ON (a.nom) a.nom, a.type_prot, a.nom_gene[1], b.id_pat, b.num_pat, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.nom_gene = d.nom AND b.num_pat IN ('.$num_list.') AND b.id_pat IN ('.$id_list.') AND a.classe = \'unknown\' AND (((a.type_prot IN (\'frameshift\', \'nonsense\', \'no protein\')) OR (a.nom ~ E\'c\..+[\+-][12][ATCGdelins>]+$\') OR (a.nom ~ E\'c\.\d+_\d+[\+-]\d+.+\') OR (a.nom ~ E\'c\.\d+[\+-]\d+_\d+[ATCGdelins>]+$\')) OR (a.type_prot = \'start codon\' AND a.snp_id NOT IN (SELECT rsid FROM restricted_snp WHERE common = \'t\' AND ng_var = d.acc_g||\':\'||a.nom_ng)));';
+	my $unknown_important = 'SELECT DISTINCT ON (a.nom) a.nom, a.type_prot, a.nom_gene[1], b.id_pat, b.num_pat, b.statut, d.rp, d.dfn, d.usher FROM variant a, variant2patient b, gene d  WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.nom_gene = d.nom AND (b.id_pat, b.num_pat) IN ('.$list.') AND a.classe = \'unknown\' AND (((a.type_prot IN (\'frameshift\', \'nonsense\', \'no protein\')) OR (a.nom ~ E\'c\..+[\+-][12][ATCGdelins>]+$\') OR (a.nom ~ E\'c\.\d+_\d+[\+-]\d+.+\') OR (a.nom ~ E\'c\.\d+[\+-]\d+_\d+[ATCGdelins>]+$\')) OR (a.type_prot = \'start codon\' AND a.snp_id NOT IN (SELECT rsid FROM restricted_snp WHERE common = \'t\' AND ng_var = d.acc_g||\':\'||a.nom_ng)));';
 	#print $unknown_important;
 	#ajout msr_filter?????
 	#print $unknown_important;
@@ -592,7 +632,7 @@ if ($result) {
 	#print $q->start_li(), $q->button({'onclick' => "window.open('missense_prioritize.pl?sample=$id$number')", 'value' => 'Prioritize missense'}), $q->end_li(), $q->br();
 	#my $analysis_type = U2_modules::U2_subs_1::get_analysis_hash($dbh);
 	my @eligible = split(/;/, $ANALYSIS_GRAPHS_ELIGIBLE);
-	my $done  = "SELECT DISTINCT(a.type_analyse), a.num_pat, a.id_pat, c.manifest_name FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name';";
+	my $done  = "SELECT DISTINCT(a.type_analyse), a.num_pat, a.id_pat, c.manifest_name FROM analyse_moleculaire a, valid_type_analyse c WHERE a.type_analyse = c.type_analyse AND (a.id_pat, a.num_pat) IN ($list);";
 	my $sth4 = $dbh->prepare($done);
 	my $res_done = $sth4->execute();
 	#my ($ce_run_id, $ce_id, $ce_num) = ('', '', '');
@@ -604,6 +644,7 @@ if ($result) {
 			my $nenufaar = 0;
 			if ($NENUFAAR_ANALYSIS =~ /$analysis/) {$nenufaar = 1}
 			if (grep(/$analysis/, @eligible) || $manifest ne 'no_manifest') {
+				my $run_id;
 				if (-d $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp || $nenufaar == 1) {
 					#reinitialize in case of changed because of MiniSeq analysis
 					$SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
@@ -632,6 +673,7 @@ if ($result) {
 						$analysis_count ++; #only for analysis which can be filtered
 						my $query_manifest = "SELECT * FROM miseq_analysis WHERE num_pat = '$num_tmp' AND id_pat = '$id_tmp' AND type_analyse = '$analysis';";
 						my $res_manifest = $dbh->selectrow_hashref($query_manifest);
+						$run_id = $res_manifest->{'run_id'};
 						my ($nenufaar_ana, $nenufaar_id);
 						if ($nenufaar == 1) {
 							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}");
@@ -1017,19 +1059,27 @@ if ($result) {
 							);
 						});";
 					print $q->script({'type' => 'text/javascript'}, $js), $q->start_li(), $q->button({'id' => "$analysis", 'value' => "$analysis", 'class' => 'w3-button w3-ripple w3-teal w3-border w3-border-blue'});
-					
-					if ($raw_filter ne '') {
-						my $star = '*';
-						#if ($illumina_semaph == 2) {$star = '**'}#clinical exomes
-						if (grep(/2/, @illumina_analysis)) {$star = '**'}#clinical exomes
-						print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $raw_filter, $q->span("&nbsp;$star");
+					if ($manifest ne 'no_manifest') {#
+						if ($raw_filter ne '') {
+							my $star = '*';
+							#if ($illumina_semaph == 2) {$star = '**'}#clinical exomes
+							if (grep(/2/, @illumina_analysis)) {$star = '**'}#clinical exomes
+							print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;'), $raw_filter, $q->span("&nbsp;$star");
+						}
+						my $valid_import = '';
+						my $query_valid = "SELECT valid_import FROM miseq_analysis WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis' AND run_id = '".$run_id."';";
+						# print $query_valid;
+						##my $res_valid = $dbh->selectrow_hashref($query_valid);
+						my $sth_valid = $dbh->prepare($query_valid);
+						my $res_valid = $sth_valid->execute();
+						my $valid_import = 'f';
+						while (my $result_valid = $sth_valid->fetchrow_hashref()) {
+							if ($result_valid->{'valid_import'} == 1) {$valid_import = 't'}						
+						}					
+						##if ($res_valid) {$valid_import = $res_valid->{'valid_import'}}
+						if ($valid_import eq 't') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT VALIDATED')}
+						else {print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT NOT VALIDATED')}
 					}
-					my $valid_import = '';
-					my $query_valid = "SELECT valid_import FROM miseq_analysis WHERE num_pat IN ($num_list) AND id_pat IN ($id_list);";
-					my $res_valid = $dbh->selectrow_hashref($query_valid);
-					if ($res_valid) {$valid_import = $res_valid->{'valid_import'}}
-					if ($valid_import eq '1') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT VALIDATED')}
-					else {print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT NOT VALIDATED')}
 					print  $q->end_li(), "\n";#$q->span('&nbsp;&nbsp;,&nbsp;&nbsp;');
 				}
 				else{print $q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "$result_done->{'type_analyse'}");}
@@ -1336,7 +1386,7 @@ if ($result) {
 	my ($list);
 	#######end new
 	
-	$query2 = "SELECT DISTINCT(a.nom_gene), c.second_name, a.num_pat, a.id_pat FROM analyse_moleculaire a, patient b, gene c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.nom_gene = c.nom AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.technical_valid = 't' AND c.main = 't' ORDER BY a.nom_gene;";
+	my $query2 = "SELECT DISTINCT(a.nom_gene), c.second_name, a.num_pat, a.id_pat FROM analyse_moleculaire a, patient b, gene c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.nom_gene = c.nom AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.technical_valid = 't' AND c.main = 't' ORDER BY a.nom_gene;";
 	my $sth2 = $dbh->prepare($query2);
 	my $res2 = $sth2->execute();
 	if ($res2 ne '0E0') {
