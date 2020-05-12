@@ -119,17 +119,17 @@ my $filter = U2_modules::U2_subs_1::check_filter($q);
 my $step = U2_modules::U2_subs_1::check_step($q);
 if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_data\/data\//o && $step == 1) {
 
-	my ($dfn, $usher, $rp) = &assign_values($filter);
+	my ($dfn, $rp, $usher) = &assign_values($filter);
 	my $filter_subquery = '';
 	# print $filter;
-	if ($filter eq 'DFN') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
+	if ($filter eq 'DFN') {$filter_subquery = "((dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') OR nom[1] = 'CIB2') AND"}
 	elsif ($filter eq 'DFN-USH') {$filter_subquery = "(dfn = '$dfn' OR usher = '$usher') AND rp = '$rp' AND"}
-	elsif ($filter eq 'USH') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
-	elsif ($filter eq 'RP') {$filter_subquery = "(dfn = '$dfn' AND rp = '$rp' AND usher = '$usher') AND"}
+	elsif ($filter eq 'USH') {$filter_subquery = " usher = '$usher' AND"}
+	elsif ($filter eq 'RP') {$filter_subquery = "(rp = '$rp' OR nom[1] in ('USH2A', 'CLRN1')) AND nom[1] <> 'CHM' AND"}
 	elsif ($filter eq 'RP-USH') {$filter_subquery = "(rp = '$rp' OR usher = '$usher') AND dfn = '$dfn' AND"}
-	elsif ($filter eq 'CHM') {$filter_subquery = "name[1] = 'CHM'"}	
+	elsif ($filter eq 'CHM') {$filter_subquery = "nom[1] = 'CHM' AND "}	
 	
-	my $query = "SELECT nom[1] AS gene_name, nom[2] AS nm FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND nom[1] <> 'CEVA' ORDER BY nom[1];";
+	my $query = "SELECT nom[1] AS gene_name, nom[2] AS nm, diag FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND nom[1] <> 'CEVA' ORDER BY nom[1];";
 	# print $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -137,7 +137,7 @@ if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_da
 	print $q->start_p({'class' => 'center title'}), $q->start_big(), $q->strong("$id$number ($filter) CovReport Genes Selection"), $q->end_big(), $q->end_p(), "\n";
 	my $text = "Analyse: $analysis - $res genes eligible";
 	print U2_modules::U2_subs_2::info_panel($text, $q);
-	$text = $q->span("You will find below a list of genes included in the sample's filter. Unselect those that you want to remove.");
+	$text = $q->span("<br />You will find below a list of genes included in the sample's filter. Unselect those that you want to remove. An email will be sent to ".$user->getEmail()." when the report is ready but do not close the window!!");
 	print U2_modules::U2_subs_2::info_panel($text, $q);
 	print $q->br(),
 		$q->start_div({'class' => 'w3-center'}), $q->span({'class' => 'w3-btn w3-blue w3-center', 'onclick' => 'unselect_checkboxes();'}, 'Unselect all'), $q->end_div(), "\n",
@@ -157,11 +157,21 @@ if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_da
 						print $q->end_div(),
 							$q->start_div({'class' => 'w3-row-padding w3-section w3-padding-8 w3-left-align'}), "\n";
 					}
-					print $q->start_div({'class' => 'w3-quarter'}), "\n",
+					#my $check = 'false';
+					#if ($result->{'diag'} == 1) {$check = 'true'}
+					#print $result->{'diag'};
+					print $q->start_div({'class' => 'w3-quarter'}), "\n";
+					if ($result->{'diag'} == 1) {
+						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form' , 'checked' => 'true'}), "\n";
+					}
+					else {
+						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form'}), "\n";
+					}
+					
 							#"<input class='w3-check' form='covreport_form' id='".$result->{'nm'}."' name='transcript' type='checkbox' value='".$result->{'nm'}."'  />\n",
-							$q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form', 'checked' => 'true'}), "\n",
+							#$q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form' , 'checked' => $check}), "\n",
 							#$q->checkbox({'class' => 'w3-check', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form', 'checked' => 'true'}), "\n",
-							$q->label({'for' => $result->{'nm'}}, $result->{'gene_name'}),
+					print		$q->label({'for' => $result->{'nm'}}, $result->{'gene_name'}),
 						$q->end_div(), "\n";
 					$i++;
 				}				
@@ -188,7 +198,7 @@ elsif ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS
 	}
 	close F;
 
-	print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt";
+	print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt\n";
 	`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt`;
 	
 	if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
@@ -218,6 +228,7 @@ exit();
 sub assign_values {
 	my $filter = shift;
 	my $dfn = my $rp = my $usher = 'f';
+	# print $filter;
 	if ($filter =~ /DFN/o) {$dfn = 't'}
 	if ($filter =~ /USH/o) {$usher = 't'}
 	if ($filter =~ /RP/o) {$rp = 't'}

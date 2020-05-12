@@ -1158,6 +1158,8 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	#need to get info on patients (for multiple samples)
 	my ($list, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
 	my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version, c.dfn, c.rp, c.usher FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND (b.id_pat, b.num_pat) IN ($list) AND a.defgen_export = 't';";
+	# print STDERR $query;
+	# exit;
 	#my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.defgen_export = 't';";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();

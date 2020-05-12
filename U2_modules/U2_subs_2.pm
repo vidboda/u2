@@ -642,7 +642,7 @@ sub send_manual_mail {
 	if ($user->getEmail() ne $ADMIN_EMAIL_DEST) {$mailer->to($user->getEmail())}
 	$mailer->data();
 	#my $subject = "Subject:Variants to deal manually for Illumina run $run\n\n";
-	$mailer->datasend("Subject: Variants to deal manually for Illumina run $run\n\n");
+	$mailer->datasend("Subject: [USHVaM 2]: Variants to deal manually for Illumina run $run\n\n");
 	$mailer->datasend("Hi ".$user->getName().",\n\nYou have requested the import of an Illumina run. Please note the information below:\n\n$general");
 	if ($text ne '') {
 		$mailer->datasend("For various reasons the following variants could not be directly inserted into U2.\nYou can copy/paste them into the corresponding patients comment form, or your admin will do it by himself, and try to manually insert them.\n\n");
@@ -689,7 +689,7 @@ sub send_general_mail {
 	$mailer->mail($ADMIN_EMAIL);
 	$mailer->to($user->getEmail());
 	$mailer->data();
-	$mailer->datasend("Subject: $subject\n\n");
+	$mailer->datasend("Subject: [USHVaM 2]: $subject\n\n");
 	$mailer->datasend($text);
 
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
@@ -729,7 +729,7 @@ sub request_variant_classification {
 	if ($user->getEmail() ne $ADMIN_EMAIL_DEST) {$mailer->to($user->getEmail())}
 	$mailer->data();
 	
-	$mailer->datasend("Subject: Request Variant Classification\n\n");
+	$mailer->datasend("Subject: [USHVaM 2]: Request Variant Classification\n\n");
 	$mailer->datasend("\n\nHello,\n".$user->getName()." has requested the classification of variant $var in gene $gene.\nPlease proceed as soon as possible.");
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
 	$mailer->dataend();

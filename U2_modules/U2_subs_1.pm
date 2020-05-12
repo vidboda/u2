@@ -435,9 +435,9 @@ sub select_genes_grouped { #insert a list of genes in a pop up menu - group by p
 	my ($q, $id, $form) = @_;
 	print $q->popup_menu(-name => 'gene', -id => $id, -form => $form, -class => 'w3-select w3-border',
 				-values => [
-					$q->optgroup (-name => 'USH1', -values => \@USH1),
-					$q->optgroup (-name => 'USH2', -values => \@USH2),
-					$q->optgroup (-name => 'USH3', -values => \@USH3),
+					$q->optgroup (-name => 'USHER', -values => \@USHER),
+					# $q->optgroup (-name => 'USH2', -values => \@USH2),
+					# $q->optgroup (-name => 'USH3', -values => \@USH3),
 					$q->optgroup (-name => 'CHM', -values => \@CHM),
 					$q->optgroup (-name => 'CEVA', -values => \@CEVA),
 					$q->optgroup (-name => 'DFNB', -values => \@DFNB),
