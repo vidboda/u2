@@ -515,7 +515,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	my $ua = new LWP::UserAgent();
 	$ua->timeout(10);
 	my $response = $ua->get($url);
-	
+	print STDERR $url."\n";
 	
 	
 	#c.13811+2T>G
@@ -526,9 +526,15 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	if($response->is_success()) {
 		my $escape_var = $res->{'nom'};
 		$escape_var =~ s/\+/\\\+/og;
+		if ($escape_var =~ /^(c\..+d[ue][lp])[ATGC]+/o) {
+            $escape_var = $1;
+        }
+        
 		#if ($response->decoded_content() =~ /"$escape_var".+"(https[^"]+Usher_montpellier\/[^"]+)"/g) {$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD USHbases').$q->end_li();}
 		#if ($response->decoded_content() =~ /"(https:\/\/grenada\.lumc\.nl\/LOVD2\/Usher_montpellier\/[^"]+)"$/o) {print $q->start_a({'href' => $1, 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/LOVD_button.png'}), $q->end_a();}
 		#elsif ($response->decoded_content() =~ /"$escape_var".+"(http[^"]+shared\/[^"]+)"/g) {$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD').$q->end_li();}
+		print STDERR $response->decoded_content()."\n";
+		print STDERR $escape_var."\n";
 		if ($response->decoded_content() =~ /"$escape_var".+"(http[^"]+)"/g) {
 			my @matches = $response->decoded_content() =~ /"$escape_var".+"(http[^"]+)"/g;
 			$text .= $q->start_li().$q->strong('LOVD matches: ').$q->start_ul();
