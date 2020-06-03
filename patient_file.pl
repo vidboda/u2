@@ -457,21 +457,22 @@ if ($result) {
 	
 	##my $query2 = "SELECT numero, identifiant, date_of_birth FROM patient WHERE LOWER(first_name) = LOWER('$first_name') AND LOWER(last_name) = LOWER('$last_name') AND numero <> '$number'";
 	my ($num_list, $id_list) = ("'$number'", "'$id'");
-	my ($list, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
+	my ($list, $list_context, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
 	# print $query2;
 	##my $sth2 = $dbh->prepare($query2);
 	##my $res2 = $sth2->execute();
 	my $other_sample_semaph = 0;
-	my @liste = split(/, \(/, $list);
+	my @liste = split(/, \(/, $list_context);
 	if (($#liste > 0)) {#more than one sample
 		$other_sample_semaph++;
 		foreach (@liste) {
 			my @sublist = split(/,/, $_);
-			my ($ident, $number) = ($sublist[0], $sublist[1]);
+			my ($ident, $number, $context) = ($sublist[0], $sublist[1], $sublist[2]);
 			$ident =~ s/['\(\)\s]//og;
 			$number =~ s/['\(\)\s]//og;
+                                                $context =~ s/['\(\)\s]//og;
 			if ($ident ne $result->{'identifiant'} || $number != $result->{'numero'}) {
-				print $q->span('&nbsp;'), $q->a({'href' => "patient_file.pl?sample=$ident$number"}, $ident.$number), $q->span('&nbsp;')
+				print $q->span('&nbsp;'), $q->a({'href' => "patient_file.pl?sample=$ident$number"}, $ident.$number), $q->span("&nbsp;-&nbsp;$context"), $q->br();
 			}			
 		}
 	}

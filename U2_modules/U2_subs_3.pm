@@ -1131,19 +1131,24 @@ sub get_sampleID_list {
 		
 		my $query2 = "SELECT numero, identifiant, date_of_birth FROM patient WHERE LOWER(first_name) = LOWER('$first_name') AND LOWER(last_name) = LOWER('$last_name') AND numero <> '$number' ORDER BY identifiant, numero";
 		my $list = "('$id', '$number')";
+		my $list_context = "('$id', '$number', 'original sample')";
 		my $sth2 = $dbh->prepare($query2);
 		my $res2 = $sth2->execute();
 		if ($res2 ne '0E0') {
 			while (my $result2 = $sth2->fetchrow_hashref()) {
 				if ($dob =~ /^\d{4}-\d{2}-\d{2}$/o && $result2->{'date_of_birth'} =~ /^\d{4}-\d{2}-\d{2}$/o) {
 					if ($dob eq $result2->{'date_of_birth'}) {
-						$list .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}')"
+						$list_context .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}', 'Valid DoB')";
+						$list .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}')";
 					}
 				}
-				else {$list .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}')"}
+				else {
+					$list_context .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}', 'No DoB')";
+					$list .= ", ('$result2->{'identifiant'}', '$result2->{'numero'}')";
+				}
 			}
 		}
-		return $list, $first_name, $last_name;
+		return $list, $list_context, $first_name, $last_name;
 	}
 }
 
