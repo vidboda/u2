@@ -1,6 +1,7 @@
 BEGIN {delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV', 'PATH'};}
 
 use strict;
+use File::Copy;
 use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
@@ -204,6 +205,8 @@ elsif ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS
 	if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
 		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf"}, 'Download CovReport').$q->end_p(), $q->end_div();
 		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\nhttp://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."-custom_coverage.pdf\n\nDon't forget to close the dev server page!!!!!\n");
+		mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
+		copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
 	}
 	else {
 		print $q->span('Failed to generate coverage file');
