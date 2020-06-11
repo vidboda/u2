@@ -883,13 +883,25 @@ if ($result) {
 										$q->end_li()
 						}
 						my ($panel_nenufaar_path, $partial_panel_nenufaar_path, $link_panel_nenufaar_path, $partial_link_panel_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar");
+						my ($panel_mobidl_path, $partial_panel_mobidl_path, $link_panel_mobidl_path, $partial_link_panel_mobidl_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/MobiDL", "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/MobiDL", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/MobiDL", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/MobiDL");
 					
+						if (-e "$panel_mobidl_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf") {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+											$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get autoMobiDL reanalysis summary').
+										$q->end_li()
+						}
 						if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
 											$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get autoNENUFAAR reanalysis summary').
 										$q->end_li()
 						}
-						if (-e "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx") {
+						# print STDERR "$panel_mobidl_path/$res_manifest->{'run_id'}_MobiCNV.xlsx";
+						if (-e "$panel_mobidl_path/$res_manifest->{'run_id'}_MobiCNV.xlsx") {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+											$q->a({'href' => "$link_panel_mobidl_path/$res_manifest->{'run_id'}_MobiCNV.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
+										$q->end_li();
+						}
+						elsif (-e "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 											$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
 										$q->end_li();
@@ -899,8 +911,8 @@ if ($result) {
 											$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
 										$q->end_li();
 						}
-						#covreport launch button
-						#print STDERR $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."_coverage.pdf\n";
+						# covreport launch button
+						# print STDERR $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."_coverage.pdf\n";
 						if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 										# covreport is stored on dev server coz prod server cannot run covreport (java version)
@@ -925,7 +937,43 @@ if ($result) {
 									$q->end_li();
 							}
 						}
-						if (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
+						if (-e "$panel_mobidl_path/$res_manifest->{'run_id'}_multiqc.html") {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+											$q->a({'href' => "$link_panel_mobidl_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report').
+										$q->end_li();
+							#my @nenuf_id = split (/\s/,`ls $panel_nenufaar_path/$id_tmp$num_tmp/`);
+							#$nenuf_id[0] =~ s/\s//g;
+							#($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id($panel_nenufaar_path);
+							#my $nenuf_id;
+							#print "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenuf_id[0]/".$id_tmp.$num_tmp."_poor_coverage.txt";
+							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/panelCapture/coverage/".$id_tmp.$num_tmp."_poor_coverage.xlsx") {
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/panelCapture/coverage/".$id_tmp.$num_tmp."_poor_coverage.xlsx", 'target' => '_blank'}, 'Download poor coverage file (Excel)').
+											$q->end_li();
+							}
+							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/panelCapture/coverage/".$id_tmp.$num_tmp."_poor_coverage.tsv") {
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/panelCapture/coverage/".$id_tmp.$num_tmp."_poor_coverage.tsv", 'target' => '_blank'}, 'View poor coverage file (tsv)').
+											$q->end_li();
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+												$q->a({'href' => "ngs_poor_coverage.pl?type=$analysis&sample=$id_tmp$num_tmp&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, "Display $analysis poor coverage table").
+											$q->end_li();
+							}
+							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp.dv/CaptainAchab/achab_excel/$id_tmp$num_tmp.dv_achab_catch_newHope.xlsx") {
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp.dv/CaptainAchab/achab_excel/$id_tmp$num_tmp.dv_achab_catch_newHope.xlsx", 'target' => '_blank'}, 'Download MobiDL DV variant file (Excel)').
+											$q->end_li();
+							}
+							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp.hc/CaptainAchab/achab_excel/$id_tmp$num_tmp.hc_achab_catch_newHope.xlsx") {
+								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp.hc/CaptainAchab/achab_excel/$id_tmp$num_tmp.hc_achab_catch_newHope.xlsx", 'target' => '_blank'}, 'Download MobiDL HC variant file (Excel)').
+											$q->end_li();
+							}
+							#if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenuf_id[0]/".$id_tmp.$num_tmp.".final.vcf.final.txt") {
+							#	$raw_data .= $q->start_li().$q->a({'href' => "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenuf_id[0]/".$id_tmp.$num_tmp.".final.vcf.final.txt", 'target' => '_blank'}, 'Download Nenufaar variant file (txt)');
+							#}
+						}
+						elsif (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 											$q->a({'href' => "$link_panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report').
 										$q->end_li();

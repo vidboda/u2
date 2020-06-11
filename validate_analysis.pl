@@ -116,12 +116,17 @@ elsif ($user->isAnalyst() == 1 && $q->param('delete') == 1) {#delete analysis
 
 
 
-##specific subs for current script
+## specific subs for current script
 
 sub delete_analysis {
 	my ($number, $id, $gene, $analysis, $dbh) = @_;
-	#get #acc for all isoforms;
+	# get #acc for all isoforms;
+	# print SDTERR "analyssi:$analysis\n";
 	my $query = "DELETE FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis' AND nom_gene[1] = '$gene';";
+	if ($analysis =~ /xome$/o) {
+		$query = "DELETE FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
+	}
+	
 	#print $query;
 	$dbh->do($query);
 }

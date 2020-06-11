@@ -446,7 +446,8 @@ sub select_genes_grouped { #insert a list of genes in a pop up menu - group by p
 					$q->optgroup (-name => 'NSRP', -values => \@NSRP),
 					$q->optgroup (-name => 'LCA', -values => \@LCA),
 					$q->optgroup (-name => 'OTHER NS', -values => \@OTHER_NS),
-					$q->optgroup (-name => 'DAV', -values => \@DAV)
+					$q->optgroup (-name => 'DAV', -values => \@DAV),
+					$q->optgroup (-name => 'ALL', -values => 'all', -hidden => 'hidden;')
 					#$q->optgroup (-name => 'NO GROUP', -values => \@NOGROUP)			    
 					    ]);
 }
@@ -505,7 +506,7 @@ sub valid {
 sub valid_table {
 	my ($user, $number, $id, $dbh, $q) = @_;
 	if ($user->isAnalyst() == 1) {
-		my $tech_val = "SELECT DISTINCT(a.nom_gene[1]), a.type_analyse FROM analyse_moleculaire a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.multiple = 'f' AND a.num_pat = '$number' AND a.id_pat = '$id' AND (a.technical_valid = 'f' OR a.result IS NULL OR a.valide = 'f');";
+		my $tech_val = "SELECT DISTINCT(a.nom_gene[1]), a.type_analyse FROM analyse_moleculaire a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.multiple = 'f' AND a.type_analyse NOT LIKE '%xome' AND a.num_pat = '$number' AND a.id_pat = '$id' AND (a.technical_valid = 'f' OR a.result IS NULL OR a.valide = 'f');";
 		my $sth = $dbh->prepare($tech_val);
 		my $res = $sth->execute();
 		my $html;
@@ -547,7 +548,9 @@ sub sample2idnum { #transform a sample into an id and a number
 
 sub check_gene { #checks gene param
 	my ($q, $dbh) = @_;
-	if ($q->param('gene') =~ /([\w-]+)/og) {
+	# print STDERR "gene param:".$q->param('gene')."\n";
+	if ($q->param('gene') eq 'all') {return ('all', 'all')}
+	elsif ($q->param('gene') =~ /([\w-]+)/og) {
 		my $name = $1;
 		if ($name =~ /ORF/o) {$name =~ s/ORF/orf/og}
 		my $query = "SELECT DISTINCT (nom[1]) as gene, second_name FROM gene WHERE nom[1] = '$name';";

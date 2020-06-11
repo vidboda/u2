@@ -145,19 +145,35 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiSeq-\d+)/o) {
 	#1st get poor coverage file
 	#MiSeq
 	my $nenufaar_ana_tmp = $1;
-	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
+	# look for mobidl analysis
+	if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
+        # print STDERR "MobiDL\n";
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
+		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
+    }
+	else { # get nenufaar analysis
+		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
+	}
 	$nenufaar_ana = $nenufaar_ana_tmp;
-	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-	$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 }
 elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 	#1st get poor coverage file
 	#MiniSeq
 	my $nenufaar_ana_tmp = $1;
-	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
+	# look for mobidl analysis
+	if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
+        # print STDERR "MobiDL\n";
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
+		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
+    }
+    else { # get nenufaar analysis
+		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");	
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
+	}	
 	$nenufaar_ana = $nenufaar_ana_tmp;
-	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-	$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 }
 else {
 	U2_modules::U2_subs_1::standard_error ('16', $q);
