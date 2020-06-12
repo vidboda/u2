@@ -119,7 +119,7 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 
 #need to get info on patients (for multiple samples)
-my ($list, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
+my ($list, $list_context, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
 #my $query = "SELECT * FROM patient WHERE numero = '$number' AND identifiant = '$id';";
 #
 #my $result = $dbh->selectrow_hashref($query);
