@@ -1519,25 +1519,27 @@ sub create_variant_vv {
 		# UCSC => $pos1 - 26 (0-based)
 		# togows => $pos1 - 25
 		my ($x, $y) = ($pos1 - 26, $pos2 + 25);
+		# $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 		my $client = REST::Client->new();
 		# print "http://togows.org/api/ucsc/hg19/$chr:$x-$y<br/>";
 		# exit;
 		# $client->getUseragent()->ssl_opts(verify_hostname => 0);
 		# $client->getUseragent()->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
-		$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y");
+		
+		# $client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y");
 		# print STDERR $client;
 		# print STDERR "https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y\n";
 		# print STDERR $client->responseContent()."\n";
-		my $ucsc_response = decode_json($client->responseContent());
-		# $client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
+		# my $ucsc_response = decode_json($client->responseContent());
+		$client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
 		
 		#my ($i, $j) = (0, $#seq-25);
-		if ($ucsc_response->{'dna'} =~ /^[ATGCatgc]+$/o) {
+		# if ($ucsc_response->{'dna'} =~ /^[ATGCatgc]+$/o) {
 			# print STDERR "create_variant_vv: UCSC-1 get sequence: $ucsc_response";
-		#if ($client->responseContent() =~ /^[ATGC]+$/o) {
-			#push my @seq, $client->responseContent();
-			my $intermediary_seq = uc($ucsc_response->{'dna'});
-			push my (@seq), $intermediary_seq;
+		if ($client->responseContent() =~ /^[ATGC]+$/o) {
+			push my @seq, $client->responseContent();
+			#my $intermediary_seq = uc($ucsc_response->{'dna'});
+			#push my (@seq), $intermediary_seq;
 			my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 			#print "--$strand--<br/>";
 			if ($strand eq 'DESC') {
