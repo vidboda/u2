@@ -559,9 +559,28 @@ if ($step && $step == 2) {
 				
 				my $insert = &U2_modules::U2_subs_3::direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 				if ($insert ne '') {
-					$dbh->do($insert);		
-					$j++;
-					next VCF;
+					# return "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$res->{'nom'}', '$number', '$id', '{\"$res->{'nom_gene'}[0]\",\"$res->{'nom_gene'}[1]\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
+					# get gene from insert then check
+					if ($insert =~ /VALUES\s\('\{"([^"]+)",/o) {
+						my $gene = $1;
+						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
+						my $res_verif = $dbh->selectrow_hashref($query_verif);
+						print STDERR "$res_verif->{'nom'}[0]-$gene";
+						if ($res_verif->{'nom'}[0] eq $gene) {
+							$dbh->do($insert);
+							$j++;
+							next VCF;
+						}
+						else {
+							#variant in unwanted region
+							$message .= "$id$number: ERROR: Impossible to record variant (unwanted region) $var_chr-$var_pos-$var_ref-$var_alt-$gene-$insert\n";
+						}
+					}
+					else {
+						#variant in unwanted region
+						$message .= "$id$number: ERROR: Impossible to record variant (BAD REGEXP) $var_chr-$var_pos-$var_ref-$var_alt-$insert\n";
+					}
+					
 				}
 				#still here? we try to invert wt & mut
 				#if ($genomic_var =~ /(chr[\dXYM]+:g\..+\d+)([ATGC])>([ATCG])/o) {
@@ -569,9 +588,26 @@ if ($step && $step == 2) {
 					my $inv_genomic_var = $1.$3.">".$2;
 					$insert = U2_modules::U2_subs_3::direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					if ($insert ne '') {
-						$dbh->do($insert);
-						$j++;
-						next VCF;
+						# get gene from insert then check
+						if ($insert =~ /VALUES\s\('\{"([^"]+)",/o) {
+							my $gene = $1;
+							my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
+							my $res_verif = $dbh->selectrow_hashref($query_verif);
+							print STDERR "$res_verif->{'nom'}[0]-$gene";
+							if ($res_verif->{'nom'}[0] eq $gene) {
+								$dbh->do($insert);
+								$j++;
+								next VCF;
+							}
+							else {
+								#variant in unwanted region
+								$message .= "$id$number: ERROR: Impossible to record variant (unwanted region) $var_chr-$var_pos-$var_ref-$var_alt-$gene-$insert\n";
+							}
+						}
+						else {
+							#variant in unwanted region
+							$message .= "$id$number: ERROR: Impossible to record variant (BAD REGEXP) $var_chr-$var_pos-$var_ref-$var_alt-$insert\n";
+						}
 					}
 				}
 	
@@ -779,11 +815,20 @@ if ($step && $step == 2) {
 					
 					if ($message_tmp =~ /NEWVAR/o) {
 						#my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele) VALUES ('$var_final', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$analysis', '$status', '$allele');\n";
-						$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
-						#‡print STDERR $insert."\n";
-						$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
-						$i++;$j++;
-						$new_var .= $message_tmp;
+						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
+						my $res_verif = $dbh->selectrow_hashref($query_verif);
+						print STDERR "$res_verif->{'nom'}[0]-$gene";
+						if ($res_verif->{'nom'}[0] eq $gene) {
+							$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
+							print STDERR $insert."\n";
+							$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
+							$i++;$j++;
+							$new_var .= $message_tmp;
+						}
+						else {
+							#variant in unwanted region
+							$message .= "$id$number: ERROR: Impossible to record variant (unwanted region) $var_chr-$var_pos-$var_ref-$var_alt-$gene-$var_final\n";
+						}
 					}
 					#else {
 					#	print STDERR "$var_chr-$var_pos-$var_ref-$var_alt: $message_tmp - not in V2P\n";

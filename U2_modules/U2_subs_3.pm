@@ -1509,23 +1509,25 @@ sub create_variant_vv {
 	}
 	my $date = U2_modules::U2_subs_1::get_date();
 	
-	#print $snp_id."<br/>";
+	# print $snp_id."<br/>";
 	
-	#need to run toogows to get seq_wt and seq_mt OR use togows such as in splicing calc
+	# need to run toogows to get seq_wt and seq_mt OR use togows such as in splicing calc
 	if ($taille < 50) {
-		#get positions
+		# get positions
 		my ($pos1, $pos2) = U2_modules::U2_subs_3::get_start_end_pos($nom_g);
-		#UCSC => $pos1 - 26 (0-based)
-		#togows => $pos1 - 25
+		# UCSC => $pos1 - 26 (0-based)
+		# togows => $pos1 - 25
 		my ($x, $y) = ($pos1 - 26, $pos2 + 25);
 		my $client = REST::Client->new();
-		#print "http://togows.org/api/ucsc/hg19/$chr:$x-$y<br/>";
-		#exit;
-		
+		# print "http://togows.org/api/ucsc/hg19/$chr:$x-$y<br/>";
+		# exit;
+		$client->getUseragent()->ssl_opts(verify_hostname => 0);
+		$client->getUseragent()->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
 		$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y");
-		#print STDERR $client;
+		# print STDERR $client;
+		# print STDERR $client->responseContent();
 		my $ucsc_response = decode_json($client->responseContent());
-		#$client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
+		# $client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
 		
 		#my ($i, $j) = (0, $#seq-25);
 		if ($ucsc_response->{'dna'} =~ /^[ATGCatgc]+$/o) {
