@@ -932,12 +932,13 @@ sub direct_submission {
 	#print STDERR $value."\n";
 	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} #we remove what is deleted or duplicated	
 	my $query = "SELECT nom, nom_gene FROM variant WHERE nom_g = '$value';";
-	#print $query;
-	my $res = $dbh->selectrow_hashref($query);
+	# print STDERR "Query for direct submission (inside): $query\n";
+	my $res = $dbh->selectrow_hashref($query);	
 	if ($res) {
+		# print STDERR "Direct submission res (inside): $res->{'nom'}\n";
 		return "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$res->{'nom'}', '$number', '$id', '{\"$res->{'nom_gene'}[0]\",\"$res->{'nom_gene'}[1]\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
 	}
-	else {return ''}
+	else {return '';}
 }
 
 sub get_detailed_pos {
@@ -1525,7 +1526,8 @@ sub create_variant_vv {
 		$client->getUseragent()->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
 		$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y");
 		# print STDERR $client;
-		# print STDERR $client->responseContent();
+		# print STDERR "https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y\n";
+		# print STDERR $client->responseContent()."\n";
 		my $ucsc_response = decode_json($client->responseContent());
 		# $client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
 		

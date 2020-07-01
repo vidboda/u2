@@ -548,7 +548,7 @@ if ($step && $step == 2) {
 				elsif ($var_chr eq 'M') {($status, $allele) = ('heteroplasmic', '2');if ($var_vf >= 0.8) {$status = 'homoplasmic'}}
 				
 				my $genomic_var = &U2_modules::U2_subs_3::build_hgvs_from_illumina($var_chr, $var_pos, $var_ref, $var_alt);
-				#print "$genomic_var<br/>";
+				# print STDERR "Genomic var: $genomic_var\n";
 				my $first_genomic_var = $genomic_var;
 				my $known_bad_variant = 0;
 				#check if variants known for bad annotation already exists
@@ -558,14 +558,15 @@ if ($step && $step == 2) {
 				if ($res_gs) {$known_bad_variant = 1;$genomic_var = $res_gs->{'u2_name'}}
 				
 				my $insert = &U2_modules::U2_subs_3::direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+				# print STDERR "Direct submission1: $insert\n";
 				if ($insert ne '') {
 					# return "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$res->{'nom'}', '$number', '$id', '{\"$res->{'nom_gene'}[0]\",\"$res->{'nom_gene'}[1]\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
 					# get gene from insert then check
-					if ($insert =~ /VALUES\s\('\{"([^"]+)",/o) {
+					if ($insert =~ /'\{"([^"]+)",/o) {
 						my $gene = $1;
 						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
 						my $res_verif = $dbh->selectrow_hashref($query_verif);
-						print STDERR "$res_verif->{'nom'}[0]-$gene";
+						# print STDERR "Gene verif1: $res_verif->{'nom'}[0]-$gene";
 						if ($res_verif->{'nom'}[0] eq $gene) {
 							$dbh->do($insert);
 							$j++;
@@ -584,16 +585,19 @@ if ($step && $step == 2) {
 				}
 				#still here? we try to invert wt & mut
 				#if ($genomic_var =~ /(chr[\dXYM]+:g\..+\d+)([ATGC])>([ATCG])/o) {
+				# print SDTERR "Before Inv genomic var:$genomic_var\n";
 				if ($genomic_var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP:g\..+\d+)([ATGC])>([ATCG])/o) {
 					my $inv_genomic_var = $1.$3.">".$2;
+					# print STDERR "Inv genomic var (inside inv): $inv_genomic_var\n";
 					$insert = U2_modules::U2_subs_3::direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					# print STDERR "Direct submission 2 (inside inv): $insert\n";
 					if ($insert ne '') {
 						# get gene from insert then check
-						if ($insert =~ /VALUES\s\('\{"([^"]+)",/o) {
+						if ($insert =~ /'\{"([^"]+)",/o) {
 							my $gene = $1;
 							my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
 							my $res_verif = $dbh->selectrow_hashref($query_verif);
-							print STDERR "$res_verif->{'nom'}[0]-$gene";
+							# print STDERR "Gene verif2: $res_verif->{'nom'}[0]-$gene";
 							if ($res_verif->{'nom'}[0] eq $gene) {
 								$dbh->do($insert);
 								$j++;
@@ -687,7 +691,7 @@ if ($step && $step == 2) {
 					#	
 					#}
 					#print STDERR $nm_list."\n";
-					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:https://rest.variantvalidator.org/variantvalidator/hg19/$var_chr-$var_pos-$var_ref-$var_alt/all\n";next VCF}
+					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:https://rest.variantvalidator.org/VariantValidator/variantvalidator/hg19/$var_chr-$var_pos-$var_ref-$var_alt/all?content-type=application/json\n";next VCF}
 					elsif ($nm_list eq '' && $tag ne '') {$message .= $tag;next VCF}
 					#query U2 to get NM
 					chop($nm_list);#remove last ,
@@ -715,7 +719,7 @@ if ($step && $step == 2) {
 						#elsif (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] ne $result->{'acc_version'} && $result->{'main'} == 1) {
 						if (exists $hashvar->{$result->{'nm'}} && !exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}) {
 							#bad acc not in U2 => retry with U2 acc_no
-							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $result->{'nm'}.".".$result->{'acc_version'}, $var_chr-$var_pos-$var_ref-$var_alt, 'VCF'));
+							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
 							#get new cdna
 							my ($tmp_message, $hashvar_tmp);
 							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
@@ -817,10 +821,10 @@ if ($step && $step == 2) {
 						#my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele) VALUES ('$var_final', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$analysis', '$status', '$allele');\n";
 						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
 						my $res_verif = $dbh->selectrow_hashref($query_verif);
-						print STDERR "$res_verif->{'nom'}[0]-$gene";
+						# print STDERR "Gene verif3: $res_verif->{'nom'}[0]-$gene";
 						if ($res_verif->{'nom'}[0] eq $gene) {
 							$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
-							print STDERR $insert."\n";
+							# print STDERR $insert."\n";
 							$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
 							$i++;$j++;
 							$new_var .= $message_tmp;
@@ -927,7 +931,21 @@ sub run_vv_results {
 			if ($tmp_nom_g ne '') {
 				#print STDERR $tmp_nom_g."-\n";
 				my $insert = U2_modules::U2_subs_3::direct_submission($tmp_nom_g, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-				if ($insert ne '') {return ('', $insert)}
+				# print STDERR "Direct submission3: $insert";
+				# if ($insert ne '') {return ('', $insert)}
+				if ($insert ne '') {
+					my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[2] = '$nm';";
+					my $res_verif = $dbh->selectrow_hashref($query_verif);
+					# print STDERR "Gene verif4: $res_verif->{'nom'}[1]-$nm";
+					if ($res_verif->{'nom'}[1] eq $nm) {
+						# print STDERR "insert 4:$insert\n";
+						return ('', $insert);
+					}
+					else {
+						#variant in unwanted region
+						return "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+					}
+				}
 			}
 			if ($vv_results->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
 				#patches
@@ -938,7 +956,21 @@ sub run_vv_results {
 				if ($res_last->{'nom_g'}) {
 					#print STDERR $res_last->{'nom_g'}."\n";
 					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-					if ($insert ne '') {return ('', $insert)}
+					# print STDERR "Direct submission4 $insert";
+					# if ($insert ne '') {return ('', $insert)}
+					if ($insert ne '') {
+						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[2] = '$nm';";
+						my $res_verif = $dbh->selectrow_hashref($query_verif);
+						# print STDERR "Gene verif5: $res_verif->{'nom'}[1]-$nm";
+						if ($res_verif->{'nom'}[1] eq $nm) {
+							# print STDERR "insert 5:$insert\n";
+							return ('', $insert);						
+						}
+						else {
+							#variant in unwanted region
+							return "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+						}
+					}
 				}
 			}
 		}
