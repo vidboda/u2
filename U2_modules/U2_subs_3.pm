@@ -1525,8 +1525,8 @@ sub create_variant_vv {
 		$client->getUseragent()->ssl_opts(verify_hostname => 0);
 		$client->getUseragent()->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
 		$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y");
-		# print STDERR $client;
-		# print STDERR "https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y\n";
+		print STDERR $client;
+		print STDERR "https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y\n";
 		# print STDERR $client->responseContent()."\n";
 		my $ucsc_response = decode_json($client->responseContent());
 		# $client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
