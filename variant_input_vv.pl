@@ -233,6 +233,12 @@ elsif ($step == 2) { #insert variant and print
 					}
 			}
 			my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv('GRCh38', "$acc_no.$acc_ver", $cdna, 'cdna'));
+			if ($vv_results == 500 || $vv_results =~/^VVERROR/o) {
+				my $text = "VariantValidator returned an internal server error. You may try again to submit your variant or try mutalyzer.";
+				print STDERR $vv_results;
+				print U2_modules::U2_subs_2::danger_panel($text, $q);
+				exit;
+			}
 			#run variantvalidator API
 			my $vvkey = "$acc_no.$acc_ver:$cdna";
 			if ($vv_results ne '0') {

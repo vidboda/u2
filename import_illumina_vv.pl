@@ -558,7 +558,7 @@ if ($step && $step == 2) {
 				if ($res_gs) {$known_bad_variant = 1;$genomic_var = $res_gs->{'u2_name'}}
 				
 				my $insert = &U2_modules::U2_subs_3::direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-				# print STDERR "Direct submission1: $insert\n";
+				# print STDERR "Direct submission 1: $genomic_var\n";
 				if ($insert ne '') {
 					# return "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$res->{'nom'}', '$number', '$id', '{\"$res->{'nom_gene'}[0]\",\"$res->{'nom_gene'}[1]\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
 					# get gene from insert then check
@@ -590,7 +590,7 @@ if ($step && $step == 2) {
 					my $inv_genomic_var = $1.$3.">".$2;
 					# print STDERR "Inv genomic var (inside inv): $inv_genomic_var\n";
 					$insert = U2_modules::U2_subs_3::direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-					# print STDERR "Direct submission 2 (inside inv): $insert\n";
+					# print STDERR "Direct submission 2: $inv_genomic_var\n";
 					if ($insert ne '') {
 						# get gene from insert then check
 						if ($insert =~ /'\{"([^"]+)",/o) {
@@ -619,6 +619,7 @@ if ($step && $step == 2) {
 				if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				#ok let's deal with VV
 				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
+				#if ($vv_results == 500 || $vv_results =~/^VVERROR/o) {$message .= "$id$number: ERROR: VariantValidator returned $vv_results $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
 				#run variantvalidator API
 				#my $vvkey = "$acc_no.$acc_ver:$cdna";
 				my ($type_segment, $classe, $var_final, $cdna);
@@ -720,6 +721,7 @@ if ($step && $step == 2) {
 						if (exists $hashvar->{$result->{'nm'}} && !exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}) {
 							#bad acc not in U2 => retry with U2 acc_no
 							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
+							#if ($vv_results == 500 || $vv_results =~/^VVERROR/o) {$message .= "$id$number: ERROR: VariantValidator returned $vv_results $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
 							#get new cdna
 							my ($tmp_message, $hashvar_tmp);
 							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
@@ -804,6 +806,7 @@ if ($step && $step == 2) {
 							($acc_no, $acc_ver) = ($1, $2);
 							#run vv again
 							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna'));
+							if ($vv_results->{'message'}) {$message .= "$id$number: ERROR: VariantValidator returned $vv_results $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
 							$vvkey = "$acc_no.$acc_ver:".$hashvar->{$acc_no}->{$acc_ver}[0];
 							$cdna = $hashvar->{$acc_no}->{$acc_ver}[0];							
 							($message_tmp, $type_segment, $classe, $var_final) = U2_modules::U2_subs_3::create_variant_vv($vv_results, $vvkey, $gene, $cdna, $acc_no, $acc_ver, $ng_accno, $user, $q, $dbh, "background $var_chr-$var_pos-$var_ref-$var_alt");

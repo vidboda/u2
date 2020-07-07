@@ -1604,6 +1604,14 @@ sub create_variant_vv {
 		if ($nom_ivs ne 'NULL') {$nom_ivs .= $sequence}
 	}
 	#print "$cdna<br/>";
+	#check for the last time if the variant exists (may be an interpretation difference between VV and mutalyzer)
+	my $last_check = "SELECT nom_g FROM variant WHERE nom = '$cdna' and nom_gene = '{\"$gene\",\"$acc_no\"}';";
+	my $res_last_check = $dbh->selectrow_hashref($last_check);
+	if ($res_last_check->{'nom_g'}) {
+		$error .= "ERROR Mutalyzer/VV difference for variant $cdna in gene $gene: mutalyzer nom_g: $nom_g, new vv: $nom_g - UPDATE U2 wuth new c_name from VV";
+		return ($error, $type_segment, $classe, $cdna);
+	}
+	
 	my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38, defgen_export) VALUES ('$cdna', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38', '$defgen_export');";
 	$insert =~ s/'NULL'/NULL/og;
 	#die $insert;
