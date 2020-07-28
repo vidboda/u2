@@ -599,9 +599,9 @@ sub get_label {
 	my ($number, $transcript, $type, $name) = @_;
 	#print U2_modules::U2_subs_1::get_last_exon_number($transcript, $dbh);
 	if ($type eq 'exon' && U2_modules::U2_subs_1::get_last_exon_number($transcript, $dbh) == 1) {return ('3UTR', '5UTR')}
-	elsif ($type eq 'exon' && $number == U2_modules::U2_subs_1::get_last_exon_number($transcript, $dbh)) {return ('Intron', '5UTR')}
+	elsif ($type eq 'exon' && $number == U2_modules::U2_subs_1::get_last_exon_number($transcript, $dbh)) {return ('Intron', '3UTR')}
 	elsif ($type eq 'intron' && ($number+1) == U2_modules::U2_subs_1::get_last_exon_number($transcript, $dbh) && $name =~ /[^\.]-/o) {return ('Intron', '5UTR')}
-	elsif (($type eq 'exon' && $number == 1) || ($type eq 'intron' && $number == 1 && $name =~ /\+/o)) {return ('3UTR', 'Intron')}
+	elsif (($type eq 'exon' && $number == 1) || ($type eq 'intron' && $number == 1 && $name =~ /\+/o)) {return ('5UTR', 'Intron')}
 	else {return ('Intron', 'Intron')}
 }
 sub get_neighbouring_nom_seg {
