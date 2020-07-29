@@ -887,7 +887,7 @@ if ($result) {
 					
 						if (-e "$panel_mobidl_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf" || -e "$panel_mobidl_path/$id_tmp$num_tmp/MobiDL.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-											$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get autoMobiDL reanalysis summary').
+											$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/MobiDL.pdf", 'target' => '_blank'}, 'Get autoMobiDL reanalysis summary').
 										$q->end_li()
 						}
 						if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf") {
