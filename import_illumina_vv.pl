@@ -932,22 +932,28 @@ sub run_vv_results {
 				$tmp_nom_g = "chr$chr:".pop(@full_nom_g_19);
 			}
 			if ($tmp_nom_g ne '') {
-				#print STDERR $tmp_nom_g."-\n";
+				# print STDERR $tmp_nom_g."-\n";
 				my $insert = U2_modules::U2_subs_3::direct_submission($tmp_nom_g, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 				# print STDERR "Direct submission3: $insert";
 				# if ($insert ne '') {return ('', $insert)}
 				if ($insert ne '') {
-					my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[2] = '$nm';";
+					my $query_verif = "SELECT nom, \"$analysis\" as analysis FROM gene WHERE nom[2] = '$nm';";
+					# print STDERR $query_verif;
 					my $res_verif = $dbh->selectrow_hashref($query_verif);
-					# print STDERR "Gene verif4: $res_verif->{'nom'}[1]-$nm";
-					if ($res_verif->{'nom'}[1] eq $nm) {
-						# print STDERR "insert 4:$insert\n";
+					# print STDERR "Gene verif 4: $res_verif->{'nom'}[1]-$nm";
+					if ($res_verif->{'nom'}[1] eq $nm && $res_verif->{'analysis'} == 1) {
+						# print STDERR "insert 4a:$insert\n";
 						return ('', $insert);
 					}
-					else {
-						#variant in unwanted region
-						return "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+					elsif ($res_verif->{'nom'}[1] eq $nm && $res_verif->{'analysis'} != 1) {
+						# print STDERR "$id$number: ERROR a: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+						return  "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 					}
+					#else { #otherwise just continue the loop
+					#	#variant in unwanted region
+					#	#$tag = "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+					#	print STDERR "Direct submission issue $insert-".$res_verif->{'nom'}[1]."-$nm-".$res_verif->{'analysis'}."\n";
+					#}
 				}
 			}
 			if ($vv_results->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
@@ -957,22 +963,27 @@ sub run_vv_results {
 				#print STDERR $last_query."\n";
 				my $res_last = $dbh->selectrow_hashref($last_query);
 				if ($res_last->{'nom_g'}) {
-					#print STDERR $res_last->{'nom_g'}."\n";
+					# print STDERR $res_last->{'nom_g'}."\n";
 					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "Direct submission4 $insert";
 					# if ($insert ne '') {return ('', $insert)}
 					if ($insert ne '') {
-						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[2] = '$nm';";
+						my $query_verif = "SELECT nom, \"$analysis\" as analysis FROM gene WHERE nom[2] = '$nm';";
+						# print STDERR $query_verif;
 						my $res_verif = $dbh->selectrow_hashref($query_verif);
-						# print STDERR "Gene verif5: $res_verif->{'nom'}[1]-$nm";
-						if ($res_verif->{'nom'}[1] eq $nm) {
-							# print STDERR "insert 5:$insert\n";
-							return ('', $insert);						
+						# print STDERR "Gene verif 5: $res_verif->{'nom'}[1]-$nm";
+						if ($res_verif->{'nom'}[1] eq $nm && $res_verif->{'analysis'} == 1) {
+							# print STDERR "insert 4b:$insert\n";
+							return ('', $insert);
 						}
-						else {
-							#variant in unwanted region
-							return "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+						elsif ($res_verif->{'nom'}[1] eq $nm && $res_verif->{'analysis'} != 1) {
+							# print STDERR "$id$number: ERROR b: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+							return  "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 						}
+						#else { #otherwise just continue the loop
+						#	#variant in unwanted region
+						#	$tag = "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+						#}
 					}
 				}
 			}

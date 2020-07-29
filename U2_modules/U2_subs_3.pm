@@ -1608,7 +1608,8 @@ sub create_variant_vv {
 	my $last_check = "SELECT nom_g FROM variant WHERE nom = '$cdna' and nom_gene = '{\"$gene\",\"$acc_no\"}';";
 	my $res_last_check = $dbh->selectrow_hashref($last_check);
 	if ($res_last_check->{'nom_g'}) {
-		$error .= "ERROR Mutalyzer/VV difference for variant $cdna in gene $gene: mutalyzer nom_g: $nom_g, new vv: $nom_g - UPDATE U2 wuth new c_name from VV";
+		# print STDERR "Last check U2:".$res_last_check->{'nom_g'}."-VV:$nom_g-\n";
+		$error .= "ERROR Mutalyzer/VV difference for variant $cdna in gene $gene: mutalyzer nom_g: '".$res_last_check->{'nom_g'}."', new vv: '$nom_g' - UPDATE U2 with new c_name from VV\n";
 		return ($error, $type_segment, $classe, $cdna);
 	}
 	

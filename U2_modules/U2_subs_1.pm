@@ -43,7 +43,7 @@ our @USH2 = ('USH2A', 'GPR98', 'DFNB31', 'PDZD7');
 our @USH3 = ('CLRN1', 'HARS');
 our @CHM = ('CHM');
 our @DFNB = ('ADCY1', 'ATP2B2', 'CABP2', 'CDC14A', 'CIB2', 'CLDN9', 'CLDN14', 'CLIC5', 'COL11A2', 'DFNB59', 'ESPN', 'EPS8', 'EPS8L2', 'ESRRB', 'FAM65B', 'FOXI1', 'GIPC3', 'GJB2', 'GJB3', 'GJB6', 'GPSM2', 'GRXCR1', 'GRXCR2', 'HGF', 'ILDR1', 'KARS', 'KCNJ10', 'LHFPL5', 'LOXHD1', 'LRTOMT', 'MARVELD2', 'MPZL2', 'MSRB3', 'MYO3A', 'MYO6', 'MYO15A', 'OTOA', 'OTOF', 'OTOG', 'OTOGL', 'PEX13', 'PDZD7', 'PTPRQ', 'RDX', 'ROR1', 'S1PR2', 'SERPINB6', 'SLC26A4', 'SLC26A5', 'SLITRK6', 'SPNS2', 'STRC', 'SYNE4', 'TBC1D24', 'TECTA', 'TMC1', 'TMEM132E', 'TMIE', 'TMPRSS3', 'TPRN', 'TRIOBP', 'TSPEAR', 'WBP2');
-our @DFNA = ('ACTG1', 'CCDC50', 'CD164', 'CEACAM16', 'COCH', 'COL11A2', 'CRYM', 'DIABLO', 'DFNA5', 'DIAPH1', 'DIAPH3', 'DMXL2', 'DSPP', 'EYA1', 'EYA4', 'GJB2', 'GJB6', 'GJB3', 'GRHL2', 'HOMER2', 'KCNQ4', 'KITLG', 'MIR96', 'MIR182', 'MIR183', 'MYH9', 'MYH14', 'MYL9', 'MYO1A', 'MYO3A', 'MYO6', 'NLRP3', 'OSBPL2', 'P2RX2', 'PLS1', 'PTPN11', 'PTPRQ', 'POU4F3', 'SIX1', 'SLC12A2', 'SLC17A8', 'TBC1D24', 'TECTA', 'TJP2', 'TMC1', 'TNC', 'WFS1','RNR1', 'TRNL1', 'TRNS1', 'VANGL2');
+our @DFNA = ('ACTG1', 'CCDC50', 'CD164', 'CEACAM16', 'COCH', 'COL11A2', 'CRYM', 'DIABLO', 'DFNA5', 'DIAPH1', 'DIAPH3', 'DMXL2', 'DSPP', 'EYA1', 'EYA4', 'FAM65B', 'GJB2', 'GJB6', 'GJB3', 'GRHL2', 'HOMER2', 'KCNQ4', 'KITLG', 'MIR96', 'MIR182', 'MIR183', 'MYH9', 'MYH14', 'MYL9', 'MYO1A', 'MYO3A', 'MYO6', 'NLRP3', 'OSBPL2', 'P2RX2', 'PLS1', 'PTPN11', 'PTPRQ', 'POU4F3', 'SIX1', 'SLC12A2', 'SLC17A8', 'TBC1D24', 'TECTA', 'TJP2', 'TMC1', 'TNC', 'WFS1','RNR1', 'TRNL1', 'TRNS1', 'VANGL2');
 our @NSRP = ('ABCA4', 'AIPL1', 'BBS1', 'BEST1', 'C2orf71', 'C8orf37', 'CERKL', 'CNGA1', 'CNGB1', 'CRB1', 'DHDDS', 'EYS', 'FAM161A', 'FLVCR1', 'IDH3B', 'IMPG2', 'MAK', 'MERTK', 'NR2E3', 'NRL', 'PDE6A', 'PDE6B', 'PDE6G', 'PRCD', 'PROM1', 'PRPF31', 'PRPH2', 'RP1', 'RP2', 'RBP3', 'RGR', 'RHO', 'RLBP1', 'RPE65', 'RPGR', 'SAG', 'SNRNP200', 'TTC8', 'ZNF513');
 our @DFNX = ('POU3F4', 'PRPS1', 'SMPX', 'COL4A6');
 our @LCA = ('LRAT', 'SPATA7', 'TULP1', 'RPE65');
@@ -1233,7 +1233,16 @@ sub run_vv {
 	#$ua->ssl_opts(verify_hostname => 0);
 	#$ua->proxy('https', 'http://194.167.35.151:3128/');
 	my $url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$nm:$var/$nm?content-type=application/json";
-	if ($mode eq 'VCF') {$url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json";}
+	if ($mode eq 'VCF') {
+		#chekc if mediummonster docker vv is alive
+		#my $ua = LWP::UserAgent->new();
+		#my $request = $ua->get(uri_encode("http://10.34.20.79:8000/hello/?content-type=application/json"));
+		#if ($request->is_success() && decode_json($request->content())->{'status'} eq 'hello_world') {
+		#	 $url = "http://10.34.20.79:8000/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json";
+		#}
+		#else{$url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json"}
+		$url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json";
+	}
 	print STDERR "VV url: $url\n";
 	my $vv_result = `/usr/local/bin/python $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"` or die $!;
 	#my $request = $ua->get($url);
