@@ -1518,7 +1518,7 @@ sub create_variant_vv {
 		my ($pos1, $pos2) = U2_modules::U2_subs_3::get_start_end_pos($nom_g);
 		# UCSC => $pos1 - 26 (0-based)
 		# togows => $pos1 - 25
-		my ($x, $y) = ($pos1 - 26, $pos2 + 25);
+		my ($x, $y) = ($pos1 - 25, $pos2 + 25);
 		# $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 		my $client = REST::Client->new();
 		# print "http://togows.org/api/ucsc/hg19/$chr:$x-$y<br/>";
