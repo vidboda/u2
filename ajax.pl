@@ -209,40 +209,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$position-$position`);
 			$text .=  &dbnsfp2html(\@dbnsfp, $ref, $alt, 83, 93, 92, 101, 115, 59, 61);
 			if ($#dbnsfp > -1) {$semaph = 1}
-			#foreach (@dbnsfp) {
-			#	my @current = split(/\t/, $_);
-			#	if (($current[2] eq $ref) && ($current[3] eq $alt)) {
-			#		$text .= $q->start_li().
-			#					$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
-			#					$q->span(" phase 1 AF (allele $alt): ".sprintf('%.4f', $current[83])).
-			#				$q->end_li()."\n".
-			#				$q->start_li().
-			#					$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
-			#					$q->span(" EA AF (allele $alt): ".sprintf('%.4f', $current[93])).
-			#				$q->end_li()."\n".
-			#				$q->start_li().
-			#					$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
-			#					$q->span(" AA AF (allele $alt): ".sprintf('%.4f', $current[92])).
-			#				$q->end_li()."\n".
-			#				$q->start_li().
-			#					$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').
-			#					$q->span(" adjusted AF (allele $alt): ".sprintf('%.4f', $current[101])).
-			#				$q->end_li()."\n".
-			#				$q->start_li().
-			#					$q->span({'onclick' => 'window.open(\'https://www.ncbi.nlm.nih.gov/clinvar/\')', 'class' => 'pointer'}, 'ClinVar').
-			#					$q->span(" (allele $alt): ".U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115])).
-			#				$q->end_li()."\n".
-			#				$q->start_li().
-			#					$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD raw:').
-			#					$q->span(" (allele $alt): ".sprintf('%.4f', $current[59])).
-			#				$q->end_li()."\n".
-			#				$q->start_li().
-			#					$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD phred:').
-			#					$q->span(" (allele $alt): $current[61]").
-			#				$q->end_li()."\n";
-			#		$semaph = 1;
-			#	}
-			#}
+
 		}
 		#Intervar new API 06/2019
 		#http://wintervar.wglab.org/api_new.php?queryType=position&build=hg19_updated.v.201904&chr=1&pos=115828756&ref=G&alt=A
@@ -289,7 +256,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			my $myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'all', $user->getEmail());
 			
 			#$text .= ref($myvariant->{'gnomad_exome'}->{'af'}).$myvariant->{'gnomad_exome'}->{'af'}->{'af'};
-			
+			# print STDERR Dumper($myvariant);
 			
 			if (ref($myvariant) && ref($myvariant->{'gnomad_exome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
 				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD exome') . $q->span(" AF: ".$myvariant->{'gnomad_exome'}->{'af'}->{'af'}) . $q->end_li();
@@ -318,14 +285,14 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession', $user->getEmail());->{'rcv'}->{'accession'}
 			if (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'HASH' && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
 				#print $myvariant->{'clinvar'}->{'rcv'};
-				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV') . $q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->{'accession'}) . $q->end_li();
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar ') . $q->span(": ".$myvariant->{'clinvar'}->{'rcv'}->{'clinical_significance'}) . $q->end_li();
 			}
 			elsif (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'ARRAY' && $myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'} ne '') {
 				#print $myvariant->{'clinvar'}->{'rcv'};
-				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar RCV') . $q->span(" raw: ".$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}) . $q->end_li();
+				$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar ') . $q->span(": ".$myvariant->{'clinvar'}->{'rcv'}->[0]->{'clinical_significance'}) . $q->end_li();
 			}
 		}
-			
+		
 		
 			#####removed 01/10/2018 replaced wit myvariant.info
 			#####my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz --plugin CADD,$DATABASES_PATH/CADD/whole_genome_SNVs.tsv.gz,$DATABASES_PATH/CADD/InDels.tsv.gz  -o STDOUT`); ###VEP81;
@@ -394,6 +361,22 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			#print $#results;
 			#foreach(@results) {print "$_<br/>"}
 		#####}	
+	}
+	elsif ($variant =~ /chr(.+)$/o && $text =~ /not seen in Clinvar/o) { #clinvar empty in dbNSFP - check myvariant
+		my $myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession,clinvar.rcv.clinical_significance', $user->getEmail());
+		
+		
+		if (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'HASH' && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
+			#print $myvariant->{'clinvar'}->{'rcv'};
+			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar ') . $q->span(": ".$myvariant->{'clinvar'}->{'rcv'}->{'clinical_significance'}) . $q->end_li();
+			$text =~ s/<li><span class="pointer" onclick="window.open\('https:\/\/www\.ncbi\.nlm\.nih\.gov\/clinvar\/'\)">ClinVar<\/span><span>.+not seen in Clinvar<\/span><\/li>//o;
+			#$text =~ s/<li><span class="pointer"  onclick="window.open\('https:\/\/www\.ncbi\.nlm\.nih\.gov\/clinvar\/'\)">ClinVar<\/span><span>.+not seen in Clinvar<\/span><\/li>//o;
+		}
+		elsif (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'ARRAY' && $myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'} ne '') {
+			#print $myvariant->{'clinvar'}->{'rcv'};
+			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar ') . $q->span(": ".$myvariant->{'clinvar'}->{'rcv'}->[0]->{'clinical_significance'}) . $q->end_li();
+			$text =~ s/<li><span class="pointer" onclick="window.open\('https:\/\/www\.ncbi\.nlm\.nih\.gov\/clinvar\/'\)">ClinVar<\/span><span>.+not seen in Clinvar<\/span><\/li>//o;
+		}
 	}
 	#else {print "pb with variant $variant with VEP"}
 	#my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);

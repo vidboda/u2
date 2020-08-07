@@ -1534,10 +1534,14 @@ sub create_variant_vv {
 		$client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
 		
 		#my ($i, $j) = (0, $#seq-25);
+		# UCSC
 		# if ($ucsc_response->{'dna'} =~ /^[ATGCatgc]+$/o) {
 			# print STDERR "create_variant_vv: UCSC-1 get sequence: $ucsc_response";
+		# togows
 		if ($client->responseContent() =~ /^[ATGC]+$/o) {
+			# togows
 			push my @seq, $client->responseContent();
+			# UCSC
 			#my $intermediary_seq = uc($ucsc_response->{'dna'});
 			#push my (@seq), $intermediary_seq;
 			my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
