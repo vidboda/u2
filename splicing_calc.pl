@@ -10,6 +10,7 @@ use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
 use File::Temp qw/ :seekable /;
 use REST::Client;
+use JSON;
 
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
@@ -532,6 +533,9 @@ sub build_window {
 sub get_natural {
 	my ($pos, $version, $type, $strand, $chr, $path, $nom) = @_;
 	my $client = REST::Client->new();
+	# UCSC
+	$client->getUseragent()->ssl_opts(verify_hostname => 0);
+	$client->getUseragent()->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
 	my ($x, $y);
 	if ($version == 3) {
 		if ($type eq 'exon' && $strand eq '+') {$x = $pos-20;$y = $pos+2;}
@@ -545,9 +549,16 @@ sub get_natural {
 		elsif ($type eq 'intron' && $strand eq '+') {$x = $pos-3;$y = $pos+5;}
 		elsif ($type eq 'intron' && $strand eq '-') {$x = $pos-5;$y = $pos+3;}		
 	}
-	
-	$client->GET("http://togows.org/api/ucsc/hg19/$chr:$x-$y");
-	push my @seq, $client->responseContent();
+	# UCSC is 0-based
+	$x = $x-1;
+	$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=$chr;start=$x;end=$y");
+	my $ucsc_response = decode_json($client->responseContent());
+	my $intermediary_seq = uc($ucsc_response->{'dna'});
+	push my (@seq), $intermediary_seq;
+	# print STDERR "https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=$chr;start=$x;end=$y\n";
+	# togows is 1-based
+	# $client->GET("http://togows.org/api/ucsc/hg19/$chr:$x-$y");my $intermediary_seq = uc($ucsc_response->{'dna'});
+	# push my @seq, $client->responseContent();
 	#print $client->responseContent();
 	if ($strand eq '-') {
 		my $seqrev = reverse $seq[0];

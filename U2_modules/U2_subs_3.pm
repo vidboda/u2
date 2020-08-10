@@ -1540,7 +1540,7 @@ sub create_variant_vv {
 		# togows
 		# if ($client->responseContent() =~ /^[ATGC]+$/o) {
 			# togows
-			push my @seq, $client->responseContent();
+			# push my @seq, $client->responseContent();
 			# UCSC
 			my $intermediary_seq = uc($ucsc_response->{'dna'});
 			push my (@seq), $intermediary_seq;
