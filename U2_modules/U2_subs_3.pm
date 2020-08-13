@@ -1,5 +1,5 @@
 package U2_modules::U2_subs_3;
-
+BEGIN {delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV', 'PATH'};}
 use strict;
 use warnings;
 use Data::Dumper;
