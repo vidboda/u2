@@ -1518,9 +1518,9 @@ sub create_variant_vv {
 		my ($pos1, $pos2) = U2_modules::U2_subs_3::get_start_end_pos($nom_g);
 		# UCSC => $pos1 - 26 (0-based)
 		# togows => $pos1 - 25
-		my ($x, $y) = ($pos1 - 25, $pos2 + 25);
+		my ($x, $y) = ($pos1 - 26, $pos2 + 25);
 		# $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
-		my $client = REST::Client->new();
+		# my $client = REST::Client->new();
 		# print "http://togows.org/api/ucsc/hg19/$chr:$x-$y<br/>";
 		# exit;
 		# $client->getUseragent()->ssl_opts(verify_hostname => 0);
@@ -1531,67 +1531,69 @@ sub create_variant_vv {
 		# print STDERR "https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y\n";
 		# print STDERR $client->responseContent()."\n";
 		# my $ucsc_response = decode_json($client->responseContent());
-		$client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
+		# $client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
 		
+		my @seq = `/Library/Frameworks/Python.framework/Versions/3.6/bin/python3 $ABSOLUTE_HTDOCS_PATH/getTwoBitSeq.py chr$chr $x $y`;
+		chomp(@seq);
 		#my ($i, $j) = (0, $#seq-25);
 		# UCSC
 		# if ($ucsc_response->{'dna'} =~ /^[ATGCatgc]+$/o) {
 			# print STDERR "create_variant_vv: UCSC-1 get sequence: $ucsc_response";
 		# togows
-		if ($client->responseContent() =~ /^[ATGC]+$/o) {
+		# if ($client->responseContent() =~ /^[ATGC]+$/o) {
 			# togows
-			push my @seq, $client->responseContent();
+			# push my @seq, $client->responseContent();
 			# UCSC
 			# my $intermediary_seq = uc($ucsc_response->{'dna'});
 			# push my (@seq), $intermediary_seq;
-			my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
-			#print "--$strand--<br/>";
-			if ($strand eq 'DESC') {
-				my $seqrev = reverse $seq[0];
-				$seqrev =~ tr/acgtACGT/tgcaTGCA/;
-				$seq[0] = $seqrev;
-			}
-			#print $seq[0].'<br/>';
-			my ($begin, $middle, $end) ;
-			($begin, $middle, $end) = (substr($seq[0], 0, 25), substr($seq[0], 25, $#seq-25), substr($seq[0], $#seq-25));
-			#print "$begin-$middle-$end<br/>";
-			
-			if ($cdna =~ />([ATCG])$/o) {#substitutions
+		my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
+		#print "--$strand--<br/>";
+		if ($strand eq 'DESC') {
+			my $seqrev = reverse $seq[0];
+			$seqrev =~ tr/acgtACGT/tgcaTGCA/;
+			$seq[0] = $seqrev;
+		}
+		#print $seq[0].'<br/>';
+		my ($begin, $middle, $end) ;
+		($begin, $middle, $end) = (substr($seq[0], 0, 25), substr($seq[0], 25, $#seq-25), substr($seq[0], $#seq-25));
+		#print "$begin-$middle-$end<br/>";
+		
+		if ($cdna =~ />([ATCG])$/o) {#substitutions
+			$seq_wt = "$begin $middle $end";
+			$seq_mt = "$begin $1 $end";
+		}
+		elsif ($nom_g =~ /delins([ATGC]+)/) {
+			my $exp = '';
+			my $exp_size = abs(length($middle)-length($1));
+			for (my $i=0;$i<$exp_size;$i++) {$exp.='-'}
+			if (length($middle) > length($1)) {
 				$seq_wt = "$begin $middle $end";
-				$seq_mt = "$begin $1 $end";
+				$seq_mt = "$begin $1$exp $end";
 			}
-			elsif ($nom_g =~ /delins([ATGC]+)/) {
-				my $exp = '';
-				my $exp_size = abs(length($middle)-length($1));
-				for (my $i=0;$i<$exp_size;$i++) {$exp.='-'}
-				if (length($middle) > length($1)) {
-					$seq_wt = "$begin $middle $end";
-					$seq_mt = "$begin $1$exp $end";
-				}
-				else {
-					$seq_wt = "$begin $middle$exp $end";
-					$seq_mt = "$begin $1 $end";
-				}
-			}
-			elsif ($nom_g =~ /ins([ATGC]+)/) {
-				my $exp;
-				for (my $i=0;$i<length($1);$i++) {$exp.='-'}
-				$seq_wt = "$begin $exp $end";
-				$seq_mt = "$begin $1 $end";
-			}
-			elsif ($nom_g =~ /del/o) {
-				$seq_wt = "$begin $middle $end";
-				my $exp;
-				for (my $i=0;$i<$taille;$i++) {$exp.='-'}
-				$seq_mt = "$begin $exp $end";
-			}
-			elsif ($nom_g =~ /dup/o) {				
-				my $exp;
-				for (my $i=0;$i<$taille;$i++) {$exp.='-'}
+			else {
 				$seq_wt = "$begin $middle$exp $end";
-				$seq_mt = "$begin $middle$middle $end";
+				$seq_mt = "$begin $1 $end";
 			}
 		}
+		elsif ($nom_g =~ /ins([ATGC]+)/) {
+			my $exp;
+			for (my $i=0;$i<length($1);$i++) {$exp.='-'}
+			$seq_wt = "$begin $exp $end";
+			$seq_mt = "$begin $1 $end";
+		}
+		elsif ($nom_g =~ /del/o) {
+			$seq_wt = "$begin $middle $end";
+			my $exp;
+			for (my $i=0;$i<$taille;$i++) {$exp.='-'}
+			$seq_mt = "$begin $exp $end";
+		}
+		elsif ($nom_g =~ /dup/o) {				
+			my $exp;
+			for (my $i=0;$i<$taille;$i++) {$exp.='-'}
+			$seq_wt = "$begin $middle$exp $end";
+			$seq_mt = "$begin $middle$middle $end";
+		}
+		# }
 		#else {
 		#	print STDERR "create_variant_vv: UCSC get sequence: $ucsc_response";
 		#}

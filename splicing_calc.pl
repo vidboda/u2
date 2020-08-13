@@ -59,6 +59,7 @@ my $CSS_DEFAULT = $config->CSS_DEFAULT();
 my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
+my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css');
 
@@ -532,10 +533,10 @@ sub build_window {
 
 sub get_natural {
 	my ($pos, $version, $type, $strand, $chr, $path, $nom) = @_;
-	my $client = REST::Client->new();
+	#my $client = REST::Client->new();
 	# UCSC
-	$client->getUseragent()->ssl_opts(verify_hostname => 0);
-	$client->getUseragent()->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
+	#$client->getUseragent()->ssl_opts(verify_hostname => 0);
+	#$client->getUseragent()->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
 	my ($x, $y);
 	if ($version == 3) {
 		if ($type eq 'exon' && $strand eq '+') {$x = $pos-20;$y = $pos+2;}
@@ -551,10 +552,11 @@ sub get_natural {
 	}
 	# UCSC is 0-based
 	$x = $x-1;
-	$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=$chr;start=$x;end=$y");
-	my $ucsc_response = decode_json($client->responseContent());
-	my $intermediary_seq = uc($ucsc_response->{'dna'});
-	push my (@seq), $intermediary_seq;
+	my @seq = `/Library/Frameworks/Python.framework/Versions/3.6/bin/python3 $ABSOLUTE_HTDOCS_PATH/getTwoBitSeq.py $chr $x $y`;
+	#$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=$chr;start=$x;end=$y");
+	#my $ucsc_response = decode_json($client->responseContent());
+	#my $intermediary_seq = uc($ucsc_response->{'dna'});
+	#push my (@seq), $intermediary_seq;
 	# print STDERR "https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=$chr;start=$x;end=$y\n";
 	# togows is 1-based
 	# $client->GET("http://togows.org/api/ucsc/hg19/$chr:$x-$y");my $intermediary_seq = uc($ucsc_response->{'dna'});
