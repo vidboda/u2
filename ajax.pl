@@ -1653,12 +1653,16 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 		my $align_file = $q->param ('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 		my $cov_report_sh = $cov_report_dir.'covreport.sh';
-		print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt";
-		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt`;		
+		print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt -f $filter\n";
+		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt -f $filter`;		
 		
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
 			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf"}, 'Download CovReport').$q->end_span();
 			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\nhttp://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."_coverage.pdf\n\nDon't forget to close the dev server page!!!!!\n");
+			# attempt to trigger autoFS
+			open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
+			sleep 3;
+			close HANDLE; 
 			mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
 			copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
 		}

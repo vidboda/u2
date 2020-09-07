@@ -199,12 +199,16 @@ elsif ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS
 	}
 	close F;
 
-	print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt\n";
-	`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt`;
+	print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter\n";
+	`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter`;
 	
 	if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
 		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf"}, 'Download CovReport').$q->end_p(), $q->end_div();
 		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\nhttp://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."-custom_coverage.pdf\n\nDon't forget to close the dev server page!!!!!\n");
+		# attempt to trigger autoFS
+		open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
+		sleep 3;
+		close HANDLE; 
 		mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
 		copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
 	}
