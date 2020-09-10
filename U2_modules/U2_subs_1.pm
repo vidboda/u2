@@ -1296,7 +1296,7 @@ sub test_ncbi {
 	my $ua = LWP::UserAgent->new();
 	my $request = $ua->get('https://www.ncbi.nlm.nih.gov/');
 	if ($request->is_success()) {return 1}
-	else {return 0}	
+	else {print STDERR $request->content(); return 0}	
 }
 sub run_litvar {
 	my $snp_id = shift;

@@ -154,7 +154,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			my $pubmedids = U2_modules::U2_subs_1::run_litvar($res->{'snp_id'});
 			if ($pubmedids =~ /litvar error/) {$text .= $q->span("Error while querying litvar: $pubmedids")}
 			if ($pubmedids->[0] eq '') {
-				$text .= $q->span('No PubMed ID retrived');
+				$text .= $q->span('No PubMed ID retrieved');
 			}
 			else {
 				#$text .= $pubmedids->[0]{'pmids'}[0];
