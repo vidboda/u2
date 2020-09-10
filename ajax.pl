@@ -148,39 +148,39 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	if ($res->{'snp_id'} ne '') {
-		my $test_ncbi = U2_modules::U2_subs_1::test_ncbi();
+		# my $test_ncbi = U2_modules::U2_subs_1::test_ncbi();
 		$text .= $q->start_Tr() . $q->td('Pubmed related articles:') . $q->start_td() . $q->start_div({'class' => 'w3-container'});
-		if ($test_ncbi == 1) {
-			my $pubmedids = U2_modules::U2_subs_1::run_litvar($res->{'snp_id'});
-			if ($pubmedids =~ /litvar error/) {$text .= $q->span("Error while querying litvar: $pubmedids")}
-			if ($pubmedids->[0] eq '') {
-				$text .= $q->span('No PubMed ID retrieved');
-			}
-			else {
-				#$text .= $pubmedids->[0]{'pmids'}[0];
-				$text .= $q->button({'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'value' => 'show Pubmed IDs', 'onclick' => '$("#pubmed").show();'}) .
-				$q->start_div({'class' => 'w3-modal', 'id' => 'pubmed'}) . "\n" .
-					$q->start_div({'class' => 'w3-modal-content w3-display-middle', 'style' => 'z-index:1500'}) . "\n" .
-						"<header class = 'w3-container w3-teal'>" . "\n" .
-							$q->span({'onclick' => '$("#pubmed").hide();', 'class' => 'w3-button w3-display-topright w3-large'}, '&times') . "\n" .
-							$q->h2('PubMed IDs of articles citing this variant:') . "\n" .
-						'</header>' . "\n" .
-						$q->start_div({'class' => 'w3-container'}) . "\n" .
-							$q->start_ul() . "\n";
-				my $pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';
-				if ($user->isLocalUser() == 1) {$pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';}
-				foreach my $pmid (@{$pubmedids->[0]{'pmids'}}) {
-					$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid, 'target' => '_blank'}, $pmid) . $q->end_li() . "\n"
-					#$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid->{'pmid'}, 'target' => '_blank'}, $pmid->{'pmid'}) . $q->end_li() . "\n"
-					#print $pmid->{'pmid'}
-				}
-				$text .= $q->end_ul() . "\n" . $q->br() . $q->br() .
-						$q->end_div() . "\n" .
-					$q->end_div() . "\n" .
-				$q->end_div() . "\n";
-			}
+		# if ($test_ncbi == 1) {
+		my $pubmedids = U2_modules::U2_subs_1::run_litvar($res->{'snp_id'});
+		if ($pubmedids =~ /litvar error/) {$text .= $q->span("Error while querying litvar: $pubmedids")}
+		if ($pubmedids->[0] eq '') {
+			$text .= $q->span('No PubMed ID retrieved');
 		}
-		else {$text .= $q->span('Litvar service unavailable')}
+		else {
+			#$text .= $pubmedids->[0]{'pmids'}[0];
+			$text .= $q->button({'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'value' => 'show Pubmed IDs', 'onclick' => '$("#pubmed").show();'}) .
+			$q->start_div({'class' => 'w3-modal', 'id' => 'pubmed'}) . "\n" .
+				$q->start_div({'class' => 'w3-modal-content w3-display-middle', 'style' => 'z-index:1500'}) . "\n" .
+					"<header class = 'w3-container w3-teal'>" . "\n" .
+						$q->span({'onclick' => '$("#pubmed").hide();', 'class' => 'w3-button w3-display-topright w3-large'}, '&times') . "\n" .
+						$q->h2('PubMed IDs of articles citing this variant:') . "\n" .
+					'</header>' . "\n" .
+					$q->start_div({'class' => 'w3-container'}) . "\n" .
+						$q->start_ul() . "\n";
+			my $pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';
+			if ($user->isLocalUser() == 1) {$pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';}
+			foreach my $pmid (@{$pubmedids->[0]{'pmids'}}) {
+				$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid, 'target' => '_blank'}, $pmid) . $q->end_li() . "\n"
+				#$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid->{'pmid'}, 'target' => '_blank'}, $pmid->{'pmid'}) . $q->end_li() . "\n"
+				#print $pmid->{'pmid'}
+			}
+			$text .= $q->end_ul() . "\n" . $q->br() . $q->br() .
+					$q->end_div() . "\n" .
+				$q->end_div() . "\n" .
+			$q->end_div() . "\n";
+		}
+		#}
+		# else {$text .= $q->span('Litvar service unavailable')}
 		$text .= $q->end_div() . $q->end_td() . $q->start_td() . $q->span('Pubmed text mining using ') . $q->a({'href' => 'https://www.ncbi.nlm.nih.gov/CBBresearch/Lu/Demo/LitVar/index.html', 'target' => '_blank'}, 'LitVar') . $q->end_Tr() . "\n";
 	}
 	
