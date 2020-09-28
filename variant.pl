@@ -217,12 +217,17 @@ if ($res->{'taille'} < 50) {
 #ExAC http://exac.broadinstitute.org/
 #2017/03/24 exac replaced with gnomad
 #http://gnomad.broadinstitute.org/variant/
+# VIPHL
+# http://hearing.genetics.bgi.com/
+my $viphl_url = "http://hearing.genetics.bgi.com/automatic.html?variantId=";
+
 if ($res->{'type_adn'} eq 'substitution') {
 	my $exac = U2_modules::U2_subs_1::getExacFromGenoVar($res->{'nom_g'});
 	#http://wintervar.wglab.org/results.pos.php?queryType=position&chr=1&pos=115828756&ref=G&alt
 	if ($exac) {
 		#print $q->start_li(),
 		print $q->a({'href' => "http://gnomad.broadinstitute.org/variant/$exac", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'gnomAD'), "\n";
+		$viphl_url .= "$exac&tab=basic";
 		if ($res->{'type_segment'} eq 'exon') {
 			my @hyphen = split(/-/, $exac);
 			my $intervar_url = "http://wintervar.wglab.org/results.pos.php?queryType=position&build=hg19_updated.v.201904&chr=$evs_chr&pos=$evs_pos_start&ref=$hyphen[2]&alt=$hyphen[3]";
@@ -288,8 +293,11 @@ print	$q->a({'href' => $dbsnp_url, 'target' => '_blank', 'class' => 'w3-bar-item
 	$q->a({'href' => $ucsc_link_hg38, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 UCSC'), "\n",
 	$q->a({'href' => $map2pdb_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg19 Map2PDB'), "\n",
 	$q->a({'href' => $map2pdb_hg38_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 Map2PDB'), "\n",
-	$q->a({'href' => $varsome_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'VarSome'), "\n",
-	$q->end_div();
+	$q->a({'href' => $varsome_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'VarSome'), "\n";
+if ($res->{'type_adn'} eq 'substitution') {
+	print $q->a({'href' => $viphl_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'VIP-HL'), "\n";
+}
+print $q->end_div();
 		#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvar_button.png'}), $q->end_a(),
 	#$q->end_li(), "\n";
 #clinvitae	
