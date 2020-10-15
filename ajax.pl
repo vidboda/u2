@@ -152,8 +152,9 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		$text .= $q->start_Tr() . $q->td('Pubmed related articles:') . $q->start_td() . $q->start_div({'class' => 'w3-container'});
 		# if ($test_ncbi == 1) {
 		my $pubmedids = U2_modules::U2_subs_1::run_litvar($res->{'snp_id'});
-		if ($pubmedids =~ /litvar error/) {$text .= $q->span("Error while querying litvar: $pubmedids")}
-		if ($pubmedids->[0] eq '') {
+		# print STDERR Dumper($pubmedids);
+		if (exists $pubmedids->{'message'} && $pubmedids->{'message'} =~ /LitVar Error/) {$text .= $q->span("Error while querying litvar: $pubmedids->{'message'}")}
+		elsif ($pubmedids->[0] eq '') {
 			$text .= $q->span('No PubMed ID retrieved');
 		}
 		else {
