@@ -7,8 +7,8 @@ use U2_modules::U2_subs_3;
 #remove above line for production!!!
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use URI::Encode qw(uri_encode uri_decode);
-use Bio::DB::GenBank;
-use Bio::Graphics;
+# use Bio::DB::GenBank;
+# use Bio::Graphics;
 use Net::SSLGlue::SMTP;
 #use Net::SMTP;
 use strict;
