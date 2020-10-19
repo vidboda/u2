@@ -613,27 +613,28 @@ if ($user->isAnalyst() == 1) {
 					else {
 						#we can proceed
 						#validate analysis type
-                                                                                                $test_samplesheet = '';
-                                                                                                if ($access_method eq 'autofs') {$test_samplesheet = `grep -e '$manifest' $samplesheet`}
-                                                                                                else {$test_samplesheet = $ssh->capture("grep -e '$manifest' $samplesheet")}
-                                                                                                #print "2-$run-$manifest-$samplesheet-$test_samplesheet<br/>";
-                                                                                                if ($test_samplesheet ne '') {
+						$test_samplesheet = '';
+						if ($access_method eq 'autofs') {$test_samplesheet = `grep -e '$manifest' $samplesheet`}
+						else {$test_samplesheet = $ssh->capture("grep -e '$manifest' $samplesheet")}
+						#print "2-$run-$manifest-$samplesheet-$test_samplesheet<br/>";
+						if ($test_samplesheet ne '') {
 						#if ($ssh->capture("grep -e '$manifest' $samplesheet")) {
 							#ok
 							$ok = 1;
 							#search other patients in the samplesheet
 							#print "grep -E \"^$PATIENT_IDS[0-9]+,\" $SSH_RACKSTATION_BASE_DIR/$key/SampleSheet.csv";
 							my $char = ',';
-							if ($instrument eq 'miniseq') {$char = '-'}
+							# removed additional char not user anymore in LRMv2
+							# if ($instrument eq 'miniseq') {$char = '-'}
 							#if ($instrument eq 'miseq') {
-                                                                                                                my $patient_list;
-                                                                                                                if ($access_method eq 'autofs') {
-                                                                                                                                my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
-                                                                                                                                $patient_list = `grep -Eo "$regexp" $samplesheet`;
-                                                                                                                                #$patient_list = `grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet`;
-                                                                                                                }
+							my $patient_list;
+							if ($access_method eq 'autofs') {
+								my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
+								$patient_list = `grep -Eo "$regexp" $samplesheet`;
+								#$patient_list = `grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet`;
+							}
 							else {$patient_list = $ssh->capture("grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet")}
-                                                                                                                #my $patient_list = $ssh->capture("grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet");
+                            #my $patient_list = $ssh->capture("grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet");
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
