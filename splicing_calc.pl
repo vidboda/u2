@@ -336,39 +336,41 @@ if ($q->param('add') && $q->param('add') eq 'spliceai') {
 	print U2_modules::U2_subs_2::info_panel($text, $q);
 }
 if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
-	#my $var = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
-	#my @hyphen = split(/-/, U2_modules::U2_subs_1::getExacFromGenoVar($var));
-	#my ($chr, $pos, $wt, $mt) = ($hyphen[0], $hyphen[1], $hyphen[2], $hyphen[3]);
-	#print "$EXE_PATH/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos";
-	my @spidex = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos`);
-	#print "$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos";
-	foreach (@spidex) {
-		#print $_;
-		if (/\t$wt\t$mt\t/) {
-			my @res = split(/\t/, $_);
-			print $q->p({'class' => 'title'}, 'Spidex Results**'), "\n",
-			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
-			$q->start_Tr(), "\n",
-				$q->th({'class' => 'left_general'}, 'Variant'), "\n",
-				$q->th({'class' => 'left_general'}, 'SPANR dPSI (%)'), "\n",
-				$q->th({'class' => 'left_general'}, 'dPSI Z-score'), "\n",
-			$q->end_Tr(), "\n",
-			$q->start_Tr(), "\n",
-				$q->td($var), "\n",
-				$q->td(sprintf('%.2f', $res[4])), "\n",
-				$q->td(sprintf('%.2f', $res[5])), "\n",
-			$q->end_Tr(), "\n",
-			$q->end_table(),$q->end_div(), $q->br(), $q->br(), "\n";
-			
-			my $text = $q->span('**').
-				$q->a({'href' => 'http://www.deepgenomics.com/spidex', 'target' => '_blank'}, 'Spidex').$q->span(' is a dataset which provide access, for all variants in and around 300bp of exons, to ').$q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR').$q->span(' predictions').$q->br().$q->span('percent inclusion ratio (PSI) of the affected exon given the wildtype and the mutant sequence).')."\n".
-				$q->start_ul().
-					$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).').
-					$q->li('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP. 0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.').
-				$q->end_ul()."\n";
-				print U2_modules::U2_subs_2::info_panel($text, $q);
-		}		
-	}
+	# removed 20201019
+	print '';
+	##my $var = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
+	##my @hyphen = split(/-/, U2_modules::U2_subs_1::getExacFromGenoVar($var));
+	##my ($chr, $pos, $wt, $mt) = ($hyphen[0], $hyphen[1], $hyphen[2], $hyphen[3]);
+	##print "$EXE_PATH/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos";
+	#my @spidex = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos`);
+	##print "$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos";
+	#foreach (@spidex) {
+	#	#print $_;
+	#	if (/\t$wt\t$mt\t/) {
+	#		my @res = split(/\t/, $_);
+	#		print $q->p({'class' => 'title'}, 'Spidex Results**'), "\n",
+	#		$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
+	#		$q->start_Tr(), "\n",
+	#			$q->th({'class' => 'left_general'}, 'Variant'), "\n",
+	#			$q->th({'class' => 'left_general'}, 'SPANR dPSI (%)'), "\n",
+	#			$q->th({'class' => 'left_general'}, 'dPSI Z-score'), "\n",
+	#		$q->end_Tr(), "\n",
+	#		$q->start_Tr(), "\n",
+	#			$q->td($var), "\n",
+	#			$q->td(sprintf('%.2f', $res[4])), "\n",
+	#			$q->td(sprintf('%.2f', $res[5])), "\n",
+	#		$q->end_Tr(), "\n",
+	#		$q->end_table(),$q->end_div(), $q->br(), $q->br(), "\n";
+	#		
+	#		my $text = $q->span('**').
+	#			$q->a({'href' => 'http://www.deepgenomics.com/spidex', 'target' => '_blank'}, 'Spidex').$q->span(' is a dataset which provide access, for all variants in and around 300bp of exons, to ').$q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR').$q->span(' predictions').$q->br().$q->span('percent inclusion ratio (PSI) of the affected exon given the wildtype and the mutant sequence).')."\n".
+	#			$q->start_ul().
+	#				$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).').
+	#				$q->li('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP. 0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.').
+	#			$q->end_ul()."\n";
+	#			print U2_modules::U2_subs_2::info_panel($text, $q);
+	#	}		
+	#}
 }
 
 if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
