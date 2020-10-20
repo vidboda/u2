@@ -651,6 +651,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 		
 }
 if ($q->param('asked') && $q->param('asked') eq 'var_info') {
+	print $q->header();
 	#print 'AJAX!!!!';
 	# gene: '$gene', accession: '$acc', nom_c: '$var->{'nom'}', analysis_all: '$type_analyse', depth: '$var->{'depth'}', current_analysis: '$var->{'type_analyse'}, frequency: '$var->{'frequency'}', wt_f: '$var->{'wt_f'}', wt_r: '$var->{'wt_r'}, mt_f: '$var->{'mt_f'}, mt_r: '$var->{'mt_r'}, last_name: '$var->{'last_name'}', first_name: '$var->{'first_name'}', msr_filter: '$var->{'msr_filter'}', nb: '$nb'
 	my ($gene, $second, $acc, $nom_c, $analyses, $current_analysis, $depth, $frequency, $wt_f, $wt_r, $mt_f, $mt_r, $msr_filter, $last_name, $first_name, $nb) = (U2_modules::U2_subs_1::check_gene($q, $dbh), U2_modules::U2_subs_1::check_acc($q, $dbh), U2_modules::U2_subs_1::check_nom_c($q, $dbh), $q->param('analysis_all'), $q->param('current_analysis'), $q->param('depth'), $q->param('frequency'), $q->param('wt_f'), $q->param('wt_r'), $q->param('mt_f'), $q->param('mt_r'), $q->param('msr_filter'), $q->param('last_name'), $q->param('first_name'), $q->param('nb'));
@@ -730,6 +731,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 	
 }
 if ($q->param('asked') && $q->param('asked') eq 'ponps') {
+	print $q->header();
 	my $text = $q->start_ul();
 	#SELECT H FROM PREDICTIONS WHERE ENSP = '00000265944' AND POS = '319';
 	#SIFT old fashion with SQLlite
@@ -981,6 +983,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 }
 
 if ($q->param('asked') && $q->param('asked') eq 'var_list') {
+	print $q->header();
 	my ($type, $nom, $num_seg, $order);
 	if ($q->param('type') && $q->param('type') =~ /(exon|intron|5UTR|3UTR|intergenic)/o) {$type = $1}
 	else {print 1;U2_modules::U2_subs_1::standard_error(15, $q)}
@@ -1044,6 +1047,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 
 
 if ($q->param('asked') && $q->param('asked') eq 'var_all') {
+	print $q->header();
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	my ($sort_value, $sort_type, $css_class);
 	if ($q->param('sort_type') && $q->param('sort_type') =~ /(classe|type_adn|type_prot|type_arn|all)/o) {$sort_type = $1}
@@ -1132,6 +1136,7 @@ if ($q->param('asked') && $q->param('asked') eq 'rna_status') {
 }
 
 if ($q->param('asked') && $q->param('asked') eq 'req_class') {
+	print $q->header();
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	my $variant = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
 	my $user = U2_modules::U2_users_1->new();
@@ -1141,6 +1146,7 @@ if ($q->param('asked') && $q->param('asked') eq 'req_class') {
 
 
 if ($q->param('asked') && $q->param('asked') eq 'defgen') {
+	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	#print $number;
 	#my $query = "SELECT a.*, b.*, a.nom_prot as hgvs_prot, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
@@ -1186,6 +1192,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	print '<a href="'.$HTDOCS_PATH.'data/defgen/'.$id.$number.'_defgen.csv" download>Download file for '.$id.$number.'</a>';
 }
 if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
+	print $q->header();
 	my $nom_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 	#print $nom_g;
 	my $query = "SELECT a.nom, a.acc_version, b.nom as var, b.nom_prot as hgvs_prot, b.acmg_class, b.classe, a.enst, b.snp_id, b.type_prot, b.nom_g, b.type_segment, b.num_segment FROM gene a, variant b WHERE a.nom = b.nom_gene AND b.nom_g = '$nom_g';";
@@ -1211,6 +1218,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
 
 
 if ($q->param('run_table') && $q->param('run_table') == 1) {
+	print $q->header();
 	my $analysis;
 	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 	else {$analysis = 'all'}
@@ -1382,6 +1390,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 }
 
 if ($q->param('run_graphs') && $q->param('run_graphs') == 1) {
+	print $q->header();
 	my $analysis;
 	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 	else {$analysis = 'all'}
@@ -1451,6 +1460,7 @@ if ($q->param('run_graphs') && $q->param('run_graphs') == 1) {
 }
 
 if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
+	print $q->header();
 	my $analysis;
 	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 	else {$analysis = 'global'}
@@ -1511,6 +1521,7 @@ if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
 
 
 if ($q->param('vs_table') && $q->param('vs_table') == 1) {
+	print $q->header();
 	my $analysis;
 	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 	else {$analysis = 'all'}
@@ -1559,6 +1570,7 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 }
 
 if ($q->param('asked') && $q->param('asked') eq 'defgen_status') {
+	print $q->header();
 	my $variant = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 	my $status;
 	if ($q->param('status') && $q->param('status') =~ /^(0|1)$/o) {$status = $1}
@@ -1570,6 +1582,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen_status') {
 }
 
 if ($q->param('asked') && $q->param('asked') eq 'parents') {
+	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	my ($id_father, $number_father) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('father')), $q);
 	my ($id_mother, $number_mother) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('mother')), $q);
@@ -1646,6 +1659,7 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 }
 
 if ($q->param('asked') && $q->param('asked') eq 'covreport') {
+	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	my $filter = U2_modules::U2_subs_1::check_filter($q);
@@ -1677,6 +1691,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 }
 
 if ($q->param('asked') && $q->param('asked') eq 'disease') {
+	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	#print $q->param('sample').$q->param('phenotype')."\n";
 	my $new_disease = U2_modules::U2_subs_1::check_phenotype($q);
