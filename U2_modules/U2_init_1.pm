@@ -34,6 +34,7 @@ sub getConfFile {
 
 sub initConfig {	
 	return AppConfig->new(
+		'U2HOST' => {ARGCOUNT => 1},
 		'HOME' => {ARGCOUNT => 1},
 		'HOME_IP' => {ARGCOUNT => 1},
 		'PERL_SCRIPTS_HOME' => {ARGCOUNT => 1},

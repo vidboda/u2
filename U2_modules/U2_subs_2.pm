@@ -10,6 +10,7 @@ use URI::Encode qw(uri_encode uri_decode);
 # use Bio::DB::GenBank;
 # use Bio::Graphics;
 use Net::SSLGlue::SMTP;
+use Authen::SASL;
 #use Net::SMTP;
 use strict;
 use warnings;
@@ -636,7 +637,13 @@ sub send_manual_mail {
 		#User    =>      $ADMIN_EMAIL,
 		#Password=>      $EMAIL_PASSWORD);
 	$mailer->starttls();
-	$mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);# or print STDERR  "Auth Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
+	$mailer->auth(
+		Authen::SASL->new(
+			mechanism => 'PLAIN LOGIN',
+			callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
+		)
+	);
+	# $mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);# or print STDERR  "Auth Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
 	$mailer->mail($ADMIN_EMAIL);
 	$mailer->to($ADMIN_EMAIL_DEST);
 	if ($user->getEmail() ne $ADMIN_EMAIL_DEST) {$mailer->to($user->getEmail())}
@@ -685,7 +692,13 @@ sub send_general_mail {
 		Hello   =>      $EMAIL_SMTP,
 		Port    =>      $EMAIL_PORT);
 	$mailer->starttls();
-	$mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);# or print STDERR  "Auth Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
+	#$mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);# or print STDERR  "Auth Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
+	$mailer->auth(
+		Authen::SASL->new(
+			mechanism => 'PLAIN LOGIN',
+			callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
+		)
+	);
 	$mailer->mail($ADMIN_EMAIL);
 	$mailer->to($user->getEmail());
 	$mailer->data();
@@ -714,18 +727,23 @@ sub request_variant_classification {
 	my $mailer = Net::SMTP->new (
 		$EMAIL_SMTP,
 		Hello   =>      $EMAIL_SMTP,
-		Port    =>      $EMAIL_PORT,
-		Debug	=>	1);#,
-		#User    =>      $ADMIN_EMAIL,
-		#Password=>      $EMAIL_PASSWORD);
+		Port    =>      $EMAIL_PORT); #,
+		# Debug	=>	1);#,
+		# User    =>      $ADMIN_EMAIL,
+		# Password=>      $EMAIL_PASSWORD);
 	$mailer->starttls();
-	$mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);
+	$mailer->auth(
+		Authen::SASL->new(
+			mechanism => 'PLAIN LOGIN',
+			callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
+		)
+	);
 	$mailer->mail($ADMIN_EMAIL);
-	#$mailer->to($ADMIN_EMAIL_DEST);
-	#foreach (@dest) {$mailer->to($_)}
-	#$mailer->to('david.baux@inserm.fr');
+	# $mailer->to($ADMIN_EMAIL_DEST);
+	# foreach (@dest) {$mailer->to($_)}
+	# $mailer->to('david.baux@inserm.fr');
 	foreach my $key (%{$EMAIL_CLASS}) {$mailer->to($key)}
-	#foreach my $adress (@$EMAIL_CLASS) {$mailer->to($adress)}
+	# foreach my $adress (@$EMAIL_CLASS) {$mailer->to($adress)}
 	if ($user->getEmail() ne $ADMIN_EMAIL_DEST) {$mailer->to($user->getEmail())}
 	$mailer->data();
 	
@@ -735,7 +753,6 @@ sub request_variant_classification {
 	$mailer->dataend();
 	$mailer->quit();	
 }
-
 
 #for add_analysis.pl, gene.pl => gene canvas with associated map
 
