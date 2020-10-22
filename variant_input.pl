@@ -54,8 +54,8 @@ my $HOST = $config->HOST();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
-my $ABSOLUTE_HTDOCS_PATH  =$config->ABSOLUTE_HTDOCS_PATH();
-
+my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
+my $PYTHON = $config->PYTHON_PATH();
 
 my $q = new CGI;
 
@@ -768,7 +768,7 @@ elsif ($step == 3) { #delete variant
 #	#liftover.py is 0-based
 #	$pos = $pos-1;
 #	#my $ret =  or die "hg38 gene mutalyzer gene only and $!";
-#	my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover38219.py $chr $pos`);
+#	my ($chr_tmp2, $s) = split(/,/, `$PYTHON $path/liftover38219.py $chr $pos`);
 #	$s =~ s/\)//g;	
 #	$s =~ s/ //g;
 #	$s =~ s/'//g;

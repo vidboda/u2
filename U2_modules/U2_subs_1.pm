@@ -113,6 +113,7 @@ my $PATIENT_IDS = $config->PATIENT_IDS();
 my $PATIENT_PHENOTYPE = $config->PATIENT_PHENOTYPE();
 my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
+my $PYTHON = $config->PYTHON_PATH();
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 
@@ -1244,7 +1245,7 @@ sub run_vv {
 		$url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json";
 	}
 	print STDERR "VV url: $url\n";
-	my $vv_result = `/usr/local/bin/python $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"` or die $!;
+	my $vv_result = `$PYTHON $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"` or die $!;
 	#my $request = $ua->get($url);
 	#if ($request->is_success()) {return $request->content()}
 	if($vv_result =~ /INTERNAL SERVER ERROR/o) {return 500}
@@ -1302,7 +1303,7 @@ sub run_litvar {
 	my $snp_id = shift;
 	
 	my $url = "https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/rsids2pmids?rsids=$snp_id";
-	return decode_json(`/usr/local/bin/python $ABSOLUTE_HTDOCS_PATH/litvar.py "$url"`) or die $!;
+	return decode_json(`$PYTHON $ABSOLUTE_HTDOCS_PATH/litvar.py "$url"`) or die $!;
 	#print STDERR "--$litvar_result->[0]{'pmids'}\n";
 	
 	#my $ua = LWP::UserAgent->new();

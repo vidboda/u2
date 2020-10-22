@@ -15,6 +15,7 @@ my $config = U2_modules::U2_init_1->initConfig();
 $config->file($config_file);# or die $!;
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
+my $PYTHON = $config->PYTHON_PATH();
 our $HG19TOHG38CHAIN = 'hg19ToHg38.over.chain.gz';
 our $HG38TOHG19CHAIN = 'hg38ToHg19.over.chain.gz';
 
@@ -27,9 +28,9 @@ sub liftover {
 	$pos = $pos-1;
 	if ($chr =~ /chr([\dXYM]{1,2})/o) {$chr = $1}
 	#my $ret =  or die "hg38 gene mutalyzer gene only and $!";
-	#print STDERR "/usr/local/bin/python $path/liftover$way.py chr$chr $pos";
-	#my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover$way.py "chr$chr" $pos`);
-	my ($chr_tmp2, $s) = split(/,/, `/usr/local/bin/python $path/liftover.py $path/$chain "chr$chr" $pos`);
+	#print STDERR "$PYTHON $path/liftover$way.py chr$chr $pos";
+	#my ($chr_tmp2, $s) = split(/,/, `$PYTHON $path/liftover$way.py "chr$chr" $pos`);
+	my ($chr_tmp2, $s) = split(/,/, `$PYTHON $path/liftover.py $path/$chain "chr$chr" $pos`);
 	$s =~ s/\)//g;	
 	$s =~ s/ //g;
 	$s =~ s/'//g;
