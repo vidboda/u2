@@ -45,6 +45,7 @@ sub initConfig {
 		'DATABASES_PATH' => {ARGCOUNT => 1},
 		'EXE_PATH' => {ARGCOUNT => 1},
 		'PYTHON_PATH' => {ARGCOUNT => 1},
+		'PYTHON3_PATH' => {ARGCOUNT => 1},
 		'JS_PATH' => {ARGCOUNT => 1},
 		'JS_DEFAULT' => {ARGCOUNT => 1},
 		'CSS_PATH' => {ARGCOUNT => 1},
