@@ -16,7 +16,7 @@ $config->file($config_file);# or die $!;
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $PYTHON = $config->PYTHON_PATH();
-my $PYTHON3 = $config->PYHTON3_PATH();
+my $PYTHON3 = $config->PYTHON3_PATH();
 our $HG19TOHG38CHAIN = 'hg19ToHg38.over.chain.gz';
 our $HG38TOHG19CHAIN = 'hg38ToHg19.over.chain.gz';
 

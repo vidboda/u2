@@ -714,8 +714,8 @@ sub request_variant_classification {
 	my $mailer = Net::SMTP->new (
 		$EMAIL_SMTP,
 		Hello   =>      $EMAIL_SMTP,
-		Port    =>      $EMAIL_PORT);#,
-		#Debug	=>	1);#,
+		Port    =>      $EMAIL_PORT#,
+		Debug	=>	1);#,
 		#User    =>      $ADMIN_EMAIL,
 		#Password=>      $EMAIL_PASSWORD);
 	$mailer->starttls();
