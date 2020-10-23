@@ -5,7 +5,7 @@ use strict;
 #use DBI;
 #use AppConfig qw(:expand :argcount);
 use Net::OpenSSH;
-use SOAP::Lite;
+#use SOAP::Lite;
 use JSON;
 use Data::Dumper;
 use U2_modules::U2_users_1;
@@ -156,8 +156,8 @@ if ($step && $step == 2) {
 	#my $soap = SOAP::Lite->new(proxy => 'http://mutalyzer.nl/2.0/services');
 	#$soap->defaul_ns('urn:https://mutalyzer.nl/services/?wsdl');
 	#$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
-	my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
-	my $call;
+	#my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
+	#my $call;
 	
 	#we have the run id, the samples to import and the filter to record.... Let's go
 	#ssh again to the NAS, then scp files

@@ -446,12 +446,12 @@ if ($user->isAnalyst() == 1) {
 			my $access_method = 'autofs';
 			opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
 			if ($access_method eq 'autofs') {
-							while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
-							closedir(DIR)
+				while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
+				closedir(DIR)
 			}
 			else {
-							$ssh = U2_modules::U2_subs_1::nas_connexion($link, $q);
-							$run_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR && ls") or die "remote command failed: " . $ssh->error()
+				$ssh = U2_modules::U2_subs_1::nas_connexion($link, $q);
+				$run_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR && ls") or die "remote command failed: " . $ssh->error()
 			}
 			#print STDERR $access_method."\n";
 			#if automunt fails, use SSH
@@ -460,7 +460,7 @@ if ($user->isAnalyst() == 1) {
 
 			#create a hash which looks like {"illumina_run_id" => 0}
 			my %runs = map {$_ => '0'} split(/\s/, $run_list);
-			my $query = "SELECT * FROM illumina_run;";
+			my $query = "SELECT id, complete FROM illumina_run;";
 			my $sth = $dbh->prepare($query);
 			my $res = $sth->execute();
 			#print "--$run_list--".$q->br();exit;
@@ -489,16 +489,16 @@ if ($user->isAnalyst() == 1) {
 					#old fashioned replaced with autofs 21/12/2016
 					#21/11/2018 reattempt with auofs
 					if ($access_method eq 'autofs') {
-									if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {
-													$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
-													$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-													$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
-									}
+						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {
+							$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
+							$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
+							$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+						}
 					}
 					else {
-									$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-									$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-									$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+						$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+						$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
+						$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 					}
 					#$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
                                                                                 
@@ -541,14 +541,18 @@ if ($user->isAnalyst() == 1) {
 					### path to analysis log file under alignment folder - and sentence to look for changed
 					### and check for Metrics....
 					my $test_file = '';
-                                                                                if ($access_method eq 'autofs') {
-                                                                                                if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/AnalysisLog.txt"){$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run/AnalysisLog.txt`}
-                                                                                }
-                                                                                else {$test_file = $ssh->capture("grep -e '$sentence' $location")}
+					if ($access_method eq 'autofs') {
+						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/AnalysisLog.txt"){$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run/AnalysisLog.txt`}
+					}
+					else {$test_file = $ssh->capture("grep -e '$sentence' $location")}
 					#print $ssh->capture("grep -e '$sentence' $location");exit;
 					#if ($ssh->capture("grep -e '$sentence' $location") ne '') {
-                                                                                if ($test_file ne ''){
-					
+                    if ($test_file ne ''){
+						# automatic library preparation?
+						my $robot = 'f';
+						if ($access_method eq 'autofs') {$robot = `grep -i -E 'Experiment Name,.+ROBOT' $samplesheet`}
+						else {$robot = $ssh->capture("grep -i -E 'Experiment Name,.+ROBOT' $samplesheet")}
+						if ($robot ne 'f') {$robot = 't'}
 						#DONE import cluster stats from enrichment_stats.xml and put it into illumina_run
 						#modify database before -done added:
 						#noc_pf   | usmallint             | default NULL::smallint	NumberOfClustersPF
@@ -585,7 +589,7 @@ if ($user->isAnalyst() == 1) {
 						#
 						
 						
-						my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f', '$noc_pf', '$noc_raw', '$nodc', '$nouc', '$nouc_pf', '$nouic', '$nouic_pf');";
+						my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f', '$noc_pf', '$noc_raw', '$nodc', '$nouc', '$nouc_pf', '$nouic', '$nouic_pf', '$robot');";
 						
 						
 						#my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
@@ -618,6 +622,7 @@ if ($user->isAnalyst() == 1) {
 						else {$test_samplesheet = $ssh->capture("grep -e '$manifest' $samplesheet")}
 						#print "2-$run-$manifest-$samplesheet-$test_samplesheet<br/>";
 						if ($test_samplesheet ne '') {
+							
 						#if ($ssh->capture("grep -e '$manifest' $samplesheet")) {
 							#ok
 							$ok = 1;

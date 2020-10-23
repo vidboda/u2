@@ -1273,6 +1273,7 @@ sub build_ngs_form {
 	my $filter = '';
 	if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
 	
+
 	$form .= $q->start_div({'align' => 'center'}).
 		$q->start_div({'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'style' => 'width:50%'}).
 			$q->h3({'class' => 'w3-center w3-padding-16'}, 'Import '.ucfirst($analysis).' data')."\n".

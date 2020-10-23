@@ -199,14 +199,6 @@ if ($q->param('iv') && $q->param('iv') == 1 && $step == 3) {
 	if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o) {
 		my $run_id = $1;
 		&intro_text($q, $run_id);
-		#print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong('Sample Tracking'), $q->end_strong(), $q->end_big(), $q->end_p(), $q->end_div(), "\n";
-		#print $q->br(), $q->start_p(), $q->span("This function will allow you to select candidates SNP for the patients of run $run_id based on the following rules:"), $q->start_ul(),
-		#	$q->li("The variants have to be substitutions AND "),
-		#	$q->li("must have a filter 'PASS' AND "),
-		#	$q->li("must not be classified as VUCS Class III, IV or pathogenic AND"),
-		#	$q->li("must not be carried by another patient in the same run."),
-		#	$q->end_ul(), $q->end_p(), "\n";
-			
 		#get all runs of the same analysis type
 		my ($run_list, $run_list_html) = ('', '');
 		if ($q->param('analysis')) {
@@ -355,8 +347,12 @@ sub get_patient_table {
 
 sub intro_text {
 	my ($q, $run_id) = @_;
+	my $query_robot = "SELECT robot FROM illumina_run WHERE id = '$run_id';";
+	my $res_robot = $dbh->selectrow_hashref($query_robot);
+	my $text_robot = '';
+	if ($res_robot->{'robot'} == 1) {$text_robot =  $q->span({'class' => 'red'}, 'prepared with the robot (Load the other runs!)')}
 	print $q->start_div(), $q->start_p({'class' => 'center'}), $q->start_big(), $q->strong('Sample Tracking'), $q->end_strong(), $q->end_big(), $q->end_p(), $q->end_div(), "\n";
-		print $q->br(), $q->start_p(), $q->span("This function will allow you to select candidates SNP for the patients of run $run_id based on the following rules:"), $q->start_ul(),
+		print $q->br(), $q->start_p(), $q->span("This function will allow you to select candidates SNP for the patients of run $run_id $text_robot based on the following rules:"), $q->start_ul(),
 			$q->li("The variants have to be substitutions AND "),
 			$q->li("must have a filter 'PASS' AND "),
 			$q->li("must not be classified as VUCS Class III, IV or pathogenic AND"),

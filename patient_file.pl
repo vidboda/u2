@@ -1128,6 +1128,11 @@ if ($result) {
 						##if ($res_valid) {$valid_import = $res_valid->{'valid_import'}}
 						if ($valid_import eq 't') {print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT VALIDATED')}
 						else {print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;IMPORT NOT VALIDATED')}
+						# check if the run involved a robot
+						my $query_robot = "SELECT robot FROM illumina_run WHERE id = '$run_id';";
+						my $res_robot = $dbh->selectrow_hashref($query_robot);
+						if ($res_robot->{'robot'} == 1) {print $q->span({'class' => 'blue'}, '&nbsp;&nbsp;&nbsp;&nbsp;ROBOT')}
+						
 					}
 					print  $q->end_li(), "\n";#$q->span('&nbsp;&nbsp;,&nbsp;&nbsp;');
 				}
