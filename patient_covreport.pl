@@ -118,7 +118,7 @@ my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')),
 my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 my $filter = U2_modules::U2_subs_1::check_filter($q);
 my $step = U2_modules::U2_subs_1::check_step($q);
-if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_data\/data\//o && $step == 1) {
+if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 
 	my ($dfn, $rp, $usher) = &assign_values($filter);
 	my $filter_subquery = '';
@@ -181,7 +181,7 @@ if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_da
 			$q->end_form(),
 		$q->end_div(), $q->br(), $q->br(), "\n";
 }
-elsif ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_data\/data\//o && $step == 2) {
+elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) {
 	my $align_file = $q->param ('align_file');
 	my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 	my $cov_report_sh = $cov_report_dir.'covreport.sh';

@@ -54,9 +54,9 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
 my $q = new CGI;
 
-my $dbh = DBI->connect(    "DBI:Pg:database=ushvam2;host=localhost;",
-                        'neurosensoriel',
-                        'neuro;sens1',
+my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
+                        $DB_USER,
+                        $DB_PASSWORD,
                         {'RaiseError' => 1}
                 ) or die $DBI::errstr;
 
