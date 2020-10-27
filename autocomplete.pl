@@ -63,6 +63,7 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 
 my $user = U2_modules::U2_users_1->new();
 
+print $q->header();
 
 ##end of Minimal init
 
