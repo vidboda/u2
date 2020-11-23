@@ -552,7 +552,10 @@ if ($user->isAnalyst() == 1) {
 						my $robot = 'f';
 						if ($access_method eq 'autofs') {$robot = `grep -i -E 'Experiment Name,.+ROBOT' $samplesheet`}
 						else {$robot = $ssh->capture("grep -i -E 'Experiment Name,.+ROBOT' $samplesheet")}
-						if ($robot ne 'f') {$robot = 't'}
+						# print STDERR "ROBOT: -$robot-\n";
+						if ($robot ne '') {$robot = 't'}
+						else {$robot = 'f'}
+						# print STDERR "ROBOT: -$robot-\n";
 						#DONE import cluster stats from enrichment_stats.xml and put it into illumina_run
 						#modify database before -done added:
 						#noc_pf   | usmallint             | default NULL::smallint	NumberOfClustersPF
@@ -620,9 +623,9 @@ if ($user->isAnalyst() == 1) {
 						$test_samplesheet = '';
 						if ($access_method eq 'autofs') {$test_samplesheet = `grep -e '$manifest' $samplesheet`}
 						else {$test_samplesheet = $ssh->capture("grep -e '$manifest' $samplesheet")}
-						#print "2-$run-$manifest-$samplesheet-$test_samplesheet<br/>";
+						# print "2-$run-$manifest-$samplesheet-$test_samplesheet<br/>";
 						if ($test_samplesheet ne '') {
-							
+							# print "$test_samplesheet<br/>";
 						#if ($ssh->capture("grep -e '$manifest' $samplesheet")) {
 							#ok
 							$ok = 1;
@@ -636,6 +639,7 @@ if ($user->isAnalyst() == 1) {
 							if ($access_method eq 'autofs') {
 								my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
 								$patient_list = `grep -Eo "$regexp" $samplesheet`;
+								# print "$patient_list<br/>";
 								#$patient_list = `grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet`;
 							}
 							else {$patient_list = $ssh->capture("grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet")}
