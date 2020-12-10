@@ -1200,7 +1200,7 @@ sub test_mutalyzer {
 	#$ua->ssl_opts(verify_hostname => 0);
 	my $request = $ua->get('https://mutalyzer.nl/services');
 	my $content = $request->content();
-	#print "$content<br/>";
+	# print "$content<br/>";
 	if ($content !~ /soap/o) {return 0}
 	else {return 1}
 }

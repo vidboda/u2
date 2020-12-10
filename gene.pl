@@ -236,7 +236,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 	#directly get gnomad oe
 	my ($synoe, $misoe, $lofoe) = ('No Syn oe*', 'No Mis oe*', 'No Lof oe*');
 	my $synoel = my $synoeu = my $misoel = my $misoeu = my $lofoel = my $lofoeu = 'NA';
-	open GNOMAD, $DATABASES_PATH."/gnomad/gnomad.v2.1.1.lof_metrics.by_gene.txt" or die $!;
+	open GNOMAD, "<".$DATABASES_PATH."/gnomad/gnomad.v2.1.1.lof_metrics.by_gene.txt" or die $!;
 	while (<GNOMAD>) {
 		if (/^$gene\s+/) {
 			my @line = split(/\t/, $_);
