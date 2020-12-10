@@ -787,6 +787,7 @@ if ($result) {
 						#print "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir/";exit;
 						#print "$alignment_dir--";exit;
 						#my $bam_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir/ && ls") or die "remote command failed: " . $ssh->error();
+						print STDERR $alignment_dir."\n";
 						my $alignment_list;
 						if ($access_method eq 'autofs') {$alignment_list = `ls $alignment_dir`}
 						else {$alignment_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error()}
