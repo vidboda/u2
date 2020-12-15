@@ -141,7 +141,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				#{-language => 'javascript',
 				#-src => 'https://igv.org/web/release/2.0.1/dist/igv.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => 'https://cdn.jsdelivr.net/npm/igv@2.3.5/dist/igv.min.js', 'defer' => 'defer'},
+				-src => 'https://cdn.jsdelivr.net/npm/igv@2.7.4/dist/igv.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_DEFAULT, 'defer' => 'defer'}],		
 			-encoding => 'ISO-8859-1');

@@ -250,7 +250,7 @@ my $js = "
 	function launchCovReport(sample, analysis, align_file, filter, html_tag, user) {
 		\$.ajax({
 			type: \"POST\",
-			url: \"http://194.167.35.137/perl/U2/ajax.pl\",
+			url: \"ajax.pl\",
 			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, user: user, asked: 'covreport'},
 			beforeSend: function() {
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
@@ -787,7 +787,7 @@ if ($result) {
 						#print "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir/";exit;
 						#print "$alignment_dir--";exit;
 						#my $bam_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir/ && ls") or die "remote command failed: " . $ssh->error();
-						print STDERR $alignment_dir."\n";
+						# print STDERR $alignment_dir."\n";
 						my $alignment_list;
 						if ($access_method eq 'autofs') {$alignment_list = `ls $alignment_dir`}
 						else {$alignment_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error()}
@@ -927,7 +927,7 @@ if ($result) {
 							if ($HOME_IP eq 'https://pp-gb-gen.iurc.montp.inserm.fr') {
                                 # prod server need to be redirected on dev server to run covreport
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
-										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'window.open("http://194.167.35.137/perl/U2/patient_file.pl?sample='.$id_tmp.$num_tmp.'");', 'value' => 'Go to the Dev server to launch Covreport'}).
+										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'window.open("patient_file.pl?sample='.$id_tmp.$num_tmp.'");', 'value' => 'Go to the Dev server to launch Covreport'}).
 									$q->end_li();
                             }
                             else {

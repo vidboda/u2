@@ -16,7 +16,7 @@ $config->file($config_file);# or die $!;
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $PYTHON = $config->PYTHON_PATH();
-my $PYTHON3 = $config->PYTHON3_PATH();
+# my $PYTHON3 = $config->PYTHON3_PATH();
 our $HG19TOHG38CHAIN = 'hg19ToHg38.over.chain.gz';
 our $HG38TOHG19CHAIN = 'hg38ToHg19.over.chain.gz';
 
@@ -1534,8 +1534,7 @@ sub create_variant_vv {
 		# print STDERR $client->responseContent()."\n";
 		# my $ucsc_response = decode_json($client->responseContent());
 		# $client->GET("http://togows.org/api/ucsc/hg19/chr$chr:$x-$y");
-		
-		my @seq = `$PYTHON3 $ABSOLUTE_HTDOCS_PATH/getTwoBitSeq.py chr$chr $x $y`;
+		my @seq = `$PYTHON $ABSOLUTE_HTDOCS_PATH/getTwoBitSeq.py chr$chr $x $y`;
 		chomp(@seq);
 		#my ($i, $j) = (0, $#seq-25);
 		# UCSC

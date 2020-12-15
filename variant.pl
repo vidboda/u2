@@ -375,12 +375,13 @@ if ($res->{'nom_ivs'} ne '') {print $q->start_Tr(), $q->td('IVS:'), $q->td("$acc
 #RNA status
 print $q->start_Tr(), $q->td('RNA impact:'), $q->start_td(), $q->span(), $q->span({'id' => 'type_arn', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_rna_status($res->{'type_arn'}, $dbh).';'}, $res->{'type_arn'});#, $q->span(' (in progress)');
 #check if pdf for splicing
-if (-d $ABSOLUTE_HTDOCS_PATH.'/data/splicing') {#if splicing module
+if (-d $ABSOLUTE_HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/splicing') {#if splicing module
 	#pdfs stored under format: gene_variantwithoutc..pdf
 	my $splicing_var = $var;
 	$splicing_var =~ s/c\.//og;
-	if (-f $ABSOLUTE_HTDOCS_PATH.'/data/splicing/'.$gene.'_'.$splicing_var.'.pdf') {#if pdf for variant
-		print $q->span(" (confirmed), check "), $q->a({'href' => $HTDOCS_PATH.'/data/splicing/'.$gene.'_'.$splicing_var.'.pdf', 'target' => "_blank"}, 'analysis');
+	$splicing_var =~ s/>/_/og;
+	if (-f $ABSOLUTE_HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/splicing/'.$gene.'_'.$splicing_var.'.pdf') {#if pdf for variant
+		print $q->span(" (confirmed), check "), $q->a({'href' => $HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/splicing/'.$gene.'_'.$splicing_var.'.pdf', 'target' => "_blank"}, 'analysis');
 	}
 	else {print $q->span(' (inferred) ')}
 }
@@ -474,15 +475,18 @@ if ($res->{'protein'} ne '') {
 	#access to missense analyses
 	#TODO: old fashion ushvam to be updated
 	if ($res->{'type_prot'} eq 'missense' || $res->{'type_prot'} =~ /inframe/) {
-		my $u1_gene = $gene;
-		if ($u1_gene eq 'GPR98') {$u1_gene = 'VLGR1'}
-		elsif ($u1_gene eq 'CLRN1') {$u1_gene = 'USH3A'}
+		#my $u1_gene = $gene;
+		#if ($u1_gene eq 'GPR98') {$u1_gene = 'VLGR1'}
+		#elsif ($u1_gene eq 'CLRN1') {$u1_gene = 'USH3A'}
 		
 		my $one_letter = U2_modules::U2_subs_1::nom_three2one($res->{'protein'});
 		#print $q->span("--$one_letter--");
-		if (-f "/Library/WebServer/Documents/USHVaM/data/faux-sens/$u1_gene/$one_letter.pdf") {
-			print $q->span(", check "), $q->a({'href' => "/USHVaM/data/faux-sens/$u1_gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');	
+		if (-f "/var/www/html/ushvam2/RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf") {
+			print $q->span(", check "), $q->a({'href' => "ushvam2/RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');	
 		}
+		#if (-f "/var/www/html/ushvam2/RS_data/data/MobiDL/missense/$u1_gene/$one_letter.pdf") {
+		#	print $q->span(", check "), $q->a({'href' => "ushvam2/RS_data/data/MobiDL/missense/$u1_gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');	
+		#}
 	}
 	if ($res->{'type_prot'} eq 'missense') {
 		my $missense_js = "
@@ -1006,135 +1010,135 @@ $js = "jQuery(document).ready(function(){
 
 print $q->br(), $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->start_div({'id' => $valid_id, 'class' => 'comments'}), $q->end_div();
 
-##genome browser
-#http://www.biodalliance.org/
-#my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
-#{name: 'UK10K',
-#			desc: 'UK10K dataset',
+#####genome browser
+####http://www.biodalliance.org/
+####my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
+####{name: 'UK10K',
+####			desc: 'UK10K dataset',
+####			tier_type: 'tabix',
+####			payload: 'vcf',
+####			uri: '".$DALLIANCE_DATA_DIR_URI."uk10k/UK10K_COHORT.20160215.sites.vcf.gz'},
+###		#{name: 'ExAC',
+###		#	desc: 'ExAC r0.3',
+###		#	tier_type: 'tabix',
+###		#	payload: 'vcf',
+###		#	noSourceFeatureInfo: true,
+###		#	uri: '".$DALLIANCE_DATA_DIR_URI."exac/ExAC.r0.3.sites.vep.vcf.gz'},
+###		#{name: '112 genes Design',
+###		#	desc: 'Illumina Nextera on 112 genes',
+###		#	tier_type: 'tabix',
+###		#	payload: 'bed',
+###		#	uri: '".$DALLIANCE_DATA_DIR_URI."designs/nextera_targets_sorted.bed.gz'},
+###		#{name: '1000g',
+###		#	desc: '1000 genomes phase 3',
+###		#	tier_type: 'tabix',
+###		#	payload: 'vcf',
+###		#	uri: '".$DALLIANCE_DATA_DIR_URI."1000g_p3/1000GENOMES-phase_3.vcf.gz'},
+###		#{name: 'Kaviar',
+###		#	desc: 'Kaviar dataset',
+###		#	tier_type: 'tabix',
+###		#	payload: 'vcf',
+###		#	uri: '".$DALLIANCE_DATA_DIR_URI."kaviar/Kaviar-160204-Public-hg19-trim.vcf.gz'},
+#my ($padding, $sources) = (50, '');
+#if ($res->{'taille'} > 500) {$padding = sprintf('%.0f', $res->{'taille'}/10)}
+#else {$sources = "{name: 'ClinVar',
+#			desc: 'ClinVar 02/2017',
 #			tier_type: 'tabix',
 #			payload: 'vcf',
-#			uri: '".$DALLIANCE_DATA_DIR_URI."uk10k/UK10K_COHORT.20160215.sites.vcf.gz'},
-		#{name: 'ExAC',
-		#	desc: 'ExAC r0.3',
-		#	tier_type: 'tabix',
-		#	payload: 'vcf',
-		#	noSourceFeatureInfo: true,
-		#	uri: '".$DALLIANCE_DATA_DIR_URI."exac/ExAC.r0.3.sites.vep.vcf.gz'},
-		#{name: '112 genes Design',
-		#	desc: 'Illumina Nextera on 112 genes',
-		#	tier_type: 'tabix',
-		#	payload: 'bed',
-		#	uri: '".$DALLIANCE_DATA_DIR_URI."designs/nextera_targets_sorted.bed.gz'},
-		#{name: '1000g',
-		#	desc: '1000 genomes phase 3',
-		#	tier_type: 'tabix',
-		#	payload: 'vcf',
-		#	uri: '".$DALLIANCE_DATA_DIR_URI."1000g_p3/1000GENOMES-phase_3.vcf.gz'},
-		#{name: 'Kaviar',
-		#	desc: 'Kaviar dataset',
-		#	tier_type: 'tabix',
-		#	payload: 'vcf',
-		#	uri: '".$DALLIANCE_DATA_DIR_URI."kaviar/Kaviar-160204-Public-hg19-trim.vcf.gz'},
-my ($padding, $sources) = (50, '');
-if ($res->{'taille'} > 500) {$padding = sprintf('%.0f', $res->{'taille'}/10)}
-else {$sources = "{name: 'ClinVar',
-			desc: 'ClinVar 02/2017',
-			tier_type: 'tabix',
-			payload: 'vcf',
-			uri: '".$DALLIANCE_DATA_DIR_URI."clinvar/clinvar_20170228.vcf.gz'},
-		{name: 'gnomAD Ex',
-			desc: 'gnomAD exome dataset',
-			tier_type: 'tabix',
-			payload: 'vcf',
-			uri: '".$DALLIANCE_DATA_DIR_URI."gnomad/hg19_gnomad_exome.sorted.af.vcf.gz'},
-		{name: 'gnomAD Ge',
-			desc: 'gnomAD genome dataset',
-			tier_type: 'tabix',
-			payload: 'vcf',
-			uri: '".$DALLIANCE_DATA_DIR_URI."gnomad/hg19_gnomad_genome.sorted.vcf.gz'},
-		{name: 'dbSNP150',
-			desc: 'dbSNP150 20170710',
-			tier_type: 'tabix',
-			payload: 'vcf',
-			uri: '".$DALLIANCE_DATA_DIR_URI."dbSNP150/All_20170710.vcf.gz'},		
-		{name: '132 genes Design',
-			desc: 'Nimblegen SeqCap on 132 genes',
-			tier_type: 'tabix',
-			payload: 'bed',
-			uri: '".$DALLIANCE_DATA_DIR_URI."designs/seqcap_targets_sorted.132.bed.gz'},
-		";
-}
-
-my ($dal_start, $dal_stop, $highlight_start, $highlight_end) = (($evs_pos_start-$padding), ($evs_pos_end+$padding), $evs_pos_start, $evs_pos_end);
-#if ($highlight_start == $highlight_end) {$highlight_end++}
-$highlight_end++;
-
-
-my $browser = "
-	console.log(\"creating browser with coords: chr$evs_chr:$dal_start-$dal_stop\" );
-	var sources = [
-		{name: 'Genome',
-			desc: 'hg19/Grch37',
-			twoBitURI: '".$DALLIANCE_DATA_DIR_URI."genome/hg19.2bit',
-			tier_type: 'sequence',
-			provides_entrypoints: true,
-			pinned: true},
-		{name: 'Genes',
-			desc: 'GENCODE v19',
-			bwgURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.bb',
-			stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode-expanded.xml',
-			collapseSuperGroups: true,
-			trixURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.ix'},
-		$sources
-		{name: 'Conservation',
-			desc: 'PhastCons 100 way',
-			bwgURI: '".$DALLIANCE_DATA_DIR_URI."cons/hg19.100way.phastCons.bw',
-			noDownsample: true},
-		{name: 'Repeats',
-			desc: 'Repeat annotation from RepeatMasker', 
-			bwgURI: '".$DALLIANCE_DATA_DIR_URI."repeats/repeats.bb',
-			stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."repeats/bb-repeats2.xml',
-			forceReduction: -1},
-		
-	];
-	var browser = new Browser({
-		chr:		'$evs_chr',
-		viewStart:	$dal_start,
-		viewEnd:	$dal_stop,
-		cookieKey:	'human-grc_h37',
-		prefix:		'".$JS_PATH."dalliance_v0.13/',
-		fullScreen:	false,
-		noPersist:	true,
-		noPersistView:	true,
-		maxHeight:	500,
-
-		coordSystem:	{
-			speciesName: 'Human',
-			taxon: 9606,
-			auth: 'GRCh',
-			version: '37',
-			ucscName: 'hg19'
-		},
-		sources:	sources,
-		hubs:	['http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/hub.txt']
-	});
-	
-	function highlightRegion(){
-		console.log(\" xx highlight region chr$evs_chr,$dal_start,$dal_stop\");
-		browser.highlightRegion('chr$evs_chr',$highlight_start,$highlight_end);
-		browser.setLocation(\"$evs_chr\",$dal_start,$dal_stop);
-	}
-
-	browser.addInitListener( function(){
-		console.log(\"dalliance initiated\");
-		//setTimeout(highlightRegion(),5000);
-		highlightRegion();
-		\$(window).scrollTop(0);
-	});
-";
-
-print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'fitin'}, 'Dalliance Browser here'), $q->br(), $q->br(), "\n",
-	$q->end_div();
+#			uri: '".$DALLIANCE_DATA_DIR_URI."clinvar/clinvar_20170228.vcf.gz'},
+#		{name: 'gnomAD Ex',
+#			desc: 'gnomAD exome dataset',
+#			tier_type: 'tabix',
+#			payload: 'vcf',
+#			uri: '".$DALLIANCE_DATA_DIR_URI."gnomad/hg19_gnomad_exome.sorted.af.vcf.gz'},
+#		{name: 'gnomAD Ge',
+#			desc: 'gnomAD genome dataset',
+#			tier_type: 'tabix',
+#			payload: 'vcf',
+#			uri: '".$DALLIANCE_DATA_DIR_URI."gnomad/hg19_gnomad_genome.sorted.vcf.gz'},
+#		{name: 'dbSNP150',
+#			desc: 'dbSNP150 20170710',
+#			tier_type: 'tabix',
+#			payload: 'vcf',
+#			uri: '".$DALLIANCE_DATA_DIR_URI."dbSNP150/All_20170710.vcf.gz'},		
+#		{name: '132 genes Design',
+#			desc: 'Nimblegen SeqCap on 132 genes',
+#			tier_type: 'tabix',
+#			payload: 'bed',
+#			uri: '".$DALLIANCE_DATA_DIR_URI."designs/seqcap_targets_sorted.132.bed.gz'},
+#		";
+#}
+#
+#my ($dal_start, $dal_stop, $highlight_start, $highlight_end) = (($evs_pos_start-$padding), ($evs_pos_end+$padding), $evs_pos_start, $evs_pos_end);
+##if ($highlight_start == $highlight_end) {$highlight_end++}
+#$highlight_end++;
+#
+#
+#my $browser = "
+#	console.log(\"creating browser with coords: chr$evs_chr:$dal_start-$dal_stop\" );
+#	var sources = [
+#		{name: 'Genome',
+#			desc: 'hg19/Grch37',
+#			twoBitURI: '".$DALLIANCE_DATA_DIR_URI."genome/hg19.2bit',
+#			tier_type: 'sequence',
+#			provides_entrypoints: true,
+#			pinned: true},
+#		{name: 'Genes',
+#			desc: 'GENCODE v19',
+#			bwgURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.bb',
+#			stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode-expanded.xml',
+#			collapseSuperGroups: true,
+#			trixURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.ix'},
+#		$sources
+#		{name: 'Conservation',
+#			desc: 'PhastCons 100 way',
+#			bwgURI: '".$DALLIANCE_DATA_DIR_URI."cons/hg19.100way.phastCons.bw',
+#			noDownsample: true},
+#		{name: 'Repeats',
+#			desc: 'Repeat annotation from RepeatMasker', 
+#			bwgURI: '".$DALLIANCE_DATA_DIR_URI."repeats/repeats.bb',
+#			stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."repeats/bb-repeats2.xml',
+#			forceReduction: -1},
+#		
+#	];
+#	var browser = new Browser({
+#		chr:		'$evs_chr',
+#		viewStart:	$dal_start,
+#		viewEnd:	$dal_stop,
+#		cookieKey:	'human-grc_h37',
+#		prefix:		'".$JS_PATH."dalliance_v0.13/',
+#		fullScreen:	false,
+#		noPersist:	true,
+#		noPersistView:	true,
+#		maxHeight:	500,
+#
+#		coordSystem:	{
+#			speciesName: 'Human',
+#			taxon: 9606,
+#			auth: 'GRCh',
+#			version: '37',
+#			ucscName: 'hg19'
+#		},
+#		sources:	sources,
+#		hubs:	['http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/hub.txt']
+#	});
+#	
+#	function highlightRegion(){
+#		console.log(\" xx highlight region chr$evs_chr,$dal_start,$dal_stop\");
+#		browser.highlightRegion('chr$evs_chr',$highlight_start,$highlight_end);
+#		browser.setLocation(\"$evs_chr\",$dal_start,$dal_stop);
+#	}
+#
+#	browser.addInitListener( function(){
+#		console.log(\"dalliance initiated\");
+#		//setTimeout(highlightRegion(),5000);
+#		highlightRegion();
+#		\$(window).scrollTop(0);
+#	});
+#";
+#
+#print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'fitin'}, 'Dalliance Browser here'), $q->br(), $q->br(), "\n",
+#	$q->end_div();
 
 my $text = '<br/>Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.';
 

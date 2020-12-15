@@ -46,6 +46,7 @@ my $config = U2_modules::U2_init_1->initConfig();
 $config->file($config_file);# or die $!;
 my $DB = $config->DB();
 my $HOST = $config->HOST();
+my $HOME = $config->HOME_IP();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
 my $CSS_PATH = $config->CSS_PATH();
@@ -203,8 +204,8 @@ elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) 
 	`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter`;
 	
 	if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
-		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf"}, 'Download CovReport').$q->end_p(), $q->end_div();
-		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\nhttp://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."-custom_coverage.pdf\n\nDon't forget to close the dev server page!!!!!\n");
+		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
+		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
 		# attempt to trigger autoFS
 		open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
 		sleep 3;
@@ -214,7 +215,7 @@ elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) 
 	}
 	else {
 		print $q->span('Failed to generate coverage file');
-		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport failed for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nUnfortunately, your custom CovReport generation failed. You can forward this message to David for debugging.\nGene list:\nhttp://194.167.35.137/ushvam2/CovReport/tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt");
+		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport failed for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nUnfortunately, your custom CovReport generation failed. You can forward this message to David for debugging.\nGene list:\n$HOME/ushvam2/CovReport/tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt");
 	}
 
 }

@@ -60,7 +60,7 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
-my $PYTHON3 = $config->PYTHON3_PATH();
+my $PYTHON2 = $config->PYTHON_PATH();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css');
 
@@ -555,7 +555,7 @@ sub get_natural {
 	}
 	# UCSC is 0-based
 	$x = $x-1;
-	my @seq = `$PYTHON3 $ABSOLUTE_HTDOCS_PATH/getTwoBitSeq.py $chr $x $y`;
+	my @seq = `$PYTHON2 $ABSOLUTE_HTDOCS_PATH/getTwoBitSeq.py $chr $x $y`;
 	#$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=$chr;start=$x;end=$y");
 	#my $ucsc_response = decode_json($client->responseContent());
 	#my $intermediary_seq = uc($ucsc_response->{'dna'});

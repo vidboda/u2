@@ -53,6 +53,7 @@ my $config = U2_modules::U2_init_1->initConfig();
 $config->file($config_file);
 my $DB = $config->DB();
 my $HOST = $config->HOST();
+my $HOME = $config->HOME();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
@@ -1664,7 +1665,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	my $filter = U2_modules::U2_subs_1::check_filter($q);
 	my $user = U2_modules::U2_users_1->new();
-	if ($q->param ('align_file') =~ /\/Library\/WebServer\/Documents\/ushvam2\/RS_data\/data\//o) {
+	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
 		my $align_file = $q->param ('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 		my $cov_report_sh = $cov_report_dir.'covreport.sh';
@@ -1672,8 +1673,8 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt -f $filter`;		
 		
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
-			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf"}, 'Download CovReport').$q->end_span();
-			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\nhttp://194.167.35.137/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."_coverage.pdf\n\nDon't forget to close the dev server page!!!!!\n");
+			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
+			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\n$HOME/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."_coverage.pdf\n");
 			# attempt to trigger autoFS
 			open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
 			sleep 3;
