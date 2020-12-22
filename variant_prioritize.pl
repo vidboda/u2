@@ -51,6 +51,7 @@ my $DB = $config->DB();
 my $HOST = $config->HOST();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
+my $EXE_PATH = $config->EXE_PATH();
 my $CSS_PATH = $config->CSS_PATH();
 my $CSS_DEFAULT = $config->CSS_DEFAULT();
 my $JS_PATH = $config->JS_PATH();
@@ -469,7 +470,7 @@ elsif ($analysis eq 'Splicing') {
 		
 		
 		
-		my @spiceai = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spliceAI/exome_spliceai_scores.vcf.gz $pos_list`);
+		my @spiceai = split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/spliceAI/exome_spliceai_scores.vcf.gz $pos_list`);
 		my $sortable_sai;
 		foreach (@spiceai) {
 			my @res = split(/\t/, $_);

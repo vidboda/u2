@@ -1340,7 +1340,7 @@ sub create_variant_vv {
 		$nom_g = "chr$chr:".pop(@full_nom_g_19);
 	}
 	else {
-		my $text = "There has been an issue with VariantValidator. Please double check your variant and resubmit. If this issue persists, contact an admin. \nDEBUG: ".$full_nom_g_19[0].":".$full_nom_g_19[1];
+		my $text = "There has been an issue with VariantValidator. Please double check your variant and resubmit. If this issue persists, contact an admin. \nDEBUG: ".$full_nom_g_19[0].":".$full_nom_g_19[1]."-".Dumper($vv_results);
 		if ($calling eq 'web') {
 			print U2_modules::U2_subs_2::danger_panel($text, $q);
 			exit;

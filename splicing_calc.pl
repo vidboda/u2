@@ -54,6 +54,7 @@ my $DB = $config->DB();
 my $HOST = $config->HOST();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
+my $EXE_PATH = $config->EXE_PATH();
 my $CSS_PATH = $config->CSS_PATH();
 my $CSS_DEFAULT = $config->CSS_DEFAULT();
 my $JS_PATH = $config->JS_PATH();
@@ -298,7 +299,7 @@ my @hyphen = split(/-/, U2_modules::U2_subs_1::getExacFromGenoVar($var));
 my ($chr, $pos, $wt, $mt) = ($hyphen[0], $hyphen[1], $hyphen[2], $hyphen[3]);
 if ($q->param('add') && $q->param('add') eq 'spliceai') {
 	
-	my @spliceai = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spliceAI/exome_spliceai_scores.vcf.gz $chr:$pos-$pos`);
+	my @spliceai = split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/spliceAI/exome_spliceai_scores.vcf.gz $chr:$pos-$pos`);
 	my $spliceai_content = U2_modules::U2_subs_2::info_panel('no spliceAI score', $q);
 	foreach (@spliceai) {
 		#print $_;
@@ -376,7 +377,7 @@ if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
 
 if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
 	
-	my @dbscsnv = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/dbscSNV/dbscSNV.txt.gz $chr:$pos-$pos`);
+	my @dbscsnv = split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/dbscSNV/dbscSNV.txt.gz $chr:$pos-$pos`);
 	my ($rf_content, $ada_content) = (U2_modules::U2_subs_2::info_panel('no RF score', $q), U2_modules::U2_subs_2::info_panel('no ADA score', $q));
 	foreach (@dbscsnv) {
 		if (/\t$wt\t$mt\t/) {
@@ -457,7 +458,7 @@ exit();
 sub get_seq {
 	my $var = shift;
 	my $query = "SELECT a.seq_wt, a.seq_mt, a.type_adn, a.type_segment, a.num_segment, a.nom, a.taille, a.nom_gene, b.nom as nom_seg FROM variant a, segment b WHERE a.num_segment = b.numero AND a.type_segment = b.type AND a.nom_gene = b.nom_gene AND a.nom_g = '$var';";
-	my $res = $dbh->selectrow_hashref($query);
+	my $res = $dbh->selectrow_hashref($query);	
 	$res->{'seq_wt'} =~ /([ATCG]{25})\s+([ATGC-]+)\s+([ATCG]{25})/o or die "bad seq in get_seq in splicing_calc.pl for var $var ($res->{'nom'})";
 	my @wt = ($1, $2, $3);
 	$res->{'seq_mt'} =~ /([ATCG]{25})\s+([ATGC-]+)\s+([ATCG]{25})/o or die "bad seq in get_seq in splicing_calc.pl for var $var ($res->{'nom'})";

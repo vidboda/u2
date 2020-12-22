@@ -99,7 +99,7 @@ my $acc_no = U2_modules::U2_subs_1::check_acc($q, $dbh);
 #if ($q->param('technique') && $q->param('technique') =~ /(MLPA|QMPSF|SANGER|aCGH)/o) {$technique = $1}
 #else {print 5;U2_modules::U2_subs_1::standard_error(15, $q)}
 
-
+print $q->header();
 if ($step == 1) { #insert form and possibility to create variants.
 	
 	#build query

@@ -481,8 +481,8 @@ if ($res->{'protein'} ne '') {
 		
 		my $one_letter = U2_modules::U2_subs_1::nom_three2one($res->{'protein'});
 		#print $q->span("--$one_letter--");
-		if (-f "/var/www/html/ushvam2/RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf") {
-			print $q->span(", check "), $q->a({'href' => "ushvam2/RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');	
+		if (-f $ABSOLUTE_HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf") {
+			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');	
 		}
 		#if (-f "/var/www/html/ushvam2/RS_data/data/MobiDL/missense/$u1_gene/$one_letter.pdf") {
 		#	print $q->span(", check "), $q->a({'href' => "ushvam2/RS_data/data/MobiDL/missense/$u1_gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');	

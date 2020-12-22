@@ -66,7 +66,7 @@ my $user = U2_modules::U2_users_1->new();
 
 ##end of Minimal init
 
-
+print $q->header();
 #get params
 my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
