@@ -1441,15 +1441,15 @@ if ($result) {
 	my ($list);
 	#######end new
 	
-	my $query2 = "SELECT DISTINCT(a.nom_gene), c.second_name, a.num_pat, a.id_pat FROM analyse_moleculaire a, patient b, gene c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.nom_gene = c.nom AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.technical_valid = 't' AND c.main = 't' ORDER BY a.nom_gene;";
+	my $query2 = "SELECT DISTINCT(a.nom_gene), c.second_name, c.diag, a.num_pat, a.id_pat FROM analyse_moleculaire a, patient b, gene c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.nom_gene = c.nom AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.technical_valid = 't' AND c.main = 't' ORDER BY a.nom_gene;";
 	my $sth2 = $dbh->prepare($query2);
 	my $res2 = $sth2->execute();
 	if ($res2 ne '0E0') {
 		while (my $result2 = $sth2->fetchrow_hashref()) {
 			
 			#######new 28/08/2014 get a list of genes
-			$list->{$result2->{'nom_gene'}->[0]} = ['', $result2->{'id_pat'}, $result2->{'num_pat'}];
-			if ($result2->{'second_name'}) {$list->{$result2->{'nom_gene'}->[0]} = [$result2->{'second_name'}, $result2->{'id_pat'}, $result2->{'num_pat'}]}
+			$list->{$result2->{'nom_gene'}->[0]} = ['', $result2->{'id_pat'}, $result2->{'num_pat'}, $result2->{'diag'}];
+			if ($result2->{'second_name'}) {$list->{$result2->{'nom_gene'}->[0]} = [$result2->{'second_name'}, $result2->{'id_pat'}, $result2->{'num_pat'}, $result2->{'diag'}]}
 			#######end new
 			
 			
@@ -1569,7 +1569,13 @@ sub create_frame {
 		foreach (@{$tab}) {
 			if (exists $list->{$_}) {
 				#print $q->start_strong({'class' => 'patient_file_frame daughter pointer frame_text frame2', 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
-				print $q->start_strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
+				my $w3color = 'w3-blue';
+				if ($list->{$_}[3] != 1) {$w3color = 'w3-orange';}
+				
+				print $q->start_strong({'class' => "w3-button w3-ripple $w3color w3-hover-teal w3-padding-16 w3-margin", 'onclick' => "window.open('patient_genotype.pl?sample=$list->{$_}[1]$list->{$_}[2]&gene=$_');"}), $q->em($_), $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
+				#if ($list->{$_}[3] == 1) {print $q->em("$_*")}
+				#else {print $q->em($_)}
+				#print $q->span(" ($list->{$_}[0])"), $q->end_strong(), "\n";
 			}
 		}
 		print $q->end_div(), "\n";#, $q->start_div({'class' => 'invisible'}), $q->br(), $q->br(), $q->end_div(), "\n";

@@ -316,6 +316,9 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					if ($result->{'MiniSeq-132'} == 1) {print $q->li("included in 132 genes design"), "\n"}
 					if ($result->{'MiniSeq-152'} == 1) {print $q->li("included in 152 genes design"), "\n"}
 					if ($result->{'MiniSeq-158'} == 1) {print $q->li("included in 158 genes design"), "\n"}
+					if ($result->{'diag'} == 1) {print $q->li("diagnostic gene"), "\n"}
+					else {print $q->li("non-diagnostic gene"), "\n"}
+                    
 					print $q->end_ul(), "\n";
 				}
 				#if ($result->{'brin'} eq '-') {$order = 'DESC'}great_table technical
