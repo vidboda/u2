@@ -1230,7 +1230,7 @@ sub test_vv {
 #variant_input_vv.pl, import_illumina_vv.pl
 sub run_vv {
 	my ($genome, $nm, $var, $mode) = @_;
-	#my $ua = LWP::UserAgent->new();
+	my $ua = LWP::UserAgent->new();
 	#$ua->ssl_opts(verify_hostname => 0);
 	#$ua->proxy('https', 'http://194.167.35.151:3128/');
 	my $url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$nm:$var/$nm?content-type=application/json";
@@ -1245,12 +1245,14 @@ sub run_vv {
 		$url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json";
 	}
 	print STDERR "VV url: $url\n";
-	my $vv_result = `$PYTHON $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"` or die $!;
-	#my $request = $ua->get($url);
-	#if ($request->is_success()) {return $request->content()}
-	if($vv_result =~ /INTERNAL SERVER ERROR/o) {return 500}
-	elsif ($vv_result ne '0') {return $vv_result}
+	my $request = $ua->get($url);
+	if ($request->is_success()) {return $request->content()}
 	else {return '0'}
+	# on 158 Xserve, perl was unable to contact VV because of SSL version -> use of a python script instead - revert back to pure perl implementation 20210302
+	# my $vv_result = `$PYTHON $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"` or die $!;
+	# if($vv_result =~ /INTERNAL SERVER ERROR/o) {return 500}
+	# elsif ($vv_result ne '0') {return $vv_result}
+	# else {return '0'}
 }
 
 
@@ -1302,6 +1304,7 @@ sub test_ncbi {
 sub run_litvar {
 	my $snp_id = shift;
 	
+	# on 158 Xserve, perl was unable to contact litavr because of SSL version -> use of a python script instead - revert back to pure perl implementation 20210302
 	# my $url = "https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/rsids2pmids?rsids=$snp_id";
 	# return decode_json(`$PYTHON $ABSOLUTE_HTDOCS_PATH/litvar.py "$url"`) or die $!;
 	#print STDERR "--$litvar_result->[0]{'pmids'}\n";
