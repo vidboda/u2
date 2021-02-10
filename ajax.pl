@@ -431,12 +431,11 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	
 	
 	
-	
 	####TEMP COMMENT connexion to DVD really slow comment for the moment
-	if ($res->{'ns_gene'} == 1) {
-		my $url = 'http://vvd.eng.uiowa.edu';
-		if ($res->{'dfn'} == 1 || $res->{'usher'} == 1) {$url = 'http://deafnessvariationdatabase.org'}#OtoDB university of Iowa deafness and usher genes
-		
+	if ($res->{'ns_gene'} == 1 && ($res->{'dfn'} == 1 || $res->{'usher'} == 1)) {
+		#my $url = 'https://vvd.eng.uiowa.edu';    #does not seem to exist anymore 20210210
+		#if ($res->{'dfn'} == 1 || $res->{'usher'} == 1) {$url = 'https://deafnessvariationdatabase.org'}#OtoDB university of Iowa deafness and usher genes
+		my $url = 'https://deafnessvariationdatabase.org';
 		#ping dvd to ensure host is reachable
 		#my $p = Net::Ping->new("tcp", 2);
 		#$text.= "ping ".$p->ping('deafnessvariationdatabase.org');
@@ -446,21 +445,27 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		#my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
 		
 		if ($res->{'type_adn'} eq 'substitution') {
-			my $no_chr_var = U2_modules::U2_subs_1::extract_dvd_var($variant);			
-			my $iowa_url = "$url/variant/".uri_encode($no_chr_var)."?full";			
-			my $ua = LWP::UserAgent->new();
+			my $no_chr_var = U2_modules::U2_subs_1::extract_dvd_var($variant);
+			my $iowa_url = "$url/variant/".uri_encode($no_chr_var);
+			# my $iowa_url = "$url/variant/$no_chr_var";
+			my $ua = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0, });
 			$ua->timeout(3);
 			my $fetch = $ua->get($iowa_url);
 			if ($fetch->is_success()) {
+				print STDERR $iowa_url;
 				my $content = $fetch->content();
-				if ($content !~ /Unable\sto\sfind\svariant/o) {$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Iowa DB') . $q->end_li() . "\n"}
+				# if ($content !~ /Unable\sto\sfind\svariant/o) {$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Iowa DB') . $q->end_li() . "\n"}
+				if ($content !~ /is\snot\sin\sthe\sDVD/o) {$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'DVD') . $q->end_li() . "\n"}
 				else {$text .= $q->li('Not recorded in Iowa DB')}
+			}
+			else {
+				$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Try DVD?') . $q->end_li() . "\n";
 			}
 		}
 		else {
 			my $no_chr_var = U2_modules::U2_subs_1::extract_chrpos_var($variant);
 			my $iowa_url = "$url/hg19s?terms=".uri_encode($no_chr_var);
-			$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Try Iowa DB?') . $q->end_li() . "\n";
+			$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Try DVD?') . $q->end_li() . "\n";
 		}
 	}
 	
