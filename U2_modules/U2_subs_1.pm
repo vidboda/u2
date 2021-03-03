@@ -37,15 +37,15 @@ our @COUNTRY = ('Unknown','France','Afghanistan','Albania','Algeria','American S
 
 #manage groups
 
-our @USHER = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'PDZD7', 'VEZT', 'CEP250', 'PEX1', 'PEX6');
+our @USHER = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'PDZD7', 'VEZT', 'CEP250', 'PEX1', 'PEX6', 'PEX13', 'PEX26', 'ABHD12');
 our @USH1 = ('', 'MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2');
 our @USH2 = ('USH2A', 'GPR98', 'DFNB31', 'PDZD7');
 our @USH3 = ('CLRN1', 'HARS');
 our @CHM = ('CHM');
-our @DFNB = ('ADCY1', 'ATP2B2', 'CABP2', 'CDC14A', 'CIB2', 'CLDN9', 'CLDN14', 'CLIC5', 'COL11A2', 'DFNB59', 'ESPN', 'EPS8', 'EPS8L2', 'ESRRB', 'FAM65B', 'FOXI1', 'GIPC3', 'GJB2', 'GJB3', 'GJB6', 'GPSM2', 'GRXCR1', 'GRXCR2', 'HGF', 'ILDR1', 'KARS', 'KCNJ10', 'LHFPL5', 'LOXHD1', 'LRTOMT', 'MARVELD2', 'MPZL2', 'MSRB3', 'MYO3A', 'MYO6', 'MYO15A', 'OTOA', 'OTOF', 'OTOG', 'OTOGL', 'PEX13', 'PDZD7', 'PTPRQ', 'RDX', 'ROR1', 'S1PR2', 'SERPINB6', 'SLC26A4', 'SLC26A5', 'SLITRK6', 'SPNS2', 'STRC', 'SYNE4', 'TBC1D24', 'TECTA', 'TMC1', 'TMEM132E', 'TMIE', 'TMPRSS3', 'TPRN', 'TRIOBP', 'TSPEAR', 'WBP2');
-our @DFNA = ('ACTG1', 'CCDC50', 'CD164', 'CEACAM16', 'COCH', 'COL11A2', 'CRYM', 'DIABLO', 'DFNA5', 'DIAPH1', 'DIAPH3', 'DMXL2', 'DSPP', 'EYA1', 'EYA4', 'FAM65B', 'GJB2', 'GJB6', 'GJB3', 'GRHL2', 'HOMER2', 'KCNQ4', 'KITLG', 'MIR96', 'MIR182', 'MIR183', 'MYH9', 'MYH14', 'MYL9', 'MYO1A', 'MYO3A', 'MYO6', 'NLRP3', 'OSBPL2', 'P2RX2', 'PLS1', 'PTPN11', 'PTPRQ', 'POU4F3', 'SIX1', 'SLC12A2', 'SLC17A8', 'TBC1D24', 'TECTA', 'TJP2', 'TMC1', 'TNC', 'WFS1','RNR1', 'TRNL1', 'TRNS1', 'VANGL2');
+our @DFNB = ('ADCY1', 'ATP2B2', 'CABP2', 'CATSPER2', 'CDC14A', 'CIB2', 'CLDN9', 'CLDN14', 'CLIC5', 'CLRN2', 'COL11A2', 'DFNB59', 'ELMOD3', 'ESPN', 'EPS8', 'EPS8L2', 'ESRP1', 'ESRRB', 'FAM65B', 'FOXI1', 'GIPC3', 'GJB2', 'GJB3', 'GJB6', 'GPSM2', 'GRXCR1', 'GRXCR2', 'HGF', 'ILDR1', 'KARS', 'KCNJ10', 'LHFPL5', 'LOXHD1', 'LRTOMT', 'MARVELD2', 'MPZL2', 'MSRB3', 'MYO3A', 'MYO6', 'MYO15A', 'OTOA', 'OTOF', 'OTOG', 'OTOGL', 'PDZD7', 'PTPRQ', 'RDX', 'ROR1', 'S1PR2', 'SERPINB6', 'SLC26A4', 'SLC26A5', 'SLITRK6', 'SPNS2', 'STRC', 'SYNE4', 'TBC1D24', 'TECTA', 'TMC1', 'TMEM132E', 'TMIE', 'TMPRSS3', 'TPRN', 'TRIOBP', 'TSPEAR', 'WBP2');
+our @DFNA = ('ABCC1', 'ACTG1', 'CCDC50', 'CD164', 'CEACAM16', 'COCH', 'COL11A2', 'CRYM', 'DIABLO', 'DFNA5', 'DIAPH1', 'DIAPH3', 'DMXL2', 'DSPP', 'EYA1', 'EYA4', 'FAM65B', 'GJB2', 'GJB6', 'GJB3', 'GRHL2', 'HOMER2', 'KCNQ4', 'KITLG', 'LMX1A', 'MIR96', 'MIR182', 'MIR183', 'MYH9', 'MYH14', 'MYL9', 'MYO1A', 'MYO3A', 'MYO6', 'NLRP3', 'OSBPL2', 'P2RX2', 'PLS1', 'PTPN11', 'PTPRQ', 'POU4F3', 'SIX1', 'SLC12A2', 'SLC17A8', 'TBC1D24', 'TECTA', 'TJP2', 'TMC1', 'TNC', 'WFS1','RNR1', 'TOP2B', 'TRNL1', 'TRNS1', 'VANGL2');
 our @NSRP = ('ABCA4', 'AIPL1', 'BBS1', 'BEST1', 'C2orf71', 'C8orf37', 'CERKL', 'CNGA1', 'CNGB1', 'CRB1', 'DHDDS', 'EYS', 'FAM161A', 'FLVCR1', 'IDH3B', 'IMPG2', 'MAK', 'MERTK', 'NR2E3', 'NRL', 'PDE6A', 'PDE6B', 'PDE6G', 'PRCD', 'PROM1', 'PRPF31', 'PRPH2', 'RP1', 'RP2', 'RBP3', 'RGR', 'RHO', 'RLBP1', 'RPE65', 'RPGR', 'SAG', 'SNRNP200', 'TTC8', 'ZNF513');
-our @DFNX = ('POU3F4', 'PRPS1', 'SMPX', 'COL4A6');
+our @DFNX = ('AIFM1', 'POU3F4', 'PRPS1', 'SMPX', 'COL4A6');
 our @LCA = ('LRAT', 'SPATA7', 'TULP1', 'RPE65');
 our @CEVA = ('CEVA');
 #our @MITO = ('RNR1', 'TRNL1', 'TRNS1');
@@ -143,9 +143,9 @@ sub standard_begin_html { #prints top of the pages
 	#get patients' pathologies
 	my $query = "SELECT pathologie FROM valid_pathologie ORDER BY id;";
 	print $q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=all'}, 'ALL');
-		#$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=USHER'}, 'USHER');	
+		#$q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => '/perl/U2/patients.pl?phenotype=USHER'}, 'USHER');
 	my $sth = $dbh->prepare($query);
-	my $res = $sth->execute();	
+	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
 		print $q->a({'class' => 'w3-bar-item w3-button w3-ripple w3-large', 'href' => "/perl/U2/patients.pl?phenotype=$result->{'pathologie'}"}, $result->{'pathologie'});
 	}
@@ -191,8 +191,8 @@ sub standard_begin_html { #prints top of the pages
 		$q->start_a({'class' => 'w3-bar-item w3-button w3-ripple w3-xlarge w3-right', 'href' => '/ushvam2/change_user.php'}), $q->start_i({'class' => 'fa fa-user-times w3-xxlarge'}), $q->end_i(), $q->end_a(),
 		$q->span({'class' => 'w3-bar-item w3-xlarge w3-right'}, "Logged in as $user_name"), "\n",
 		$q->end_div(), $q->end_div(), $q->br(), $q->br(), "\n",
-		$q->start_div({'id' => 'internal'}), $q->br(), "\n";	
-	
+		$q->start_div({'id' => 'internal'}), $q->br(), "\n";
+
 }
 
 sub public_begin_html { #prints top of the pages
@@ -269,20 +269,20 @@ sub public_end_html { #prints bottom of the pages
 			$q->start_div({'class' =>"w3-quarter"}), $q->input({'type' => "submit", 'id' => "submit_a", 'value' => "Submit", 'class' => "w3-button w3-white w3-large w3-border"}),
 			$q->end_div(),
 		$q->end_div(),
-		$q->end_form(), "\n", 
+		$q->end_form(), "\n",
 	$q->end_div(), $q->br(), $q->br(), $q->br(), $q->br(), $q->br(), $q->end_div();
 }
 
 #common header for gene pages in gene.pl, gene_graphs.pl
 sub gene_header {
 	my ($q, $current_tab, $gene, $user) = @_;
-	
+
 	print $q->start_div({'class' => 'w3-container'}), $q->start_h2(), $q->em($gene), $q->span(" page:"), $q->end_h2(), "\n",
 		$q->br(), $q->start_div({'class' => 'w3-row'}), "\n";
 	if ($current_tab eq 'general_info') {&print_span(' w3-border-red', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General features', $q)}
 	else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General info', $q)}
 	if ($current_tab eq 'structure') {&print_span(' w3-border-red', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exon structure', $q)}
-	else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}	
+	else {&print_span('', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}
 	if ($current_tab eq 'var_all') {&print_span(' w3-border-red', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
 	else {&print_span('', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
 	if ($user->isPublic() != 1) {
@@ -291,21 +291,21 @@ sub gene_header {
 		if ($current_tab eq 'graphs') {&print_span(' w3-border-red', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
 		else {&print_span('', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
 	}
-	
+
 	#"chooseSortingType('$gene');"
-	
+
 	print $q->end_div(), $q->end_div(),"\n",
 		$q->div({'class' => 'tab_content', 'style' => 'display:block;'}), "\n";
-		
-		
-		
-		
+
+
+
+
 	#print $q->start_h2(), $q->em($gene), $q->span(" page:"), $q->end_h2(), "\n",
 	#	$q->br(), $q->start_div(), "\n";
 	#if ($current_tab eq 'general_info') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General features', $q)}
 	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General info', $q)}
 	#if ($current_tab eq 'structure') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exon structure', $q)}
-	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}	
+	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}
 	#if ($current_tab eq 'var_all') {&print_span('tab tab_current', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
 	#else {&print_span('tab tab_other', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
 	#if ($current_tab eq 'genotypes') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
@@ -326,86 +326,86 @@ sub print_span {
 sub accent2html {
 	my ($str) = shift;
 	#ok
-	$str =~ s/é/&eacute;/og;
-	$str =~ s/á/&aacute;/og;
-	$str =~ s/ú/&uacute;/og;
-	$str =~ s/í/&iacute;/og;
-	$str =~ s/ó/&oacute;/og;
-	$str =~ s/è/&egrave;/og;
-	$str =~ s/ù/&ugrave;/og;
-	$str =~ s/ò/&ograve;/og;
-	$str =~ s/à/&agrave;/og;
-	$str =~ s/ì/&igrave;/og;
-	$str =~ s/È/&Egrave;/og;
-	$str =~ s/Ù/&Ugrave;/og;
-	$str =~ s/Ò/&Ograve;/og;
-	$str =~ s/À/&Agrave;/og;
-	$str =~ s/Ì/&Igrave;/og;
-	$str =~ s/ç/&ccedil;/og;
-	$str =~ s/ä/&auml;/og;
-	$str =~ s/ë/&euml;/og;
-	$str =~ s/ü/&uuml;/og;
-	$str =~ s/ï/&iuml;/og;
-	$str =~ s/ö/&ouml;/og;
-	$str =~ s/Ä/&Auml;/og;
-	$str =~ s/Ë/&Euml;/og;
-	$str =~ s/Ü/&Uuml;/og;
-	$str =~ s/Ï/&Iuml;/og;
-	$str =~ s/Ö/&Ouml;/og;
-	$str =~ s/ê/&ecirc;/og;
-	$str =~ s/ô/&ocirc;/og;
-	$str =~ s/â/&acirc;/og;
-	$str =~ s/î/&icirc;/og;
-	$str =~ s/û/&ucirc;/og;
-	$str =~ s/Ê/&Ecirc;/og;
-	$str =~ s/Ô/&Ocirc;/og;
-	$str =~ s/Â/&Acirc;/og;
-	$str =~ s/Î/&Icirc;/og;
-	$str =~ s/Û/&Ucirc;/og;
-	$str =~ s/Ø/O/og;
+	$str =~ s/ï¿½/&eacute;/og;
+	$str =~ s/ï¿½/&aacute;/og;
+	$str =~ s/ï¿½/&uacute;/og;
+	$str =~ s/ï¿½/&iacute;/og;
+	$str =~ s/ï¿½/&oacute;/og;
+	$str =~ s/ï¿½/&egrave;/og;
+	$str =~ s/ï¿½/&ugrave;/og;
+	$str =~ s/ï¿½/&ograve;/og;
+	$str =~ s/ï¿½/&agrave;/og;
+	$str =~ s/ï¿½/&igrave;/og;
+	$str =~ s/ï¿½/&Egrave;/og;
+	$str =~ s/ï¿½/&Ugrave;/og;
+	$str =~ s/ï¿½/&Ograve;/og;
+	$str =~ s/ï¿½/&Agrave;/og;
+	$str =~ s/ï¿½/&Igrave;/og;
+	$str =~ s/ï¿½/&ccedil;/og;
+	$str =~ s/ï¿½/&auml;/og;
+	$str =~ s/ï¿½/&euml;/og;
+	$str =~ s/ï¿½/&uuml;/og;
+	$str =~ s/ï¿½/&iuml;/og;
+	$str =~ s/ï¿½/&ouml;/og;
+	$str =~ s/ï¿½/&Auml;/og;
+	$str =~ s/ï¿½/&Euml;/og;
+	$str =~ s/ï¿½/&Uuml;/og;
+	$str =~ s/ï¿½/&Iuml;/og;
+	$str =~ s/ï¿½/&Ouml;/og;
+	$str =~ s/ï¿½/&ecirc;/og;
+	$str =~ s/ï¿½/&ocirc;/og;
+	$str =~ s/ï¿½/&acirc;/og;
+	$str =~ s/ï¿½/&icirc;/og;
+	$str =~ s/ï¿½/&ucirc;/og;
+	$str =~ s/ï¿½/&Ecirc;/og;
+	$str =~ s/ï¿½/&Ocirc;/og;
+	$str =~ s/ï¿½/&Acirc;/og;
+	$str =~ s/ï¿½/&Icirc;/og;
+	$str =~ s/ï¿½/&Ucirc;/og;
+	$str =~ s/ï¿½/O/og;
 	$str =~ s/'/\'/og;
 	return $str;
 }
 sub html2accent {
 	my ($str) = shift;
 	#ok
-	$str =~ s/&eacute;/é/og;
-	$str =~ s/&aacute;/á/og;
-	$str =~ s/&uacute;/ú/og;
-	$str =~ s/&iacute;/í/og;
-	$str =~ s/&oacute;/ó/og;
-	$str =~ s/&egrave;/è/og;
-	$str =~ s/&ugrave;/ù/og;
-	$str =~ s/&ograve;/ò/og;
-	$str =~ s/&agrave;/à/og;
-	$str =~ s/&igrave;/ì/og;
-	$str =~ s/&Egrave;/È/og;
-	$str =~ s/&Ugrave;/Ù/og;
-	$str =~ s/&Ograve;/Ò/og;
-	$str =~ s/&Agrave;/À/og;
-	$str =~ s/&Igrave;/Ì/og;
-	$str =~ s/&ccedil;/ç/og;
-	$str =~ s/&auml;/ä/og;
-	$str =~ s/&euml;/ë/og;
-	$str =~ s/&uuml;/ü/og;
-	$str =~ s/&iuml;/ï/og;
-	$str =~ s/&ouml;/ö/og;
-	$str =~ s/&Auml;/Ä/og;
-	$str =~ s/&Euml;/Ë/og;
-	$str =~ s/&Uuml;/Ü/og;
-	$str =~ s/&Iuml;/Ï/og;
-	$str =~ s/&Ouml;/Ö/og;
-	$str =~ s/&ecirc;/ê/og;
-	$str =~ s/&ocirc;/ô/og;
-	$str =~ s/&acirc;/â/og;
-	$str =~ s/&icirc;/î/og;
-	$str =~ s/&ucirc;/û/og;
-	$str =~ s/&Ecirc;/Ê/og;
-	$str =~ s/&Ocirc;/Ô/og;
-	$str =~ s/&Acirc;/Â/og;
-	$str =~ s/&Icirc;/Î/og;
-	$str =~ s/&Ucirc;/Û/og;
-	$str =~ s/O/Ø/og;
+	$str =~ s/&eacute;/ï¿½/og;
+	$str =~ s/&aacute;/ï¿½/og;
+	$str =~ s/&uacute;/ï¿½/og;
+	$str =~ s/&iacute;/ï¿½/og;
+	$str =~ s/&oacute;/ï¿½/og;
+	$str =~ s/&egrave;/ï¿½/og;
+	$str =~ s/&ugrave;/ï¿½/og;
+	$str =~ s/&ograve;/ï¿½/og;
+	$str =~ s/&agrave;/ï¿½/og;
+	$str =~ s/&igrave;/ï¿½/og;
+	$str =~ s/&Egrave;/ï¿½/og;
+	$str =~ s/&Ugrave;/ï¿½/og;
+	$str =~ s/&Ograve;/ï¿½/og;
+	$str =~ s/&Agrave;/ï¿½/og;
+	$str =~ s/&Igrave;/ï¿½/og;
+	$str =~ s/&ccedil;/ï¿½/og;
+	$str =~ s/&auml;/ï¿½/og;
+	$str =~ s/&euml;/ï¿½/og;
+	$str =~ s/&uuml;/ï¿½/og;
+	$str =~ s/&iuml;/ï¿½/og;
+	$str =~ s/&ouml;/ï¿½/og;
+	$str =~ s/&Auml;/ï¿½/og;
+	$str =~ s/&Euml;/ï¿½/og;
+	$str =~ s/&Uuml;/ï¿½/og;
+	$str =~ s/&Iuml;/ï¿½/og;
+	$str =~ s/&Ouml;/ï¿½/og;
+	$str =~ s/&ecirc;/ï¿½/og;
+	$str =~ s/&ocirc;/ï¿½/og;
+	$str =~ s/&acirc;/ï¿½/og;
+	$str =~ s/&icirc;/ï¿½/og;
+	$str =~ s/&ucirc;/ï¿½/og;
+	$str =~ s/&Ecirc;/ï¿½/og;
+	$str =~ s/&Ocirc;/ï¿½/og;
+	$str =~ s/&Acirc;/ï¿½/og;
+	$str =~ s/&Icirc;/ï¿½/og;
+	$str =~ s/&Ucirc;/ï¿½/og;
+	$str =~ s/O/ï¿½/og;
 	$str =~ s/\'/'/og;
 	return $str;
 }
@@ -449,7 +449,7 @@ sub select_genes_grouped { #insert a list of genes in a pop up menu - group by p
 					$q->optgroup (-name => 'OTHER NS', -values => \@OTHER_NS),
 					$q->optgroup (-name => 'DAV', -values => \@DAV),
 					$q->optgroup (-name => 'ALL', -values => 'all', -hidden => 'hidden;')
-					#$q->optgroup (-name => 'NO GROUP', -values => \@NOGROUP)			    
+					#$q->optgroup (-name => 'NO GROUP', -values => \@NOGROUP)
 					    ]);
 }
 #in add_analysis.pl and patient_file.pl
@@ -497,7 +497,7 @@ sub valid {
 				$html .= $q->start_li().$q->em($result->{'nom_gene'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
 				$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'});
 				$html .= $q->end_li();
-			}		
+			}
 		}
 		else {$html = $q->li('no analyses pending')}
 		return $html;
@@ -597,7 +597,7 @@ sub check_nom_c {
 sub check_nom_g {
 	my ($q, $dbh) = @_;
 	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
-	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {	
+	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {
 		my $query = "SELECT nom_g as var FROM variant WHERE nom_g = '$1';";
 		#print $query;
 		my $res = $dbh->selectrow_hashref($query);
@@ -625,7 +625,7 @@ sub check_ens {
 		if ($res->{$type} ne '0E0') {return $res->{$type}}
 		else {&standard_error('6', $q)}
 	}
-	else {&standard_error('7', $q)}	
+	else {&standard_error('7', $q)}
 }
 
 sub check_status {
@@ -681,7 +681,7 @@ sub check_filter {
 sub check_illumina_run_id {
 	my ($q) = shift;
 	if ($q->param('run_id') =~ /^(\d{6}_[A-Z]\d{5}_\d{4}_0{9}-[A-Z0-9]{5})$/o || $q->param('run_id') =~ /^(\d{6}_[A-Z]{2}\d{5,6}_\d{4}_[A-Z0-9]{10})$/o) {return $1}
-	else {print $q->param('run_id').$q->br();&standard_error('21', $q)}	
+	else {print $q->param('run_id').$q->br();&standard_error('21', $q)}
 }
 
 
@@ -693,7 +693,7 @@ sub check_class {
 	while (my $result = $sth->fetchrow_hashref()) {
 		if ($q->param('class') eq $result->{'classe'}) {
 			return $result->{'classe'};
-		}		
+		}
 	}
 	&standard_error('17', $q)
 }
@@ -705,7 +705,7 @@ sub check_acmg_class {
 	while (my $result = $sth->fetchrow_hashref()) {
 		if ($q->param('class') eq $result->{'class'}) {
 			return $result->{'class'};
-		}		
+		}
 	}
 	&standard_error('17', $q)
 }
@@ -717,7 +717,7 @@ sub check_rna_status {
 	while (my $result = $sth->fetchrow_hashref()) {
 		if ($q->param('rna_status') eq $result->{'type_arn'}) {
 			return $result->{'type_arn'};
-		}		
+		}
 	}
 	&standard_error('24', $q)
 }
@@ -784,7 +784,7 @@ sub get_gene_group {
 sub get_gene_from_nom_g {
 	my ($q, $dbh) = @_;
 	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
-	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {	
+	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {
 		my $query = "SELECT nom_gene FROM variant WHERE nom_g = '$1';";
 		my $res = $dbh->selectrow_hashref($query);
 		if ($res->{'nom_gene'} ne '0E0') {return ($res->{'nom_gene'})}
@@ -856,19 +856,19 @@ sub sift_color {
 sub sift_interpretation {
 	my $score = shift;
 	if ($score < $SIFT_THRESHOLD) {return 'damaging'}
-	else {return 'tolerated'}	
+	else {return 'tolerated'}
 }
 
 sub sift_color2 {
 	my $res = shift;
 	if ($res =~ /deleterious/) {return '#FF0000'}
-	else {return '#00A020'}	
+	else {return '#00A020'}
 }
 
 sub pph2_color {
 	my $res = shift;
 	if ($res =~ /damaging/) {return '#FF0000'}
-	else {return '#00A020'}	
+	else {return '#00A020'}
 }
 
 sub pph2_color2 {
@@ -901,7 +901,7 @@ sub metalr_color {
 sub mcap_color {
 	my $score = shift;
 	if ($score > $MCAP_THRESHOLD) {return '#FF0000'}
-	else {return '#00A020'}	
+	else {return '#00A020'}
 }
 
 sub spliceAI_color {
@@ -909,7 +909,7 @@ sub spliceAI_color {
 	if ($score > $SPLICEAI_THRESHOLD_MAX) {return '#FF0000'}
 	elsif ($score > $SPLICEAI_THRESHOLD_MED) {return '#FF6020'}
 	elsif ($score > $SPLICEAI_THRESHOLD_MIN) {return '#FFA020'}
-	else {return '#00A020'}	
+	else {return '#00A020'}
 }
 
 
@@ -922,7 +922,7 @@ sub spliceAI_color {
 #		if ($dist <= 3 && $dist >= 0) {if ($type eq 'hash'){return "exonic near $label"}++}elsif ($type eq 'span') {return $q->span(" - exonic near $label")}}
 #		elsif ($label eq 'overlap') {if ($type eq 'hash'){$spec->{'overlap junction'}++}elsif ($type eq 'span') {$spec = $q->span(' - overlap junction')}}
 #		else {if ($type eq 'hash'){$spec->{'exonic middle'}++}elsif ($type eq 'span') {$spec = $q->span(' - exonic middle')}}
-#		
+#
 #		if ($dist <= 3 && $dist >= 0) {if ($type eq 'hash'){$spec->{"exonic near $label"}++}elsif ($type eq 'span') {$spec = $q->span(" - exonic near $label")}}
 #		elsif ($label eq 'overlap') {if ($type eq 'hash'){$spec->{'overlap junction'}++}elsif ($type eq 'span') {$spec = $q->span(' - overlap junction')}}
 #		else {if ($type eq 'hash'){$spec->{'exonic middle'}++}elsif ($type eq 'span') {$spec = $q->span(' - exonic middle')}}
@@ -1006,10 +1006,10 @@ sub get_pos_from_intron {
 	my $query = "SELECT brin FROM gene WHERE nom[1] = '$gene' AND nom[2] = '$acc';";
 	my $res = $dbh->selectrow_hashref($query);
 	#possible overlapping?
-	
+
 	if ($pos1 == $pos2) {
 		#NO - simple case
-		return &compute_exonic_positions("SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND type = '$type_seg' AND numero = '$num_seg';", $pos1, $res->{'brin'}, $dbh);	
+		return &compute_exonic_positions("SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND type = '$type_seg' AND numero = '$num_seg';", $pos1, $res->{'brin'}, $dbh);
 	}
 	else {
 		if ($type_seg ne $type_seg_end) { #overlap
@@ -1021,8 +1021,8 @@ sub get_pos_from_intron {
 			if ($dist5 > $dist3) {return ($dist3, $label3)}
 			elsif ($dist5 < $dist3) {return ($dist5, $label5)}
 			elsif ($dist5 == $dist3) {return ($dist5, 'middle')}
-		}		
-	}	
+		}
+	}
 }
 #same
 sub compute_exonic_positions {
@@ -1044,7 +1044,7 @@ sub compute_exonic_positions {
 		}
 		else {return ($dist1, 'middle')}
 	}
-	else {print "size pb with $query-$pos-$dist1-$dist2-$res->{'taille'}::"}	
+	else {print "size pb with $query-$pos-$dist1-$dist2-$res->{'taille'}::"}
 }
 
 #in variant.pl & variant creation scripts
@@ -1111,7 +1111,7 @@ sub maf {
 	if ($total == 0) {$maf = 'NA';return $maf;}
 	$maf = sprintf('%.3f', ($alleles/$total));
 	if ($maf == 0) {$maf = 'NA'}
-	return $maf;	
+	return $maf;
 }
 
 
@@ -1261,13 +1261,13 @@ sub test_myvariant {
 	my $ua = LWP::UserAgent->new();
 	my $request = $ua->get('http://myvariant.info');
 	if ($request->is_success()) {return 1}
-	else {return 0}	
+	else {return 0}
 }
 sub test_mygene {
 	my $ua = LWP::UserAgent->new();
 	my $request = $ua->get('http://mygene.info');
 	if ($request->is_success()) {return 1}
-	else {return 0}	
+	else {return 0}
 }
 #U2_subs_3, variant_input.pl
 sub run_myvariant {
@@ -1299,16 +1299,16 @@ sub test_ncbi {
 	my $ua = LWP::UserAgent->new();
 	my $request = $ua->get('https://www.ncbi.nlm.nih.gov/');
 	if ($request->is_success()) {return 1}
-	else {print STDERR $request->content(); return 0}	
+	else {print STDERR $request->content(); return 0}
 }
 sub run_litvar {
 	my $snp_id = shift;
-	
+
 	# on 158 Xserve, perl was unable to contact litavr because of SSL version -> use of a python script instead - revert back to pure perl implementation 20210302
 	# my $url = "https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/rsids2pmids?rsids=$snp_id";
 	# return decode_json(`$PYTHON $ABSOLUTE_HTDOCS_PATH/litvar.py "$url"`) or die $!;
 	#print STDERR "--$litvar_result->[0]{'pmids'}\n";
-	
+
 	my $ua = LWP::UserAgent->new();
 	##my $request = $ua->get("https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/pmids?query=%7B%22variant%22%3A%5B%22litvar%40$snp_id%23%23%22%5D%7D");
 	my $request = $ua->get("https://www.ncbi.nlm.nih.gov/research/bionlp/litvar/api/v1/public/rsids2pmids?rsids=$snp_id");

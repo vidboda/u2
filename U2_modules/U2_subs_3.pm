@@ -32,7 +32,7 @@ sub liftover {
 	#print STDERR "$PYTHON $path/liftover$way.py chr$chr $pos";
 	#my ($chr_tmp2, $s) = split(/,/, `$PYTHON $path/liftover$way.py "chr$chr" $pos`);
 	my ($chr_tmp2, $s) = split(/,/, `$PYTHON $path/liftover.py $path/$chain "chr$chr" $pos`);
-	$s =~ s/\)//g;	
+	$s =~ s/\)//g;
 	$s =~ s/ //g;
 	$s =~ s/'//g;
 	if ($s =~ /^\d+$/o) {return $s+1}
@@ -48,7 +48,7 @@ sub check_nm_number_conversion {
 	#print STDERR "$call-\n";
 	foreach ($call->result()->{'string'}) {
 		my $tab_ref;
-		if (ref($_) eq 'ARRAY') {$tab_ref = $_}		
+		if (ref($_) eq 'ARRAY') {$tab_ref = $_}
 		else {$tab_ref->[0] = $_}
 		POSCONV: foreach (@{$tab_ref}) {
 			if (/(NM_\d+)\.(\d):([cn]\..+)/og) {
@@ -79,7 +79,7 @@ sub insert_variant {
 	my ($var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $null, $var_filter) = (shift(@{$list}), shift(@{$list}), shift(@{$list}), shift(@{$list}), shift(@{$list}), shift(@{$list}), shift(@{$list}));
 	my ($var_dp, $var_vf);
 	my @format_list = split(/:/, pop(@{$list}));
-		
+
 	#compute vf_index
 	my @label_list = split(/:/, pop(@{$list}));
 	my $label_count = 0;
@@ -90,7 +90,7 @@ sub insert_variant {
 		if (/$vf_tag/) {$vf_index = $label_count}
 		elsif (/$dp_tag/) {$dp_index = $label_count}
 		elsif (/$ad_tag/) {$ad_index = $label_count}
-		$label_count ++;                                        
+		$label_count ++;
 	}
 	($var_dp, $var_vf) = ($format_list[$dp_index], $format_list[$vf_index]);
 	if ($var_vf =~ /,/o) {#multiple AB after splitting; is it VCF compliant? comes fomr IURC script to add AB to all variants in nenufaar
@@ -99,12 +99,12 @@ sub insert_variant {
 		$var_vf = sprintf('%.2f', (pop(@ad_values)/$var_dp));
 	}
 	#print "$var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $null, $var_filter, $var_dp, $var_vf<br/>";
-	
+
 	#we check wether the variant is in our genes or not
 	#we just query ushvam2
 	#if  ($var_chr =~ /^chr([\dXYM]{1,2})$/o) {$var_chr = $1}
 	if  ($var_chr =~ /^chr($U2_modules::U2_subs_1::CHR_REGEXP)$/o) {$var_chr = $1}
-	
+
 	##we could query each variant but takes some time
 	#my $query = "SELECT b.nom, a.nom[1] as gene FROM gene a, segment b WHERE a.nom = b.nom_gene AND a.chr = '$var_chr' AND $var_pos BETWEEN SYMMETRIC b.$postgre_start_g AND b.$postgre_end_g;";
 	#my $sth = $dbh->prepare($query);
@@ -118,11 +118,11 @@ sub insert_variant {
 	#else {
 	#	print "$var_chr-$var_pos-not in ushvam2<br/>"
 	#}
-	
+
 	my $interest = 0;
 	foreach my $key (keys %{$intervals}) {
 		$key =~ /(\d+)-(\d+)/o;
-		if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr			
+		if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr
 			if ($var_chr eq $intervals->{$key}) {$interest = 1;last;}
 		}
 	}
@@ -144,9 +144,9 @@ sub insert_variant {
 			if ($1 >= 8) {
 				if ($var_filter eq 'PASS') {$var_filter = 'R8'}
 				else {$var_filter .= ';R8'}
-			}						
-		}		
-	}				
+			}
+		}
+	}
 	if ($var_chr eq 'X') {
 		my $query_hemi = "SELECT sexe FROM patient WHERE numero = '$number' AND identifiant = '$id';";
 		my $res_hemi = $dbh->selectrow_hashref($query_hemi);
@@ -155,7 +155,7 @@ sub insert_variant {
 	elsif ($var_chr eq 'Y') {($status, $allele) = ('hemizygous', '1')}
 	elsif ($var_chr eq 'M') {($status, $allele) = ('heteroplasmic', '2');if ($var_vf >= 0.8) {$status = 'homoplasmic'}}
 	#elsif ($var_chr eq 'M') {($status, $allele) = ('hemizygous', '2')}
-	
+
 	my $genomic_var = &build_hgvs_from_illumina($var_chr, $var_pos, $var_ref, $var_alt);
 	#print "$genomic_var<br/>";
 	my $first_genomic_var = $genomic_var;
@@ -165,12 +165,12 @@ sub insert_variant {
 	my $query_gs = "SELECT u2_name FROM gs2variant WHERE gs_name = '$first_genomic_var' AND (reason LIKE 'MiSeq_%' OR reason LIKE 'inv_nt');";
 	my $res_gs = $dbh->selectrow_hashref($query_gs);
 	if ($res_gs) {$known_bad_variant = 1;$genomic_var = $res_gs->{'u2_name'}}
-	
+
 	my $insert = &direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 	if ($insert ne '') {
 		#print "$insert<br/>";
 		#################UNCOMMENT WHEN READY
-		$dbh->do($insert);		
+		$dbh->do($insert);
 		return 1;
 	}
 	#still here? we try to invert wt & mut
@@ -217,7 +217,7 @@ sub insert_variant {
 				SOAP::Data->name('build')->value('hg19'),
 				SOAP::Data->name('variant')->value($genomic_var));
 		#if (!$call->result()) {return "MANUAL MUTALYZER FAULT\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter'); $var_chr $var_pos in VCF"}
-		
+
 		#try ultimate fix for hg19 => we check for exact NM+version ; if not found, we liftover genomic positions to hg38 then second number conversion round and look for exact NM+version; then we move on
 		my $nm_variant = 0;
 		my ($acc, $ver, $nom, $tmp, $res3);
@@ -252,22 +252,22 @@ sub insert_variant {
 			#liftover
 			my $hg38_pos = &liftover($var_pos, $var_chr, $ABSOLUTE_HTDOCS_PATH, $HG19TOHG38CHAIN);
 			if ($hg38_pos eq 'f') {return "MANUAL INDEL NO MATCHING NM\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter'); $var_chr $var_pos in VCF\n"}
-			
-			my $hg38_genomic_var = &build_hgvs_from_illumina($var_chr, $hg38_pos, $var_ref, $var_alt);		
-			
+
+			my $hg38_genomic_var = &build_hgvs_from_illumina($var_chr, $hg38_pos, $var_ref, $var_alt);
+
 			$call = $soap->call('numberConversion',
 				SOAP::Data->name('build')->value('hg38'),
 				SOAP::Data->name('variant')->value($hg38_genomic_var));
-			
+
 			if (!$call->result()) {return "MANUAL HG38 INDEL MUTALYZER FAULT\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter'); $var_chr $var_pos in VCF\n"}
 			($acc, $ver, $nom, $nm_variant, $tmp, $res3) = &check_nm_number_conversion($call, $dbh, $nm_variant, $id, $number, $genomic_var, $analysis, $status, $var_dp, $var_vf, $var_filter);
 			#if ($genomic_var eq 'chrX:g.44918222delT') {print STDERR "2-$first_genomic_var-$genomic_var-$nom\n"}
 		}
-		
-		
-		
-		
-		
+
+
+
+
+
 		if ($nm_variant == 1) {
 			$tmp = '';#reset error messages
 		#foreach ($call->result()->{'string'}) {
@@ -296,11 +296,11 @@ sub insert_variant {
 				my $strand_code = U2_modules::U2_subs_1::get_strand($res3->{'gene_name'}, $dbh);  #returns ASC for '+', DESC for '-', usually used to sort variants
 				if (($genomic_var =~ /del/ && $strand_code eq 'ASC') || ($genomic_var =~ /ins/)) {
 				#if (($genomic_var =~ /ins/ && $strand_code eq 'ASC')) { #for dev purpose
-					#run mutalyzer and catch warning										
+					#run mutalyzer and catch warning
 					$call = U2_modules::U2_subs_1::run_mutalyzer($soap, $res3->{'acc_g'}, $res3->{'gene_name'}, $nom, $res3->{'mutalyzer_version'}, $res3->{'mutalyzer_acc'});
 					#if ($genomic_var eq 'chrX:g.44918222delT') {print STDERR "2,5-$first_genomic_var-$genomic_var-$nom\n"}
-					my $message;									
-					if ($call->result->{'messages'}) {	
+					my $message;
+					if ($call->result->{'messages'}) {
 						foreach ($call->result->{'messages'}->{'SoapMessage'}) {
 							my $array_ref;
 							if (ref($_) eq 'ARRAY') {$array_ref = $_}
@@ -308,10 +308,10 @@ sub insert_variant {
 							foreach (@{$array_ref}) {
 								if ($_->{'message'} =~ /Sequence|Insertion/) {$message = $_->{'message'}}
 								#if ($_->{'errorcode'}) {push @errors, $_} ## if you want to deal with error and/or warning codes
-							}	
+							}
 						}
 					}
-					
+
 					if ($genomic_var =~ /del/o) {
 						#example
 						#Sequence "T" at position 190800 was given, however, the HGVS notation prescribes that on the forward strand it should be "T" at position 190813.
@@ -337,7 +337,7 @@ sub insert_variant {
 								#print "$diff $new1 $new2<br/>blabla<br/>";
 								$genomic_var =~ s/g\.\d+/g\.$new1/;
 								$genomic_var =~ s/_\d+/_$new2/;
-								
+
 							}
 							if (length($old_del) > 25) {$genomic_var =~ s/del$old_del/del/}
 							elsif ($new_del ne $old_del) {$genomic_var =~ s/del$old_del/del$new_del/}
@@ -350,7 +350,7 @@ sub insert_variant {
 							if ($genomic_var =~ /(^.+del)[ATGC]+/) {$new_name = $1}
 							$query_gs = "SELECT u2_name FROM gs2variant WHERE gs_name = '$first_genomic_var' AND (reason LIKE 'MiSeq_%' OR reason LIKE 'inv_nt');";
 							$res_gs = $dbh->selectrow_hashref($query_gs);
-							if ($res_gs) {$genomic_var = $res_gs->{'u2_name'}}												
+							if ($res_gs) {$genomic_var = $res_gs->{'u2_name'}}
 							else {
 								$insert = "INSERT INTO gs2variant (gs_name, u2_name, reason) VALUES ('$first_genomic_var', '$new_name', 'MiSeq_indel');";
 								$dbh->do($insert);
@@ -382,7 +382,7 @@ sub insert_variant {
 										$genomic_var =~ s/g\.\d+/g\.$new1/;
 										$genomic_var =~ s/_\d+/_$new2/;
 									}
-									
+
 								}#dup at same pos print 'case1<br/>';
 								elsif (($pos11 == $pos21) && ($old_ins eq $new_ins) && ($pos22 == $pos21)) {#dup at single pos
 									$genomic_var =~ /(chr[\dX]+:g\.)\d+_(\d+)ins([ATGC])/o;
@@ -395,7 +395,7 @@ sub insert_variant {
 									#print 'case2<br/>';
 								}
 								elsif (($pos11 == $pos21) && ($old_ins eq $new_ins) && ($pos22 != $pos21)) {
-									$genomic_var =~ s/ins/dup/;														
+									$genomic_var =~ s/ins/dup/;
 									#bug in mutalyzer try NG_028030.1:c.2352_2353insCGCAGC
 									#if bug fixed uncomment the 4 coming lines and comment else	18/08/2014
 									#my $diff = $pos22-$pos21-1;
@@ -413,7 +413,7 @@ sub insert_variant {
 									#if (length ($old_ins) == 2) {
 									#	print "strand - $first_genomic_var - $genomic_var<br/>";
 									#}
-								}													
+								}
 							}
 							elsif ($message) {print $message;}
 							#else {
@@ -435,7 +435,7 @@ sub insert_variant {
 									my $diff = $pos21 - $pos11;
 									$genomic_var =~ /(chr[\dX]+:g\.)(\d+)_\d+ins([ATGC])/o;
 									my $new = $2 + $diff;
-									$genomic_var = $1.$new."dup$3";													
+									$genomic_var = $1.$new."dup$3";
 								}
 								elsif(($pos11 != $pos21) && ($pos12 != $pos22)) {
 									#print 'case2<br/>';
@@ -443,17 +443,17 @@ sub insert_variant {
 									#uncomment the following line if resolved
 									#check NM_014053.3:c.*2059_*2060insAC
 									#my ($diff1, $diff2) = (($pos21 - $pos11), ($pos22 - $pos12));
-									
+
 									$call->result->{'genomicDescription'} =~ /NG_\d+\.\d:g\.(\d+)_(\d+)dup/o;
-									my ($diff1, $diff2) = ($1 - $pos11, $2-$pos12);														
+									my ($diff1, $diff2) = ($1 - $pos11, $2-$pos12);
 									$genomic_var =~ /(chr[\dX]+:g\.)(\d+)_(\d+)ins[ATGC]+/o;
 									my ($new1, $new2) = ($2 + $diff1, $3 + $diff2);
-									$genomic_var = $1.$new1."_".$new2."dup$new_ins";		
+									$genomic_var = $1.$new1."_".$new2."dup$new_ins";
 								}
 								#if (length ($old_ins) == 2) {
 								#	print "strand + $first_genomic_var - $genomic_var<br/>";
 								#}
-								
+
 							}
 							elsif ($message && $message =~ /Insertion\sof\s([ATGC\[\]\dbp\s]+)\sat\sposition\s([\d_]+)\swas\sgiven,\showever,\sthe\sHGVS\snotation\sprescribes\sthat\son\sthe\sforward\sstrand\sit\sshould\sbe\san\sinsertion\sof\s([ATGC\[\]\dbp\s]+)\sat\sposition\s([\d_]+)\./o) {
 								#print 'case3<br/>';
@@ -474,7 +474,7 @@ sub insert_variant {
 						if ($genomic_var ne $first_genomic_var) {
 							$query_gs = "SELECT u2_name FROM gs2variant WHERE gs_name = '$first_genomic_var' AND (reason LIKE 'MiSeq_%' OR reason LIKE 'inv_nt');";
 							$res_gs = $dbh->selectrow_hashref($query_gs);
-							if ($res_gs) {$genomic_var = $res_gs->{'u2_name'}}	
+							if ($res_gs) {$genomic_var = $res_gs->{'u2_name'}}
 							else {
 								if ($genomic_var =~ /(^.+dup)[ATGC]+/) {$insert = "INSERT INTO gs2variant (gs_name, u2_name, reason) VALUES ('$first_genomic_var', '$1', 'MiSeq_indel');"}
 								else {$insert = "INSERT INTO gs2variant (gs_name, u2_name, reason) VALUES ('$first_genomic_var', '$genomic_var', 'MiSeq_indel');"}
@@ -492,19 +492,19 @@ sub insert_variant {
 				#elsif (/NC_012920.+/) {
 				#	$tmp .= "MANUAL chrM_variant\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n";
 				#}
-			#}			
+			#}
 		}
 	}
-	
+
 	#ok indels are supposed to be corrected, now a numberconveriosn run for everybody then the run mutalyzer.
 	#PTPRQ directly to the manual garbage (me)
 	if ($genomic_var =~ /chr12:g\.(\d+)/o) {
 		if ($1 > 80838126 && $1 < 81072802) {#hg19 coordinates#PTPRQ
 			return "MANUAL PTPRQ\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n";
-		}						
-	}	
+		}
+	}
 	if ($genomic_var !~ />/) {
-		#just check new deldupins does not already exists				
+		#just check new deldupins does not already exists
 		$insert = &direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 		if ($insert ne '') {
 			#######UNCOMMENT WHEN READY
@@ -513,24 +513,24 @@ sub insert_variant {
 		}
 	}
 	#if ($first_genomic_var eq 'chrX:g.44918222delT') {print STDERR "2,7-$first_genomic_var-$genomic_var\n"}
-	
+
 	#here do the job
-	#got it from import_illumina got from gsdot2u2.cgi	
+	#got it from import_illumina got from gsdot2u2.cgi
 	my ($nom_ng, $nom_ivs, $nom_prot, $seq_wt, $seq_mt, $type_adn, $type_arn, $type_prot, $type_segment, $type_segment_end, $num_segment, $num_segment_end, $taille, $snp_id, $snp_common);
-	($nom_prot, $nom_ivs) = ('NULL', 'NULL');	
+	($nom_prot, $nom_ivs) = ('NULL', 'NULL');
 	my ($start, $end) = &get_start_end_pos($genomic_var);
 	##run numberConversion() webservice
 	my $call = $soap->call('numberConversion',
 			SOAP::Data->name('build')->value('hg19'),
 			SOAP::Data->name('variant')->value($genomic_var));
 	#if (!$call->result()) {
-	
+
 	my $nm_variant = 0;
 	my ($acc, $ver, $nom, $res3);
 	#if ($genomic_var =~ />/o) {#we move on with SNVs
 	($acc, $ver, $nom, $nm_variant, $tmp, $res3) = &check_nm_number_conversion($call, $dbh, $nm_variant, $id, $number, $genomic_var, $analysis, $status, $var_dp, $var_vf, $var_filter);
 	#if ($first_genomic_var eq 'chrX:g.44918222delT') {print STDERR "3-$first_genomic_var-$genomic_var-$nom-$nm_variant\n"}
-	
+
 	if ($nm_variant != 1) {#let's try hg38
 	#liftover
 		my $hg38_pos;
@@ -543,19 +543,19 @@ sub insert_variant {
 		}
 		#my $hg38_pos = &liftover($var_pos, $var_chr, $ABSOLUTE_HTDOCS_PATH, '19238');
 		if ($hg38_pos eq 'f') {return "MANUAL SUBSTITUTION NO MATCHING NM\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter'); $var_chr $var_pos in VCF\n"}
-		
-		my $hg38_genomic_var = &build_hgvs_from_illumina($var_chr, $hg38_pos, $var_ref, $var_alt);		
+
+		my $hg38_genomic_var = &build_hgvs_from_illumina($var_chr, $hg38_pos, $var_ref, $var_alt);
 		undef $call;
 		$call = $soap->call('numberConversion',
 			SOAP::Data->name('build')->value('hg38'),
 			SOAP::Data->name('variant')->value($hg38_genomic_var));
-		
+
 		if (!$call->result()) {return "MANUAL HG38 SUBSTITUTION MUTALYZER FAULT\t$id$number\t$genomic_var\t$hg38_genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter'); $var_chr $var_pos in VCF\n"}
 		($acc, $ver, $nom, $nm_variant, $tmp, $res3) = &check_nm_number_conversion($call, $dbh, $nm_variant, $id, $number, $genomic_var, $analysis, $status, $var_dp, $var_vf, $var_filter);
 		if ($first_genomic_var eq 'chrX:g.44918222delT') {print STDERR "5-$first_genomic_var-$genomic_var-$nom-$hg38_pos-$hg38_genomic_var\n"}
 	}
 	#}
-	
+
 	if ($nm_variant == 1) {
 		$tmp = '';#reset error messages
 	#if ($call->result()) {
@@ -564,7 +564,7 @@ sub insert_variant {
 	#		if (ref($_) eq 'ARRAY') {$tab_ref = $_}
 	#		else {$tab_ref->[0] = $_}
 		my ($main, $treated, $nr) = (0, 0, '');
-	#		
+	#
 	#		POSCONV2: foreach (@{$tab_ref}) {
 	#			if (/(NM_\d+)\.(\d):([cn]\..+)/og && $treated == 0) {
 	#				my $acc = $1;
@@ -577,7 +577,7 @@ sub insert_variant {
 	#				if ($acc eq 'NM_207313') {$acc = 'NM_001304438'}
 	#				elsif ($acc eq 'NM_021140') {$acc = 'NM_001291415'}
 	#				#elsif ($acc eq 'NM_001128228' && $ver == 1) {next POSCONV2}
-	#				
+	#
 	#				#print $nom, "<br/>";
 		my $manual_temp .= "\t$id$number\t$first_genomic_var\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n";
 		#if various errors, to do later
@@ -625,18 +625,18 @@ sub insert_variant {
 			##add possibility to use mutalyzer identifier (i.e. for RPGR)
 			my $gid = 'NG';
 			if ($res3->{'mutalyzer_acc'} && $res3->{'mutalyzer_acc'} ne '') {$gid = '[NU][GD]'}
-			
+
 			## Deal with warnings and errors
 			## data types will be different depending on the number of results
 			## we inelegantly use Data::Dumper to check
-			
-			
+
+
 			#print "\n\nrunMutalyzer\n\n", $call->result->{'summary'}, "\n";
 			my @errors;
-			
+
 			my $hgvs = 0;
 			if ($call) {
-				if ($call->result->{'messages'}) {	
+				if ($call->result->{'messages'}) {
 					foreach ($call->result->{'messages'}->{'SoapMessage'}) {
 						my $tab_ref_message;
 						if (ref($_) eq 'ARRAY') {$tab_ref_message = $_}
@@ -653,14 +653,14 @@ sub insert_variant {
 								#check wt mut nt from genomic_var
 								#if inverted and hemi/hetero, then rerun
 								#if inverted and homo last;
-								my $found = $1;												
+								my $found = $1;
 								if ($nom =~/\d+([ATGC])>([ATCG])/o) {
 									#my ($wt, $mt) = ($1, $2);
 									if ($found eq $2) {
 										if ($status ne 'homozygous') {
 											$nom =~ s/(\d+)([ATGC])>([ATCG])/$1$3>$2/;
 											$genomic_var =~ s/(\d+)([ATGC])>([ATCG])/$1$3>$2/;
-											
+
 											$call = U2_modules::U2_subs_1::run_mutalyzer($soap, $res3->{'acc_g'}, $res3->{'gene_name'}, $nom, $res3->{'mutalyzer_version'}, $res3->{'mutalyzer_acc'});
 											#if ($call->fault()) {$stop = 1;return "MANUAL MUTALYZER FAULT$manual_temp";last;}
 											if ($call->fault()) {return "MANUAL MUTALYZER FAULT$manual_temp"}
@@ -681,17 +681,17 @@ sub insert_variant {
 								}
 								#else {$stop = 1;return "MANUAL Bad wt nt$manual_temp";}
 								else {return "MANUAL $message Bad wt nt$manual_temp";}
-								
+
 							}#&bad_wt($line, $nom_g);$stop = 1;$not_done .= "bad wt nt$line";last;}
 							elsif ($_->{'errorcode'} && $_->{'errorcode'} ne 'WSPLICE' && $_->{'errorcode'} ne 'WSTART' && $_->{'errorcode'} ne 'WOVERSPLICE' && $_->{'errorcode'} ne 'WSPLICE_OTHER') {push @errors, $_} ## if you want to deal with error and/or warning codes
-						}	
+						}
 					}
 				}
 				#my $tmp;
 				foreach(@errors) {
 					foreach my $key (keys %{$_}) {$tmp .= "MANUAL $key $_->{$key}$manual_temp"}
 					#return $tmp;
-				}							
+				}
 				if ($call->result->{'errors'} == 0 && $stop == 0) {
 					## let's go
 					## IVS name
@@ -713,7 +713,7 @@ sub insert_variant {
 							$seq_mt = $seq[1];
 							if ($seq_wt =~ /[ATGC]\s([ATCG-]+)\s[ATGC]/o) {$taille = length($1)}
 							elsif ($seq_mt =~ /[ATGC]\s([ATCG-]+)\s[ATGC]/o) {$taille = length($1)}
-							#print "\nVisualisation:\n",  $_->{'visualisation'}, "\n";	
+							#print "\nVisualisation:\n",  $_->{'visualisation'}, "\n";
 						}
 					}
 					## Genomic description
@@ -725,12 +725,12 @@ sub insert_variant {
 					elsif ($nom_ng =~ /ins/o) {$type_adn = 'insertion'}
 					elsif ($nom_ng =~ /del/o) {$type_adn = 'deletion'}
 					elsif ($nom_ng =~ /dup/o) {$type_adn = 'duplication'}
-					
+
 					#correct mutalyzer which places e.g. [16bp] instead of sequence
 					if ($taille > 15) {
 						if ($genomic_var =~ /.+[di][nu][sp]([ATCG]+)$/) {
 							my $ins = $1;
-							if ($seq_mt =~ /^[ATGC]+\s[ATCGbp\s\[\d\]]+\s[ATCG]+$/) {$seq_mt =~ s/^([ATGC]+\s)[ATCGbp\s\[\d\]]+(\s[ATCG]+)$/$1$ins$2/}												
+							if ($seq_mt =~ /^[ATGC]+\s[ATCGbp\s\[\d\]]+\s[ATCG]+$/) {$seq_mt =~ s/^([ATGC]+\s)[ATCGbp\s\[\d\]]+(\s[ATCG]+)$/$1$ins$2/}
 						}
 						elsif ($genomic_var =~ /.+del([ATCG]+)$/) {
 							my $del = $1;
@@ -738,8 +738,8 @@ sub insert_variant {
 							if ($seq_wt =~ /^[ATGC]+\s[ATCGbp\s\[\d\]]+\s[ATCG]+$/) {$seq_wt =~ s/^([ATGC]+\s)[ATCGbp\s\[\d\]]+(\s[ATCG]+)$/$1$del$2/}
 						}
 					}
-					
-											
+
+
 					my $true_version = '';
 					#GPR98 no longer works with mutalyzer
 					#patch 23/10/2017
@@ -765,7 +765,7 @@ sub insert_variant {
 								#see test_mutalyzer_pde6a.pl on 158 for details
 								#$to_follow .= "\nTranscript Description: $_\n";
 								my $expr = $_;
-								
+
 								#UD_154212779600(RPGR_v005):c.2341G>A
 								if ($expr =~ /($gid)_\d+\.?\d\((\w+)\):(c\..+)/) {
 								#if ($expr =~ /(UD|NG)_\d+\.?\d\((\w+)\):(c\..+)/) {
@@ -791,13 +791,13 @@ sub insert_variant {
 									##}
 								}
 								#else {print "FUCKED-$expr-$gid-<br/>";}
-								
+
 							}
 						}
 					}
 					#else {$tmp .= 'No transcriptDescription!!!!!'}
 					## Protein description
-					
+
 					if ($call->result->{'proteinDescriptions'}) {
 						foreach ($call->result->{'proteinDescriptions'}->{'string'}) {
 							my $tosearch = $gene."_i";
@@ -811,7 +811,7 @@ sub insert_variant {
 								##if ($_ =~ /$tosearch$true_version\):(p\..+)/) {$nom_prot = $1}
 								if ($gene =~ /(PDE6A|TECTA|CDH23|RPGR|PLS1)/o) {
 									$tmp .= "FOLLOW $1 variant to check: $nom\t$_\ttrue version:$true_version\tgid:$gid\tnom_prot:$nom_prot\n"
-								}											
+								}
 								#print "\nProtein Description: ", $_, "\n"
 							}
 						}
@@ -829,13 +829,13 @@ sub insert_variant {
 						}
 						else {$nom_prot = 'p.(=)';$type_prot = 'NULL';}
 					}
-					
-					
+
+
 					#snp
 					($snp_id, $snp_common) = ('NULL', 'NULL');
 					my $snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var = '$res3->{'acc_g'}:$nom_ng';";
 					if ($nom_ng =~ /d[eu][lp]/o) {$snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var like '$res3->{'acc_g'}:$nom_ng%';"}
-					
+
 					my $res_snp = $dbh->selectrow_hashref($snp_query);
 					if ($res_snp) {$snp_id  = $res_snp->{rsid};$snp_common = $res_snp->{common};}
 					elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
@@ -843,21 +843,21 @@ sub insert_variant {
 						my $myvariant = U2_modules::U2_subs_1::run_myvariant($genomic_var, 'dbsnp.rsid', $user->getEmail());
 						if ($myvariant && $myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
 					}
-					
+
 					if (($type_adn =~ /(deletion|insertion|duplication)/o) && ($taille < 5) && ($nom =~ /(.+d[eu][lp])$/o)) {
 						my $tosend = $seq_mt;
-						if ($type_adn eq 'deletion') {$tosend = $seq_wt}								
+						if ($type_adn eq 'deletion') {$tosend = $seq_wt}
 						my $sequence = U2_modules::U2_subs_1::get_deleted_sequence($tosend);
 						$nom .= $sequence;
 						#if ($nom_ivs ne 'NULL') {$nom_ivs .= $sequence}
-					}										
+					}
 					#
 					### let's go
 					#if ($nom =~ /(.+d[eu][lp])[ATCG]+$/) {$nom = $1} #we remove what is deleted or duplicated
 					if ($genomic_var =~ /(.+d[eu][lp])[ATCG]+$/o) {$genomic_var = $1} #we remove what is deleted or duplicated
 					my $classe = 'unknown';
 					if ($var_vf =~ /R8/o) {$classe = 'R8'}
-					
+
 					$insert = "INSERT INTO variant (nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee) VALUES ('$nom', '{\"$res3->{'gene_name'}\",\"$acc\"}', '$genomic_var', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', 'ushvam2');";
 					#print STDERR "$insert\n";
 					$insert =~ s/'NULL'/NULL/og;
@@ -865,7 +865,7 @@ sub insert_variant {
 					###########UNCOMMENT WHEN READY
 					$dbh->do($insert);
 					$tmp .= "NEWVAR $insert\n";
-					
+
 					$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$nom', '$number', '$id', '{\"$res3->{'gene_name'}\", \"$acc\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
 					#print "$insert<br/>";
 					###########UNCOMMENT WHEN READY
@@ -873,7 +873,7 @@ sub insert_variant {
 					#$treated = 1;
 					if ($tmp && $tmp ne '') {return $tmp}
 					else {return 3}
-					#last POSCONV2;##not tested							
+					#last POSCONV2;##not tested
 				}
 			}
 			else {return "MUTALYZER NO ANSWER\t$id$number\t$first_genomic_var\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n\n"}
@@ -883,7 +883,7 @@ sub insert_variant {
 		#	elsif (/NR_.+/) {#deal with NR for NR, a number conversion should be enough
 		#		$tmp .= "MANUAL NR_variant\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n";
 		#	}
-		#}		
+		#}
 		if ($main == 0) {return "MANUAL UNUSUAL ACC_NO\t$id$number\t$genomic_var\t$analysis\t'$status', 'unknown', '$var_dp', '$var_vf', '$var_filter');\n$nr"}#$treated is not mandatory here
 		if ($treated == 0) {if ($tmp && $tmp ne '') {return $tmp}}
 		}
@@ -891,9 +891,9 @@ sub insert_variant {
 	else {
 		return "MANUAL MUTALYZER NO RESULT OR UNUSUAL ACC NO t$id$number\t$genomic_var\n"
 	}
-	
+
 	### end gsdot2u2.cgi
-	
+
 	#return 1;
 }
 
@@ -904,7 +904,7 @@ sub search_position {
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '0E0') {return "\t$res->{'nom_gene'}[0] - $res->{'nom_gene'}[1]\t$res->{'type'}\t$res->{'nom'}"}
 	else {return "\tunknown position in U2\tunknown\tunknown"}
-	
+
 }
 
 sub build_hgvs_from_illumina {
@@ -915,7 +915,7 @@ sub build_hgvs_from_illumina {
 	if ($var_chr =~ /^($U2_modules::U2_subs_1::CHR_REGEXP)/o) {$var_chr = "chr$1"}
 	my $hgvs_pref = 'g.';
 	if ($var_chr eq 'chrM') {$hgvs_pref = 'm.'}
-	
+
 	#subs
 	if ($var_ref =~ /^[ATGC]$/ && $var_alt =~ /^[ATGC]$/) {return "$var_chr:$hgvs_pref$var_pos$var_ref>$var_alt"}
 	#dels
@@ -929,13 +929,13 @@ sub build_hgvs_from_illumina {
 
 sub direct_submission {
 	#my ($toquery, $value, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
-	
+
 	my ($value, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
 	#print STDERR $value."\n";
-	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} #we remove what is deleted or duplicated	
+	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} #we remove what is deleted or duplicated
 	my $query = "SELECT nom, nom_gene FROM variant WHERE nom_g = '$value';";
 	# print STDERR "Query for direct submission (inside): $query\n";
-	my $res = $dbh->selectrow_hashref($query);	
+	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {
 		# print STDERR "Direct submission res (inside): $res->{'nom'}\n";
 		return "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$res->{'nom'}', '$number', '$id', '{\"$res->{'nom_gene'}[0]\",\"$res->{'nom_gene'}[1]\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
@@ -966,7 +966,7 @@ sub build_roi {
 	my $query = "SELECT a.chr, MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment b WHERE a.nom[1] = b.nom_gene[1] AND a.ns_gene = 't' AND (b.type LIKE '%UTR' OR b.type = 'intergenic') GROUP BY a.nom[1], a.chr ORDER BY a.chr, min ASC;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
-	
+
 	my %intervals;
 	while (my $result = $sth->fetchrow_hashref()) {$intervals{"$result->{'min'}-$result->{'max'}"} = $result->{'chr'}}
 	return \%intervals;
@@ -1012,7 +1012,7 @@ sub get_defgen_allele {
 }
 
 sub get_total_samples {
-	my ($analysis, $dbh) = @_;	
+	my ($analysis, $dbh) = @_;
 	my $query;
 	if ($analysis eq 'all') {$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) AS a FROM analyse_moleculaire WHERE type_analyse ~ \'$ANALYSIS_ILLUMINA_PG_REGEXP\';"}
 	else {$query = "SELECT COUNT(DISTINCT(num_pat, id_pat)) AS a FROM analyse_moleculaire WHERE type_analyse = '$analysis';"}
@@ -1020,7 +1020,7 @@ sub get_total_samples {
 	return "$res->{'a'} samples";
 }
 sub get_total_runs {
-	my ($analysis, $dbh) = @_;	
+	my ($analysis, $dbh) = @_;
 	my $query;
 	if ($analysis eq 'all') {$query = "SELECT COUNT(DISTINCT(id)) AS id FROM illumina_run a, miseq_analysis b WHERE a.id = b.run_id AND b.type_analyse ~ \'$ANALYSIS_ILLUMINA_PG_REGEXP\';"}
 	else {$query = "SELECT COUNT(DISTINCT(id)) AS id FROM illumina_run a, miseq_analysis b WHERE a.id = b.run_id AND b.type_analyse = '$analysis';"}
@@ -1032,7 +1032,7 @@ sub get_labels {
 	my ($tag, $dbh) = @_;
 	my ($query, $labels, $run_id, $run_type);
 	if ($tag eq 'global' || $tag eq 'all') {$query = "SELECT DISTINCT(run_id), type_analyse FROM miseq_analysis ORDER BY run_id DESC;";$run_type = '';}# type_analyse DESC,
-	#if ($run eq 'global') {$query = "SELECT DISTINCT(run_id), type_analyse FROM miseq_analysis ORDER BY type_analyse DESC, run_id DESC;"}# type_analyse DESC, 
+	#if ($run eq 'global') {$query = "SELECT DISTINCT(run_id), type_analyse FROM miseq_analysis ORDER BY type_analyse DESC, run_id DESC;"}# type_analyse DESC,
 	elsif ($tag =~ /$ANALYSIS_ILLUMINA_PG_REGEXP/) {$query = "SELECT DISTINCT(run_id), type_analyse FROM miseq_analysis WHERE type_analyse = '$tag' ORDER BY run_id DESC;"}
 	else {$query = "SELECT id_pat, num_pat, type_analyse FROM miseq_analysis WHERE run_id = '$tag' ORDER BY id_pat, num_pat;"}
 	my $sth = $dbh->prepare($query);
@@ -1040,7 +1040,7 @@ sub get_labels {
 	while (my $result = $sth->fetchrow_hashref()) {
 		if ($result->{'id_pat'} && $result->{'id_pat'} ne '') {$labels .= "\"$result->{'id_pat'}$result->{'num_pat'}\", ";$run_id = '';$run_type = $result->{'type_analyse'};}
 		elsif ($result->{'run_id'} =~ /^(\d+)_\w+-(\w+)$/o) {$labels .= "\"$1_$2";$result->{'type_analyse'} =~ /-(\d+)/o;$labels .= "_$1\", ";$run_id .= "$result->{'run_id'},"}
-		elsif ($result->{'run_id'} =~ /^(\d+)_\w+_\d+_(\w+)$/o) {$labels .= "\"$1_$2";$result->{'type_analyse'} =~ /-(\d+)/o;$labels .= "_$1\", ";$run_id .= "$result->{'run_id'},"}	
+		elsif ($result->{'run_id'} =~ /^(\d+)_\w+_\d+_(\w+)$/o) {$labels .= "\"$1_$2";$result->{'type_analyse'} =~ /-(\d+)/o;$labels .= "_$1\", ";$run_id .= "$result->{'run_id'},"}
 	}
 	chop($labels);
 	chop($labels);
@@ -1068,11 +1068,11 @@ sub get_data {
 	if ($run eq 'global') {
 		if ($cluster eq 'cluster') {$query = "SELECT $type AS a FROM illumina_run ORDER BY id DESC;";}##### BEWARE OF THE ORDER COMPARING TO LABELS!!!!!!!!!
 		#else {$query = "SELECT $math($type) AS a FROM miseq_analysis GROUP BY run_id, type_analyse ORDER BY type_analyse DESC, run_id DESC;"}
-		else {$query = "SELECT $math($type) AS a FROM miseq_analysis GROUP BY run_id, type_analyse ORDER BY run_id DESC;"}#type_analyse DESC, 
+		else {$query = "SELECT $math($type) AS a FROM miseq_analysis GROUP BY run_id, type_analyse ORDER BY run_id DESC;"}#type_analyse DESC,
 	}
 	elsif ($run =~ /$ANALYSIS_ILLUMINA_PG_REGEXP/) {
 		if ($cluster eq 'cluster') {$query = "SELECT DISTINCT($type) AS a, a.id FROM illumina_run a, miseq_analysis b WHERE a.id = b.run_id AND b.type_analyse = '$run' ORDER BY a.id DESC;";}##### BEWARE OF THE ORDER COMPARING TO LABELS!!!!!!!!!
-		else {$query = "SELECT $math($type) AS a FROM miseq_analysis WHERE type_analyse = '$run' GROUP BY run_id, type_analyse ORDER BY run_id DESC;"}#type_analyse DESC, 
+		else {$query = "SELECT $math($type) AS a FROM miseq_analysis WHERE type_analyse = '$run' GROUP BY run_id, type_analyse ORDER BY run_id DESC;"}#type_analyse DESC,
 	}
 	else {
 		if ($cluster eq 'cluster') {$query = "SELECT $type FROM illumina_run WHERE id = '$run';"}
@@ -1096,11 +1096,11 @@ sub display_page_header {
 	my ($txt, $js_fn, $div_id, $q, $dbh) = @_;
 	my $text = 'Please choose some kind of NGS experiment below to display '.$txt;
 	my $data = U2_modules::U2_subs_2::info_panel($text, $q);
-	
+
 	$data .= $q->start_div({'class' => 'w3-container'})."\n";
-	
+
 	my @colors = ('sand', 'khaki', 'yellow', 'amber', 'orange', 'deep-orange', 'red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue');
-	
+
 	my $query = "SELECT type_analyse FROM valid_type_analyse WHERE manifest_name <> 'no_manifest' ORDER BY type_analyse;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -1131,7 +1131,7 @@ sub get_sampleID_list {
 		my ($first_name, $last_name, $dob) = ($result->{'first_name'}, $result->{'last_name'}, $result->{'date_of_birth'});
 		$first_name =~ s/'/''/og;
 		$last_name =~ s/'/''/og;
-		
+
 		my $query2 = "SELECT numero, identifiant, date_of_birth FROM patient WHERE LOWER(first_name) = LOWER('$first_name') AND LOWER(last_name) = LOWER('$last_name') AND numero <> '$number' ORDER BY identifiant, numero";
 		my $list = "('$id', '$number')";
 		my $list_context = "('$id', '$number', 'original sample')";
@@ -1174,7 +1174,7 @@ sub add_variant_button {
 					\$(\'.w3-btn\').css(\'cursor\', \'progress\');
 					var nom_c = \$(\"#new_variantblue\").val();
 					\$(\"#main_text\").append(\"&nbsp;Please Wait While Creating Variant\");
-					\$(\"#creation_form :input\").prop(\"disabled\", true);					
+					\$(\"#creation_form :input\").prop(\"disabled\", true);
 					\$.ajax({
 							type: \"POST\",
 							url: url,
@@ -1188,11 +1188,11 @@ sub add_variant_button {
 						\$(\'#main_text\').html(begin);
 						\$(\"#new_variantblue\").val(\'c.\');
 						\$(\'#creation_form :input\').prop(\'disabled\', false);
-						
+
 					});
 				}
 			}";
-	
+
 	my $html = $q->script({'type' => 'text/javascript'}, $js)."\n".
 		$q->button({'id' => 'add_var', 'type' => 'button', 'value' => 'Create a variant', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'onclick' => "document.getElementById('main_modal').style.display='block';\$(\'#creation_form :input\').prop(\'disabled\', false);"})."\n".
 		$q->start_div({'id' => 'main_modal', 'class' => 'w3-modal', 'style' => 'z-index:1000'})."\n".
@@ -1219,7 +1219,7 @@ sub add_variant_button {
 			$q->end_div()."\n".
 		$q->end_div()."\n";
 	return $html;
-	
+
 }
 #variant_input_vv.pl
 sub create_variant_vv {
@@ -1299,7 +1299,7 @@ sub create_variant_vv {
 		#if ($calling eq 'web' && !$vv_results->{$vvkey}) {#VV changed variant name (ex with delAGinsT)
 		#	if (ref($vv_results->{$key}) eq ref {} && $vv_results->{$key}->{'submitted_variant'} eq $vvkey) {$vvkey = $key;print "<br/>".$vv_results->{$key}->{'submitted_variant'}."<br/>"}
 		#}
-		
+
 		#if (($key =~ /NM_.+/o || $key =~ /validation_warning/o) && defined($vv_results->{$key}->{'validation_warnings'}[0])) {#there is a warning
 		#	my $text = '';
 		#	foreach my $warning (@{$vv_results->{$key}->{'validation_warnings'}}) {
@@ -1328,8 +1328,8 @@ sub create_variant_vv {
 		if ($calling eq 'web' && !$vv_results->{$vvkey}) {#VV changed variant name (ex with delAGinsT)
 			if (ref($vv_results->{$key}) eq ref {} && $vv_results->{$key}->{'submitted_variant'} eq $vvkey) {$vvkey = $key;print "<br/>".$vv_results->{$key}->{'submitted_variant'}."<br/>"}
 		}
-		
-		
+
+
 	}
 	#print $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'}."--<br/>";#->{'hgvs_genomic_description'}
 	my @full_nom_g_19 = split(/:/, $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
@@ -1348,8 +1348,8 @@ sub create_variant_vv {
 		elsif($calling =~ /background(.+)/o) {$error .= "ERROR: $text-$vvkey-$1\n"; return $error}
 	}#"Pb with variantvalidator full_nom_g_19: $full_nom_g_19[0]"}
 	#print "<br/>".$nom_g."<br/>";
-	
-	if (defined($vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'}) && $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'} ne '') {				
+
+	if (defined($vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'}) && $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'} ne '') {
 		$nom_g_38 = "chr$chr:".(split(/:/, $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'}))[1];
 		#print $nom_g_38."<br/>";
 	}
@@ -1370,7 +1370,7 @@ sub create_variant_vv {
 		}
 	}
 	#print $nom_g_38."<br/>";
-	
+
 	if ($nom_g =~ />/o) {$type_adn = 'substitution'}
 	elsif ($nom_g =~ /delins/o) {$type_adn = 'indel'}
 	elsif ($nom_g =~ /del/o) {$type_adn = 'deletion'}
@@ -1381,8 +1381,8 @@ sub create_variant_vv {
 	#my @full_nom_ng = split(/:/, $vv_results->{"$acc_no.$acc_ver:$cdna"}->{'hgvs_refseqgene_variant'});
 	#$nom_ng = pop(@full_nom_ng);
 	if ($vv_results->{$vvkey}->{'hgvs_refseqgene_variant'} ne '') {$nom_ng = (split(/:/, $vv_results->{$vvkey}->{'hgvs_refseqgene_variant'}))[1]};
-	#print $nom_ng."<br/>"; 
-	
+	#print $nom_ng."<br/>";
+
 	$nom_prot = (split(/:/, $vv_results->{$vvkey}->{'hgvs_predicted_protein_consequence'}->{'tlr'}))[1];
 	#print "-$nom_prot-<br/>";
 	if ($nom_prot =~ /=/o) {$type_prot = 'silent'}
@@ -1400,14 +1400,14 @@ sub create_variant_vv {
 	#replace nom_prot for variants after stop codon and before start
 	if ($cdna =~ /c\.\*/o) {$nom_prot = 'p.(=)'}
 	elsif ($cdna =~ /c\.-[^-\+]+/o) {$nom_prot = 'p.(=)'}
-	
+
 	if ($vv_results->{$vvkey}->{'refseqgene_context_intronic_sequence'} ne '') {
 		$nom_ivs = (split(/:/, $vv_results->{$vvkey}->{'refseqgene_context_intronic_sequence'}))[1];
 		$type_prot = 'NULL';
-	}				
+	}
 	#print $nom_ivs."<br/>";
-	
-	
+
+
 	#replace Ter with *
 	if ($nom_prot =~ /Ter/o) {$nom_prot =~ s/Ter/\*/o}
 	#print $nom_prot."<br/>";
@@ -1425,9 +1425,9 @@ sub create_variant_vv {
 		else {
 			my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);#strand is ASC (+) or DESC (-)
 			my $query = "SELECT numero, type FROM segment WHERE nom_gene[2] = '$acc_no' AND $start BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g;";
-			
+
 			###if nom_c contains ? => intron
-			
+
 			$res = $dbh->selectrow_hashref($query);
 			if ($res) {
 				if ($strand eq 'ASC' && $cdna =~ /\?/o && $res->{'type'} ne '5UTR') {
@@ -1493,10 +1493,10 @@ sub create_variant_vv {
 	if ($type_segment eq 'intron' && $type_arn ne 'altered') {
 		$nom_prot = 'p.(=)';
 	}
-	
-	
-	
-	
+
+
+
+
 	if ($taille > 50) {$nom_prot = 'p.?'}
 	#print $q->td({'colspan' => '7'}, "$nom_prot-$type_prot-$gene-$true_version-");exit;
 	#snp
@@ -1511,23 +1511,43 @@ sub create_variant_vv {
 		}
 	}
 	my $date = U2_modules::U2_subs_1::get_date();
-	
+
 	# print $snp_id."<br/>";
-	
+
 	# need to run toogows to get seq_wt and seq_mt OR use togows such as in splicing calc
 	if ($taille < 50) {
 		# get positions
-		my ($pos1, $pos2) = U2_modules::U2_subs_3::get_start_end_pos($nom_g);
+		my ($pos1, $pos2) = &get_start_end_pos($nom_g);
 		# UCSC => $pos1 - 26 (0-based)
 		# togows => $pos1 - 25
 		my ($x, $y) = ($pos1 - 26, $pos2 + 25);
+		my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
+
+		######## startbugfix david 20210215 - del/dups on strand- could get bad sequences
+		if ($strand eq 'DESC' && $nom_g !~ /\dins([ATGC]+)/o && $cdna !~ />([ATCG])$/o) {
+			# not for true ins or substitutions
+			# on strand - need to maybe switch sequence
+			# get VV genomic VCF pos
+			# "grch37": {
+			#	"hgvs_genomic_description": "NC_000010.10:g.55892721_55892724del", # => HGVS en 3'
+			#	"vcf": {
+			#	  "alt": "T",
+			#	  "chr": "10",
+			#	  "pos": "55892718",
+			# and add the length of del/dup (0-based)
+			my $pos_vcf = $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg19'}->{'vcf'}->{'pos'};
+			if ($cdna =~ /delins([ATGC]+)/o) {$pos_vcf++}
+			($x, $y) = ($pos_vcf - 25, $pos_vcf + $taille + 25);
+		}
+		######## endbugfix
+
 		# $ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 		# my $client = REST::Client->new();
 		# print "http://togows.org/api/ucsc/hg19/$chr:$x-$y<br/>";
 		# exit;
 		# $client->getUseragent()->ssl_opts(verify_hostname => 0);
 		# $client->getUseragent()->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
-		
+
 		# $client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y");
 		# print STDERR "$client\n";
 		# print STDERR "https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=chr$chr;start=$x;end=$y\n";
@@ -1547,7 +1567,7 @@ sub create_variant_vv {
 			# UCSC
 			# my $intermediary_seq = uc($ucsc_response->{'dna'});
 			# push my (@seq), $intermediary_seq;
-		my $strand = U2_modules::U2_subs_1::get_strand($gene, $dbh);
+
 		#print "--$strand--<br/>";
 		if ($strand eq 'DESC') {
 			my $seqrev = reverse $seq[0];
@@ -1558,29 +1578,41 @@ sub create_variant_vv {
 		my ($begin, $middle, $end) ;
 		($begin, $middle, $end) = (substr($seq[0], 0, 25), substr($seq[0], 25, $#seq-25), substr($seq[0], $#seq-25));
 		#print "$begin-$middle-$end<br/>";
-		
+
 		if ($cdna =~ />([ATCG])$/o) {#substitutions
 			$seq_wt = "$begin $middle $end";
 			$seq_mt = "$begin $1 $end";
 		}
-		elsif ($nom_g =~ /delins([ATGC]+)/) {
+		elsif ($cdna =~ /delins([ATGC]+)/o) {
 			my $exp = '';
-			my $exp_size = abs(length($middle)-length($1));
+			my $seqins = $1;
+			my $exp_size = abs(length($middle)-length($seqins));
 			for (my $i=0;$i<$exp_size;$i++) {$exp.='-'}
-			if (length($middle) > length($1)) {
+			#if ($strand eq 'DESC') {
+			#	my $seqrev = reverse $seqins;
+			#	$seqrev =~ tr/acgtACGT/tgcaTGCA/;
+			#	$seqins = $seqrev;
+			#}
+			if (length($middle) > length($seqins)) {
 				$seq_wt = "$begin $middle $end";
-				$seq_mt = "$begin $1$exp $end";
+				$seq_mt = "$begin $seqins$exp $end";
 			}
 			else {
 				$seq_wt = "$begin $middle$exp $end";
-				$seq_mt = "$begin $1 $end";
+				$seq_mt = "$begin $seqins $end";
 			}
 		}
-		elsif ($nom_g =~ /ins([ATGC]+)/) {
-			my $exp;
-			for (my $i=0;$i<length($1);$i++) {$exp.='-'}
+		elsif ($cdna =~ /ins([ATGC]+)/o) {
+			my $exp = '';
+			my $seqins = $1;
+			for (my $i=0;$i<length($seqins);$i++) {$exp.='-'}
 			$seq_wt = "$begin $exp $end";
-			$seq_mt = "$begin $1 $end";
+			#if ($strand eq 'DESC') {
+			#	my $seqrev = reverse $seqins;
+			#	$seqrev =~ tr/acgtACGT/tgcaTGCA/;
+			#	$seqins = $seqrev;
+			#}
+			$seq_mt = "$begin $seqins $end";
 		}
 		elsif ($nom_g =~ /del/o) {
 			$seq_wt = "$begin $middle $end";
@@ -1588,13 +1620,12 @@ sub create_variant_vv {
 			for (my $i=0;$i<$taille;$i++) {$exp.='-'}
 			$seq_mt = "$begin $exp $end";
 		}
-		elsif ($nom_g =~ /dup/o) {				
+		elsif ($nom_g =~ /dup/o) {
 			my $exp;
 			for (my $i=0;$i<$taille;$i++) {$exp.='-'}
 			$seq_wt = "$begin $middle$exp $end";
 			$seq_mt = "$begin $middle$middle $end";
 		}
-		# }
 		#else {
 		#	print STDERR "create_variant_vv: UCSC get sequence: $ucsc_response";
 		#}
@@ -1604,11 +1635,14 @@ sub create_variant_vv {
 	#to get seq back - requires seq_wt
 	if (($type_adn =~ /(deletion|insertion|duplication)/o) && ($taille < 5) && ($cdna =~ /(.+d[eu][lp])$/o)) {
 		my $tosend = $seq_mt;
-		if ($type_adn eq 'deletion') {$tosend = $seq_wt}								
+		if ($type_adn eq 'deletion') {$tosend = $seq_wt}
 		my $sequence = U2_modules::U2_subs_1::get_deleted_sequence($tosend);
 		if ($cdna =~ /dup/o) {$cdna .= substr($sequence, 0, $taille)}
 		else {$cdna .= $sequence}
-		if ($nom_ivs ne 'NULL') {$nom_ivs .= $sequence}
+		if ($nom_ivs ne 'NULL') {
+			if ($cdna =~ /dup/o) {$nom_ivs .= substr($sequence, 0, $taille)}
+			else {$nom_ivs .= $sequence}
+		}
 	}
 	#print "$cdna<br/>";
 	#check for the last time if the variant exists (may be an interpretation difference between VV and mutalyzer)
@@ -1619,7 +1653,7 @@ sub create_variant_vv {
 		$error .= "ERROR Mutalyzer/VV difference for variant $cdna in gene $gene: mutalyzer nom_g: '".$res_last_check->{'nom_g'}."', new vv: '$nom_g' - UPDATE U2 with new c_name from VV\n";
 		return ($error, $type_segment, $classe, $cdna);
 	}
-	
+
 	my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38, defgen_export) VALUES ('$cdna', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38', '$defgen_export');";
 	$insert =~ s/'NULL'/NULL/og;
 	#die $insert;
@@ -1628,7 +1662,7 @@ sub create_variant_vv {
 	#print $q->td({'colspan' => '7'}, $insert);exit;
 	$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";
 	return ($error, $type_segment, $classe, $cdna);
-	#if ($id ne '') {									
+	#if ($id ne '') {
 	#	$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$cdna', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";
 	#	print $insert;
 	#	$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
