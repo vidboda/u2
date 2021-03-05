@@ -744,7 +744,7 @@ sub insert_variant {
 					#GPR98 no longer works with mutalyzer
 					#patch 23/10/2017
 					my $gene = $res3->{'gene_name'};
-					if ($gene eq 'GPR98') {$gene = 'ADGRV1'}
+					#if ($gene eq 'GPR98') {$gene = 'ADGRV1'}
 					## Transcript description (submission) get version of isoform
 					if ($call->result->{'transcriptDescriptions'}) {
 						foreach ($call->result->{'transcriptDescriptions'}->{'string'}) {

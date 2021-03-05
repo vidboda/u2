@@ -103,7 +103,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                                -src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -136,21 +136,21 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 my $step = U2_modules::U2_subs_1::check_step($q);
 
 if ($step && $step == 2) {
-		
+
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
 	my $run = U2_modules::U2_subs_1::check_illumina_run_id($q);
-	
+
 	my $query = "SELECT filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
 	my $res = $dbh->selectrow_hashref($query);
 	my $filtered = $res->{'filtering_possibility'};
 	#sample and filters do not arrive the same way
 	my %sample_hash = U2_modules::U2_subs_2::build_sample_hash($q, $analysis, $filtered);
-	
+
 	#test mutalyzer
 	if (U2_modules::U2_subs_1::test_mutalyzer() != 1) {U2_modules::U2_subs_1::standard_error('23', $q)}
-	
+
 	#print $q->start_p({'class' => 'center'}), $q->start_big(), $q->span("Automatic treatment of run "), $q->strong("$run ($analysis)"), $q->span(":"), $q->end_big(), $q->end_p();
-	
+
 	## creates mutalyzer client object
 	### old way to connect to mutalyzer deprecated September 2014
 	#my $soap = SOAP::Lite->new(proxy => 'http://mutalyzer.nl/2.0/services');
@@ -158,15 +158,15 @@ if ($step && $step == 2) {
 	#$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
 	#my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
 	#my $call;
-	
+
 	#we have the run id, the samples to import and the filter to record.... Let's go
 	#ssh again to the NAS, then scp files
-	#in Data/Intensities/BaseCalls/Alignement(\d)* (we take the last) 
+	#in Data/Intensities/BaseCalls/Alignement(\d)* (we take the last)
 	#sampleID_SXX.coverage.csv => copy and create link + transform into bed + add stddev/mean column in the end
 	#sampleID_SXX.enrichment_summary.csv => get run info per patient + stats
 	#sampleID_SXX.gaps.csv => link + stats
 	#sampleID_SXX.vcf the big one => annotate mutalyzer (beware of del ins) and keep DOC
-	
+
 	#connect to NAS
 	my $ssh;
 	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR);#first attempt to wake up autofs in case of unmounted
@@ -178,7 +178,7 @@ if ($step && $step == 2) {
 	#  <AlignmentFolder>\\194.167.35.140\data\MiSeqDx\140228_M70106_0001_000000000-A81UN\Data\Intensities\BaseCalls\Alignment2</AlignmentFolder>
 
 	#my $alignment_dir = $ssh->capture("grep -Eo \"<AlignmentFolder>\\\\".$SSH_RACKSTATION_IP."\\data\\MiSeqDx\\".$run."\\Data\\Intensities\\BaseCalls\\Alignment\d*<\/AlignmentFolder>\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-	
+
 	###TO BE CHANGED 4 MINISEQ
 	###<AnalysisFolder>D:\Illumina\MiniSeq Sequencing Temp\160620_MN00265_0001_A000H02LJN\Alignment_8\20160621_155804</AnalysisFolder>
 	### get alignemnt with _ AND subdir with date
@@ -186,7 +186,7 @@ if ($step && $step == 2) {
 	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path='MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR}
 	my $alignment_dir;
-				
+
 	if ($instrument eq 'miseq') {
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#old fashioned replaced with autofs 21/12/2016
@@ -243,8 +243,8 @@ if ($step && $step == 2) {
 	}
 	#my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
 	#print STDERR "0-$success--\n";
-	
-	
+
+
 	#################################UNCOMMENT when sub
 	#create roi hash
 	my $new_var  = '';
@@ -252,7 +252,7 @@ if ($step && $step == 2) {
 	my ($general, $sample_end, $message) = ('', '', '');#$general global data for final email, $sample_end last treated patient for redirection
 	while (my ($sampleid, $filter) = each(%sample_hash)) {
 		#print "$key-$value<br/>";
-		
+
 		my ($report, $coverage, $enrichment, $gaps, $vcf, $sample_report);
 		if ($instrument eq 'miseq') {
 			( $coverage, $enrichment, $gaps, $vcf, $sample_report) = ($sampleid.'_S*.coverage.csv', $sampleid.'_S*.enrichment_summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
@@ -260,10 +260,10 @@ if ($step && $step == 2) {
 		elsif ($instrument eq 'miniseq') {###TO BE CHANGED 4 MINISEQ file names unknown at date 01/07/2016
 			( $coverage, $enrichment, $gaps, $vcf, $sample_report) = ($sampleid.'_S*.coverage.csv', $sampleid.'_S*.summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
 		}
-		
-		
-		
-		
+
+
+
+
 		my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
 		$sample_end = $sampleid;
 		my $insert;
@@ -272,15 +272,15 @@ if ($step && $step == 2) {
 		$query = "SELECT nom FROM gene WHERE \"$analysis\" = 't' ORDER BY nom[1];";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
-		
+
 		while (my $result = $sth->fetchrow_hashref()) {
 			$insert .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, nom_gene, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '{\"$result->{'nom'}[0]\",\"$result->{'nom'}[1]\"}', '$analysis', '$date', '".$user->getName()."','t');";
 		}
 		#######UNCOMMENT WHEN DONE!!!!!!!
 		$dbh->do($insert);
-		
+
 		#print "$insert\n"
-		
+
 		mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid";
 		#my $success;
 		if ($access_method eq 'autofs') {
@@ -310,13 +310,13 @@ if ($step && $step == 2) {
 			if ($success == 1) {$ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$sample_report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf")}
 			else {U2_modules::U2_subs_1::standard_error('22', $q)}
 		}
-		
+
 		system("chmod 750 $ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.*");
-		
-		
-		
+
+
+
 		print STDERR "Done file import...";
-		
+
 		#now we work locally
 		#coverage from csv to bedgraph
 		my $bedgraph = "track type=\"bedGraph\" name=\"$analysis-$sampleid\" description=\"$analysis run for $sampleid\" visibility=full autoScale=on yLineOnOff=on\n";
@@ -326,7 +326,7 @@ if ($step && $step == 2) {
 			if ($_ =~ /^#(Enrichment|Reads)/o) {next}
 			$new_tsv .= $_;
 			$new_tsv =~ s/\r\n$//o;
-			if ($_ =~ /^#Chromosome/o) {$new_tsv =~ s/MeanCoverage/$id$number/;$new_tsv .= "\tStdDev/Mean";}			
+			if ($_ =~ /^#Chromosome/o) {$new_tsv =~ s/MeanCoverage/$id$number/;$new_tsv .= "\tStdDev/Mean";}
 			elsif ($_ !~ /#/o) {
 				my @line = split(/,/);
 				my ($sigma, $doc, $chr, $begin, $end) = (pop(@line), pop(@line), shift(@line), shift(@line), shift(@line));
@@ -337,23 +337,23 @@ if ($step && $step == 2) {
 			$new_tsv .= "\n";
 		}
 		close F;
-		
+
 		$new_tsv =~ s/,/\t/og;
 		$new_tsv =~ s/\./,/og;
-		
+
 		open(G, ">$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv") or die $!;
 		print G $new_tsv;
 		close G;
 		open(G, ">$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.$analysis.bedgraph") or die $!;
 		print G $bedgraph;
 		close G;
-		
-		
+
+
 		print STDERR "Done coverage file...";
-		
+
 		###TO BE CHANGED 4 MINISEQ
 		###finally labels are the same between MSR2.6 and LRM1.2
-		
+
 		#enrichment_summary
 		my $enrichment = {
 			#"Total aligned bases read 1"		=>	["bases_read1", 0], #miniseq
@@ -375,12 +375,12 @@ if ($step && $step == 2) {
 			"SNV Ts/Tv ratio"			=>	["snp_tstv", 0],
 			"Indels"				=>	["indel_num", 0],
 		};
-		
-		
+
+
 		###TO BE CHANGED 4 MINISEQ
 		### check if file name changed / ok file renamed on copy and regex changed and does not include ':'
-		
-		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv") or die "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv - $!";         
+
+		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv") or die "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv - $!";
 		while (<F>) {
 			chomp;
 			#print "-$_-".$q->br();
@@ -388,11 +388,11 @@ if ($step && $step == 2) {
 				my ($current, $value) = ($1, $2);
 				if (exists($enrichment->{$current})) {$enrichment->{$current}->[1] = $value}
 				#print 'hello, hello!!!!!';
-			}			
+			}
 		}
 		close F;
 		#build insert query;
-		
+
 		my ($fields, $values) = ("num_pat, id_pat, type_analyse, run_id, filter, ", "'$number', '$id', '$analysis', '$run', '$filter', ");
 		#4 miniseq
 		#if ($instrument eq 'miniseq') {
@@ -400,8 +400,8 @@ if ($step && $step == 2) {
 		#	$enrichment->{'Total aligned reads'}->[1] = $enrichment->{'Total aligned bases read 1'}->[1] + $enrichment->{'Total aligned bases read 2'}->[1];
 		#	($enrichment->{'Total aligned bases read 1'}->[1], $enrichment->{'Total aligned bases read 2'}->[1], $enrichment->{'Total aligned bases read 1'}->[1], $enrichment->{'Total aligned bases read 2'}->[1]) = (0, 0, 0, 0);
 		#}
-		
-		
+
+
 		foreach my $label (keys(%{$enrichment})) {
 			if ($enrichment->{$label}->[1] > 0) {
 				$fields .= shift(@{$enrichment->{$label}}).", ";
@@ -413,18 +413,18 @@ if ($step && $step == 2) {
 		$insert = "INSERT INTO miseq_analysis ($fields) VALUES ($values);\n";
 		#print $insert;exit;
 
-		
+
 		$dbh->do($insert);
 		#print "$insert\n";
-		
+
 		#gaps -> localise gaps (gene, exon/intron) + gap size
 		$new_tsv = '';
 		my ($chr, $gapstart, $gapstop, $gapsize);
 		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv") or die $!;
-		while (<F>) {			
-			$new_tsv .= $_;  #### for unknown reasons this file is generated with CRLF 
+		while (<F>) {
+			$new_tsv .= $_;  #### for unknown reasons this file is generated with CRLF
 			$new_tsv =~ s/\r\n$//og;
-			
+
 			if ($_ =~ /#Chromosome/o) {$new_tsv .= "\tGapsize\tGapGeneBegin\tGapSegmentBegin\tGapSegmentBeginNumber\tGapGeneEnd\tGapSegmentEnd\tGapSegmentEndNumber"}
 			elsif ($_ !~ /#/o) {
 				my @line = split(/,/);
@@ -444,11 +444,11 @@ if ($step && $step == 2) {
 		print G $new_tsv;
 		close G;
 		undef $new_tsv;
-		
+
 		print STDERR "Done gaps file...\n";
-	
-		
-		
+
+
+
 		#vcf
 		$insert = '';
 		my ($var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $var_vf, $var_dp, $var_filter, $null, $format);
@@ -456,7 +456,7 @@ if ($step && $step == 2) {
 		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf") or die $!;
 		VCF: while (<F>) {
 			#if ($_ !~ /#/o && $_ =~ /GI=/o) {#we remove non mappable variants on our design
-			if ($_ !~ /#/o) {			
+			if ($_ !~ /#/o) {
 				chomp;
 				$k++;
 				my @list = split(/\t/);
@@ -474,16 +474,16 @@ if ($step && $step == 2) {
 				#elsif ($variant_input =~ /^MUTALYZERNOANSWER/o) {$mutalyzer_no_answer .= $variant_input;next VCF}
 				#elsif ($variant_input =~ /^NEWVAR/o) {$new_var .= $variant_input;$i++;$j++;next VCF}
 				#else {print "$variant_input<br/>"}
-				
+
 				##################################
-				
+
 				################################## VV
-				
+
 				my ($var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $null, $var_filter) = (shift(@list), shift(@list), shift(@list), shift(@list), shift(@list), shift(@list), shift(@list));
 				my ($var_dp, $var_vf);
-				
+
 				my @format_list = split(/:/, pop(@list));
-					
+
 				#compute vf_index
 				my @label_list = split(/:/, pop(@list));
 				my $label_count = 0;
@@ -494,7 +494,7 @@ if ($step && $step == 2) {
 					if (/$vf_tag/) {$vf_index = $label_count}
 					elsif (/$dp_tag/) {$dp_index = $label_count}
 					elsif (/$ad_tag/) {$ad_index = $label_count}
-					$label_count ++;                                        
+					$label_count ++;
 				}
 				($var_dp, $var_vf) = ($format_list[$dp_index], $format_list[$vf_index]);
 				if ($var_vf =~ /,/o) {#multiple AB after splitting; is it VCF compliant? comes fomr IURC script to add AB to all variants in nenufaar
@@ -503,18 +503,18 @@ if ($step && $step == 2) {
 					$var_vf = sprintf('%.2f', (pop(@ad_values)/$var_dp));
 				}
 				#print "$var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $null, $var_filter, $var_dp, $var_vf<br/>";
-				
+
 				#we check wether the variant is in our genes or not
 				#we just query ushvam2
 				#if  ($var_chr =~ /^chr([\dXYM]{1,2})$/o) {$var_chr = $1}
 				if  ($var_chr =~ /^chr($U2_modules::U2_subs_1::CHR_REGEXP)$/o) {$var_chr = $1}
-				
-			
+
+
 				my $interest = 0;
 				foreach my $key (keys %{$interval}) {
 					$key =~ /(\d+)-(\d+)/o;
 					#print STDERR "$var_chr-$var_pos-$interval->{$key}-$1-$2\n";
-					if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr			
+					if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr
 						if ($var_chr eq $interval->{$key}) {$interest = 1;last;}
 					}
 				}
@@ -536,9 +536,9 @@ if ($step && $step == 2) {
 						if ($1 >= 8) {
 							if ($var_filter eq 'PASS') {$var_filter = 'R8'}
 							else {$var_filter .= ';R8'}
-						}						
-					}		
-				}				
+						}
+					}
+				}
 				if ($var_chr eq 'X') {
 					my $query_hemi = "SELECT sexe FROM patient WHERE numero = '$number' AND identifiant = '$id';";
 					my $res_hemi = $dbh->selectrow_hashref($query_hemi);
@@ -546,7 +546,7 @@ if ($step && $step == 2) {
 				}
 				elsif ($var_chr eq 'Y') {($status, $allele) = ('hemizygous', '1')}
 				elsif ($var_chr eq 'M') {($status, $allele) = ('heteroplasmic', '2');if ($var_vf >= 0.8) {$status = 'homoplasmic'}}
-				
+
 				my $genomic_var = &U2_modules::U2_subs_3::build_hgvs_from_illumina($var_chr, $var_pos, $var_ref, $var_alt);
 				# print STDERR "Genomic var: $genomic_var\n";
 				my $first_genomic_var = $genomic_var;
@@ -556,7 +556,7 @@ if ($step && $step == 2) {
 				my $query_gs = "SELECT u2_name FROM gs2variant WHERE gs_name = '$first_genomic_var' AND (reason LIKE 'MiSeq_%' OR reason LIKE 'inv_nt');";
 				my $res_gs = $dbh->selectrow_hashref($query_gs);
 				if ($res_gs) {$known_bad_variant = 1;$genomic_var = $res_gs->{'u2_name'}}
-				
+
 				my $insert = &U2_modules::U2_subs_3::direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 				# print STDERR "Direct submission 1: $genomic_var\n";
 				if ($insert ne '') {
@@ -581,7 +581,7 @@ if ($step && $step == 2) {
 						#variant in unwanted region
 						$message .= "$id$number: ERROR: Impossible to record variant (BAD REGEXP) $var_chr-$var_pos-$var_ref-$var_alt-$insert\n";
 					}
-					
+
 				}
 				#still here? we try to invert wt & mut
 				#if ($genomic_var =~ /(chr[\dXYM]+:g\..+\d+)([ATGC])>([ATCG])/o) {
@@ -614,7 +614,7 @@ if ($step && $step == 2) {
 						}
 					}
 				}
-	
+
 				#we keep only the first variants if more than 1 e.g. alt = TAA, TA
 				if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				#ok let's deal with VV
@@ -635,7 +635,7 @@ if ($step && $step == 2) {
 						$j++;
 						next VCF;
 					}
-					
+
 					#foreach my $var (keys %{$vv_results}) {
 					#	#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
 					#	if ($var eq 'flag' && $vv_results->{$var} eq 'intergenic') {$message .= "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
@@ -689,7 +689,7 @@ if ($step && $step == 2) {
 					#		#create a tag for hom WT
 					#		$tag = "$id$number: WARNING: Variant $var_alt equals Reference in $nm $var_chr-$var_pos-$var_ref-$var_alt\n"
 					#	}
-					#	
+					#
 					#}
 					#print STDERR $nm_list."\n";
 					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:https://rest.variantvalidator.org/VariantValidator/variantvalidator/hg19/$var_chr-$var_pos-$var_ref-$var_alt/all?content-type=application/json\n";next VCF}
@@ -705,11 +705,11 @@ if ($step && $step == 2) {
 						#print STDERR $hashvar->{$result->{'nm'}}[1].'-'.$result->{'acc_version'}.'-'.$result->{'main'}."\n";
 						($gene, $ng_accno) = ($result->{'gene'}, $result->{'acc_g'});#needed to be sent to create_variant_vv for consistency with other callings of the same sub in different scripts
 						#if (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] eq $result->{'acc_version'} && $result->{'main'} == 1) {	#best case
-						if (exists $hashvar->{$result->{'nm'}} && exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}} && $result->{'main'} == 1) {	#best case	
+						if (exists $hashvar->{$result->{'nm'}} && exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}} && $result->{'main'} == 1) {	#best case
 							$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[1] = $result->{'main'};
 							$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
 							$cdna = $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
-							#$hashvar->{$result->{'nm'}}[2] = $result->{'main'};												
+							#$hashvar->{$result->{'nm'}}[2] = $result->{'main'};
 							#$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}[0];
 							#$cdna = $hashvar->{$result->{'nm'}}[0];
 							($acc_no, $acc_ver) = ($result->{'nm'}, $result->{'acc_version'});
@@ -808,7 +808,7 @@ if ($step && $step == 2) {
 							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna'));
 							if ($vv_results->{'message'}) {$message .= "$id$number: ERROR: VariantValidator returned $vv_results $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
 							$vvkey = "$acc_no.$acc_ver:".$hashvar->{$acc_no}->{$acc_ver}[0];
-							$cdna = $hashvar->{$acc_no}->{$acc_ver}[0];							
+							$cdna = $hashvar->{$acc_no}->{$acc_ver}[0];
 							($message_tmp, $type_segment, $classe, $var_final) = U2_modules::U2_subs_3::create_variant_vv($vv_results, $vvkey, $gene, $cdna, $acc_no, $acc_ver, $ng_accno, $user, $q, $dbh, "background $var_chr-$var_pos-$var_ref-$var_alt");
 							if ($message_tmp =~ /ERROR/o) {$message .= "$id$number: $message_tmp"}
 							#$j++;
@@ -817,9 +817,9 @@ if ($step && $step == 2) {
 						else {
 							#ERROR
 							$message .= "$id$number: ERROR: Impossible to run VariantValidator (no suitable NM found) for variant $var_chr-$var_pos-$var_ref-$var_alt-$candidate\n";
-						}					
+						}
 					}
-					
+
 					if ($message_tmp =~ /NEWVAR/o) {
 						#my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele) VALUES ('$var_final', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$analysis', '$status', '$allele');\n";
 						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
@@ -846,7 +846,7 @@ if ($step && $step == 2) {
 				}
 			}
 		}
-		close F;		
+		close F;
 		$general .= "Insertion for $id$number:\n\n- $j/$k variants (".(sprintf('%.2f', ($j/$k)*100))."%) have been automatically inserted,\nincluding $i new variants that have been successfully created\n\n";
 		my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
 		$dbh->do($valid);
@@ -854,15 +854,15 @@ if ($step && $step == 2) {
 		#print STDERR $valid."\n";
 	}
 	#if ($manual ne '' || $not_inserted ne '') {U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run)}
-	
+
 	open F, ">>$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/import.log" or print STDERR $!;
 	print F $user->getName()."\n$date\n$run\n$general\n$message\n$new_var\n";
 	close F;
-	
+
 	U2_modules::U2_subs_2::send_manual_mail($user, '', '', $run, $general, '', $message);
-	
-	$q->redirect("patient_file.pl?sample=$sample_end"); 
-	
+
+	$q->redirect("patient_file.pl?sample=$sample_end");
+
 }
 
 
@@ -884,7 +884,7 @@ sub search_position {
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '0E0') {return "\t$res->{'nom_gene'}[0] - $res->{'nom_gene'}[1]\t$res->{'type'}\t$res->{'nom'}"}
 	else {return "\tunknown position in U2\tunknown\tunknown"}
-	
+
 }
 
 sub get_detailed_pos {
@@ -958,7 +958,7 @@ sub run_vv_results {
 			}
 			if ($vv_results->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
 				#patches
-				if ($vv_results->{$var}->{'gene_symbol'} eq 'ADGRV1') {$vv_results->{$var}->{'gene_symbol'} = 'GPR98'}
+				# if ($vv_results->{$var}->{'gene_symbol'} eq 'ADGRV1') {$vv_results->{$var}->{'gene_symbol'} = 'GPR98'}
 				my $last_query = "SELECT nom_g FROM variant WHERE nom LIKE '".(split(/:/, $var))[1]."%' and nom_gene[1] = '$vv_results->{$var}->{'gene_symbol'}';";
 				#print STDERR $last_query."\n";
 				my $res_last = $dbh->selectrow_hashref($last_query);
@@ -995,5 +995,3 @@ sub run_vv_results {
 	}
 	return ('', '', $hashvar, $nm_list, $tag);
 }
-
-

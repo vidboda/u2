@@ -100,7 +100,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT}],		
+                                -src => $JS_DEFAULT}],
                         -encoding => 'ISO-8859-1', 'defer' => 'defer');
 
 my $user = U2_modules::U2_users_1->new();
@@ -112,11 +112,11 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 
 if ($q->param('advanced') && $q->param('advanced') eq 'non-USH') {
-	#code	 SELECT DISTINCT(a.identifiant, a.numero) as sample, b.nom_gene, b.statut FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND c.nom_gene[1] NOT IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7') AND (a.identifiant, a.numero) NOT IN (SELECT DISTINCT(a.identifiant, a.numero) FROM patient a, variant2patient b WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND b.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND b.nom_gene[1] IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7')) ORDER BY (a.identifiant, a.numero);
-	
-	#my $query = "SELECT DISTINCT(a.identifiant, a.numero) as sample, b.nom_gene, b.statut FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND c.nom_gene[1] NOT IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7') ORDER BY (a.identifiant, a.numero);";
+	#code	 SELECT DISTINCT(a.identifiant, a.numero) as sample, b.nom_gene, b.statut FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND c.nom_gene[1] NOT IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'ADGRV1', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7') AND (a.identifiant, a.numero) NOT IN (SELECT DISTINCT(a.identifiant, a.numero) FROM patient a, variant2patient b WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND b.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND b.nom_gene[1] IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'ADGRV1', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7')) ORDER BY (a.identifiant, a.numero);
+
+	#my $query = "SELECT DISTINCT(a.identifiant, a.numero) as sample, b.nom_gene, b.statut FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND c.nom_gene[1] NOT IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'ADGRV1', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7') ORDER BY (a.identifiant, a.numero);";
 	#Table 1
-	my $query = "SELECT DISTINCT(a.identifiant, a.numero) as sample, b.nom_gene, b.statut, c.type_prot FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND c.nom_gene[1] NOT IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7') AND (a.identifiant, a.numero) NOT IN (SELECT a.identifiant, a.numero FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND b.nom_gene[1] IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7')) ORDER BY (a.identifiant, a.numero);";
+	my $query = "SELECT DISTINCT(a.identifiant, a.numero) as sample, b.nom_gene, b.statut, c.type_prot FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND c.nom_gene[1] NOT IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'ADGRV1', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7') AND (a.identifiant, a.numero) NOT IN (SELECT a.identifiant, a.numero FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND b.nom_gene[1] IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'ADGRV1', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7')) ORDER BY (a.identifiant, a.numero);";
 	my $list;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -139,27 +139,27 @@ if ($q->param('advanced') && $q->param('advanced') eq 'non-USH') {
 			$sample =~ s/\)//og;
 			my @temp = split(/,/, $sample);
 			$sample =~ s/,//og;
-			
+
 			$list->{$temp[1]} = $temp[0];
-			
+
 			print $q->start_Tr({'class' => 'bright'}), "\n",
 				$q->start_td(), $q->a({'href' => "patient_file.pl?sample=$sample", 'target' => '_blank', 'title' => 'jump to sample page'}, $sample), $q->end_td(), "\n",
 				$q->start_td(), $q->start_em(), $q->a({'href' => "patient_genotype.pl?sample=$sample&gene=$result->{'nom_gene'}[0]", 'target' => '_blank', 'title' => 'jump to genotype'}, $result->{'nom_gene'}[0]), $q->end_em(), $q->end_td(), "\n",
 				$q->td($result->{'type_prot'}), "\n",
 				$q->td($result->{'statut'}), "\n",
-				$q->end_Tr();	
+				$q->end_Tr();
 		}
 		my $table1_js = "\$('#ushnonush1').DataTable({aaSorting:[]});";
-		print $q->end_tbody(), $q->end_table(), $q->end_div(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $table1_js);		
+		print $q->end_tbody(), $q->end_table(), $q->end_div(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $table1_js);
 	}
 	#Table 2
-	$query = "SELECT DISTINCT(a.identifiant, a.numero) as sample, b.nom_gene, b.statut, c.type_prot FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND c.nom_gene[1] NOT IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'GPR98', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7') AND (a.identifiant, a.numero) NOT IN (";
-	
+	$query = "SELECT DISTINCT(a.identifiant, a.numero) as sample, b.nom_gene, b.statut, c.type_prot FROM patient a, variant2patient b, variant c WHERE a.numero = b.num_pat AND a.identifiant = b.id_pat AND c.nom = b.nom_c AND c.nom_gene = b.nom_gene AND c.classe IN ('VUCS class III',  'VUCS class IV', 'pathogenic') AND a.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH') AND c.nom_gene[1] NOT IN ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'USH2A', 'ADGRV1', 'DFNB31', 'CLRN1', 'HARS', 'CIB2', 'PDZD7') AND (a.identifiant, a.numero) NOT IN (";
+
 	foreach my $key (keys(%{$list})) {$query .= "('$list->{$key}', '$key'), "}
 	chop($query);
 	chop($query);
 	$query .= ") ORDER BY (a.identifiant, a.numero);";
-	
+
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	if ($res ne '0E0') {
@@ -186,13 +186,13 @@ if ($q->param('advanced') && $q->param('advanced') eq 'non-USH') {
 				$q->start_td(), $q->start_em(), $q->a({'href' => "patient_genotype.pl?sample=$sample&gene=$result->{'nom_gene'}[0]", 'target' => '_blank', 'title' => 'jump to genotype'}, $result->{'nom_gene'}[0]), $q->end_em(), $q->end_td(), "\n",
 				$q->td($result->{'type_prot'}), "\n",
 				$q->td($result->{'statut'}), "\n",
-				$q->end_Tr();	
+				$q->end_Tr();
 		}
 		my $table2_js = "\$('#ushnonush2').DataTable({aaSorting:[]});";
 		print $q->end_tbody(), $q->end_table(), $q->end_div(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $table2_js);
-		
+
 	}
-	
+
 }
 
 if ($q->param('advanced') && $q->param('advanced') eq 'forgotten_samples') {
@@ -289,4 +289,3 @@ sub print_last_sample {
 			$q->a({'target' => '_blank', 'href' => "patient_file.pl?sample=".$res->{'identifiant'}.$res->{'numero'}, 'title' => 'Visit the sample page'}, $res->{'identifiant'}.$res->{'numero'}), $q->span(" (".$res->{'defgen_num'}.")"), $q->span(" created ".$res->{'date_creation'}),
 			$q->end_li(), "\n";
 }
-
