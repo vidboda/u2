@@ -83,7 +83,7 @@ my $js = "
 			setDialog(msg, type, nom);
 			\$(\'area\').css(\'cursor\', \'auto\');
 			\$(\'html\').css(\'cursor\', \'auto\');
-		});		
+		});
 	}
 	function setDialog(msg, type, nom) {
 		\$(\"#dialog-form\").dialog({
@@ -109,11 +109,11 @@ my $js = "
 							if (msg !== '') {\$(\"#created_variant\").append(msg)};
 							\$(\'.ui-dialog\').css(\'cursor\', \'default\');
 							\$(\'html\').css(\'cursor\', \'default\');
-							\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS		
+							\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS
 				       });
 			       },
 			       Cancel: function() {
-				       \$(this).dialog(\"close\");			       		       
+				       \$(this).dialog(\"close\");
 			       }
 		       }
 		});
@@ -198,7 +198,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 				$js,
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                                -src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 
@@ -217,8 +217,8 @@ my $ncbi_url = 'http://www.ncbi.nlm.nih.gov/nuccore/';
 
 if ($q->param('gene') && $q->param('info') eq 'general') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
-	
-	
+
+
 	#my ($pli, $prec, $pnull) = ('No pLi*', 'No pRec*', 'No pNull*');
 	#if (U2_modules::U2_subs_1::test_mygene() == 1) {
 	#	#use mygene.info REST API
@@ -244,7 +244,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 			last;
 		}
 	}
-	
+
 	my $query = "SELECT * FROM gene WHERE nom[1] = '$gene' ORDER BY main DESC;";
 	#my $order = 'ASC';
 	my $order = U2_modules::U2_subs_1::get_strand($gene, $dbh);
@@ -255,20 +255,20 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 
 		while (my $result = $sth->fetchrow_hashref()) {
 			if ($result->{'main'} == 1) {
-				
+
 				U2_modules::U2_subs_1::gene_header($q, 'general_info', $gene, $user);
-				
+
 				$chr = $result->{'chr'};
 				print $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' main accession: '),
-					$q->span({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$result->{'nom'}[1].$result->{'acc_version'}"), 
+					$q->span({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$result->{'nom'}[1].$result->{'acc_version'}"),
 					$q->br(), $q->br(), $q->span("($second_name / "), $q->span({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$result->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}, $result->{'enst'}), $q->span(')'),
 					$q->end_strong(), $q->end_big(), $q->end_p(), "\n";
-					
+
 					my $ng_td = $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'});
 					if ($result->{'acc_g'} eq 'NG_000000.0') {$ng_td = $q->span("No NG accession number. Mutalyzer accession: $result->{'mutalyzer_acc'}")}
-					
+
 					print U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'nom'}[1], $result->{'acc_g'}),
-					$q->start_div({'class' => 'w3-responsive', 'id' => 'gene_table'}), "\n",
+					$q->start_div({'class' => 'w3-responsive', 'id' => 'single_gene_table'}), "\n",
 					$q->start_table({'class' => 'w3-table w3-striped w3-bordered w3-centered'}), $q->caption("Gene info table:"),#technical ombre peche
 					$q->start_Tr(), "\n",
 						$q->th({'class' => 'left_general'}, 'Chr'), "\n",
@@ -293,8 +293,8 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 						#$q->start_td(), $q->span($pli), $q->end_td(), "\n",
 						#$q->start_td(), $q->span($prec), $q->end_td(), "\n",
 						#$q->start_td(), $q->span($pnull), $q->end_td(), "\n",
-					$q->end_Tr(), "\n", $q->end_table(), $q->end_div(), "\n";				
-					#$q->start_ul({'class' => ' w3-large'}),						
+					$q->end_Tr(), "\n", $q->end_table(), $q->end_div(), "\n";
+					#$q->start_ul({'class' => ' w3-large'}),
 					#	$q->li("chr$chr, strand $result->{'brin'}"), "\n",
 					#	$q->li("$result->{'nom_prot'} ($result->{'short_prot'})"), "\n";
 				#if ($result->{'acc_g'} eq 'NG_000000.0') {print $q->li("No NG accession number. Mutalyzer accession: $result->{'mutalyzer_acc'}")}
@@ -306,7 +306,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					if ($result->{'dfn'} == 1) {print $q->li("Shown in 'DFN', 'DFN+USH' and in 'ALL' filters, hidden in others"), "\n"}
 					if ($result->{'usher'} == 1) {print $q->li("Shown in 'USH', 'DFN+USH', 'RP+USH' and in 'ALL' filters, hidden in others"), "\n"}
 					if ($result->{'nom'}[0] eq 'CHM') {print $q->li("Shown in 'CHM' and 'ALL' filters, hidden in others"), "\n"}
-					
+
 					#if ($result->{'usher'} != 1 && $result->{'rp'} == 1) {print $q->li("Hidden if DFN filtered"), "\n"}
 					#if ($result->{'usher'} != 1 && $result->{'dfn'} == 1) {print $q->li("Hidden if RP filtered"), "\n"}
 					if ($result->{'MiSeq-28'} == 1) {print $q->li("included in 28 genes design"), "\n"}
@@ -318,7 +318,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					if ($result->{'MiniSeq-158'} == 1) {print $q->li("included in 158 genes design"), "\n"}
 					if ($result->{'diag'} == 1) {print $q->li("diagnostic gene"), "\n"}
 					else {print $q->li("non-diagnostic gene"), "\n"}
-                    
+
 					print $q->end_ul(), "\n";
 				}
 				#if ($result->{'brin'} eq '-') {$order = 'DESC'}great_table technical
@@ -330,17 +330,17 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 						$q->th({'class' => 'left_general'}, 'Number of exons'), "\n",
 						$q->th({'class' => 'left_general'}, 'RefSeq protein'), "\n",
 						$q->th({'class' => 'left_general'}, 'Uniprot ID'), "\n",
-					$q->end_Tr(), "\n";		
+					$q->end_Tr(), "\n";
 			}
 			#					$q->th({'class' => 'left_general'}, 'Protein Product size (aa)'), "\n",
-			
-			
+
+
 			print $q->start_Tr(), "\n",
 				$q->start_td({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}),
 					$q->start_strong(), $q->span("$result->{'nom'}[1].$result->{'acc_version'}");
 			if ($result->{'main'} == 1) {print $q->span(' (main)')}
 			print $q->end_strong(), $q->end_td();
-				
+
 			if ($result->{'enst'}) {print $q->start_td({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$result->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}), $q->span($result->{'enst'}), $q->end_td(), "\n"}
 			else {print $q->td('No ENST in Ensembl 75'), "\n"}
 			print $q->start_td(), $q->span($result->{'nbre_exons'}), $q->end_td(), "\n",
@@ -355,8 +355,8 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		my $gnomad_text = '*In gnomAD, the previous pLi, pRec and pNull scores have been replaced by the more accurate observed/expected scores.<br/> Synonymous variants, nsSNVs (missense) and Loss of functions variants are reported for each gene, and compared with the expected numbers based on size and compositon of the gene. A Confidence Interval is given to better appreciate the value and if needed a threshold is defined: a class of variants is considered under constraint if the upper bound of the CI is &lt; 0.35. See "Gene constraint" explanations in gnomAD browser for more details (e.g. <a href="https://gnomad.broadinstitute.org/gene/ENSG00000042781" target="_blank" title="go to USH2A gene page and click the question mark near Gene Constraint">here</a>).';
 		print U2_modules::U2_subs_2::info_panel($gnomad_text, $q);
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
-		
-		
+
+
 		##genome browser
 		#http://www.biodalliance.org/
 		#my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
@@ -389,7 +389,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					bwgURI: '".$DALLIANCE_DATA_DIR_URI."cons/hg19.100way.phastCons.bw',
 					noDownsample: true},
 				{name: 'Repeats',
-					desc: 'Repeat annotation from RepeatMasker', 
+					desc: 'Repeat annotation from RepeatMasker',
 					bwgURI: '".$DALLIANCE_DATA_DIR_URI."repeats/repeats.bb',
 					stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."repeats/bb-repeats2.xml',
 					forceReduction: -1}
@@ -405,7 +405,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 				noPersistView:	true,
 				maxHeight:	600,
 				cookieKey:	'test',
-		
+
 				coordSystem:	{
 					speciesName: 'Human',
 					taxon: 9606,
@@ -416,12 +416,12 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 				sources:	sources,
 				hubs:	['http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/hub.txt']
 			});
-			
+
 			function highlightRegion(){
 				console.log(\" xx highlight region chr$chr,$dal_start,$dal_stop\");
 				browser.setLocation(\"$chr\",$dal_start,$dal_stop);
 			}
-		
+
 			browser.addInitListener( function(){
 				console.log(\"dalliance initiated\");
 				setTimeout(highlightRegion(),5000);
@@ -430,7 +430,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		";
 
 		print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'container'}, 'Dalliance Browser here'), $q->br(), $q->br();
-		
+
 		#modified 06/07/2015 gene structure now on separate page
 		#print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'),
 		##otherwise, '), $q->button({'onclick' => "chooseSortingType('$gene');", 'value' => 'get all variants'}),
@@ -441,7 +441,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		#	#$q->start_li(),$q->a({'href' => "gene.pl?gene=$gene&info=all_vars&sort=type_prot", 'target' => '_blank'}, 'Protein type (missense, silent...)'), $q->end_li(), "\n",
 		#	#$q->start_li(),$q->a({'href' => "gene.pl?gene=$gene&info=all_vars&sort=type_arn", 'target' => '_blank'}, 'RNA type (neutral / altered)'), $q->end_li(), "\n",
 		#	#$q->start_li(),$q->a({'href' => "gene.pl?gene=$gene&info=all_vars&sort=taille", 'target' => '_blank'}, 'Variant size (show only large rearrangements)'), $q->end_li(), "\n",
-		#	#$q->end_ul(), "\n",			
+		#	#$q->end_ul(), "\n",
 		#	$q->br(), $q->br();
 		#
 		#my @js_params = ('showVariants', 'NULL', 'NULL');
@@ -468,13 +468,13 @@ elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	if ($nb_exons > 100) {$canvas_height = '1000';$img_suffix = '2';$css_suffix = '_1000'}
 	if ($nb_exons > 200) {$canvas_height = '1700';$img_suffix = '3';$css_suffix = '_1700'}
 	if ($nb_exons > 300) {$canvas_height = '2500';$img_suffix = '4';$css_suffix = '_2500'}
-	
+
 	#my $text = "Warning: non 'main' accession isoforms do not currently work.<br/> This will be fixed in a future release.";
 	#print U2_modules::U2_subs_2::danger_panel($text, $q);
-	
+
 	print	$q->p('Click on an exon/intron on the picture below to get the variants lying in it:'),
 		$q->br(),
-		$q->start_div({'class' => 'w3-container w3-center w3-xlarge'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $main, $ng), $q->end_div(), 
+		$q->start_div({'class' => 'w3-container w3-center w3-xlarge'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $main, $ng), $q->end_div(),
 		$q->br(), $q->br(),
 		$q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"$canvas_height\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency'.$img_suffix.'.png', 'usemap' => '#segment', 'class' => 'fented'.$css_suffix, 'id' => 'transparent_image'}),
 		$q->end_div(), "\n",
@@ -500,10 +500,10 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		elsif ($q->param('sort') =~ /(missense|nonsense|frameshift|start|inframe)/o) {$sort = 'type_prot'}
 		elsif ($q->param('sort') =~ /large/o) {$sort = 'taille'}
 	}
-	
+
 	U2_modules::U2_subs_1::gene_header($q, 'var_all', $gene, $user);
-	
-	print $q->br(), $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), 
+
+	print $q->br(), $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene),
 		$q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), "\n";
 	my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene' and main = 't';";
 	my $res = $dbh->selectrow_hashref($query);
@@ -512,15 +512,15 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		print $q->start_div({'class' => 'w3-container w3-center w3-xlarge'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->end_div(), $q->br();
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 	}
-	
-	
+
+
 	if ($sort =~ /(classe|type_adn|type_arn|type_prot)/o) {
 		print $q->p('All classes are represented in the table below. Click on a category to get all the associated variants (probands and relatives).');
 		my ($i, $j) = (0, 0);
-				
+
 		my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a WHERE a.nom_gene[1] = '$gene')
 				SELECT COUNT(DISTINCT(a.nom)) as var, a.$sort as sort, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND a.$sort <> '' GROUP BY a.$sort ORDER BY a.$sort;";
-		
+
 		#old fashion not rigourous with analysis_type in variant2patient
 		#my $query = "SELECT COUNT(DISTINCT(a.nom)) as var, a.$sort as sort, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND a.$sort <> '' GROUP BY a.$sort ORDER BY a.$sort;";
 		my $sth = $dbh->prepare($query);
@@ -564,8 +564,8 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		my ($inframe, $inframe_text) = &variants_div('inframe', "AND a.type_prot LIKE '%inframe%'", $dbh, $q, 'In frame Indels', $gene);
 		#all vars
 		my ($all_vars, $all_vars_text) = &variants_div('all_vars', '', $dbh, $q, 'All', $gene);
-		
-		
+
+
 		print $q->div({'class' => 'w3-row w3-center'}), "\n",
 				$q->div({'class' => 'w3-col m4'}), "\n",
 					$q->strong({'class' => 'w3-button w3-indigo w3-ripple w3-hover-light-blue w3-padding-32 w3-xlarge', 'style' => 'width:100%', 'onclick' => "hide_all();\$('#missense').show();"}, $missense_text),
@@ -588,7 +588,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 					$q->strong({'class' => 'w3-button w3-indigo w3-ripple w3-hover-light-blue w3-padding-32 w3-xlarge', 'style' => 'width:100%', 'onclick' => "hide_all();\$('#all_vars').show();"}, $all_vars_text),
 				$q->end_div(), "\n",
 			$q->end_div(), "\n", $q->br(), $q->br();
-			
+
 		my $js = "
 			//\$('#all_vars').show();
 			function hide_all() {
@@ -602,7 +602,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		";
 		my $explain = '* shortcut for variants not predicted by the genetic code to alter the protein sequence - does not consider splicing at all<br/>** Might include large rearrangements<br/>***Premature Termination Codons, including nonsense variants and frameshifts';
 		print U2_modules::U2_subs_2::info_panel($explain, $q);
-		print $all_vars, $missense, $silent, $intronic, $ptc, $inframe, $q->script({'type' => 'text/javascript'}, $js);		
+		print $all_vars, $missense, $silent, $intronic, $ptc, $inframe, $q->script({'type' => 'text/javascript'}, $js);
 	}
 	elsif ($sort eq 'taille') {
 		print $q->p("All large rearrangements recorded for $gene are listed in the table below.");
@@ -610,7 +610,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		if ($res ne '0E0') {
-			
+
 			print $q->start_div({'class' => 'container patient_file_frame'}), $q->start_table({'class' => 'great_table technical'}), $q->caption("Large rearrangements summary:"),
 					$q->start_Tr(), "\n",
 					$q->th('Size'), "\n",
@@ -627,29 +627,29 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 			print $q->end_table(), $q->end_div();
 		}
 	}
-	
-	print $q->br(), $q->br(), $q->div({'id' => 'vars'});	
+
+	print $q->br(), $q->br(), $q->div({'id' => 'vars'});
 }
 elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	U2_modules::U2_subs_1::gene_header($q, 'genotypes', $gene, $user);
-	
+
 	my ($rp, $dfn, $usher) = U2_modules::U2_subs_1::get_gene_group($gene, $dbh);
-	
+
 	#if (grep($gene, @U2_modules::U2_subs_1::USHER) || grep($gene, @U2_modules::U2_subs_1::DFNB) || grep($gene, @U2_modules::U2_subs_1::NSRP) ||  grep($gene, @U2_modules::U2_subs_1::LCA)) {
 	#my $query = "SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.nom_gene[1] = '$gene' AND c.proband = 't' ORDER BY c.pathologie, a.id_pat, a.num_pat, a.statut;";
-	
+
 	my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.nom_gene[1] = '$gene' AND c.proband = 't')\nSELECT DISTINCT(a.id_pat, a.num_pat, a.statut, b.filter, a.nom_c), a.pathologie, a.id_pat, a.num_pat, a.statut FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;";
-	
+
 	#SELECT a.id_pat, a.num_pat, a.statut, a.pathologie, b.filter FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;
-	
+
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my ($hash_count, $hash_html, $hash_done);
 	my $current_patient = ['', '', '', ''];
 	my $het_count = 0;
 	if ($res ne '0E0') {
-		
+
 		while (my $result = $sth->fetchrow_hashref()) {
 			#filters!!!
 			#my $query_filter = "SELECT b.filter, c.rp, c.dfn, c.usher FROM variant2patient a, miseq_analysis b, gene c WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND a.nom_gene = c.nom AND a.nom_gene[1] = '$gene' AND c.main = 't' AND a.id_pat = '$result->{'id_pat'}' AND a.num_pat = '$result->{'num_pat'}';";
@@ -661,9 +661,9 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 			elsif ($result->{'filter'} eq 'DFN-USH' && ($dfn == 0 && $usher == 0)) {next}
 			elsif ($result->{'filter'} eq 'RP-USH' && ($rp == 0 && $usher == 0)) {next}
 			elsif ($result->{'filter'} eq 'CHM' && $gene ne 'CHM') {next}
-			
+
 			#print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-1\n";
-			if (!exists($hash_done->{$result->{'id_pat'}.$result->{'num_pat'}})) {$hash_done->{$result->{'id_pat'}.$result->{'num_pat'}} = 0}			
+			if (!exists($hash_done->{$result->{'id_pat'}.$result->{'num_pat'}})) {$hash_done->{$result->{'id_pat'}.$result->{'num_pat'}} = 0}
 			if ($result->{'statut'} !~ /homo/) {
 				$het_count++;
 				if (($current_patient->[1] eq $result->{'id_pat'}) && ($current_patient->[2] eq $result->{'num_pat'})) {#compound het
@@ -675,23 +675,23 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 					#print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-3\n";
 					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
 					$het_count -= 1;
-				}				
+				}
 			}
 			else {
 				if ($current_patient->[3] !~ /homo/ && $hash_done->{$current_patient->[1].$current_patient->[2]} == 0) {
 					#print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-4\n";
 					($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
-					$het_count = 0;					
+					$het_count = 0;
 				}
 				#print STDERR $result->{'id_pat'}.$result->{'num_pat'}."-5\n";
-				($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $result->{'pathologie'}, $result->{'id_pat'}, $result->{'num_pat'}, 2, $gene);			
+				($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $result->{'pathologie'}, $result->{'id_pat'}, $result->{'num_pat'}, 2, $gene);
 			}
 			$current_patient = [$result->{'pathologie'}, $result->{'id_pat'}, $result->{'num_pat'}, $result->{'statut'}];
 		}
 		if ($current_patient->[3] !~ /homo/ && $hash_done->{$current_patient->[1].$current_patient->[2]} == 0) {
 			#print STDERR $current_patient->[1].$current_patient->[2]."-6\n";
 			($hash_count, $hash_html, $hash_done) = &build_hash($hash_count, $hash_html, $hash_done, $current_patient->[0], $current_patient->[1], $current_patient->[2], 0, $gene);
-		}	
+		}
 		#foreach my $pat (keys %{$hash_done}) {
 		#	print STDERR "$pat\n"
 		#}
@@ -716,8 +716,8 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 					$q->th({'class' => 'twenty_five left_general'}, "# $het_title"), "\n";
 		if ($chr_type eq 'non_M') {print $q->th({'class' => 'twenty_five left_general'}, '# compound heterozygotes'), "\n"}
 		print		$q->th({'class' => 'twenty_five left_general'}, "# $homo_title"), "\n",
-					$q->end_Tr(), "\n";			 
-		
+					$q->end_Tr(), "\n";
+
 		foreach my $disease (sort keys(%{$hash_count})) {
 			#print STDERR "$disease-".$hash_count->{$disease}[0]."-".$hash_count->{$disease}[1]."-".$hash_count->{$disease}[1]."-\n";
 			if ($disease ne '') {
@@ -734,11 +734,11 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 	else {
 		print $q->br(), $q->br(), $q->p('No pathogenic genotype to display')
 	}
-	
-	
-	
-	
-	
+
+
+
+
+
 }
 
 ##Basic end of USHVaM 2 perl scripts:
