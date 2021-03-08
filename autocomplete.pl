@@ -102,7 +102,9 @@ if ($q->param('query') =~ /^([\w\s]+)$/o) {
 			}
 		}
 	}
-	my $query = "SELECT DISTINCT(nom[1]) FROM gene WHERE nom[1] LIKE '%".uc($search)."%' OR second_name LIKE '%".uc($search)."%' ORDER BY nom[1];";
+  if ($search !~ /[cC]\do/o) {$search = uc($search)}
+  else {$search = ucfirst($search)}
+	my $query = "SELECT DISTINCT(nom[1]) FROM gene WHERE nom[1] LIKE '%".$search."%' OR second_name LIKE '%".$search."%' ORDER BY nom[1];";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	if ($res) {
