@@ -113,7 +113,7 @@ my $js = "
 				       \$(\"#analysis_form :input\").prop(\"disabled\", true);
 				       \$.ajax({
 					       type: \"POST\",
-					       url: \"variant_input.pl\",
+					       url: \"variant_input_vv.pl\",
 					       data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, sample: \$(\"#sample\").val(), analysis: \$(\"#technique\").val(), existing_variant: \$(\"#existing_variant\").val(), new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, status: \$(\"#status\").val(), allele: \$(\"#allele\").val(), ng_accno: \$(\"#ng_accno\").val(), j: j, denovo: \$(\"#denovo\").prop('checked')}
 					       })
 				       .done(function(msg) {
@@ -196,7 +196,7 @@ my $js = "
 		.done(function(msg) {
 			\$(\"#fill_in_status\").html(msg);
 		});
-		setDialogFormStatus();		
+		setDialogFormStatus();
 	}
 	function delete_var(sample, gene, technique, variant, html_id) {
 		\$.ajax({
@@ -282,7 +282,7 @@ my $js = "
 			\$(\"#gene_selection\").hide();
 			\$(\"#analysis_form\").attr(\"action\", \"import_nenufaar.pl\");
 		}
-		else if (biggest.test(analysis)){			
+		else if (biggest.test(analysis)){
 			//genes param value = all
 			\$(\"#genes\").val('all');
 			//Gene and filter selection must disappear
@@ -349,7 +349,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                         -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 			$js,
                         {-language => 'javascript',
-                        -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                        -src => $JS_DEFAULT, 'defer' => 'defer'}],
                 -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -364,7 +364,7 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 if ($user->isAnalyst() == 1) {
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
-	
+
 	my $step = U2_modules::U2_subs_1::check_step($q);
 
 	if ($step == 1) {#form to create analysis
@@ -406,7 +406,7 @@ if ($user->isAnalyst() == 1) {
 	print U2_modules::U2_subs_1::select_filter($q, 'filter', 'analysis_form');
 	print					#$q->end_fieldset(), $q->br(),
 					$q->end_div(),
-				$q->end_div(), "\n",				
+				$q->end_div(), "\n",
 				$q->br(),
 				$q->submit({'value' => 'Confirm', 'class' => 'w3-btn w3-blue', 'form' => 'analysis_form'}), $q->br(), $q->br(), "\n", $q->br(),
 			$q->end_form(), $q->end_div(), "\n";
@@ -416,14 +416,14 @@ if ($user->isAnalyst() == 1) {
 		if ($step == 2) {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 		elsif ($step == 3) {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'basic')}
 		my $link = $q->start_p().$q->a({'href' => "patient_file.pl?sample=$id$number"}, $id.$number).$q->end_p();
-		
+
 		if ($analysis =~ /Min?i?Seq-\d+/o && $step == 2) {
 			#Illumina panel experiment
 			#will ssh to RackStation
 			#check paths and find patient in samplesheet (and check analysis type using valid_type_analysis)
 			#check other patients status in U2 and propose import
 			#go to step 4
-			
+
 			#MINISEQ change get instrument type
 			my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 			if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
@@ -434,7 +434,7 @@ if ($user->isAnalyst() == 1) {
 			#my $manifest = $res->{'manifest_name'};
 			#my $filtered = $res->{'filtering_possibility'};
 			my $ssh;
-			
+
 			#we're in!!!
 			#$ssh->system('cd ../../data/MiSeqDx/');
 			#my $run_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/`;
@@ -480,7 +480,7 @@ if ($user->isAnalyst() == 1) {
                                                                # print "$run<br/>";
 				#if ($run eq '@eaDir') {next}   #specific synology dirs => ignore
 				if ($run !~ /^\d{6}_[A-Z]{1}\d{5}_\d{4}_0{9}-[A-Z0-9]{5}$/o && $run !~ /^\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10}$/o) {next}
-				
+
 				###TO BE CHANGED 4 MINISEQ
 				### path to alignment dir under run root
 				my $alignment_dir;
@@ -501,9 +501,9 @@ if ($user->isAnalyst() == 1) {
 						$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 					}
 					#$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-                                                                                
+
 					#print "grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml".$alignment_dir;exit;
-					
+
 				}
 				elsif($instrument eq 'miniseq'){
 					#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
@@ -528,15 +528,15 @@ if ($user->isAnalyst() == 1) {
 				if ($instrument eq 'miniseq') {
                     ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Saving Completed Job Information to', "$SSH_RACKSTATION_BASE_DIR/$run/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
                     $samplesheet = "$alignment_dir/SampleSheetUsed.csv";
-                }		
-				
-				
-				
+                }
+
+
+
 				#unknown in U2
 				if ($value == 0) {
 					#1st check MSR analysis is finished:
 					#look for 'Copying Remaining Files To Network' in AnalysisLog.txt
-					
+
 					###TO BE CHANGED 4 MINISEQ
 					### path to analysis log file under alignment folder - and sentence to look for changed
 					### and check for Metrics....
@@ -577,8 +577,8 @@ if ($user->isAnalyst() == 1) {
 						#<NumberOfUnindexedClusters>1359663</NumberOfUnindexedClusters>
 						#<NumberOfUnindexedClustersPF>568151</NumberOfUnindexedClustersPF>
 						#
-						
-						
+
+
 						my $noc_pf = &getMetrics("NumberOfClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
 						my $noc_raw = &getMetrics("NumberOfClustersRaw>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
 						my $nodc = &getMetrics("NumberOfDuplicateClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
@@ -590,11 +590,11 @@ if ($user->isAnalyst() == 1) {
 						#$grep =~ />(\d+)<$/o;
 						#my $noc_pf = $1;
 						#
-						
-						
+
+
 						my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f', '$noc_pf', '$noc_raw', '$nodc', '$nouc', '$nouc_pf', '$nouic', '$nouic_pf', '$robot');";
-						
-						
+
+
 						#my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
 						$dbh->do($insert);
 					}
@@ -647,11 +647,11 @@ if ($user->isAnalyst() == 1) {
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
-												
-							
-							
+
+
+
 							#foreach my $keys (sort keys (%patients)) {print $keys.$patients{$keys}.$q->br();}
-							
+
 							#build form
 							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, 'import_illumina_vv.pl', '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $access_method);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
@@ -659,20 +659,20 @@ if ($user->isAnalyst() == 1) {
 
 						}
 					}
-					
+
 				}
 				#else {print $id.$number;U2_modules::U2_subs_1::standard_error('18', $q);}
 				#}
-				
-				
+
+
 			}
 			if ($semaph == 0) {print $link;U2_modules::U2_subs_1::standard_error('18', $q);}
 			if ($ok == 0) {print $link;U2_modules::U2_subs_1::standard_error('19', $q);}
-			
+
 			delete $ENV{PATH};
 		}
 		else {
-		
+
 			my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 			my $date = U2_modules::U2_subs_1::get_date();
 			# print STDERR "step: $step; analysis: $analysis; gene:$gene\n";
@@ -685,7 +685,7 @@ if ($user->isAnalyst() == 1) {
 					$q->br(), $q->button({'class' => 'w3-btn w3-blue w3padding-16', 'onclick' => 'window.open("patient_file.pl?sample='.$id.$number.'","_self");', 'value' => "Go back to $id$number page"});
 			}
 			else {
-			
+
 				#record analysis
 				#1st, check if experience already exists
 				my ($tech_val, $tech_val_class, $result_ana, $result_ana_class, $bio_val, $bio_val_class);
@@ -693,12 +693,12 @@ if ($user->isAnalyst() == 1) {
 				my $res = $dbh->selectrow_hashref($query);
 				#my ($to_fill, $order, $to_fill_table) = ('', 'ASC', '');
 				my $fented_class = 'fented_noleft';
-				if ($analysis =~ /Min?i?Seq-\d+/o) {$fented_class=''}			
+				if ($analysis =~ /Min?i?Seq-\d+/o) {$fented_class=''}
 				my ($order, $to_fill_table) = ('ASC', $q->start_div({'class' => "$fented_class container"}).$q->start_table({'class' => 'great_table technical', 'id' => 'genotype'}));
-				
+
 				if ($step == 2) {$order = U2_modules::U2_subs_1::get_strand($gene, $dbh)}
 				if ($res->{'num_pat'} ne '') { #print variants already recorded
-	
+
 					if ($res->{'analyste'} ne '') {$to_fill_table .= $q->caption("$analysis by $res->{'analyste'}, $res->{'date_analyse'}")."\n"}
 					$to_fill_table .= $q->start_Tr().
 								$q->th({'class' => 'left_general'}, 'Position').
@@ -709,7 +709,7 @@ if ($user->isAnalyst() == 1) {
 								$q->th({'class' => 'left_general'}, 'Delete').
 								$q->th({'class' => 'left_general'}, 'Status Link').
 							$q->end_Tr()."\n";
-					$query = "SELECT a.nom_c, a.statut, a.allele, a.denovo, b.type_segment, b.classe, c.nom FROM variant2patient a, variant b, segment c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene = c.nom_gene AND b.num_segment = c.numero AND b.type_segment = c.type AND a.num_pat = '$number' AND a.id_pat = '$id' AND a.nom_gene[1] = '$gene' AND a.type_analyse = '$analysis' ORDER by b.nom_g $order;";	
+					$query = "SELECT a.nom_c, a.statut, a.allele, a.denovo, b.type_segment, b.classe, c.nom FROM variant2patient a, variant b, segment c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene = c.nom_gene AND b.num_segment = c.numero AND b.type_segment = c.type AND a.num_pat = '$number' AND a.id_pat = '$id' AND a.nom_gene[1] = '$gene' AND a.type_analyse = '$analysis' ORDER by b.nom_g $order;";
 					my $sth = $dbh->prepare($query);
 					my $res2 = $sth->execute();
 					my $j;
@@ -719,7 +719,7 @@ if ($user->isAnalyst() == 1) {
 						$to_fill_table .= $q->start_Tr({'id' => "v$j", 'class' => 'var'}).$q->start_td();#.$q->td().$q->td().$q->td().$q->td().$q->td().$q->td().$q->td().$q->end_Tr();
 						#if ($result->{'type_segment'} =~ /on/o) {$to_fill .= $q->span(ucfirst($result->{'type_segment'}));$to_fill_table .= $q->span(ucfirst($result->{'type_segment'}));}
 						if ($result->{'type_segment'} =~ /on/o) {$to_fill_table .= $q->span(ucfirst($result->{'type_segment'}));}
-	
+
 						my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
 						#if ($result->{'denovo'} == 1) {$denovo_txt = '_denovo'}
 						$to_fill_table .= $q->span(" $result->{'nom'}").
@@ -738,18 +738,18 @@ if ($user->isAnalyst() == 1) {
 					}
 					#$to_fill .= $q->br();
 					$to_fill_table .= $q->end_table().$q->end_div();
-					
+
 					$tech_val = U2_modules::U2_subs_1::translate_boolean($res->{'technical_valid'});
 					$tech_val_class = U2_modules::U2_subs_1::translate_boolean_class($res->{'technical_valid'});
 					$result_ana = U2_modules::U2_subs_1::translate_boolean($res->{'result'});
 					$result_ana_class = U2_modules::U2_subs_1::translate_boolean_class($res->{'result'});
 					$bio_val = U2_modules::U2_subs_1::translate_boolean($res->{'valide'});
 					$bio_val_class = U2_modules::U2_subs_1::translate_boolean_class($res->{'valide'});
-					
-					
+
+
 					#print $res->{'result'};
 				}
-				else {	
+				else {
 					#if not aCGH, insert for one gene
 					if ($analysis ne 'aCGH') {
 						&insert_analysis($number, $id, $gene, $analysis, $date, $user->getName(), 'f', $dbh);
@@ -773,7 +773,7 @@ if ($user->isAnalyst() == 1) {
 							$tech_val_class = U2_modules::U2_subs_1::translate_boolean_class('0');
 							#$tech_val = '+';
 						}
-					}				
+					}
 					$result_ana = U2_modules::U2_subs_1::translate_boolean();
 					$result_ana_class = U2_modules::U2_subs_1::translate_boolean_class();
 					$bio_val = U2_modules::U2_subs_1::translate_boolean('0');
@@ -788,38 +788,38 @@ if ($user->isAnalyst() == 1) {
 								$q->th({'class' => 'left_general'}, 'Status Link').
 							$q->end_Tr()."\n";
 				}
-					
+
 				print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em($gene), $q->span(" $analysis for "),
 					$q->span({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(':'), $q->end_strong(), $q->end_big(), $q->end_p(), "\n";
-					
+
 				if ($step == 2) {
 					my $text =  $q->button({'value' => 'Delete analysis', 'onclick' => "delete_analysis('$id$number', '$analysis', '$gene');", 'class' => 'w3-button w3-ripple w3-blue'}).$q->span("&nbsp;&nbsp;&nbsp;&nbsp;WARNING: this will also delete associated variants.")."\n";
-					print U2_modules::U2_subs_2::danger_panel($text, $q);			
-					
+					print U2_modules::U2_subs_2::danger_panel($text, $q);
+
 					print $q->start_div({'id' => 'dialog-confirm', 'title' => 'Delete Analysis?', 'class' => 'hidden'}), $q->start_p(), $q->span('By clicking on the "Yes" button, you will delete permanently the complete analysis and the associated variants.'), $q->end_p(), $q->end_div(), $q->br(), $q->br(), "\n";
-	
-					
+
+
 					my @js_params = ('createForm', $id.$number, $analysis);
 					my ($js, $map) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
-				
-	
+
+
 					print $q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}), $q->end_div(), "\n", $q->script({'type' => 'text/javascript'}, $js), "\n",
 						$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}), $q->p({'id' => 'fill_in'}), $q->end_div(), "\n";
-				
+
 				}
 				print $q->start_div({'id' => 'dialog-form-status', 'title' => 'modify status and allele'}), $q->p({'id' => 'fill_in_status'}), $q->end_div(), "\n";
 				#if ($step == 2) {print $q->start_div({'class' => 'fented'})}
 				if ($step == 3) {print $q->start_div()}
-				
+
 				#print $q->start_ul({'id' => 'genotype'}), $to_fill,
 				#		$q->end_ul(),
 				#	$q->end_div(), "\n";
 				print $to_fill_table;
 				#technical validation & result
-				
+
 				if ($step == 2) {print $q->start_div({'class' => 'fented_noleft container'})}
 				elsif ($step == 3) {print $q->start_div({'class' => 'container'})}
-				
+
 				print $q->start_table({'class' => 'technical great_table'}), "\n",
 					$q->start_Tr(), "\n",
 						$q->th({'class' => 'left_general'}, 'Technical validation'), "\n",
@@ -830,8 +830,8 @@ if ($user->isAnalyst() == 1) {
 					$q->start_Tr(), "\n",
 						$q->start_td({'class' => 'td_border'}), "\n",
 							$q->span({'id' => 'technical_valid', 'class' => $tech_val_class}, $tech_val), "\n";
-				
-	
+
+
 				if ($tech_val ne '+') {
 					print $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'id' => 'technical_valid_2', 'value' => 'Validate', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'technical_valid');", 'class' => 'w3-button w3-ripple w3-blue'});
 				}
@@ -839,7 +839,7 @@ if ($user->isAnalyst() == 1) {
 						$q->end_td(), "\n",
 						$q->start_td({'class' => 'td_border'}), "\n",
 							$q->span({'id' => 'result', 'class' => $result_ana_class}, $result_ana), "\n";
-	
+
 				if ($user->isReferee() == 1) {
 					if ($result_ana eq 'UNDEFINED') {
 						print $q->start_span({'id' => 'result_2'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'value' => 'Negative', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'negatif');", 'class' => 'w3-button w3-ripple w3-blue'}), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'value' => 'Positive', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'positif');", 'class' => 'w3-button w3-ripple w3-blue'}),  $q->end_span();
@@ -849,7 +849,7 @@ if ($user->isAnalyst() == 1) {
 						$q->end_td(), "\n",
 						$q->start_td({'class' => 'td_border'}), "\n",
 							$q->span({'id' => 'valide', 'class' => $bio_val_class}, $bio_val), "\n";
-	
+
 				if ($user->isValidator() == 1) {
 					if ($bio_val ne '+') {
 						print $q->span("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"), $q->button({'id' => 'valide_2', 'value' => 'Validate', 'onclick' => "validate('$id$number', '$gene', '$analysis', 'valide');", 'class' => 'w3-button w3-ripple w3-blue'});
@@ -864,7 +864,7 @@ if ($user->isAnalyst() == 1) {
 				$q->end_table(), "\n",
 				$q->end_div(), "\n";
 			}
-			
+
 		}
 
 	}
@@ -905,7 +905,7 @@ sub insert_analysis {
 }
 
 sub getMetrics {
-	my ($reg, $alignment_dir, $ssh, $file, $access_method) = @_;	
+	my ($reg, $alignment_dir, $ssh, $file, $access_method) = @_;
 	#my $grep = $ssh->capture("grep -Eo -m 1 \"$reg\" $SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir/EnrichmentStatistics.xml");
 	#print "grep -Eo -m 1 \"$reg\" $alignment_dir/$file";
                 my $grep;
