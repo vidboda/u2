@@ -32,7 +32,7 @@ sub getConfFile {
 
 ##Loads each variable
 
-sub initConfig {	
+sub initConfig {
 	return AppConfig->new(
 		'U2HOST' => {ARGCOUNT => 1},
 		'HOME' => {ARGCOUNT => 1},
@@ -89,7 +89,8 @@ sub initConfig {
 		'EMAIL_CLASS' => {ARGCOUNT => 3},
 		'NENUFAAR_ANALYSIS' => {ARGCOUNT => 1},
 		'DBNSFP_V2' => {ARGCOUNT => 1},
-		'DBNSFP_V3_PATH' => {ARGCOUNT => 1}
+		'DBNSFP_V3_PATH' => {ARGCOUNT => 1},
+		'VARIANTVALIDATOR_GENOME' => {ARGCOUNT => 1}
 	);
 }
 

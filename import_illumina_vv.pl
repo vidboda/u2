@@ -127,7 +127,8 @@ my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
 $SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
 $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
-
+# genome version for VV
+my $VVGENOME = $config->VARIANTVALIDATOR_GENOME();
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -618,7 +619,7 @@ if ($step && $step == 2) {
 				#we keep only the first variants if more than 1 e.g. alt = TAA, TA
 				if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				#ok let's deal with VV
-				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
+				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
 				#if ($vv_results == 500 || $vv_results =~/^VVERROR/o) {$message .= "$id$number: ERROR: VariantValidator returned $vv_results $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
 				#run variantvalidator API
 				#my $vvkey = "$acc_no.$acc_ver:$cdna";
@@ -720,7 +721,7 @@ if ($step && $step == 2) {
 						#elsif (exists $hashvar->{$result->{'nm'}} && $hashvar->{$result->{'nm'}}[1] ne $result->{'acc_version'} && $result->{'main'} == 1) {
 						if (exists $hashvar->{$result->{'nm'}} && !exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}) {
 							#bad acc not in U2 => retry with U2 acc_no
-							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
+							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'));
 							#if ($vv_results == 500 || $vv_results =~/^VVERROR/o) {$message .= "$id$number: ERROR: VariantValidator returned $vv_results $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
 							#get new cdna
 							my ($tmp_message, $hashvar_tmp);
@@ -805,7 +806,7 @@ if ($step && $step == 2) {
 						if ($candidate =~ /(NM_\d+)\.(\d):c\..+/) {
 							($acc_no, $acc_ver) = ($1, $2);
 							#run vv again
-							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv('hg19', $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna'));
+							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna'));
 							if ($vv_results->{'message'}) {$message .= "$id$number: ERROR: VariantValidator returned $vv_results $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
 							$vvkey = "$acc_no.$acc_ver:".$hashvar->{$acc_no}->{$acc_ver}[0];
 							$cdna = $hashvar->{$acc_no}->{$acc_ver}[0];
