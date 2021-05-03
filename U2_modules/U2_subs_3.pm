@@ -1536,7 +1536,7 @@ sub create_variant_vv {
 			#	  "pos": "55892718",
 			# and add the length of del/dup (0-based)
 			my $pos_vcf = $vv_results->{$vvkey}->{'primary_assembly_loci'}->{'hg19'}->{'vcf'}->{'pos'};
-			if ($cdna =~ /delins([ATGC]+)/o) {$pos_vcf++}
+			if ($cdna =~ /delins([ATGC]+)/o) {$pos_vcf--}
 			($x, $y) = ($pos_vcf - 25, $pos_vcf + $taille + 25);
 		}
 		######## endbugfix

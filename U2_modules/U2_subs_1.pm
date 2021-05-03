@@ -114,6 +114,8 @@ my $PATIENT_PHENOTYPE = $config->PATIENT_PHENOTYPE();
 my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $PYTHON = $config->PYTHON_PATH();
+my $VARIANTVALIDATOR_GENUINE_API = $config->VARIANTVALIDATOR_GENUINE_API();
+my $VARIANTVALIDATOR_EMERGENCY_API = $config->VARIANTVALIDATOR_EMERGENCY_API();
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 
@@ -1218,41 +1220,47 @@ sub run_mutalyzer {
 }
 #variant_input_vv.pl
 sub test_vv {
-	my $ua = LWP::UserAgent->new();
-	$ua->ssl_opts(verify_hostname => 0);
-	$ua->proxy('https', 'http://194.167.35.151:3128/');
-	my $request = $ua->get('https://rest.variantvalidator.org');
-	#my $content = $request->content();
-	#print "$content<br/>";
-	if ($request->content() !~ /variantvalidator/o) {return 0}
-	else {return 1}
+	my $ua = shift;
+	#my $ua = LWP::UserAgent->new();
+	#$ua->ssl_opts(verify_hostname => 0);
+	#$ua->proxy('https', 'http://194.167.35.151:3128/');
+
+	my $request = $ua->get("$VARIANTVALIDATOR_GENUINE_API/hello/?content-type=application/json");
+	if ($request->is_success() && exists(decode_json($request->content())->{'status'}) && decode_json($request->content())->{'status'} eq 'hello_world') {
+			return "$VARIANTVALIDATOR_GENUINE_API/VariantValidator/variantvalidator";
+	}
+	else {
+		$request = $ua->get("$VARIANTVALIDATOR_EMERGENCY_API/hello/?content-type=application/json");
+		if ($request->is_success() && exists(decode_json($request->content())->{'status'}) && decode_json($request->content())->{'status'} eq 'hello_world') {
+			print STDERR "\nSwitching to emergency VV REST API\n";
+				return "$VARIANTVALIDATOR_EMERGENCY_API/VariantValidator/variantvalidator";
+		}
+	}
+	return 'no VV available'
 }
 #variant_input_vv.pl, import_illumina_vv.pl
 sub run_vv {
 	my ($genome, $nm, $var, $mode) = @_;
 	my $ua = LWP::UserAgent->new();
-	#$ua->ssl_opts(verify_hostname => 0);
-	#$ua->proxy('https', 'http://194.167.35.151:3128/');
-	my $url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$nm:$var/$nm?content-type=application/json";
-	if ($mode eq 'VCF') {
-		#chekc if mediummonster docker vv is alive
-		#my $ua = LWP::UserAgent->new();
-		#my $request = $ua->get(uri_encode("http://10.34.20.79:8000/hello/?content-type=application/json"));
-		#if ($request->is_success() && decode_json($request->content())->{'status'} eq 'hello_world') {
-		#	 $url = "http://10.34.20.79:8000/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json";
-		#}
-		#else{$url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json"}
-		$url = "https://rest.variantvalidator.org/VariantValidator/variantvalidator/$genome/$var/$nm?content-type=application/json";
+
+	my $vv_api_url = &test_vv($ua);
+
+	if ($vv_api_url ne 'no VV available') {
+		#$ua->ssl_opts(verify_hostname => 0);
+		#$ua->proxy('https', 'http://194.167.35.151:3128/');
+		my $url = "$vv_api_url/$genome/$nm:$var/$nm?content-type=application/json";
+		if ($mode eq 'VCF') {
+			$url = "$vv_api_url/$genome/$var/$nm?content-type=application/json";
+		}
+		print STDERR "$url\n";
+		my $request = $ua->get($url);
+		if ($request->is_success()) {return $request->content()}
+		else {return '0'}
 	}
-	print STDERR "VV url: $url\n";
-	my $request = $ua->get($url);
-	if ($request->is_success()) {return $request->content()}
-	else {return '0'}
-	# on 158 Xserve, perl was unable to contact VV because of SSL version -> use of a python script instead - revert back to pure perl implementation 20210302
-	# my $vv_result = `$PYTHON $ABSOLUTE_HTDOCS_PATH/variantvalidator.py "$url"` or die $!;
-	# if($vv_result =~ /INTERNAL SERVER ERROR/o) {return 500}
-	# elsif ($vv_result ne '0') {return $vv_result}
-	# else {return '0'}
+	else {
+		my $error = {'url_error' => 'VV down'};
+		return encode_json($error);
+	}
 }
 
 
