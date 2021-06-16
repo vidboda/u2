@@ -1577,7 +1577,7 @@ sub create_variant_vv {
 		#print $seq[0].'<br/>';
 		my ($begin, $middle, $end);
 		my $marker = 25;
-		if ($type_adn == 'insertion') {$marker = 26}
+		if ($type_adn eq 'insertion') {$marker = 26}
 		($begin, $middle, $end) = (substr($seq[0], 0, $marker), substr($seq[0], $marker, $#seq-$marker), substr($seq[0], $#seq-$marker));
 		#print "$begin-$middle-$end<br/>";
 
