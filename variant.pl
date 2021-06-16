@@ -484,7 +484,7 @@ if ($res->{'protein'} ne '') {
 		#elsif ($u1_gene eq 'CLRN1') {$u1_gene = 'USH3A'}
 
 		my $one_letter = U2_modules::U2_subs_1::nom_three2one($res->{'protein'});
-		#print $q->span("--$one_letter--");
+		# print $q->span("--$one_letter--");
 		if (-f $ABSOLUTE_HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf") {
 			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');
 		}

@@ -1575,8 +1575,10 @@ sub create_variant_vv {
 			$seq[0] = $seqrev;
 		}
 		#print $seq[0].'<br/>';
-		my ($begin, $middle, $end) ;
-		($begin, $middle, $end) = (substr($seq[0], 0, 25), substr($seq[0], 25, $#seq-25), substr($seq[0], $#seq-25));
+		my ($begin, $middle, $end);
+		my $marker = 25;
+		if ($type_adn == 'insertion') {$marker = 26}
+		($begin, $middle, $end) = (substr($seq[0], 0, $marker), substr($seq[0], $marker, $#seq-$marker), substr($seq[0], $#seq-$marker));
 		#print "$begin-$middle-$end<br/>";
 
 		if ($cdna =~ />([ATCG])$/o) {#substitutions
