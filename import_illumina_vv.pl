@@ -172,7 +172,7 @@ if ($step && $step == 2) {
 	my $ssh;
 	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR);#first attempt to wake up autofs in case of unmounted
 	my $access_method = 'autofs';
-    opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
+  opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
 	if ($access_method eq 'ssh') {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q)}
 	#1st get last alignment directory
 	#my $dirlist = $ssh->capture("ls -d $SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/Alignment*");
@@ -250,7 +250,9 @@ if ($step && $step == 2) {
 	#create roi hash
 	my $new_var  = '';
 	my $interval = U2_modules::U2_subs_3::build_roi($dbh);
-	my ($general, $sample_end, $message) = ('', '', '');#$general global data for final email, $sample_end last treated patient for redirection
+	# my ($general, $sample_end, $message) = ('', '', '');#$general global data for final email, $sample_end last treated patient for redirection
+  my ($general, $message) = ('', '');
+  print $q->p('  Samples imported:'), $q->start_ul();
 	while (my ($sampleid, $filter) = each(%sample_hash)) {
 		#print "$key-$value<br/>";
 
@@ -266,9 +268,10 @@ if ($step && $step == 2) {
 
 
 		my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
-		$sample_end = $sampleid;
+		# $sample_end = $sampleid;
 		my $insert;
-		print STDERR "\nInitiating $id$number with transfer method: $access_method..";
+    # print $q->li("Initiating $id$number...");
+		print STDERR "\nInitiating $id$number with transfer method: $access_method";
 		#loop 28-112-121 genes
 		$query = "SELECT nom FROM gene WHERE \"$analysis\" = 't' ORDER BY nom[1];";
 		my $sth = $dbh->prepare($query);
@@ -280,7 +283,6 @@ if ($step && $step == 2) {
 		#######UNCOMMENT WHEN DONE!!!!!!!
 		$dbh->do($insert);
 
-		#print "$insert\n"
 
 		mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid";
 		#my $success;
@@ -852,6 +854,7 @@ if ($step && $step == 2) {
 		my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
 		$dbh->do($valid);
 		print STDERR "$id$number VCF imported.\n";
+    print $q->start_li(), $q->a({"href" => "patient_file.pl?sample=$id$number", "target" => "_blank"}, "$id$number"), $q->span(' import validated'), $q->end_li();
 		#print STDERR $valid."\n";
 	}
 	#if ($manual ne '' || $not_inserted ne '') {U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run)}
@@ -861,8 +864,8 @@ if ($step && $step == 2) {
 	close F;
 
 	U2_modules::U2_subs_2::send_manual_mail($user, '', '', $run, $general, '', $message);
-
-	$q->redirect("patient_file.pl?sample=$sample_end");
+  print $q->end_ul(), $q->br(), $q->start_p(), $q->strong('  Import finished and validated. You should receive the confirmation email quickly.'), $q->end_p();
+	# $q->redirect("patient_file.pl?sample=$sample_end");
 
 }
 
