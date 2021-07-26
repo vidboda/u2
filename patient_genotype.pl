@@ -95,7 +95,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				$q->Link({-rel => 'stylesheet',
 					-type => 'text/css',
 					-href => $CSS_DEFAULT,
-					-media => 'screen'}),			
+					-media => 'screen'}),
 				$q->Link({-rel => 'stylesheet',
 					-type => 'text/css',
 					-href => $CSS_PATH.'jquery-ui-1.12.1.min.css',
@@ -107,7 +107,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				#$q->Link({-rel => 'stylesheet',
 				#	-type => 'text/css',
 				#	-href => $CSS_PATH.'igv-1.0.5.css',
-				#	-media => 'screen'}),	
+				#	-media => 'screen'}),
 				$q->Link({-rel => 'stylesheet',
 					-type => 'text/css',
 					-href => $CSS_PATH.'u2_print.css',
@@ -143,7 +143,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => 'https://cdn.jsdelivr.net/npm/igv@2.7.4/dist/igv.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_DEFAULT, 'defer' => 'defer'}],		
+				-src => $JS_DEFAULT, 'defer' => 'defer'}],
 			-encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -180,10 +180,10 @@ print U2_modules::U2_subs_2::info_panel($text, $q);
 #print $q->start_p(), $q->strong("Default isoform: "), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$main_acc.$acc_v", 'target' => '_blank'}, "$main_acc.$acc_v"), $q->end_p(),
 print 	$q->start_table({'class' => 'zero_table width_general w3-small'}),
 		$q->start_Tr(), $q->start_td({'class' => 'zero_td'});
-		
+
 U2_modules::U2_subs_2::print_filter($q);
 
-	
+
 print $q->end_td(), "\n";
 
 #get rid of '
@@ -237,7 +237,7 @@ my $res = $sth->execute();
 
 if ($res ne '0E0') {
 	while (my $result = $sth->fetchrow_hashref()) {
-		#if ($analysis eq 'non_ngs' && $result->{'type_analyse'} =~ /^Mi.+/o) {$analysis = $result->{'type_analyse'}}	
+		#if ($analysis eq 'non_ngs' && $result->{'type_analyse'} =~ /^Mi.+/o) {$analysis = $result->{'type_analyse'}}
 		my $nom = U2_modules::U2_subs_2::genotype_line_optimised($result, $mini, $maxi, $q, $dbh, $list, $main_acc, $nb_var, $acc_g, 'f');
 		$list->{$nom}++;
 		if ($list->{$nom} == 1) {$nb_var ++}
@@ -278,7 +278,7 @@ print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(), $q->st
 	#	$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
 	#	$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 	#	$alignment_dir = $1;
-	#	$alignment_dir =~ s/\\/\//og;					
+	#	$alignment_dir =~ s/\\/\//og;
 	#}
 	##print $alignment_dir;
 	#my $bam_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir`;
@@ -292,7 +292,7 @@ print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(), $q->st
 	#		my $bam_file_suffix = $1;
 	#		$bam_file = "$alignment_dir/$id$number$bam_file_suffix";
 	#		#$bam_ftp = "$ftp_dir/$id$number$bam_file_suffix";
-	#	}								
+	#	}
 	#}
 	#my $bam_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$bam_file";
 my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
@@ -306,14 +306,34 @@ if ($chr ne 'M') {
 			genome: "hg19",
 			locus: "'.$gene.'"
 		};
-	
-		igv.createBrowser(div, options).
-			then(function (browser) {
-				igv.browser = browser;
-			});	
+
+		igv.createBrowser(div, options).then(function (browser) {
+			igv.browser = browser;
 		});
+	});
 	';
-	print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
+  # my $igv_script = '
+	# // function load_igv() {
+  #   // https://www.delftstack.com/howto/javascript/javascript-wait-for-function-to-finish/
+  #   var igv_promise = new Promise((resolve,reject)=>{
+  # 		var div = $("#igv_div"),
+  # 		options = {
+  # 			showNavigation: true,
+  # 			showRuler: true,
+  # 			genome: "hg19",
+  # 			locus: "'.$gene.'"
+  # 		};
+  #
+  # 		igv.createBrowser(div, options)
+  #       .then(function (browser) {
+  # 			  igv.browser = browser;
+  # 		  });
+  #     console.log("igv.browser created");
+  #     resolve(igv.browser);
+  #   });
+	# // }
+	# ';
+	print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;'},), $q->script({'type' => 'text/javascript'}, $igv_script);
 }
 #tracks: [
 #		{
@@ -326,7 +346,7 @@ if ($chr ne 'M') {
 #		    order: Number.MAX_VALUE,
 #		    visibilityWindow: 300000000,
 #		    displayMode: "EXPANDED"
-#		}	
+#		}
 #	    ]
 
 

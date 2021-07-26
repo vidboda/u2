@@ -54,7 +54,7 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 sub get_patient_name {
 	my ($id, $number, $dbh) = @_;
 	my $query = "SELECT first_name, last_name FROM patient WHERE numero = '$number' and identifiant = '$id';";
-	my $res = $dbh->selectrow_hashref($query);	
+	my $res = $dbh->selectrow_hashref($query);
 	return ($res->{'first_name'}, $res->{'last_name'});
 }
 
@@ -69,14 +69,13 @@ sub is_in_interval {
 
 sub print_validation_table {
 	my ($first_name, $last_name, $gene, $q, $dbh, $user, $class) = @_;
-	
+
 	my $div_class = 'patient_file_frame';
 	if ($class eq 'global') {$div_class = 'container'}
-	
-	print $q->start_div({'class' => $div_class}), $q->start_table({'class' => "technical great_table $class", 'id' => 'validation_table'}), $q->caption("Validation table:"), $q->start_thead(), 
+	print $q->start_div({'class' => $div_class}), $q->start_table({'class' => "technical great_table $class", 'id' => 'validation_table'}), $q->caption("Validation table:"), $q->start_thead(),
 	$q->start_Tr(), "\n",
 		$q->th('sample ID'), "\n";
-	if ($gene eq '') {print $q->th('gene'), "\n";}	
+	if ($gene eq '') {print $q->th('gene'), "\n";}
 	print $q->th({'class' => 'left_general'}, 'Analysis type'), "\n",
 		$q->th({'class' => 'left_general'}, 'technical'), "\n",
 		$q->th({'class' => 'left_general'}, 'date'), "\n",
@@ -90,12 +89,12 @@ sub print_validation_table {
 	if ($user->isAnalyst() == 1) {print $q->th({'class' => 'print_hidden'},'access'), "\n";}
 	print $q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";
 
-	
+
 	my $query = "SELECT *, c.nom[1] as nom_gene FROM analyse_moleculaire a, patient b, gene c, valid_type_analyse d WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.nom_gene = c.nom AND a.type_analyse = d.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND c.main = 't' ORDER BY c.nom, a.type_analyse;";
 	if ($gene eq '') {
 		$query = "SELECT *, c.nom[1] as nom_gene FROM analyse_moleculaire a, patient b, gene c, valid_type_analyse d  WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.nom_gene = c.nom AND a.type_analyse = d.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND c.main = 't' ORDER BY c.nom, a.type_analyse;";
 	}
-	
+
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my ($id, $number);
@@ -106,7 +105,7 @@ sub print_validation_table {
 			#get filter
 			$display = &gene_to_display($result, $dbh);
 		}
-		
+
 		if ($display == 1) {
 			my ($alignement_file_path, $file_type) = ('', '');
 			($id, $number) = ($result->{'id_pat'}, $result->{'num_pat'});
@@ -126,10 +125,43 @@ sub print_validation_table {
 			my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 			if ($result->{'manifest_name'} eq 'no_manifest') {print $q->td($result->{'type_analyse'}), "\n"}
 			elsif ($class ne 'global' && $chr ne 'M') {
+				# if(\$('#igv_div').css('display', 'none')){\$('#igv_div').show();load_igv();};
+				# my $async_igv = "
+				# 	// async function async_igv() {
+				# 	function async_igv() {
+				# 		// https://www.delftstack.com/howto/javascript/javascript-wait-for-function-to-finish/
+				# 		console.log('before');
+				# 		// await load_igv().then(
+				# 		igv_promise.then(
+				# 			igv.browser.loadTrack(
+				# 				{
+				# 					url:'$alignement_file_path.$file_type',
+				# 					indexURL:'$alignement_file_path$addin.$index_ext',
+				# 					label:'$id$number-$result->{'type_analyse'}-$gene'
+				# 				}
+				# 			)
+				# 		);
+				# 		console.log('after');
+				# 		// igv.browser.loadTrack(
+				# 		// 	{
+				# 		// 		url:'$alignement_file_path.$file_type',
+				# 		// 		indexURL:'$alignement_file_path$addin.$index_ext',
+				# 		// 		label:'$id$number-$result->{'type_analyse'}-$gene'
+				# 		// 	}
+				# 		// );
+				# 	  \$('#$result->{'type_analyse'}').removeClass('pointer');
+				# 		\$('#$result->{'type_analyse'}').removeAttr('onclick');
+				# 		\$('#$result->{'type_analyse'}').removeAttr('title');
+				# 	}
+				# ";
+				# print $q->script({'type' => 'text/javascript'}, $async_igv);
+				# if(\$('#igv_div').css('display', 'none')){\$('#igv_div').show();async_igv();}
+
+				# print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "if(\$('#igv_div').css('display', 'none')){\$('#igv_div').show();async_igv();}", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$alignement_file_path.$file_type', indexURL:'$alignement_file_path$addin.$index_ext', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 			}
 			else {print $q->td($result->{'type_analyse'}), "\n"}
-			
+
 			print $q->start_td(), $q->span({'class' => U2_modules::U2_subs_1::translate_boolean_class($result->{'technical_valid'})}, U2_modules::U2_subs_1::translate_boolean($result->{'technical_valid'})), $q->end_td(), "\n",
 				$q->td($result->{'date_analyse'}), "\n",
 				$q->td($result->{'analyste'}), "\n",
@@ -150,9 +182,9 @@ sub print_validation_table {
 		#	print $q->Tr(), $q->td({'colspan' => '13'}, 'This line cannot be seen because of the NGS filter.'), $q->end_Tr(), "\n";
 		#}
 	}
-	
+
 	print $q->end_tbody(), $q->end_table(), $q->end_div();
-	
+
 	#if ($user->isAnalyst() == 1 && $gene ne '') {
 	#	print $q->start_p({'class' => 'center'}), $q->button({'value' => 'Access/Create an analysis', 'onclick' => "document.location = 'add_analysis.pl?step=1&sample=$id$number'"}), $q->end_p();
 	#}
@@ -163,7 +195,7 @@ sub gene_to_display {
 	my ($data, $dbh) = @_;
 	my $query = "SELECT filter FROM miseq_analysis WHERE num_pat = '$data->{'num_pat'}' AND id_pat = '$data->{'id_pat'}' AND type_analyse = '$data->{'type_analyse'}';";
 	my $res = $dbh->selectrow_hashref($query);
-	
+
 	if ($res->{'filter'} eq 'RP') {if ($data->{'rp'} == 1) {return 1}}
 	if ($res->{'filter'} eq 'DFN') {if ($data->{'dfn'} == 1) {return 1}}
 	if ($res->{'filter'} eq 'USH') {if ($data->{'usher'} == 1) {return 1}}
@@ -174,7 +206,7 @@ sub gene_to_display {
 	return 0;
 }
 
-sub get_alignement_path {	
+sub get_alignement_path {
 	my ($id, $number, $analysis, $dbh) = @_;
 	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 	my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
@@ -192,7 +224,7 @@ sub get_alignement_path {
 		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
 		$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 		$alignment_dir = $1;
-		$alignment_dir =~ s/\\/\//og;					
+		$alignment_dir =~ s/\\/\//og;
 	}
 	#elsif($instrument eq 'nextseq') {
 	#	my ($ana, $ana_id) = U2_modules::U2_subs_3::get_nenufaar_id($ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id');
@@ -200,14 +232,14 @@ sub get_alignement_path {
 	#	$alignment_dir = $id.$number.$ana;
 	#}
 	##print $alignment_dir;
-	
+
 	my ($file, $file_type);
 	if ($instrument ne 'nextseq') {
 		my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir`;
 		#print "ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir -- $bam_list";
 		#print $res_manifest->{'run_id'};
 		#create a hash which looks like {"illumina_run_id" => 0}
-		my %files = map {$_ => '0'} split(/\s/, $file_list);		
+		my %files = map {$_ => '0'} split(/\s/, $file_list);
 		foreach my $file_name (keys(%files)) {
 			#print $file_name;
 			if ($file_name =~ /$id$number(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
@@ -216,7 +248,7 @@ sub get_alignement_path {
 				$file_type = $2;
 				$file_type =~ s/^\.//o;
 				#$bam_ftp = "$ftp_dir/$id$number$bam_file_suffix";
-			}								
+			}
 		}
 	}
 	else {
@@ -231,18 +263,18 @@ sub get_alignement_path {
 
 sub get_interval {
 	my ($first_name, $last_name, $gene, $dbh) = @_;
-	my ($mini, $maxi) = (-1, -1);	
+	my ($mini, $maxi) = (-1, -1);
 	my $query = "SELECT MIN(a.num_segment), a.nom_g as mini FROM variant a, variant2patient b, patient c WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND a.type_adn = 'deletion' AND a.num_segment <> a.num_segment_end GROUP BY a.nom_g;";
-	
+
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {$res->{'mini'} =~ /chr\w+:g\.(\d+)[^\d]+(\d+)[^\d]+/o;$mini = min($1, $2)}
-	
-	
+
+
 	$query = "SELECT MAX(a.num_segment_end), a.nom_g as maxi from variant a, variant2patient b, patient c WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND a.type_adn = 'deletion' AND a.num_segment <> a.num_segment_end GROUP BY a.nom_g;";
-	
+
 	$res = $dbh->selectrow_hashref($query);
 	if ($res) {$res->{'maxi'} =~ /chr\w+:g\.(\d+)[^\d]+(\d+)[^\d]+/o;$mini = max($1, $2)}
-	return ($mini, $maxi);	
+	return ($mini, $maxi);
 }
 
 sub get_direction {
@@ -264,7 +296,7 @@ sub print_filter {
 	&add_filter_button($q, 'dbSNP rs ids', 'rs', 'dbSNP variants');
 	&add_filter_button($q, 'dbSNP Common', 'common', 'dbSNP common variants (MAF > 0.01)');
 	&add_filter_button($q, 'R8', 'r8', 'variants occuring in homopolymeric regions');
-	&add_filter_button($q, 'MSR Filter', 'nopass', 'variants with MSR filter not equal to \'PASS\' (and not seen in Sanger)');	
+	&add_filter_button($q, 'MSR Filter', 'nopass', 'variants with MSR filter not equal to \'PASS\' (and not seen in Sanger)');
 	&add_filter_button($q, 'UTR5', 'utr5', 'variants located in the 5\'UTR regions');
 	&add_filter_button($q, 'After stop codon', 'afterstop', 'variants located 3\' of the stop codon');
 	&add_filter_button($q, 'Deep introns', 'deepintron', 'variants located > 30 bp far from exons');
@@ -278,9 +310,9 @@ sub print_filter {
 sub add_filter_button {
 	my ($q, $category, $tag, $title_tag) = @_;
 	print $q->start_li({'class' => 'w3-padding-small'}), $q->span({'class' => 'width_span_100'}, "$category:"),
-			$q->button({'value' => 'Filter', 'title' => "Hide $title_tag", 'onclick' => "variant_hide('$tag');", 'class' => 'w3-button w3-ripple w3-blue w3-tiny  w3-padding-small'}),#'id' => $tag.'_hide_button', 
+			$q->button({'value' => 'Filter', 'title' => "Hide $title_tag", 'onclick' => "variant_hide('$tag');", 'class' => 'w3-button w3-ripple w3-blue w3-tiny  w3-padding-small'}),#'id' => $tag.'_hide_button',
 			#$q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'),
-			#$q->button({'value' => 'Show', 'title' => "Show $title_tag", 'onclick' => "variant_show('$tag');"}),#'id' => $tag.'_show_button', 
+			#$q->button({'value' => 'Show', 'title' => "Show $title_tag", 'onclick' => "variant_show('$tag');"}),#'id' => $tag.'_show_button',
 			$q->span('&nbsp;&nbsp;&nbsp;&nbsp;(currently: '),
 			$q->strong({'id' => $tag.'_txt', 'class' => 'green'}, 'shown'), $q->span(')'),
 		$q->end_li(), "\n";
@@ -292,11 +324,11 @@ sub genotype_line_optimised { #prints a line in the genotype table
 	my $gris = 0;
 	if ($mini != -1 || $maxi != -1) {$gris = &is_in_interval($var, $mini, $maxi, $q)}
 	my ($gene, $acc) = ($var->{'nom_gene'}->[0], $var->{'nom_gene'}->[1]);
-	
-	
+
+
 	#print a same variant only once but prints all the identifying analyses
-	
-	
+
+
 	if ($list->{$var->{'nom'}} && $list->{$var->{'nom'}} >= 1) {return $var->{'nom'}}
 	else {
 		my $type_analyse;
@@ -309,11 +341,11 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		my $res_analyse = $sth_analyse->execute();
 		my $display = 1;
 		while (my $result = $sth_analyse->fetchrow_hashref()) {$type_analyse .= $result->{'type_analyse'}."/"}
-	
+
 		chop($type_analyse);
-		
+
 		my $color = U2_modules::U2_subs_1::color_by_classe($var->{'classe'}, $dbh);
-		
+
 		#get usual name for exon/intron
 		my $nom_seg = $var->{'nom_seg'};
 		#if ($var->{'nom_seg'}) {$nom_seg = $var->{'nom_seg'}}
@@ -330,31 +362,31 @@ sub genotype_line_optimised { #prints a line in the genotype table
 			$nom_seg .= " => $res_nom->{'nom'}";
 			$bg_lr = "#DDDDDD" if $var->{'nom'} =~ /del/o;
 		}
-		
+
 		#define what will be printed depending on type of variant
 		my $intermed = "";
 		if ($var->{'nom_ivs'} && $var->{'nom_ivs'} ne '') {$intermed = $var->{'nom_ivs'}}
 		elsif  ($var->{'nom_prot'} && $var->{'nom_prot'} ne '') {$intermed = $var->{'nom_prot'}}
 		if ($var->{'taille'} > 100) {$intermed .= " - ".$q->strong("(".U2_modules::U2_subs_2::create_lr_name($var, $dbh).")")}
-		
-		
+
+
 		#prepare for hemizygous
 		my $bg_col_hemi = 'transparent';
 		#my $color_hemi = '#FF6600'; #old ushvam
 		if ($var->{'statut'} eq 'hemizygous') {$bg_col_hemi = '#DDDDDD';}#$color_hemi = '#DDDDDD';$bg_col_hemi = '#DDDDDD';}
 		#elsif ($var->{'allele'} eq '2') {$color_hemi = '#990000'}
-		
+
 		#check acc no
 		my $var_name = $var->{'nom'};
 		if ($main_acc ne $acc) {$var_name = "$acc:$var_name"}
-		
+
 		my ($neutral_class, $rs_class, $common_class, $nopass_class, $utr5_class, $afterstop_class, $deepintron_class, $firstseen_class, $r8_class) = ('neutral_no_hide', 'rs_no_hide', 'common_no_hide', 'nopass_no_hide', 'utr5_no_hide', 'afterstop_no_hide', 'deepintron_no_hide', 'firstseen_no_hide', 'r8_no_hide');
 		#, $doc_class , 'doc_no_hide'
 		#we tag line if neutral
 		if ($var->{'classe'} eq 'neutral') {$neutral_class = 'neutral_hide'}
 		if ($var->{'classe'} eq 'R8') {$r8_class = 'r8_hide'}
-		
-		
+
+
 		#idem for rs and common
 		if (($var->{'snp_id'}) && ($var->{'classe'} eq 'neutral' || $var->{'classe'} eq 'unknown')) {
 			$rs_class = 'rs_hide';
@@ -362,9 +394,9 @@ sub genotype_line_optimised { #prints a line in the genotype table
 			#my $common_query = "SELECT common FROM restricted_snp WHERE rsid = '$var->{'snp_id'}';";
 			#my $common_res = $dbh->selectrow_hashref($common_query);
 			#if ($common_res && $common_res->{'common'} == 1) {$common_class = 'common_hide'}
-			if ($var->{snp_common} && $var->{snp_common} == 1) {$common_class = 'common_hide'}			
+			if ($var->{snp_common} && $var->{snp_common} == 1) {$common_class = 'common_hide'}
 		}
-		
+
 		if (($var->{'classe'} eq 'neutral' || $var->{'classe'} eq 'unknown')) {
 			#for pass_hide
 			if ($var->{'msr_filter'} &&  $var->{'msr_filter'} ne 'PASS' && $var->{'msr_filter'} ne '' && $type_analyse !~  /SANGER/o) {$nopass_class = 'nopass_hide'}
@@ -375,18 +407,18 @@ sub genotype_line_optimised { #prints a line in the genotype table
 				if (!$2 && $1 > 30) {$deepintron_class = 'deepintron_hide'}
 				elsif ($2 && ($1 > 30 && $2 > 30)) {$deepintron_class = 'deepintron_hide'}
 			}
-			
+
 			#filter for variants seen only once: there - modified for 3 times
 			my $query_first = "SELECT COUNT(DISTINCT(a.num_pat)) as compte FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.nom_gene[1] = '$gene' AND a.nom_gene[2] = '$acc' AND a.nom_c = '$var->{'nom'}' AND b.proband = 't';";
 			my $res_first = $dbh->selectrow_hashref($query_first);
-			
+
 			if ($res_first->{'compte'} > 3) {$firstseen_class = 'firstseen_hide'}
 		}
-		
-		
-		
-		
-		
+
+
+
+
+
 		#et pour doc < 10
 		#if (($type_analyse !~ /SANGER/) && ($type_analyse =~ /454/) && ($var->{'depth'} < 10)) {$doc_class = 'doc_hide'}
 		#if ($var->{'depth'} && $var->{'depth'} < 10) {$doc_class = 'doc_hide'}
@@ -394,7 +426,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		print $q->start_Tr({'class' => "table_line bright $neutral_class $rs_class $common_class $nopass_class $utr5_class $afterstop_class $deepintron_class $firstseen_class $r8_class"}), "\n";
 		#For global view
 		if ($global eq 't') {print $q->td({'class' => 'italique gras pointer', 'onclick' => "window.open('patient_genotype.pl?sample=".$var->{'id_pat'}.$var->{'num_pat'}."&gene=$gene')", 'title' => "Jump to $gene full genotype"}, $gene), "\n"}
-		
+
 		#defines gene strand
 		#my ($direction, $main_acc, $acc_g, $acc_v) = U2_modules::U2_subs_2::get_direction($gene, $dbh);
 		#my ($igv_start, $igv_end) = ($var->{'start_g'}-10, $var->{'end_g'}+10);
@@ -409,11 +441,11 @@ sub genotype_line_optimised { #prints a line in the genotype table
 			$q->end_td(), "\n";
 		}
 		else {print $q->td($nom_seg), "\n";}
-		
+
 		#We use class and not id because of homozygous variants
 		if (!$var->{'depth'}) {$var->{'depth'} = ''}
 		foreach my $key (keys(%{$var})) {if (!$var->{$key}) {$var->{$key} = ''}}
-		
+
 		#now mafs are computed by ajax  // bugs with jquery bubble popups => replaced with a fixed div...
 		#my $js = "\n
 		#\$('.a$nb').mouseover(function(){
@@ -432,8 +464,8 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		#			align	 : 'center',
 		#			innerHtml: msg,
 		#			innerHtmlStyle: {
-		#				color:'#333333', 
-		#				'text-align':'center',					
+		#				color:'#333333',
+		#				'text-align':'center',
 		#			},
 		#			themeName: 'blue',
 		#			themePath: '/styles/u2/jquerybubblepopup-themes'
@@ -445,7 +477,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		#	//\$('.a$nb').RemoveBubblePopup();
 		#	//while (\$('.a$nb').IsBubblePopupOpen()) {alert('ok');\$('.a$nb').RemoveBubblePopup();}
 		#});";
-		
+
 		#my $js = "\$(document).ready(function(){
 		#	\$('.a$nb').CreateBubblePopup({
 		#		selectable: false,
@@ -458,8 +490,8 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		#		//align	 : 'center',
 		#		innerHtml: 'loading!',
 		#		innerHtmlStyle: {
-		#			color:'#333333', 
-		#			'text-align':'center',					
+		#			color:'#333333',
+		#			'text-align':'center',
 		#		},
 		#		themeName: 'blue',
 		#		themePath: '/styles/u2/jquerybubblepopup-themes'
@@ -475,22 +507,22 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		#			line.SetBubblePopupInnerHtml(msg, false);
 		#		});
 		#	}); //end mouseover event
-		#	
+		#
 		#});";
 		my ($escaped_first_name, $escaped_last_name) = ($var->{'first_name'}, $var->{'last_name'});
 		$escaped_first_name =~ s/'/\\'/og;
 		$escaped_last_name =~ s/'/\\'/og;
 		my $js = "\n
 		\$('.a$nb').mouseover(function(){
-			setTimeout(function (){	
+			setTimeout(function (){
 				\$('#details').show();
-				setTimeout(function (){	
+				setTimeout(function (){
 					\$.ajax({
 					type: \"POST\",
 					url: \"ajax.pl\",
 					data: {asked: 'var_info', gene: '$gene', accession: '$acc', nom_c: '$var->{'nom'}', analysis_all: '$type_analyse', depth: '$var->{'depth'}', current_analysis: '$var->{'type_analyse'}', frequency: '$var->{'frequency'}', wt_f: '$var->{'wt_f'}', wt_r: '$var->{'wt_r'}', mt_f: '$var->{'mt_f'}', mt_r: '$var->{'mt_r'}', last_name: '$escaped_last_name', first_name: '$escaped_first_name', msr_filter: '$var->{'msr_filter'}', nb: '$nb'}
 					})
-					.done(function(msg) {					
+					.done(function(msg) {
 						\$('#details').html(msg);
 						\$('#details').css('z-index', '10');
 					});
@@ -499,18 +531,18 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		});
 		\$('.a$nb').mouseout(function(){
 			\$('#details').hide();
-			\$('#details').html('<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...');			
+			\$('#details').html('<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...');
 		});";
-		
+
 		#my $tr_class = 'no_hide';
-		
+
 		##337AB7 blue
 		##FF6600 orange
 		##D0E3F0 lightblue
 		##990000 deep red
 		##F45B5B red
 		my ($allele1, $allele2) = ('#F45B5B', '#337AB7');
-		
+
 		##tagged line if maf is > 0.01
 		#	#print $var->{'allele'};
 		if ($var->{'allele'} eq '1') {
@@ -544,19 +576,19 @@ sub genotype_line_optimised { #prints a line in the genotype table
 				$q->start_td({'bgcolor' => $allele1, 'align' => 'left'}), $q->start_big(), $q->start_strong(), $q->font({'color' => '#FFFFFF'}, '.'), $q->end_strong(), $q->end_big, $q->end_td(), "\n",
 				$q->start_td({'bgcolor' => $allele2, 'align' => 'right'}), $q->start_big(), $q->start_strong(), $q->font({'color' => '#FFFFFF'}, '.'), $q->end_strong(), $q->end_big, $q->end_td(), "\n",
 				$q->start_td({'align' => 'left', 'bgcolor' => $bg_lr, 'onclick' => "window.open('variant.pl?gene=$gene&accession=$acc&nom_c='+encodeURIComponent('$var->{'nom'}')+'')", 'class' => 'ital'}), $q->font({'color' => $color, 'class' => "a$nb"}, "$var_name - $intermed"), $q->script({'type' => 'text/javascript'}, $js), $q->end_td(), "\n",
-				$q->td({'bgcolor' => $allele1}, '&nbsp;'), $q->td('&nbsp;'), "\n",			
+				$q->td({'bgcolor' => $allele1}, '&nbsp;'), $q->td('&nbsp;'), "\n",
 				$q->td({'bgcolor' => $allele2}, '&nbsp;'), "\n";
 		}
 		my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($var->{'denovo'});
-		print $q->start_td().$q->span(lc($type_analyse)).$q->strong($denovo_txt).$q->end_td();		
+		print $q->start_td().$q->span(lc($type_analyse)).$q->strong($denovo_txt).$q->end_td();
 		if ($var->{'snp_id'}) {print $q->start_td(), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?rs=$var->{'snp_id'}", 'target' => '_blank'}, $var->{'snp_id'}), $q->end_td()}
 		else {print $q->td()}
-		
+
 		print $q->end_Tr();
-		
-		
-		return $var->{'nom'};	
-	}	
+
+
+		return $var->{'nom'};
+	}
 }
 
 #sub is_int {
@@ -662,7 +694,7 @@ sub send_manual_mail {
 	if ($to_follow ne '') {
 		$mailer->datasend("\n\nThe following variants must be checked:\n\n");
 		$mailer->datasend($to_follow);
-	}	
+	}
 	if ($text2 ne '') {
 		$mailer->datasend("\n\nThe following variants have not been considered:\n\n");
 		$mailer->datasend($text2);
@@ -673,7 +705,7 @@ sub send_manual_mail {
 	#}
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
 	$mailer->dataend() or print STDERR " End Pb with gmail before sending: ".$mailer->message();
-	$mailer->quit();	
+	$mailer->quit();
 }
 
 sub send_general_mail {
@@ -707,7 +739,7 @@ sub send_general_mail {
 
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
 	$mailer->dataend() or print STDERR " End Pb with gmail before sending: ".$mailer->message();
-	$mailer->quit();	
+	$mailer->quit();
 }
 
 sub request_variant_classification {
@@ -746,12 +778,12 @@ sub request_variant_classification {
 	# foreach my $adress (@$EMAIL_CLASS) {$mailer->to($adress)}
 	if ($user->getEmail() ne $ADMIN_EMAIL_DEST) {$mailer->to($user->getEmail())}
 	$mailer->data();
-	
+
 	$mailer->datasend("Subject: [USHVaM 2]: Request Variant Classification\n\n");
 	$mailer->datasend("\n\nHello,\n".$user->getName()." has requested the classification of variant $var in gene $gene.\nPlease proceed as soon as possible.");
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
 	$mailer->dataend();
-	$mailer->quit();	
+	$mailer->quit();
 }
 
 #for add_analysis.pl, gene.pl => gene canvas with associated map
@@ -762,7 +794,7 @@ sub gene_canvas {
 	#or no a canvas!!!! HTML5
 	#ok this is relou as canvas don't accept links, so I put a transparent picture above with a map
 	if ($js_params->[1] eq "NULL") {$js_params->[1] = $order}
-	
+
 	my $query = "SELECT b.nom as gene, b.acc_g, a.numero as numero, a.nom as nom, a.type as type FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.nom[1] = '$gene' AND b.main = 't' AND a.nom NOT LIKE '%bis' order by a.$postgre_start_g $order;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -795,10 +827,10 @@ sub gene_canvas {
 			$i++;
 			$x_line_intron += 100;
 			$x_txt_intron += 100;
-			
+
 		}
 		elsif ($result->{'type'} eq 'exon') { #for exons print name of segment and a box + a map (left, top, right, bottom)
-			$js .= "\t\t\t\t\tcontext.fillStyle = \"#D6A8CF\";				
+			$js .= "\t\t\t\t\tcontext.fillStyle = \"#D6A8CF\";
 				context.fillRect($x_intron_exon,$y_up_exon,50,25);
 				context.strokeRect($x_intron_exon,$y_up_exon,50,25);
 				context.fillStyle = \"#000000\";
@@ -806,11 +838,11 @@ sub gene_canvas {
 			$map .= "<area shape = 'rect' coords = '".($x_intron_exon-100).",".($y_line_intron-25).",".($x_intron_exon-50).",".($y_line_intron+25)."' onclick = '$js_params->[0](\"$result->{'type'}\", \"$result->{'nom'}\", \"$result->{'numero'}\", \"$gene\", \"$acc\", \"$js_params->[1]\", \"$js_params->[2]\");' href = 'javascript:;'/>\n";
 			$i++;
 			$x_intron_exon += 100;
-			$x_txt_exon += 100;					
+			$x_txt_exon += 100;
 		}
 	}
-	
-	
+
+
 	#secondary acc# 05/12/2016 put  ORDER BY b.nom, a.numero, a.type clause to query - was absent but od not know if it has ever been present...
 	$query = "SELECT b.nom as gene, a.numero as numero, a.nom as nom, a.type as type FROM segment a, gene b WHERE a.nom_gene = b.nom AND nom_gene[1] = '$gene' AND b.main = 'f' AND (a.$postgre_start_g NOT IN (SELECT a.$postgre_start_g FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.main = 't' AND b.nom[1] = '$gene') OR a.$postgre_end_g NOT IN (SELECT a.$postgre_end_g FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.main = 't' AND b.nom[1] = '$gene')) ORDER BY b.nom, a.numero, a.type;";
 	$sth = $dbh->prepare($query);
@@ -844,10 +876,10 @@ sub gene_canvas {
 				$map .= "<area shape = 'rect' coords = '".($x_line_intron-100).",".($y_line_intron-25).",".($x_line_intron-50).",".($y_line_intron+25)."' onclick = '$js_params->[0](\"$result->{'type'}\", \"$result->{'nom'}\", \"$result->{'numero'}\", \"$gene\", \"$acc\", \"$js_params->[1]\", \"$js_params->[2]\");' href = 'javascript:;'/>\n";
 				$i++;
 				$x_line_intron += 100;
-				$x_txt_intron += 100;			
+				$x_txt_intron += 100;
 			}
 			elsif ($result->{'type'} eq 'exon') { #for exons print name of segment and a box + a map (left, top, right, bottom) CBEDB9
-				$js .= "\t\t\t\t\tcontext.fillStyle = \"#D6A8CF\";							
+				$js .= "\t\t\t\t\tcontext.fillStyle = \"#D6A8CF\";
 					context.fillRect($x_intron_exon,$y_up_exon,50,25);
 					context.strokeRect($x_intron_exon,$y_up_exon,50,25);
 					context.fillStyle = \"#000000\";
@@ -858,11 +890,11 @@ sub gene_canvas {
 				if ($i == 1) {$x_txt_intron += 100;$x_line_intron += 100}
 				###end modified
 				$x_intron_exon += 100;
-				$x_txt_exon += 100;					
+				$x_txt_exon += 100;
 			}
 		}
 	}
-	
+
 	$map .= "</map>\n";
 	return ($js, $map, $main, $ng);
 }
@@ -898,10 +930,10 @@ sub segment_canvas {
 		elsif ($label1 ne 'Intron') {$seg1 = ''}
 		elsif ($label2 ne 'Intron') {$seg3 = ''}
 
-		
-		
+
+
 		#texts and drawings
-		$js .= "	context.fillText(\"$label1 $seg1\", $points->{'a'}[0], $points->{'a'}[1]);				
+		$js .= "	context.fillText(\"$label1 $seg1\", $points->{'a'}[0], $points->{'a'}[1]);
 				context.fillText(\"$var\", $points->{'e'}[0], $points->{'e'}[1]);
 				context.fillText(\"$label2 $seg3\", $points->{'g'}[0], $points->{'g'}[1]);
 				context.fillText(\"3'ss $score3->[0]\", $points->{'h'}[0], $points->{'h'}[1]);
@@ -934,7 +966,7 @@ sub segment_canvas {
 			'h' => [$L/3, 5*$h/6], #3' name x, y
 			'i' => [(2*$L/3)-25, 5*$h/6], #5' name x, y
 		};
-		
+
 		#texts and drawings
 		$js .= "	context.fillText(\"$var\", $points->{'e'}[0], $points->{'e'}[1]);
 				context.fillText(\"3'ss $score3->[0]\", $points->{'h'}[0], $points->{'h'}[1]);
@@ -950,7 +982,7 @@ sub segment_canvas {
 				context.fillRect($points->{'f'}[0],$points->{'f'}[1],100,50);
 				context.strokeRect($points->{'f'}[0],$points->{'f'}[1],100,50);
 				context.fillStyle = \"#000000\";
-				context.fillText(\"Exon $seg1\", $points->{'b'}[0], $points->{'b'}[1]);	
+				context.fillText(\"Exon $seg1\", $points->{'b'}[0], $points->{'b'}[1]);
 				context.fillText(\"Exon $seg3\", $points->{'g'}[0], $points->{'g'}[1]);
 				context.fillText(\"Intron $seg2 ($seg_size bp)\", $points->{'d'}[0], $points->{'d'}[1]);
 				context.moveTo($points->{'e'}[0],$points->{'e'}[1]);
@@ -958,7 +990,7 @@ sub segment_canvas {
 				context.stroke();
 		";
 	}
-	
+
 	return $js;
 }
 
@@ -1020,11 +1052,11 @@ sub graph_pie {
 	else {($data, $total) = &get_data_variants($query, $query2, $label, $dbh)}#variants with frequency
 	$text =~ s/X/$total/g;
 	my $js = &get_highcharts_pie($data, $p_body_id, $text, $date, $short, $base_url, $type, $bool);
-	
+
 	print				$q->end_div(), "\n",
-					$q->script({'type' => 'text/javascript'}, $js),				
+					$q->script({'type' => 'text/javascript'}, $js),
 				$q->end_div(), "\n",
-			$q->end_div(), "\n";	
+			$q->end_div(), "\n";
 }
 
 #in stats_general.pl, gene_graphs.pl (highcharts.js graphs)
@@ -1043,7 +1075,7 @@ sub get_highcharts_pie {
 		';
 		$add2 = '<br/>Click to open a detailed list of '.$type;
 	}
-	
+
 	return '
 		$(function () {
 			$(\'#'.$id.'\').highcharts({
@@ -1077,8 +1109,8 @@ sub get_highcharts_pie {
 					type: \'pie\',
 					name: \''.$short.'\',
 					data: [
-						'.$data.'			
-					],            
+						'.$data.'
+					],
 				}]
 			});
 		});
@@ -1098,7 +1130,7 @@ sub get_data_pathos {
 		$data .= "\t\t\t\t\t['$result->{'label'}', $result->{'num'}],\n";
 		$total += $result->{'num'};
 	}
-	return ($data, $total);	
+	return ($data, $total);
 }
 #in stats_general.pl, gene_graphs.pl (highcharts.js graphs)
 sub get_data_variants {
@@ -1120,8 +1152,8 @@ sub get_data_variants {
 		$data .= "\t\t\t\t\t['large rearrangements', $res->{'others'}],\n";
 		$total += $res->{'others'};
 	}
-	
-	return ($data, $total);	
+
+	return ($data, $total);
 }
 #in stats_general.pl, gene_graphs.pl (highcharts.js graphs)
 sub RNA_pie {
@@ -1129,11 +1161,11 @@ sub RNA_pie {
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my ($raw_data, $gene);
-	if ($res ne '0E0') {	
+	if ($res ne '0E0') {
 		while (my $result = $sth->fetchrow_hashref()) {
 			if ($gene eq '' && $query =~ /nom_gene\[1\]\s=/o) {$gene = $result->{'nom_gene'}[0]}
 			$raw_data->{U2_modules::U2_subs_1::get_interpreted_position($result, $dbh)}++;
-			
+
 			#if ($result->{'type_segment'} eq 'exon') {
 			#	my ($dist, $site) = U2_modules::U2_subs_1::get_pos_from_intron($result, $dbh);
 			#	#$site middle, donor, acceptor, overlap
@@ -1141,7 +1173,7 @@ sub RNA_pie {
 			#	if ($dist <= 3 && $dist >= 0) {$raw_data->{"exonic near $site"}++}
 			#	elsif ($site eq 'overlap') {$raw_data->{'overlap junction'}++}
 			#	else {$raw_data->{'exonic middle'}++}
-			#}			
+			#}
 			#elsif ($result->{'type_segment'} eq 'intron') {
 			#	my $dist = U2_modules::U2_subs_1::get_pos_from_exon($result->{'nom'});
 			#	if ($dist < 3 && $dist > 0) {$raw_data->{'cannonical site'}++}
@@ -1155,7 +1187,7 @@ sub RNA_pie {
 		foreach my $label (sort keys %{$raw_data}) {$data .= "\t\t\t\t\t['$label', $raw_data->{$label}],\n";$i += $raw_data->{$label}}
 		my $base_url = 'https://pp-gb-gen.iurc.montp.inserm.fr/perl/U2/engine.pl?search=RNA&dynamic=';
 		if ($query =~ /nom_gene\[1\]\s=/o) {$base_url = "https://pp-gb-gen.iurc.montp.inserm.fr/perl/U2/gene.pl?gene=$gene&info=all_vars&sort=type_arn&dynamic="}#called from gene sepcific page}
-		
+
 		U2_modules::U2_subs_2::graph_pie('rna-variant-type', 'Variants causing RNA alterations', 'variant_rna_pie_chart', '', $i, "Alteration types causing RNA variations among pathogenic variants<br/>(Total: X variants)", $date, "variant types", $base_url, 'variant', 'false', '', $data, $q, $dbh);
 	}
 }
@@ -1179,7 +1211,7 @@ sub danger_panel {
 
 sub cnil_disclaimer {
 	my $q = shift;
-	return info_panel('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement.'.$q->br().'Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites « sensibles » au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.', $q); 
+	return info_panel('Les donnï¿½es collectï¿½es dans la zone de texte libre doivent ï¿½tre pertinentes, adï¿½quates et non excessives au regard de la finalitï¿½ du traitement.'.$q->br().'Elles ne doivent pas comporter d\'apprï¿½ciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des donnï¿½es dites ï¿½ sensibles ï¿½ au sens de l\'article 8 de la loi nï¿½78-17 du 6 janvier 1978 relative ï¿½ l\'informatique, aux fichiers et aux libertï¿½s.', $q);
 }
 
 #in add_analysis.pl, add_clinical_exome.pl
@@ -1191,11 +1223,11 @@ sub check_ngs_samples {
 	my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
 	my $count_hash = 0;
 	foreach my $totest (keys(%{$patients})) {
-		$totest =~ /^$PATIENT_IDS\s*(\d+)$/o;						
+		$totest =~ /^$PATIENT_IDS\s*(\d+)$/o;
 		$query .= "(num_pat = '$2' AND id_pat = '$1') ";
 		$query2 .= "(numero = '$2' AND identifiant = '$1') ";
 		$count_hash++;
-		if ($count_hash < keys(%{$patients})) {$query .= "OR ";$query2 .= "OR ";}								
+		if ($count_hash < keys(%{$patients})) {$query .= "OR ";$query2 .= "OR ";}
 	}
 	$query .= ") GROUP BY num_pat, id_pat;";
 	$query2 .= ";";
@@ -1203,7 +1235,7 @@ sub check_ngs_samples {
 	my $sth = $dbh->prepare($query2);
 	my $res = $sth->execute();
 	#modify hash
-	
+
 	while (my $result = $sth->fetchrow_hashref()) {
 		$patients->{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
 	}
@@ -1213,7 +1245,7 @@ sub check_ngs_samples {
 	while (my $result = $sth->fetchrow_hashref()) {
 		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}} = 2} #remove patients with that type of analysis already recorded
 	}
-	return $patients;	
+	return $patients;
 }
 
 sub get_filtering_and_manifest {
@@ -1257,22 +1289,22 @@ sub print_panel_criteria {
 
 sub build_ngs_form {
 	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $access_method) = @_;
-	
+
 	my $info =  "In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).".$q->br()."Please select those you are interested in";
 	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
-	$info .= ".";	
+	$info .= ".";
 	my $form = &info_panel($info, $q);
-		
+
 	#.$q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-ripple w3-display-topright w3-large'}, 'X').$q->start_p({'class' => 'w3-margin'}).$q->strong().$q->end_p().$q->end_div().$q->br()."\n";
 	$info = 'You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet.'.$q->br().'In this case, please insert them via the Excel file and reload the page.';
-	
+
 	$form .= &danger_panel($info, $q).$q->br();
-	
-	
+
+
 	#Filtering or not?
 	my $filter = '';
 	if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
-	
+
 
 	$form .= $q->start_div({'align' => 'center'}).
 		$q->start_div({'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'style' => 'width:50%'}).
@@ -1283,17 +1315,17 @@ sub build_ngs_form {
 			$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"})."\n".
 			$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"})."\n".
 			$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"})."\n";
-	if ($filter ne '') {$form .=  $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"})."\n"}								
-		
+	if ($filter ne '') {$form .=  $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"})."\n"}
+
 	#		$q->start_ol(), "\n";
-			
+
 	#new implementation to get an idea of the sequencing quality per patient
 	#get last alignment dir
 	#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
 	#$alignment_dir =~ /\\(Alignment\d*)<$/o;
 	#$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
-	
-	
+
+
 	my $i = 2;
 	foreach my $sample (sort keys(%{$patients})) {
 		#$sample =~ s/\n//og;
@@ -1330,13 +1362,13 @@ sub build_ngs_form {
 					$q->end_div().
 					$q->div({'class' => 'w3-rets w3-medium'}, " has already a run recorded as $analysis.")."\n".$q->end_div();
 		}
-		else {#original patient									
+		else {#original patient
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, $sample)."\n";
 			if ($filtered == '1') {
 				$form .=   $q->div({'class' => 'w3-quarter w3-large'}, "Filter:").
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, "$filter")."\n";
-			}			
+			}
 			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $access_method)}
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
@@ -1369,14 +1401,14 @@ sub get_raw_data_ce {
 	#Target coverage at 20X:,
 	#SNV Ts/Tv ratio:,
 	#Mean region coverage depth:,
-	
+
 	my ($x20_expr, $tstv_expr, $doc_expr) = ('PCT_TARGET_BASES_20X', 'known_titv', 'MEAN_TARGET_COVERAGE');
-	
+
 	my $x20 = &get_raw_detail_ce($data_dir, $run, $sample, $x20_expr, 'multiqc_data/multiqc_picard_HsMetrics.txt');
 	my $tstv = &get_raw_detail_ce($data_dir, $run, $sample, $tstv_expr, 'multiqc_data/multiqc_gatk_varianteval.txt');
 	my $doc = &get_raw_detail_ce($data_dir, $run, $sample, $doc_expr, 'multiqc_data/multiqc_picard_HsMetrics.txt');
-	
-	
+
+
 	my $criteria = '';
 	if ($x20 < $U2_modules::U2_subs_1::PC20X_CE) {$criteria .= ' (20X % &le; '.$U2_modules::U2_subs_1::PC20X_CE.') '}
 	if ($tstv < $U2_modules::U2_subs_1::TITV_CE) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV_CE.') '}
@@ -1388,11 +1420,11 @@ sub get_raw_data_ce {
 sub get_raw_detail_ce {
 	my ($dir, $run, $sample, $criteria, $file) = @_;
 	my $value;
-	
+
 	open F, "$dir/$run/$file" or die "File $dir/$run/$file not found $!";
 	my $index = 0;
 	while (<F>) {
-		chomp;		
+		chomp;
 		if (/Sample/o) {#1st line look for good col
 			my @cols = split(/\t/, $_);
 			my $i = 0;
@@ -1445,14 +1477,14 @@ sub get_raw_data {
 	#SNV Ts/Tv ratio:,
 	#Mean region coverage depth:,
 	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads);
-	
+
 	if ($instrument eq 'miseq') {
 		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
 	}
 	elsif ($instrument eq 'miniseq') {
 		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Targeted aligned reads,');
 	}
-	
+
 	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file, $access_method);
 	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file, $access_method);
 	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file, $access_method);
@@ -1500,7 +1532,7 @@ sub build_sample_hash {
 	#samples are grouped under the same name, and are like X_SUXXX
 	#filters arrive independantly, as X_filter
 	#X is the linker between both
-	
+
 	my @false_list = $q->param('sample');
 	my %list;
 	foreach (@false_list) {
@@ -1535,7 +1567,7 @@ sub dbnsfp_clinvar2text {
 		else {if ($trad =~ /unknown code;/){next}else{$_ .=  'unknown code;'}}
 	}
 	return $trad;
-		
+
 	#if ($code < 0) {return 'score for ref allele'}
 	#elsif ($code == 2) {return 'Benign'}
 	#elsif ($code == 3) {return 'Likely benign'}
@@ -1574,11 +1606,11 @@ sub most_damaging {
 #	my $gris = 0;
 #	if ($mini != -1 || $maxi != -1) {$gris = &is_in_interval($var, $mini, $maxi, $q)}
 #	my ($gene, $acc) = ($var->{'nom_gene'}->[0], $var->{'nom_gene'}->[1]);
-#	
-#	
+#
+#
 #	#print a same variant only once but prints all the identifying analyses
-#	
-#	
+#
+#
 #	if ($list->{$var->{'nom'}} && $list->{$var->{'nom'}} >= 1) {return $var->{'nom'}}
 #	else {
 #		my $type_analyse;
@@ -1587,17 +1619,17 @@ sub most_damaging {
 #		my $res_analyse = $sth_analyse->execute();
 #		my $display = 1;
 #		while (my $result = $sth_analyse->fetchrow_hashref()) {$type_analyse .= $result->{'type_analyse'}."/"}
-#	
+#
 #		chop($type_analyse);
-#		
+#
 #		my $color = U2_modules::U2_subs_1::color_by_classe($var->{'classe'}, $dbh);
-#		
+#
 #		#get usual name for exon/intron
-#		
+#
 #		my $query_nom = "SELECT nom FROM segment WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND type = '$var->{'type_segment'}' AND numero = '$var->{'num_segment'}';";
 #		my $res_nom = $dbh->selectrow_hashref($query_nom);
 #		my $nom_seg = $res_nom->{'nom'};
-#		
+#
 #		#for LR
 #		my $bg_lr = 'transparent';
 #		if ($var->{'num_segment'} ne $var->{'num_segment_end'} && $var->{'nom'} =~ /(del|dup|ins)/o) {#Large rearrangement
@@ -1611,21 +1643,21 @@ sub most_damaging {
 #		if ($var->{'nom_ivs'} && $var->{'nom_ivs'} ne '') {$intermed = $var->{'nom_ivs'}}
 #		elsif  ($var->{'nom_prot'} && $var->{'nom_prot'} ne '') {$intermed = $var->{'nom_prot'}}
 #		if ($var->{'taille'} > 100) {$intermed .= " - ".$q->strong("(".U2_modules::U2_subs_2::create_lr_name($var, $dbh).")")}
-#		
-#		
+#
+#
 #		#prepare for hemizygous
 #		my $bg_col_hemi = 'transparent';
 #		#my $color_hemi = '#FF6600'; #old ushvam
 #		if ($var->{'statut'} eq 'hemizygous') {$bg_col_hemi = '#DDDDDD';}#$color_hemi = '#DDDDDD';$bg_col_hemi = '#DDDDDD';}
 #		#elsif ($var->{'allele'} eq '2') {$color_hemi = '#990000'}
-#		
+#
 #		#check acc no
 #		my $var_name = $var->{'nom'};
 #		if ($main_acc ne $acc) {$var_name = "$acc:$var_name"}
-#		
+#
 #		#MAFs
 #		my ($MAF, $maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA', 'NA');
-#		#if ($var->{'type_analyse'} eq 'NGS-454') { 
+#		#if ($var->{'type_analyse'} eq 'NGS-454') {
 #		#MAF 454
 #		$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var->{'nom'}, '454-\d+');
 #		#MAF SANGER
@@ -1634,7 +1666,7 @@ sub most_damaging {
 #		$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var->{'nom'}, 'MiSeq-\d+');
 #		my $maf_url = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";
 #		$MAF = "MAF 454: <strong>$maf_454</strong> / MAF Sanger: <strong>$maf_sanger</strong><br/>MAF MiSeq: <strong>$maf_miseq</strong>";
-#		
+#
 #		#454-USH2A for only a few patients
 #		my $maf_454_ush2a = '';
 #		if ($gene eq 'USH2A' && $type_analyse =~ /454-USH2A/o) {
@@ -1642,15 +1674,15 @@ sub most_damaging {
 #			$maf_url = "MAF 454-USH2A: $maf_454_ush2a / $maf_url";
 #			$MAF = "MAF 454-USH2A: <strong>$maf_454_ush2a</strong><br/>$MAF";
 #		}
-#		
-#		
+#
+#
 #		#actual printing
 #		#my $maf_url = $MAF;
 #		#$maf_url =~ s/<strong>//og;
 #		#$maf_url =~ s/<\/strong>//og;
 #		#$maf_url =~ s/<br\/>//og;
 #		$maf_url =~ s/ /_/og;
-#		
+#
 #		my ($maf_class, $rs_class, $doc_class, $common_class) = ('maf_no_hide', 'rs_no_hide', 'doc_no_hide', 'common_no_hide');
 #		#on va tagger la ligne si la maf est > 0,01 (et pas UV)
 #		if ((($maf_454 ne 'NA' && $maf_454 > 0.01) || ($maf_sanger ne 'NA' && $maf_sanger > 0.01) || ($maf_miseq ne 'NA' && $maf_miseq > 0.01) || ($maf_454_ush2a ne 'NA' && $maf_454_ush2a > 0.16)) && ($var->{'classe'} eq 'neutral' || $var->{'classe'} eq 'unknown')) {$maf_class = 'maf_hide'}
@@ -1664,15 +1696,15 @@ sub most_damaging {
 #		#et pour doc < 10
 #		if (($type_analyse !~ /SANGER/) && ($type_analyse =~ /454/) && ($var->{'depth'} < 10)) {$doc_class = 'doc_hide'}
 #
-#		
+#
 #		print $q->start_Tr({'class' => "table_line $maf_class $rs_class $doc_class $common_class", 'onmouseover' => 'this.style.backgroundColor=\'#e4edf9\'', 'onmouseout' => 'this.style.backgroundColor=\'\''}), "\n";
 #		#For global view
 #		if ($global eq 't') {print $q->start_td({'class' => 'ital', 'onclick' => "window.open('patient_genotype.pl?sample=".$var->{'id_pat'}.$var->{'num_pat'}."&gene=$gene')", 'title' => "Jump to $gene full genotype"}), $q->start_strong(), $q->em($gene), $q->end_strong(), $q->end_td(), "\n"}
-#		
+#
 #		print $q->td($nom_seg), "\n";
-#			
+#
 #		#if (!$var->{'depth'}) {$var->{'depth'} = 'NA'}
-#		
+#
 #		my $print_ngs = '';
 #		if ($var->{'depth'}) {
 #			if ($var->{'type_analyse'} =~ /454-/o) {
@@ -1683,7 +1715,7 @@ sub most_damaging {
 #					my $res_ngs = $dbh->selectrow_hashref($query_ngs);
 #					$print_ngs .= "DOC MiSeq: <strong>$res_ngs->{'depth'}</strong> Freq: <strong>$res_ngs->{'frequency'}</strong><br/>MSR filter:<strong>$res_ngs->{'msr_filter'}</strong><br/>";
 #				}
-#				
+#
 #			}
 #			if ($var->{'type_analyse'} =~ /MiSeq-/o) {
 #				$print_ngs = "DOC MiSeq: <strong>$var->{'depth'}</strong> Freq: <strong>$var->{'frequency'}</strong><br/>MSR filter:<strong>$var->{'msr_filter'}</strong><br/>";
@@ -1695,7 +1727,7 @@ sub most_damaging {
 #				}
 #			}
 #		}
-#		
+#
 #		#my $js = "\$(document).ready(function(){
 #		#We use class and not id because of homozygous variants
 #		#OLD innerHtml: '<big>$var->{'nom_g'}<br/>$acc_g:$var->{'nom_ng'}<br/>$print_ngs $MAF<br/><span id = \"maf_$nb\"></span></big>',
@@ -1709,8 +1741,8 @@ sub most_damaging {
 #				align	 : 'center',
 #				innerHtml: '<big>$print_ngs $MAF<br/><span id = \"maf_$nb\"></span></big>',
 #				innerHtmlStyle: {
-#					color:'#333333', 
-#					'text-align':'center',					
+#					color:'#333333',
+#					'text-align':'center',
 #				},
 #				themeName: 'blue',
 #				themePath: '/styles/u2/jquerybubblepopup-themes'
@@ -1752,33 +1784,33 @@ sub most_damaging {
 #				$q->start_td({'bgcolor' => '#990000', 'align' => 'left'}), $q->start_big(), $q->start_strong(), $q->font({'color' => '#FFFFFF'}, '.'), $q->end_strong(), $q->end_big, $q->end_td(), "\n",
 #				$q->start_td({'bgcolor' => '#FF6600', 'align' => 'right'}), $q->start_big(), $q->start_strong(), $q->font({'color' => '#FFFFFF'}, '.'), $q->end_strong(), $q->end_big, $q->end_td(), "\n",
 #				$q->start_td({'align' => 'left', 'bgcolor' => $bg_lr, 'onclick' => "window.open('variant.pl?gene=$gene&accession=$acc&nom_c='+encodeURIComponent('$var->{'nom'}')+'&maf='+encodeURIComponent('$maf_url')+'')", 'class' => 'ital'}), $q->font({'color' => $color, 'class' => "a$nb"}, "$var_name - $intermed"), $q->script({'type' => 'text/javascript'}, $js), $q->end_td(), "\n",
-#				$q->td({'bgcolor' => '#990000'}, '&nbsp;'), $q->td('&nbsp;'), "\n",			
+#				$q->td({'bgcolor' => '#990000'}, '&nbsp;'), $q->td('&nbsp;'), "\n",
 #				$q->td({'bgcolor' => '#FF6600'}, '&nbsp;'), "\n";
 #		}
-#			
+#
 #		print $q->td(lc($type_analyse));
-#		
-#		
+#
+#
 #		if ($var->{'snp_id'}) {print $q->start_td(), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/SNP/snp_ref.cgi?rs=$var->{'snp_id'}", 'target' => '_blank'}, $var->{'snp_id'}), $q->end_td()}
 #		else {print $q->td()}
-#		
+#
 #		print $q->end_Tr();
-#		
-#		
-#		return $var->{'nom'};	
-#	}	
+#
+#
+#		return $var->{'nom'};
+#	}
 #}
 
 
 ### does not work with mod_perl for some reason
 ### externalised in a separate cgi file
-###sub make_del_graph {  #crŽer une image du gne et de la deletion
+###sub make_del_graph {  #crï¿½er une image du gï¿½ne et de la deletion
 ###	my ($gene, $image_url, $data, $gi) = @_;
 ###
-###	
+###
 ###	my $gb = Bio::DB::GenBank->new() or die $!;
 ###	my $seq = $gb->get_Seq_by_gi($gi) or die $!;
-###	
+###
 ###	#my $file = "/Library/WebServer/Documents/USHVaM/data/polydb/".$gene.".gb";
 ###	#my $io = Bio::SeqIO->new(-file=>$file, -format=>'genbank') or die $!;
 ###	#my $seq = $io->next_seq 	       or die $!;
@@ -1804,7 +1836,7 @@ sub most_damaging {
 ###			    -bump 	=> 0,
 ###			    -double 	=> 1,
 ###			    -tick 	=> 2);
-###	
+###
 ###	# afficher exon/intron
 ###	if ($sorted_features{mRNA}) {
 ###		$panel->add_track($sorted_features{mRNA},
@@ -1822,7 +1854,7 @@ sub most_damaging {
 ###			   );
 ###		delete $sorted_features{'mRNA'};
 ###	}
-###	#afficher des rectangles->dŽletion
+###	#afficher des rectangles->dï¿½letion
 ###	#foreach(@coord) {
 ###	#my (@links, @titles);
 ###	foreach my $key (sort keys %{$data}) {
@@ -1848,7 +1880,7 @@ sub most_damaging {
 ###		#push @links, 'https://194.167.35.158/cgi-bin/USHVaM/polydb/consult_1.fcgi?geno=2&amp;patient='.$info[1].'&amp;gene='.$gene;
 ###		#push @titles, $info[0];
 ###	}
-###	
+###
 ###	#my @boxes = $panel->boxes();
 ###	#my $i = 0;
 ###	#foreach(@boxes) {
@@ -1859,7 +1891,7 @@ sub most_damaging {
 ###	#	$i++;
 ###	#}
 ###	#print $image_url;exit;
-###	
+###
 ###	#my @boxes = $panel->boxes();
 ###	#my $i = 0;
 ###	#foreach(@boxes) {
@@ -1871,7 +1903,7 @@ sub most_damaging {
 ###	#	}
 ###	#	$i++;
 ###	#}
-###	
+###
 ###	open F, ">$image_url" or die $!;
 ###	binmode F;
 ###	print F $panel->png();
@@ -1891,7 +1923,7 @@ sub most_damaging {
 ###	###my ($url,$map,$mapname) = $panel->image_and_map(-root => '/Library/WebServer/Documents/', -url => 'tmp/img/');
 ###	###print qq(<img src="$url" usemap="#$mapname">),"\n";
 ###	###print $map,"\n";
-###	
+###
 ###	$panel->finished();
 ###	#return $code;
 ###	#return $$;
