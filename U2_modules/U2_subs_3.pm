@@ -938,7 +938,13 @@ sub direct_submission {
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {
 		# print STDERR "Direct submission res (inside): $res->{'nom'}\n";
-		return "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$res->{'nom'}', '$number', '$id', '{\"$res->{'nom_gene'}[0]\",\"$res->{'nom_gene'}[1]\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
+		my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$res->{'nom'}' AND nom_gene[2] = '".$res->{'nom_gene'}[1]."';";
+		my $res_last_check = $dbh->selectrow_hashref($last_check);
+		# print STDERR "Last check direct submission: $res_last_check\n";
+		if (!$res_last_check || $res_last_check eq '0E0') {
+			return "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$res->{'nom'}', '$number', '$id', '{\"$res->{'nom_gene'}[0]\",\"$res->{'nom_gene'}[1]\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
+		}
+		else {return '';}
 	}
 	else {return '';}
 }

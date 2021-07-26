@@ -834,7 +834,7 @@ if ($step && $step == 2) {
               # then we should check whether the variant is not already inserted
               my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$var_final' AND nom_gene[2] = '$acc_no';";
               my $res_last_check = $dbh->selectrow_hashref($last_check);
-              print STDERR "Last check: $res_last_check\n";
+              # print STDERR "Last check: $res_last_check\n";
               if (!$res_last_check || $res_last_check eq '0E0') {
                 $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
   							# print STDERR $insert."\n";
