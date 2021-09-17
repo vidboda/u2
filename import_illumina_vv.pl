@@ -567,7 +567,7 @@ if ($step && $step == 2) {
 					# get gene from insert then check
 					if ($insert =~ /'\{"([^"]+)",/o) {
 						my $gene = $1;
-						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
+						my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
 						my $res_verif = $dbh->selectrow_hashref($query_verif);
 						# print STDERR "Gene verif1: $res_verif->{'nom'}[0]-$gene";
 						if ($res_verif->{'nom'}[0] eq $gene) {
@@ -598,7 +598,7 @@ if ($step && $step == 2) {
 						# get gene from insert then check
 						if ($insert =~ /'\{"([^"]+)",/o) {
 							my $gene = $1;
-							my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
+							my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
 							my $res_verif = $dbh->selectrow_hashref($query_verif);
 							# print STDERR "Gene verif2: $res_verif->{'nom'}[0]-$gene";
 							if ($res_verif->{'nom'}[0] eq $gene) {
@@ -825,7 +825,7 @@ if ($step && $step == 2) {
 
 					if ($message_tmp =~ /NEWVAR/o) {
 						#my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele) VALUES ('$var_final', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$analysis', '$status', '$allele');\n";
-						my $query_verif = "SELECT nom FROM gene WHERE \"MiniSeq-158\" = 't' AND nom[1] = '$gene';";
+						my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
 						my $res_verif = $dbh->selectrow_hashref($query_verif);
 						# print STDERR "Gene verif3: $res_verif->{'nom'}[0]-$gene";
 						if ($res_verif->{'nom'}[0] eq $gene) {
