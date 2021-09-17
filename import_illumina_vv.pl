@@ -920,13 +920,13 @@ sub get_start_end_pos {
 }
 
 sub run_vv_results {
-	my ($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
+	my ($vv_results_to_treat, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
 	#expected return ($tmp_message, $insert, $hashvar, $nm_list, $tag)
 	my ($hashvar, $nm_list, $tag);
 	($nm_list, $tag) = ('', '');
-	foreach my $var (keys %{$vv_results}) {
+	foreach my $var (keys %{$vv_results_to_treat}) {
 		#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
-		if ($var eq 'flag' && $vv_results->{$var} eq 'intergenic') {return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n"}
+		if ($var eq 'flag' && $vv_results_to_treat->{$var} eq 'intergenic') {return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n"}
 		my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
 		#print STDERR $nm."\n";
 		if ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] !~ /=/o) {
@@ -939,7 +939,7 @@ sub run_vv_results {
 			$nm_list .= " '$nm',";
 			#get genomic hgvs and check direct submission again
 			my $tmp_nom_g = '';
-			my @full_nom_g_19 = split(/:/, $vv_results->{$var}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
+			my @full_nom_g_19 = split(/:/, $vv_results_to_treat->{$var}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
 			if ($full_nom_g_19[0] =~ /NC_0+([^0]{1,2}0?)\.\d{1,2}$/o) {
 				#print STDERR $full_nom_g_19[0]."\n";
 				my $chr = $1;
@@ -972,10 +972,10 @@ sub run_vv_results {
 					#}
 				}
 			}
-			if ($vv_results->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
+			if ($vv_results_to_treat->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
 				#patches
 				# if ($vv_results->{$var}->{'gene_symbol'} eq 'ADGRV1') {$vv_results->{$var}->{'gene_symbol'} = 'GPR98'}
-				my $last_query = "SELECT nom_g FROM variant WHERE nom LIKE '".(split(/:/, $var))[1]."%' and nom_gene[1] = '$vv_results->{$var}->{'gene_symbol'}';";
+				my $last_query = "SELECT nom_g FROM variant WHERE nom LIKE '".(split(/:/, $var))[1]."%' and nom_gene[1] = '$vv_results_to_treat->{$var}->{'gene_symbol'}';";
 				#print STDERR $last_query."\n";
 				my $res_last = $dbh->selectrow_hashref($last_query);
 				if ($res_last->{'nom_g'}) {
