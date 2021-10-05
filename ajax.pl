@@ -506,20 +506,19 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	my $ua = new LWP::UserAgent();
 	$ua->timeout(10);
 	my $response = $ua->get($url);
-	# print STDERR $url."\n";
 
 
 	#c.13811+2T>G
 	#"hg_build"	"g_position"	"gene_id"	"nm_accession"	"DNA"	"variant_id"	"url"
 	#"hg19"	"chr1:215847440"	"USH2A"	"NM_206933.2"	"c.13811+2T>G"	"USH2A_00751"	"https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=USH2A&action=search_all&search_Variant%2FDBID=USH2A_00751"
 	#my $response = $ua->request($req);https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=MYO7A&action=search_all&search_Variant%2FDBID=MYO7A_00018
-	my $lovd_semaph = 0;
+  # LOVD2 is now hosted at home, then cannot be retrived anymore by the serach script, then we should always propose the link
+
+  # my $lovd_semaph = 0;
 	if($response->is_success()) {
 		my $escape_var = $res->{'nom'};
 		$escape_var =~ s/\+/\\\+/og;
-		if ($escape_var =~ /^(c\..+d[ue][lp])[ATGC]+/o) {
-            $escape_var = $1;
-        }
+		if ($escape_var =~ /^(c\..+d[ue][lp])[ATGC]+/o) {$escape_var = $1}
 
 		# if ($response->decoded_content() =~ /"$escape_var".+"(https[^"]+Usher_montpellier\/[^"]+)"/g) {$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD USHbases').$q->end_li();}
 		# if ($response->decoded_content() =~ /"(https:\/\/grenada\.lumc\.nl\/LOVD2\/Usher_montpellier\/[^"]+)"$/o) {print $q->start_a({'href' => $1, 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/LOVD_button.png'}), $q->end_a();}
@@ -539,22 +538,22 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			$text .= $q->end_ul() . $q->end_li();
 			#$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD').$q->end_li();
 		}
-		else {$lovd_semaph = 1}
+		# else {$lovd_semaph = 1}
 	}
-	else {$lovd_semaph = 1}
-	if ($lovd_semaph == 1) {
-		if (grep /$res->{'gene'}/, @U2_modules::U2_subs_1::LOVD) {
-			my $lovd_gene = $res->{'gene'};
-			if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
-			elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
-			$res->{'nom'} =~ /(\w+\d)/og;
-			my $pos_cdna = $1;
-			$text .= $q->start_li() . $q->a({'href' => "https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=$res->{'gene'}&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
-		}
-		else {
-			$text .= $q->start_li() . $q->a({'href' => "http://grenada.lumc.nl/LSDB_list/lsdbs/$res->{'gene'}", 'target' => '_blank'}, 'LOVD?') . $q->end_li();
-		}
+	# else {$lovd_semaph = 1}
+	# if ($lovd_semaph == 1) {
+	if (grep /$res->{'gene'}/, @U2_modules::U2_subs_1::LOVD) {
+		my $lovd_gene = $res->{'gene'};
+		if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
+		elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
+		$res->{'nom'} =~ /(\w+\d)/og;
+		my $pos_cdna = $1;
+		$text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=$res->{'gene'}&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
 	}
+	else {
+		$text .= $q->start_li() . $q->a({'href' => "http://grenada.lumc.nl/LSDB_list/lsdbs/$res->{'gene'}", 'target' => '_blank'}, 'LOVD?') . $q->end_li();
+	}
+	# }
 
 	$text .= $q->end_ul() .  $q->end_td() . $q->td('Diverse population MAFs and links to LSDBs') . $q->end_Tr() . "\n";
 	print $text;
