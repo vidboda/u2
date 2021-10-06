@@ -502,6 +502,8 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	my ($evs_chr, $evs_pos_start, $evs_pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'evs');
 
 	my $url = "http://www.lovd.nl/search.php?build=hg19&position=chr$evs_chr:".$evs_pos_start."_".$evs_pos_end;
+  my $local_url = "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/api/rest.php/variants/$res->{'gene'}?search_Variant/DNA=$res->{'nom'}";
+  # print STDERR "$local_url\n";
 	#$text .= $url;
 	my $ua = new LWP::UserAgent();
 	$ua->timeout(10);
@@ -535,7 +537,6 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 				elsif ($_ =~ /http.+databases\.lovd\.nl\/whole_genome\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 whole genome') . $q->end_li()}
 				else {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, "Link $i") . $q->end_li();$i++;}
 			}
-			$text .= $q->end_ul() . $q->end_li();
 			#$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD').$q->end_li();
 		}
 		# else {$lovd_semaph = 1}
@@ -546,13 +547,21 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		my $lovd_gene = $res->{'gene'};
 		if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
 		elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
-		$res->{'nom'} =~ /(\w+\d)/og;
-		my $pos_cdna = $1;
-		$text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=$res->{'gene'}&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
+    my $response = $ua->get($local_url);
+    if($response->is_success() && $response->decoded_content() =~ /Variant\/DBID:$lovd_gene\_(\d+)/g) {
+        # print STDERR "$response\n";
+        $text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=USH2A&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FdbSNP=&search_Variant%2FReference=&search_Variant%2FReported_effect=&search_Variant%2FFrequency=&search_Variant%2FUSMA=&search_Variant%2FHSF=&search_Variant%2FRestriction_site=&search_Variant%2FDBID=".$lovd_gene."_$1", 'target' => '_blank'}, 'LOVD2 USHbases') . $q->end_li();
+    }
+    else {
+  		$res->{'nom'} =~ /(\w+\d)/og;
+  		my $pos_cdna = $1;
+  		$text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=$res->{'gene'}&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
+    }
 	}
 	else {
 		$text .= $q->start_li() . $q->a({'href' => "http://grenada.lumc.nl/LSDB_list/lsdbs/$res->{'gene'}", 'target' => '_blank'}, 'LOVD?') . $q->end_li();
 	}
+  $text .= $q->end_ul() . $q->end_li();
 	# }
 
 	$text .= $q->end_ul() .  $q->end_td() . $q->td('Diverse population MAFs and links to LSDBs') . $q->end_Tr() . "\n";
