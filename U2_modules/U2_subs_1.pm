@@ -1253,10 +1253,10 @@ sub run_vv {
 		if ($mode eq 'VCF') {
 			$url = "$vv_api_url/$genome/$var/$nm?content-type=application/json";
 		}
-		print STDERR "$url\n";
+		# print STDERR "$url\n";
 		my $request = $ua->get($url);
-		print STDERR "asked URL: $url\n";
-		print STDERR '$request->decoded_content():'.Dumper($request->decoded_content())."\n";
+		# print STDERR "asked URL: $url\n";
+		# print STDERR '$request->decoded_content():'.Dumper($request->decoded_content())."\n";
 		if ($request->is_success()) {return $request->decoded_content()}
 		else {return '0'}
 	}
