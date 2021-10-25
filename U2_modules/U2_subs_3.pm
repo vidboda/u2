@@ -1214,7 +1214,7 @@ sub add_variant_button {
 						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'ng_accno', 'id' => 'ng_accnoblue', 'value' => "$ng"})."\n".
 							$q->start_div({'class' => 'w3-panel w3-large'})."\n".
 								$q->label({'for' => 'new_variantblue'}, 'New variant (HGVS DNA):')."\n".'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.
-								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variantblue', 'value' => 'c.', 'size' => '20', 'maxlength' => '50'})."\n".
+								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variantblue', 'value' => 'c.', 'size' => '20', 'maxlength' => '100'})."\n".
 							$q->end_div()."\n".
 							$q->start_div({'class' => 'w3-panel w3-large w3-center'})."\n".
 								$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Use Mutalyzer', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var(\'variant_input.pl\');'})."\n".
