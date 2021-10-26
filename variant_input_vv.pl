@@ -162,7 +162,7 @@ if ($step == 1) { #insert form and possibility to create variants.
 	print $q->end_Select(), $q->end_li(), $q->br(), $q->br(), "\n",
 		$q->start_li(), "\n",
 			$q->label({'for' => 'new_variant'}, 'New variant (cDNA):'), "\n",
-			$q->textfield(-name => 'new_variant', -id => 'new_variant', -value => 'c.', -size => '20', -maxlength => '50'), "\n",
+			$q->textfield(-name => 'new_variant', -id => 'new_variant', -value => 'c.', -size => '20', -maxlength => '100'), "\n",
 		$q->end_li(), $q->br(), $q->br(), "\n",
 		$q->start_li(), "\n",
 			$q->label({'for' => 'status'}, 'Status:'), "\n",

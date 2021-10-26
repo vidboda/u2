@@ -1051,7 +1051,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 		my $js = "if (\$(\"#status\").val() === 'homozygous') {\$(\"#allele\").val('both')}else {\$(\"#allele\").val('unknown')}";
 		$html .= $q->br().$q->br().$q->start_li()."\n".
 				$q->label({'for' => 'new_variant'}, 'New variant (cDNA):')."\n".
-				$q->textfield(-name => 'new_variant', -id => 'new_variant', -value => 'c.', -size => '20', -maxlength => '50')."\n".
+				$q->textfield(-name => 'new_variant', -id => 'new_variant', -value => 'c.', -size => '20', -maxlength => '100')."\n".
 			$q->end_li()."\n".
 			$q->end_ol().$q->end_fieldset().$q->end_form();
 	}
