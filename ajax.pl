@@ -551,12 +551,12 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
     my $response = $ua->get($local_url);
     if($response->is_success() && $response->decoded_content() =~ /Variant\/DBID:$lovd_gene\_(\d+)/g) {
         # print STDERR "$response\n";
-        $text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=USH2A&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FdbSNP=&search_Variant%2FReference=&search_Variant%2FReported_effect=&search_Variant%2FFrequency=&search_Variant%2FUSMA=&search_Variant%2FHSF=&search_Variant%2FRestriction_site=&search_Variant%2FDBID=".$lovd_gene."_$1", 'target' => '_blank'}, 'LOVD2 USHbases') . $q->end_li();
+        $text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=".$lovd_gene."&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FdbSNP=&search_Variant%2FReference=&search_Variant%2FReported_effect=&search_Variant%2FFrequency=&search_Variant%2FUSMA=&search_Variant%2FHSF=&search_Variant%2FRestriction_site=&search_Variant%2FDBID=".$lovd_gene."_$1", 'target' => '_blank'}, 'LOVD2 USHbases') . $q->end_li();
     }
     else {
   		$res->{'nom'} =~ /(\w+\d)/og;
   		my $pos_cdna = $1;
-  		$text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=$res->{'gene'}&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
+  		$text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=".$lovd_gene."&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
     }
 	}
 	else {
@@ -1681,12 +1681,14 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	my $filter = U2_modules::U2_subs_1::check_filter($q);
 	my $user = U2_modules::U2_users_1->new();
+  my $experiment_tag = '';
+  if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
 	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
 		my $align_file = $q->param ('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 		my $cov_report_sh = $cov_report_dir.'covreport.sh';
-		print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt -f $filter\n";
-		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt -f $filter`;
+		print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter$experiment_tag.txt -f $filter\n";
+		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter$experiment_tag.txt -f $filter`;
 
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
 			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();

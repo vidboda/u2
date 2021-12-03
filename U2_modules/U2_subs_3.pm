@@ -1232,7 +1232,7 @@ sub create_variant_vv {
 	my ($vv_results, $vvkey, $gene, $cdna, $acc_no, $acc_ver, $ng_accno, $user, $q, $dbh, $calling) = @_;
 	my ($nom_g, $nom_ng, $nom_g_38, $nom_ivs, $nom_prot, $seq_wt, $seq_mt, $type_adn, $type_arn, $type_prot, $type_segment, $type_segment_end, $num_segment, $num_segment_end, $taille, $snp_id, $snp_common, $classe, $variant, $defgen_export, $chr);
 	($nom_prot, $nom_ivs, $type_arn, $classe, $defgen_export, $nom_g_38, $snp_id, $snp_common, $seq_wt, $seq_mt) = ('NULL', 'NULL', 'neutral', 'unknown', 'f', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL');
-	#print Dumper($vv_results);
+	# print STDERR Dumper($vv_results);
 	my $error = '';
 	foreach my $key (keys %{$vv_results}) {
 		if ($key ne 'metadata' && $key ne 'flag' && ($key eq $vvkey || $key =~ /validation_warning/o )) {
@@ -1243,14 +1243,14 @@ sub create_variant_vv {
 					if ($key2 eq 'validation_warnings') {
 						my $text = '';
 						foreach my $warning (@{$vv_results->{$key}->{$key2}}) {
-							#print STDERR "WARNING: $vvkey : $warning : $calling\n";
+							# print STDERR "WARNING: $vvkey : $warning : $calling\n";
 							if ($warning eq "$acc_no.$acc_ver:$cdna") {
 								#bad wt  nt sometimes validation_warnings = key directly
 								$text = "VariantValidator error: $warning".$vv_results->{$key}->{'validation_warnings'}[1];
 							}
 							elsif ($warning =~ /length must be/o) {$text .= "VariantValidator error for $cdna : $warning"}
 							elsif ($warning =~ /RefSeqGene record not available/o) {$nom_ng = 'NULL'}
-							elsif ($warning =~ /does not agree with reference/o) {$text .= "VariantValidator error for $cdna ($warning): ".$vv_results->{$key}->{'validation_warnings'}[1]}
+							elsif ($warning =~ /does not agree with reference/o) {$text .= "VariantValidator error for $cdna ($warning): ".$vv_results->{$key}->{'validation_warnings'}[0]}
 							elsif ($warning =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
 								if ($calling eq 'web') {
 									$text .= $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
