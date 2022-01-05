@@ -1168,7 +1168,8 @@ sub three2one {
 	    'Val' => 'V',
 	    'Trp' => 'W',
 	    'Tyr' => 'Y',
-	    'del' => 'del'
+	    'del' => 'del',
+			'dup' => 'dup'
     );
     return $amino_acid{$aa};
 }
