@@ -37,9 +37,9 @@ our @COUNTRY = ('Unknown','France','Afghanistan','Albania','Algeria','American S
 
 #manage groups
 
-our @USHER = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'ADGRV1', 'WHRN', 'CLRN1', 'CLRN2', 'HARS', 'PDZD7', 'VEZT', 'CEP250', 'PEX1', 'PEX6', 'PEX26', 'ABHD12');
+our @USHER = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'ADGRV1', 'WHRN', 'CLRN1', 'HARS', 'VEZT', 'CEP250', 'PEX1', 'PEX6', 'PEX26', 'ABHD12');
 our @USH1 = ('', 'MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2');
-our @USH2 = ('USH2A', 'ADGRV1', 'WHRN', 'PDZD7');
+our @USH2 = ('USH2A', 'ADGRV1', 'WHRN');
 our @USH3 = ('CLRN1', 'HARS1');
 our @CHM = ('CHM');
 our @DFNB = ('ADCY1', 'ATP2B2', 'CABP2', 'CATSPER2', 'CDC14A', 'CIB2', 'CLDN9', 'CLDN14', 'CLIC5', 'CLRN2', 'COL11A2', 'ELMOD3', 'ESPN', 'EPS8', 'EPS8L2', 'ESRP1', 'ESRRB', 'FOXI1', 'GIPC3', 'GJB2', 'GJB3', 'GJB6', 'GPSM2', 'GRXCR1', 'GRXCR2', 'HGF', 'ILDR1', 'KARS1', 'KCNJ10', 'LHFPL5', 'LOXHD1', 'LRTOMT', 'MARVELD2', 'MPZL2', 'MSRB3', 'MYO3A', 'MYO6', 'MYO15A', 'OTOA', 'OTOF', 'OTOG', 'OTOGL', 'PEX13', 'PDZD7', 'PJVK', 'PTPRQ', 'RDX', 'RIPOR2', 'ROR1', 'S1PR2', 'SERPINB6', 'SLC26A4', 'SLC26A5', 'SLITRK6', 'SPNS2', 'STRC', 'SYNE4', 'TBC1D24', 'TECTA', 'TMC1', 'TMEM132E', 'TMIE', 'TMPRSS3', 'TPRN', 'TRIOBP', 'TSPEAR', 'WBP2');
