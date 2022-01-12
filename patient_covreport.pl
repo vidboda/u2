@@ -106,7 +106,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                                -src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 if ($user->isPublic()) {$q->redirect("home_public.pl");exit;}
@@ -129,13 +129,13 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 	elsif ($filter eq 'USH') {$filter_subquery = " usher = '$usher' AND"}
 	elsif ($filter eq 'RP') {$filter_subquery = "(rp = '$rp' OR nom[1] in ('USH2A', 'CLRN1')) AND nom[1] <> 'CHM' AND"}
 	elsif ($filter eq 'RP-USH') {$filter_subquery = "(rp = '$rp' OR usher = '$usher') AND dfn = '$dfn' AND"}
-	elsif ($filter eq 'CHM') {$filter_subquery = "nom[1] = 'CHM' AND "}	
-	
+	elsif ($filter eq 'CHM') {$filter_subquery = "nom[1] = 'CHM' AND "}
+
 	my $query = "SELECT nom[1] AS gene_name, nom[2] AS nm, diag FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND nom[1] <> 'CEVA' ORDER BY nom[1];";
 	# print $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
-	
+
 	print $q->start_p({'class' => 'center title'}), $q->start_big(), $q->strong("$id$number ($filter) CovReport Genes Selection"), $q->end_big(), $q->end_p(), "\n";
 	my $text = "Analyse: $analysis - $res genes eligible";
 	print U2_modules::U2_subs_2::info_panel($text, $q);
@@ -154,7 +154,7 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 				$q->h3({'class' => 'w3-center w3-padding-16'}, 'Uncheck the genes you don\'t want in the report:');
 				my $i = 0;
 				while (my $result = $sth->fetchrow_hashref()) {
-					if ($i == 0) {print $q->start_div({'class' => 'w3-row-padding w3-section w3-padding-8 w3-left-align'}), "\n"}					
+					if ($i == 0) {print $q->start_div({'class' => 'w3-row-padding w3-section w3-padding-8 w3-left-align'}), "\n"}
 					if ($i%4 == 0 && $i > 0) {
 						print $q->end_div(),
 							$q->start_div({'class' => 'w3-row-padding w3-section w3-padding-8 w3-left-align'}), "\n";
@@ -169,14 +169,14 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 					else {
 						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form'}), "\n";
 					}
-					
+
 							#"<input class='w3-check' form='covreport_form' id='".$result->{'nm'}."' name='transcript' type='checkbox' value='".$result->{'nm'}."'  />\n",
 							#$q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form' , 'checked' => $check}), "\n",
 							#$q->checkbox({'class' => 'w3-check', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form', 'checked' => 'true'}), "\n",
 					print		$q->label({'for' => $result->{'nm'}}, $result->{'gene_name'}),
 						$q->end_div(), "\n";
 					$i++;
-				}				
+				}
 				print $q->end_div(), $q->br(), "\n",
 				$q->submit({'value' => 'Launch CovReport', 'id' => 'CVsubmit', 'class' => 'w3-btn w3-blue', 'form' => 'covreport_form'}), $q->br(), $q->br(), "\n", $q->br(), "\n",,
 			$q->end_form(),
@@ -189,7 +189,7 @@ elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) 
 	#remove previous file
 	if (-f $cov_report_dir."CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
 		unlink $cov_report_dir."CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf"
-	}	
+	}
 	# set up a gene list file with the genes of interest and launch covreport
 	my @transcripts = $q->param('transcript');
 	mkdir $cov_report_dir."tmp_dir_$id$number-$analysis-$filter-custom";
@@ -202,16 +202,17 @@ elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) 
 
 	print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter\n";
 	`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter`;
-	
+
 	if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
-		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
-		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
+		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
+    # print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
+		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/DS_data/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
 		# attempt to trigger autoFS
 		open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
 		sleep 3;
-		close HANDLE; 
+		close HANDLE;
 		mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
-		copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
+		move($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
 	}
 	else {
 		print $q->span('Failed to generate coverage file');
