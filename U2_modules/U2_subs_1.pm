@@ -1141,6 +1141,7 @@ sub one2three {
 	    'V' => 'Val',
 	    'W' => 'Trp',
 	    'Y' => 'Tyr',
+			'*' => 'Ter'
     );
     return $amino_acid{$aa};
 }
@@ -1169,7 +1170,8 @@ sub three2one {
 	    'Trp' => 'W',
 	    'Tyr' => 'Y',
 	    'del' => 'del',
-			'dup' => 'dup'
+			'dup' => 'dup',
+			'Ter' => '*'
     );
     return $amino_acid{$aa};
 }

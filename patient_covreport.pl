@@ -185,7 +185,7 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 		$q->end_div(), $q->br(), $q->br(), "\n";
 }
 elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) {
-	my $align_file = $q->param ('align_file');
+	my $align_file = $q->param('align_file');
 	my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 	my $cov_report_sh = $cov_report_dir.'covreport.sh';
 	#remove previous file

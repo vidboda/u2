@@ -1415,7 +1415,7 @@ sub create_variant_vv {
 
 
 	#replace Ter with *
-	if ($nom_prot =~ /Ter/o) {$nom_prot =~ s/Ter/\*/o}
+	# if ($nom_prot =~ /Ter/o) {$nom_prot =~ s/Ter/\*/o}
 	#print $nom_prot."<br/>";
 	#print $type_prot."<br/>";
 	my $res;

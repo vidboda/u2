@@ -503,7 +503,13 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	my ($evs_chr, $evs_pos_start, $evs_pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'evs');
 
 	my $url = "http://www.lovd.nl/search.php?build=hg19&position=chr$evs_chr:".$evs_pos_start."_".$evs_pos_end;
-  my $local_url = "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/api/rest.php/variants/$res->{'gene'}?search_Variant/DNA=$res->{'nom'}";
+  # my $lovd_gene = $res->{'gene'} == 'ADGRV1' ? 'GPR98' : $res->{'gene'};
+  my $lovd_gene = $res->{'gene'};
+  if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
+  elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
+  elsif ($lovd_gene eq 'ADGRV1') {$lovd_gene = 'GPR98'}
+
+  my $local_url = "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/api/rest.php/variants/$lovd_gene?search_Variant/DNA=$res->{'nom'}";
   # print STDERR "$local_url\n";
 	#$text .= $url;
 	my $ua = new LWP::UserAgent();
@@ -545,9 +551,6 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	# else {$lovd_semaph = 1}
 	# if ($lovd_semaph == 1) {
 	if (grep /$res->{'gene'}/, @U2_modules::U2_subs_1::LOVD) {
-		my $lovd_gene = $res->{'gene'};
-		if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
-		elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
     my $response = $ua->get($local_url);
     if($response->is_success() && $response->decoded_content() =~ /Variant\/DBID:$lovd_gene\_(\d+)/g) {
         # print STDERR "$response\n";
@@ -1684,7 +1687,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
   my $experiment_tag = '';
   if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
 	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
-		my $align_file = $q->param ('align_file');
+		my $align_file = $q->param('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 		my $cov_report_sh = $cov_report_dir.'covreport.sh';
 		print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter$experiment_tag.txt -f $filter\n";
