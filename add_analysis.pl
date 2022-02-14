@@ -117,10 +117,17 @@ my $js = "
 					       data: {type: \$(\"#type\").val(), nom: \$(\"#nom\").val(), numero: \$(\"#numero\").val(), gene: \$(\"#gene\").val(), accession: \$(\"#acc_no\").val(), step: 2, sample: \$(\"#sample\").val(), analysis: \$(\"#technique\").val(), existing_variant: \$(\"#existing_variant\").val(), new_variant: \$(\"#new_variant\").val(), nom_c: nom_c, status: \$(\"#status\").val(), allele: \$(\"#allele\").val(), ng_accno: \$(\"#ng_accno\").val(), j: j, denovo: \$(\"#denovo\").prop('checked')}
 					       })
 				       .done(function(msg) {
-						if (msg !== '') {\$(\"#genotype tr:last\").after('<tr id=\"v'+j+'\" class=\"var\">'+msg+'</tr>')};
-						//if (msg !== '') {\$(\"#genotype\").append('<li id=\"v'+j+'\" class=\"var\">'+msg+'</li>')};
-						//\$(\"#dialog-form\").dialog(\"close\"); //DOES NOT WANT TO CLOSE
-						//\$(this).remove();
+								 if (msg !== '') {
+									 // if msg == error
+									 var div_regexp = /^<div/;
+									 if (div_regexp.test(msg)) {
+										 msg = '<td colspan=\"7\">' + msg + '</td>';
+									 }
+								 }
+								 if (msg !== '') {\$(\"#genotype tr:last\").after('<tr id=\"v'+j+'\" class=\"var\">'+msg+'</tr>')};
+								 //if (msg !== '') {\$(\"#genotype\").append('<li id=\"v'+j+'\" class=\"var\">'+msg+'</li>')};
+								 //\$(\"#dialog-form\").dialog(\"close\"); //DOES NOT WANT TO CLOSE
+								 //\$(this).remove();
 						\$(\".ui-dialog-content\").dialog(\"close\"); //YES - CLOSE ALL DIALOGS
 				       });
 				       //\$(this).dialog(\"close\");

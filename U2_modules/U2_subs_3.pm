@@ -1235,11 +1235,14 @@ sub create_variant_vv {
 	# print STDERR Dumper($vv_results);
 	my $error = '';
 	foreach my $key (keys %{$vv_results}) {
-		if ($key ne 'metadata' && $key ne 'flag' && ($key eq $vvkey || $key =~ /validation_warning/o )) {
-			#print STDERR $key."-$vv_results->{$key}-\n";
+		# print STDERR "$key\n";
+		# if ($key ne 'metadata' && $key ne 'flag' && ($key eq $vvkey || $key =~ /validation_warning/o )) {
+		my $valid_key;
+		if ($key ne 'metadata' && $key ne 'flag' && ($key =~ /^$acc_no\.$acc_ver:c\.[\dACGTdienulpsv_>\+\*-]+$/ || $key =~ /validation_warning/o )) {
+			# print STDERR $key."-$vv_results->{$key}-\n";
 			if (ref($vv_results->{$key}) eq ref {}) {
 				foreach my $key2 (keys(%{$vv_results->{$key}})) {
-					#print STDERR $key2."\n";
+					# print STDERR $key2."\n";
 					if ($key2 eq 'validation_warnings') {
 						my $text = '';
 						foreach my $warning (@{$vv_results->{$key}->{$key2}}) {
@@ -1254,12 +1257,14 @@ sub create_variant_vv {
 							elsif ($warning =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
 								if ($calling eq 'web') {
 									$text .= $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
+									# print STDERR "WARNING: $vvkey : $warning : $text\n";
 								}
 								elsif($calling =~ /background/o) {$text .= "VariantValidator error for $cdna : $warning"}
 							}
 						}
 						if ($text ne '') {
 							if ($calling eq 'web') {
+								# print STDERR "WARNING: $vvkey : $text\n";
 								print U2_modules::U2_subs_2::danger_panel($text, $q);
 								exit;
 							}
