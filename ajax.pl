@@ -54,6 +54,7 @@ $config->file($config_file);
 my $DB = $config->DB();
 my $HOST = $config->HOST();
 my $HOME = $config->HOME();
+my $HOME_IP = $config->HOME_IP();
 my $DB_USER = $config->DB_USER();
 my $DB_PASSWORD = $config->DB_PASSWORD();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
@@ -502,24 +503,31 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	my ($evs_chr, $evs_pos_start, $evs_pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'evs');
 
 	my $url = "http://www.lovd.nl/search.php?build=hg19&position=chr$evs_chr:".$evs_pos_start."_".$evs_pos_end;
+  # my $lovd_gene = $res->{'gene'} == 'ADGRV1' ? 'GPR98' : $res->{'gene'};
+  my $lovd_gene = $res->{'gene'};
+  if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
+  elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
+  elsif ($lovd_gene eq 'ADGRV1') {$lovd_gene = 'GPR98'}
+
+  my $local_url = "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/api/rest.php/variants/$lovd_gene?search_Variant/DNA=$res->{'nom'}";
+  # print STDERR "$local_url\n";
 	#$text .= $url;
 	my $ua = new LWP::UserAgent();
 	$ua->timeout(10);
 	my $response = $ua->get($url);
-	# print STDERR $url."\n";
 
 
 	#c.13811+2T>G
 	#"hg_build"	"g_position"	"gene_id"	"nm_accession"	"DNA"	"variant_id"	"url"
 	#"hg19"	"chr1:215847440"	"USH2A"	"NM_206933.2"	"c.13811+2T>G"	"USH2A_00751"	"https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=USH2A&action=search_all&search_Variant%2FDBID=USH2A_00751"
 	#my $response = $ua->request($req);https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=MYO7A&action=search_all&search_Variant%2FDBID=MYO7A_00018
-	my $lovd_semaph = 0;
+  # LOVD2 is now hosted at home, then cannot be retrived anymore by the serach script, then we should always propose the link
+
+  # my $lovd_semaph = 0;
 	if($response->is_success()) {
 		my $escape_var = $res->{'nom'};
 		$escape_var =~ s/\+/\\\+/og;
-		if ($escape_var =~ /^(c\..+d[ue][lp])[ATGC]+/o) {
-            $escape_var = $1;
-        }
+		if ($escape_var =~ /^(c\..+d[ue][lp])[ATGC]+/o) {$escape_var = $1}
 
 		# if ($response->decoded_content() =~ /"$escape_var".+"(https[^"]+Usher_montpellier\/[^"]+)"/g) {$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD USHbases').$q->end_li();}
 		# if ($response->decoded_content() =~ /"(https:\/\/grenada\.lumc\.nl\/LOVD2\/Usher_montpellier\/[^"]+)"$/o) {print $q->start_a({'href' => $1, 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/LOVD_button.png'}), $q->end_a();}
@@ -536,25 +544,29 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 				elsif ($_ =~ /http.+databases\.lovd\.nl\/whole_genome\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 whole genome') . $q->end_li()}
 				else {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, "Link $i") . $q->end_li();$i++;}
 			}
-			$text .= $q->end_ul() . $q->end_li();
 			#$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD').$q->end_li();
 		}
-		else {$lovd_semaph = 1}
+		# else {$lovd_semaph = 1}
 	}
-	else {$lovd_semaph = 1}
-	if ($lovd_semaph == 1) {
-		if (grep /$res->{'gene'}/, @U2_modules::U2_subs_1::LOVD) {
-			my $lovd_gene = $res->{'gene'};
-			if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
-			elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
-			$res->{'nom'} =~ /(\w+\d)/og;
-			my $pos_cdna = $1;
-			$text .= $q->start_li() . $q->a({'href' => "https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=$res->{'gene'}&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
-		}
-		else {
-			$text .= $q->start_li() . $q->a({'href' => "http://grenada.lumc.nl/LSDB_list/lsdbs/$res->{'gene'}", 'target' => '_blank'}, 'LOVD?') . $q->end_li();
-		}
+	# else {$lovd_semaph = 1}
+	# if ($lovd_semaph == 1) {
+	if (grep /$res->{'gene'}/, @U2_modules::U2_subs_1::LOVD) {
+    my $response = $ua->get($local_url);
+    if($response->is_success() && $response->decoded_content() =~ /Variant\/DBID:$lovd_gene\_(\d+)/g) {
+        # print STDERR "$response\n";
+        $text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=".$lovd_gene."&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FdbSNP=&search_Variant%2FReference=&search_Variant%2FReported_effect=&search_Variant%2FFrequency=&search_Variant%2FUSMA=&search_Variant%2FHSF=&search_Variant%2FRestriction_site=&search_Variant%2FDBID=".$lovd_gene."_$1", 'target' => '_blank'}, 'LOVD2 USHbases') . $q->end_li();
+    }
+    else {
+  		$res->{'nom'} =~ /(\w+\d)/og;
+  		my $pos_cdna = $1;
+  		$text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=".$lovd_gene."&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
+    }
 	}
+	else {
+		$text .= $q->start_li() . $q->a({'href' => "http://grenada.lumc.nl/LSDB_list/lsdbs/$res->{'gene'}", 'target' => '_blank'}, 'LOVD?') . $q->end_li();
+	}
+  $text .= $q->end_ul() . $q->end_li();
+	# }
 
 	$text .= $q->end_ul() .  $q->end_td() . $q->td('Diverse population MAFs and links to LSDBs') . $q->end_Tr() . "\n";
 	print $text;
@@ -1043,7 +1055,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 		my $js = "if (\$(\"#status\").val() === 'homozygous') {\$(\"#allele\").val('both')}else {\$(\"#allele\").val('unknown')}";
 		$html .= $q->br().$q->br().$q->start_li()."\n".
 				$q->label({'for' => 'new_variant'}, 'New variant (cDNA):')."\n".
-				$q->textfield(-name => 'new_variant', -id => 'new_variant', -value => 'c.', -size => '20', -maxlength => '50')."\n".
+				$q->textfield(-name => 'new_variant', -id => 'new_variant', -value => 'c.', -size => '20', -maxlength => '100')."\n".
 			$q->end_li()."\n".
 			$q->end_ol().$q->end_fieldset().$q->end_form();
 	}
@@ -1256,7 +1268,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 	else {$query = "SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.type_analyse  = '$analysis' ORDER BY a.type_analyse DESC, a.run_id;"}
 	#my $dates = "\"date\": [
 	#";
-	my $i = my $j = my $k = my $l = my $m = my $n = my $o = my $p = my $r = my $s = my $t = my $u = my $v = 0;
+	my $i = my $j = my $k = my $l = my $m = my $n = my $o = my $p = my $r = my $s = my $t = my $u = my $v = my $w = 0;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	if ($res ne '0E0') {
@@ -1296,6 +1308,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$n++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-152') {$t++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-158') {$v++;}
+      elsif ($result->{'type_analyse'} eq 'MiniSeq-149') {$w++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$p++;}
 			elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$r++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-2') {$s++;}
@@ -1341,6 +1354,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$content .= $q->td("Run $n")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-152') {$content .= $q->td("Run $t")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-158') {$content .= $q->td("Run $v")}
+      elsif ($result->{'type_analyse'} eq 'MiniSeq-149') {$content .= $q->td("Run $w")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$content .= $q->td("Run $p")}
 			elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$content .= $q->td("Run $r")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-2') {$content .= $q->td("Run $s")}
@@ -1670,16 +1684,18 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	my $filter = U2_modules::U2_subs_1::check_filter($q);
 	my $user = U2_modules::U2_users_1->new();
+  my $experiment_tag = '';
+  if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
 	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
-		my $align_file = $q->param ('align_file');
+		my $align_file = $q->param('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 		my $cov_report_sh = $cov_report_dir.'covreport.sh';
-		print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt -f $filter\n";
-		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter.txt -f $filter`;
+		print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter$experiment_tag.txt -f $filter\n";
+		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter$experiment_tag.txt -f $filter`;
 
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
 			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
-			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\n$HOME/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."_coverage.pdf\n");
+			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\n$HOME_IP/ushvam2/CovReport/CovReport/pdf-results/$id$number-$analysis-".$filter."_coverage.pdf\n");
 			# attempt to trigger autoFS
 			open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
 			sleep 3;

@@ -1214,7 +1214,7 @@ sub add_variant_button {
 						$q->input({'type' => 'hidden', 'form' => 'creation_form', 'name' => 'ng_accno', 'id' => 'ng_accnoblue', 'value' => "$ng"})."\n".
 							$q->start_div({'class' => 'w3-panel w3-large'})."\n".
 								$q->label({'for' => 'new_variantblue'}, 'New variant (HGVS DNA):')."\n".'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'.
-								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variantblue', 'value' => 'c.', 'size' => '20', 'maxlength' => '50'})."\n".
+								$q->input({'type' => 'text', 'name' => 'new_variant', 'id' => 'new_variantblue', 'value' => 'c.', 'size' => '20', 'maxlength' => '100'})."\n".
 							$q->end_div()."\n".
 							$q->start_div({'class' => 'w3-panel w3-large w3-center'})."\n".
 								$q->button({'name' => 'submit', 'type' => 'submit', 'for' => 'creation_form', 'value' => 'Use Mutalyzer', 'class' => 'w3-btn w3-blue', 'onclick' => 'create_var(\'variant_input.pl\');'})."\n".
@@ -1232,34 +1232,39 @@ sub create_variant_vv {
 	my ($vv_results, $vvkey, $gene, $cdna, $acc_no, $acc_ver, $ng_accno, $user, $q, $dbh, $calling) = @_;
 	my ($nom_g, $nom_ng, $nom_g_38, $nom_ivs, $nom_prot, $seq_wt, $seq_mt, $type_adn, $type_arn, $type_prot, $type_segment, $type_segment_end, $num_segment, $num_segment_end, $taille, $snp_id, $snp_common, $classe, $variant, $defgen_export, $chr);
 	($nom_prot, $nom_ivs, $type_arn, $classe, $defgen_export, $nom_g_38, $snp_id, $snp_common, $seq_wt, $seq_mt) = ('NULL', 'NULL', 'neutral', 'unknown', 'f', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL');
-	#print Dumper($vv_results);
+	# print STDERR Dumper($vv_results);
 	my $error = '';
 	foreach my $key (keys %{$vv_results}) {
-		if ($key ne 'metadata' && $key ne 'flag' && ($key eq $vvkey || $key =~ /validation_warning/o )) {
-			#print STDERR $key."-$vv_results->{$key}-\n";
+		# print STDERR "$key\n";
+		# if ($key ne 'metadata' && $key ne 'flag' && ($key eq $vvkey || $key =~ /validation_warning/o )) {
+		my $valid_key;
+		if ($key ne 'metadata' && $key ne 'flag' && ($key =~ /^$acc_no\.$acc_ver:c\.[\dACGTdienulpsv_>\+\*-]+$/ || $key =~ /validation_warning/o )) {
+			# print STDERR $key."-$vv_results->{$key}-\n";
 			if (ref($vv_results->{$key}) eq ref {}) {
 				foreach my $key2 (keys(%{$vv_results->{$key}})) {
-					#print STDERR $key2."\n";
+					# print STDERR $key2."\n";
 					if ($key2 eq 'validation_warnings') {
 						my $text = '';
 						foreach my $warning (@{$vv_results->{$key}->{$key2}}) {
-							#print STDERR "WARNING: $vvkey : $warning : $calling\n";
+							# print STDERR "WARNING: $vvkey : $warning : $calling\n";
 							if ($warning eq "$acc_no.$acc_ver:$cdna") {
 								#bad wt  nt sometimes validation_warnings = key directly
 								$text = "VariantValidator error: $warning".$vv_results->{$key}->{'validation_warnings'}[1];
 							}
 							elsif ($warning =~ /length must be/o) {$text .= "VariantValidator error for $cdna : $warning"}
 							elsif ($warning =~ /RefSeqGene record not available/o) {$nom_ng = 'NULL'}
-							elsif ($warning =~ /does not agree with reference/o) {$text .= "VariantValidator error for $cdna ($warning): ".$vv_results->{$key}->{'validation_warnings'}[1]}
+							elsif ($warning =~ /does not agree with reference/o) {$text .= "VariantValidator error for $cdna ($warning): ".$vv_results->{$key}->{'validation_warnings'}[0]}
 							elsif ($warning =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
 								if ($calling eq 'web') {
 									$text .= $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
+									# print STDERR "WARNING: $vvkey : $warning : $text\n";
 								}
 								elsif($calling =~ /background/o) {$text .= "VariantValidator error for $cdna : $warning"}
 							}
 						}
 						if ($text ne '') {
 							if ($calling eq 'web') {
+								# print STDERR "WARNING: $vvkey : $text\n";
 								print U2_modules::U2_subs_2::danger_panel($text, $q);
 								exit;
 							}
@@ -1346,7 +1351,7 @@ sub create_variant_vv {
 		$nom_g = "chr$chr:".pop(@full_nom_g_19);
 	}
 	else {
-		my $text = "There has been an issue with VariantValidator. Please double check your variant and resubmit. If this issue persists, contact an admin. \nDEBUG: ".$full_nom_g_19[0].":".$full_nom_g_19[1]."-".Dumper($vv_results);
+		my $text = "There has been an issue with VariantValidator. Please double check your variant and resubmit. If this issue persists, contact an admin. \nDEBUG: ".$full_nom_g_19[0].":".$full_nom_g_19[1]."-\$vvresults:".Dumper($vv_results);
 		if ($calling eq 'web') {
 			print U2_modules::U2_subs_2::danger_panel($text, $q);
 			exit;
@@ -1415,7 +1420,7 @@ sub create_variant_vv {
 
 
 	#replace Ter with *
-	if ($nom_prot =~ /Ter/o) {$nom_prot =~ s/Ter/\*/o}
+	# if ($nom_prot =~ /Ter/o) {$nom_prot =~ s/Ter/\*/o}
 	#print $nom_prot."<br/>";
 	#print $type_prot."<br/>";
 	my $res;
@@ -1665,7 +1670,7 @@ sub create_variant_vv {
 	my $insert = "INSERT INTO variant(nom, nom_gene, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38, defgen_export) VALUES ('$cdna', '{\"$gene\",\"$acc_no\"}', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38', '$defgen_export');";
 	$insert =~ s/'NULL'/NULL/og;
 	#die $insert;
-	print STDERR $insert;
+	print STDERR "$insert\n";
 	$error .= "NEWVAR: $insert\n";
 	#print $q->td({'colspan' => '7'}, $insert);exit;
 	$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";

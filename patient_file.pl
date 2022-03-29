@@ -871,10 +871,10 @@ if ($result) {
 									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'&genome=hg19'}, 'Open '.uc($alignment_ext).' in IGV (on configurated computers only)').
 								$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp.$alignment_ext", 'target' => '_blank'}, 'Download '.uc($alignment_ext).' file')
+									$q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp.$alignment_ext", 'target' => '_blank'}, 'Download '.uc($alignment_ext).' file')
 								.$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp$alignment_suffix$alignment_index_ext", 'target' => '_blank'}, 'Download indexed '.uc($alignment_ext).' file').
+									$q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp$alignment_suffix$alignment_index_ext", 'target' => '_blank'}, 'Download indexed '.uc($alignment_ext).' file').
 								$q->end_li();
 								#$q->start_li().$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$SSH_RACKSTATION_FTP_BASE_DIR$res_manifest->{'run_id'}$bam_file", 'target' => '_blank'}, 'Download BAM file');
 								#$q->start_li().$q->a({'href' => "ftps://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$SSH_RACKSTATION_FTP_BASE_DIR$res_manifest->{'run_id'}$bam_file.bai", 'target' => '_blank'}, 'Download indexed BAM file');
@@ -915,10 +915,11 @@ if ($result) {
 						}
 						# covreport launch button
 						# print STDERR $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."_coverage.pdf\n";
-						if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
+						if (-e $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
+            # if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 										# covreport is stored on dev server coz prod server cannot run covreport (java version)
-										$q->a({'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf"}, 'Download CovReport').
+										$q->a({'href' => $HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf"}, 'Download CovReport').
 										$q->span("&nbsp;&nbsp;OR&nbsp;&nbsp;").
 										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$alignment_ftp.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
 									$q->end_li();
@@ -1075,7 +1076,8 @@ if ($result) {
 							my $num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS;
 							if ($analysis =~ /-152/o) {push @illumina_analysis, 5;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_152}#152 genes panel $illumina_semaph = 5;
 							elsif ($analysis =~ /-158/o) {push @illumina_analysis, 6;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_158}#152 genes panel $illumina_semaph = 6;
-							else {push @illumina_analysis, 1}
+              elsif ($analysis =~ /-149/o) {push @illumina_analysis, 7;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_149}#149 genes panel
+              else {push @illumina_analysis, 1}
 							if ($res_manifest->{'ontarget_reads'} < $num_ontarget_reads) {$criteria .= ' (on target reads &lt; '.$num_ontarget_reads.') '}
 
 						}
@@ -1186,7 +1188,8 @@ if ($result) {
 				if ($ngs != 2) {
 					my $gene_tag = '158';
 					if ($ngs == 5) {$gene_tag = '152'}
-					if ($ngs == 4) {$gene_tag = 'whole genes'}
+          elsif ($ngs == 7) {$gene_tag = '149'}
+					elsif ($ngs == 4) {$gene_tag = 'whole genes'}
 					elsif ($ngs == 1) {$gene_tag = '<= 132'}
 					print $q->span("*Gene panel $gene_tag raw data must fulfill the following criteria to pass:"), "\n",
 						$q->ul({'class' => 'w3-ul w3-hoverable'}), "\n",
@@ -1206,6 +1209,10 @@ if ($result) {
 					}
 					elsif ($ngs == 6) {
 						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_158), "\n",
+					$q->end_ul();
+					}
+          elsif ($ngs == 7) {
+						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_149), "\n",
 					$q->end_ul();
 					}
 					else {

@@ -314,6 +314,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					if ($result->{'MiSeq-121'} == 1) {print $q->li("included in 121 genes design"), "\n"}
 					if ($result->{'MiSeq-3'} == 1) {print $q->li("included in 3 genes design"), "\n"}
 					if ($result->{'MiniSeq-132'} == 1) {print $q->li("included in 132 genes design"), "\n"}
+          if ($result->{'MiniSeq-149'} == 1) {print $q->li("included in 149 genes design"), "\n"}
 					if ($result->{'MiniSeq-152'} == 1) {print $q->li("included in 152 genes design"), "\n"}
 					if ($result->{'MiniSeq-158'} == 1) {print $q->li("included in 158 genes design"), "\n"}
 					if ($result->{'diag'} == 1) {print $q->li("diagnostic gene"), "\n"}

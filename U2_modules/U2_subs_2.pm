@@ -335,7 +335,7 @@ sub genotype_line_optimised { #prints a line in the genotype table
 		my ($firstname, $lastname) = ($var->{'first_name'}, $var->{'last_name'});
 		$firstname =~ s/'/''/og;
 		$lastname =~ s/'/''/og;
-		my $query_analyse = "SELECT a.type_analyse FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$firstname' AND b.last_name = '$lastname' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var->{'nom'}';";# AND num_pat = '$var->{'num_pat'}' AND id_pat = '$var->{'id_pat'}';";
+		my $query_analyse = "SELECT a.type_analyse FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name ILIKE '$firstname' AND b.last_name ILIKE '$lastname' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$var->{'nom'}';";# AND num_pat = '$var->{'num_pat'}' AND id_pat = '$var->{'id_pat'}';";
 		#print $query_analyse;exit;
 		my $sth_analyse = $dbh->prepare($query_analyse);
 		my $res_analyse = $sth_analyse->execute();

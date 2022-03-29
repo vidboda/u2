@@ -8,7 +8,7 @@ use URI::Encode qw(uri_encode uri_decode);
 use strict;
 use warnings;
 use SOAP::Lite;
-#use Data::Dumper;
+use Data::Dumper;
 use JSON;
 use LWP::UserAgent;
 
@@ -37,19 +37,19 @@ our @COUNTRY = ('Unknown','France','Afghanistan','Albania','Algeria','American S
 
 #manage groups
 
-our @USHER = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'ADGRV1', 'WHRN', 'CLRN1', 'CLRN2', 'HARS', 'PDZD7', 'VEZT', 'CEP250', 'PEX1', 'PEX6', 'PEX26', 'ABHD12');
+our @USHER = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'ADGRV1', 'WHRN', 'CLRN1', 'HARS', 'VEZT', 'CEP250', 'PEX1', 'PEX6', 'PEX26', 'ABHD12');
 our @USH1 = ('', 'MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2');
-our @USH2 = ('USH2A', 'ADGRV1', 'WHRN', 'PDZD7');
+our @USH2 = ('USH2A', 'ADGRV1', 'WHRN');
 our @USH3 = ('CLRN1', 'HARS1');
 our @CHM = ('CHM');
 our @DFNB = ('ADCY1', 'ATP2B2', 'CABP2', 'CATSPER2', 'CDC14A', 'CIB2', 'CLDN9', 'CLDN14', 'CLIC5', 'CLRN2', 'COCH', 'COL11A2', 'ELMOD3', 'ESPN', 'EPS8', 'EPS8L2', 'ESRP1', 'ESRRB', 'FOXI1', 'GIPC3', 'GJB2', 'GJB3', 'GJB6', 'GPSM2', 'GRXCR1', 'GRXCR2', 'HGF', 'ILDR1', 'KARS1', 'KCNJ10', 'LHFPL5', 'LOXHD1', 'LRTOMT', 'MARVELD2', 'MPZL2', 'MSRB3', 'MYO3A', 'MYO6', 'MYO15A', 'OTOA', 'OTOF', 'OTOG', 'OTOGL', 'PEX13', 'PDZD7', 'PJVK', 'PTPRQ', 'RDX', 'RIPOR2', 'ROR1', 'S1PR2', 'SERPINB6', 'SLC26A4', 'SLC26A5', 'SLITRK6', 'SPNS2', 'STRC', 'SYNE4', 'TBC1D24', 'TECTA', 'TMC1', 'TMEM132E', 'TMIE', 'TMPRSS3', 'TPRN', 'TRIOBP', 'TSPEAR', 'WBP2');
 our @DFNA = ('ABCC1', 'ACTG1', 'CCDC50', 'CD164', 'CEACAM16', 'COCH', 'COL11A2', 'CRYM', 'DIABLO', 'DIAPH1', 'DIAPH3', 'DMXL2', 'DSPP', 'EYA1', 'EYA4', 'GJB2', 'GJB6', 'GJB3', 'GRHL2', 'GSDME', 'HOMER2', 'KCNQ4', 'KITLG', 'LMX1A', 'MIR96', 'MIR182', 'MIR183', 'MYH9', 'MYH14', 'MYL9', 'MYO1A', 'MYO3A', 'MYO6', 'NLRP3', 'OSBPL2', 'P2RX2', 'PLS1', 'PTPN11', 'PTPRQ', 'POU4F3', 'RIPOR2', 'SIX1', 'SLC12A2', 'SLC17A8', 'TBC1D24', 'TECTA', 'TJP2', 'TMC1', 'TNC', 'WFS1','RNR1', 'TOP2B', 'TRNL1', 'TRNS1', 'VANGL2');
-our @NSRP = ('ABCA4', 'AIPL1', 'BBS1', 'BEST1', 'C8orf37', 'CERKL', 'CNGA1', 'CNGB1', 'CRB1', 'DHDDS', 'EYS', 'FAM161A', 'FLVCR1', 'IDH3B', 'IMPG2', 'MAK', 'MERTK', 'NR2E3', 'NRL', 'PDE6A', 'PDE6B', 'PDE6G', 'PRCD', 'PROM1', 'PRPF31', 'PRPH2', 'RP1', 'RP2', 'RBP3', 'RGR', 'RHO', 'RLBP1', 'RPE65', 'RPGR', 'PCARE', 'SAG', 'SNRNP200', 'TTC8', 'ZNF513');
+our @NSRP = ('ABCA4', 'AIPL1', 'BBS1', 'BEST1', 'C8orf37', 'CERKL', 'CLRN1', 'CNGA1', 'CNGB1', 'CRB1', 'DHDDS', 'EYS', 'FAM161A', 'FLVCR1', 'IDH3B', 'IMPG2', 'MAK', 'MERTK', 'NR2E3', 'NRL', 'PDE6A', 'PDE6B', 'PDE6G', 'PRCD', 'PROM1', 'PRPF31', 'PRPH2', 'RP1', 'RP2', 'RBP3', 'RGR', 'RHO', 'RLBP1', 'RPE65', 'RPGR', 'PCARE', 'SAG', 'SNRNP200', 'TTC8', 'USH2A', 'ZNF513');
 our @DFNX = ('AIFM1', 'POU3F4', 'PRPS1', 'SMPX', 'COL4A6');
 our @LCA = ('LRAT', 'SPATA7', 'TULP1', 'RPE65');
 our @CEVA = ('CEVA');
 #our @MITO = ('RNR1', 'TRNL1', 'TRNS1');
-our @OTHER_NS = ('ABHD12', 'ACOX1', 'ACTB', 'ACY1', 'ALMS1', 'ATP2B2', 'ATP6V0A4', 'ATP6V1B1', 'BSND', 'CACNA1D', 'CATSPER2', 'CHD7', 'CISD2', 'COL11A1', 'COL2A1', 'COL4A1', 'COL4A3', 'COL4A4', 'COL4A5', 'COL9A1', 'COL9A2', 'COL9A3', 'COLEC11', 'ECE1', 'EDN3', 'EDNRA', 'EDNRB', 'ERCC2', 'EYA1', 'FGF3', 'FGFR3', 'GATA3', 'HARS2', 'HSD17B4', 'JAG1', 'KARS1', 'KCNE1', 'KCNQ1', 'KIT', 'LARS2', 'MASP1', 'MITF', 'MTAP', 'MYO1F', 'NDP', 'NF2', 'OPA1', 'PAX1', 'PAX3', 'PAX6', 'PEX1', 'PEX6', 'PHYH', 'PLS1', 'PMP22', 'POLR1C', 'POLR1D', 'SEMA3E', 'SIX1', 'SIX5', 'SLC4A11', 'SNAI2', 'SOX10', 'SOX2', 'TCOF1', 'TFAP2A', 'TIMM8A', 'TNC', 'TSHZ1', 'TWNK');
+our @OTHER_NS = ('ACOX1', 'ACTB', 'ACY1', 'ALMS1', 'ATP2B2', 'ATP6V0A4', 'ATP6V1B1', 'BSND', 'CACNA1D', 'CATSPER2', 'CHD7', 'CISD2', 'COL11A1', 'COL2A1', 'COL4A1', 'COL4A3', 'COL4A4', 'COL4A5', 'COL9A1', 'COL9A2', 'COL9A3', 'COLEC11', 'ECE1', 'EDN3', 'EDNRA', 'EDNRB', 'ERCC2', 'EYA1', 'FGF3', 'FGFR3', 'GATA3', 'HARS2', 'HSD17B4', 'JAG1', 'KARS1', 'KCNE1', 'KCNQ1', 'KIT', 'LARS2', 'MASP1', 'MITF', 'MTAP', 'MYO1F', 'NDP', 'NF2', 'OPA1', 'PAX1', 'PAX3', 'PAX6', 'PEX1', 'PEX6', 'PHYH', 'PLS1', 'PMP22', 'POLR1C', 'POLR1D', 'SEMA3E', 'SIX1', 'SIX5', 'SLC4A11', 'SNAI2', 'SOX10', 'SOX2', 'TCOF1', 'TFAP2A', 'TIMM8A', 'TNC', 'TSHZ1', 'TWNK');
 our @DAV = ('SIX1', 'KMT2D', 'KDM6A', 'ATP6V1B1', 'SLC26A4', 'FOXI1', 'KCNJ10', 'ATP6V0A4');
 our @DSD = ('AKR1C2','AKR1C4','AMH','AMHR2','AR','ARL6','ARX','ATF3','ATRX','CBX2','CHD7','CITED2','CYB5A','CYP11A1','CYP17A1','DHH','DMRT1','DMRT2','FGF8','FGF9','FGFR1','FGFR2','FSHB','FSHR','GATA4','HOXA13','HSD17B3','HSD3B2','INSL3','ANOS1','LHB','LHCGR','MAMLD1','MAP3K1','MKKS','NR0B1','NR5A1','POR','RXFP2','SOX2','SOX3','SOX8','SOX9','SOX10','SRD5A2','SRY','STAR','TSPYL1','WDR11','WNT4','WT1','ZFPM2');
 #our @NM = ('ABHD5','ACAD9','ACADVL','ACTA1','ADSSL1','AGL','AGRN','ALG13','ALG14','ALG2','AMPD1','ANO5','ATP2A1','B3GALNT2','B3GNT1','BAG3','BIN1','BVES','CACNA1A','CACNA1S','CAPN3','CAV3','CASQ1','CCDC78','CFL2','CHAT','CHKB','CHRNA1','CHRNB1','CHRND','CHRNE','CHRNG','CLCN1','CLN3','CNTN1','COL4A1','COL6A1','COL6A2','COL6A3','COL12A1','COL13A1','COLQ','CPT2','CRYAB','DAG1','DES','DMD','DNAJB6','DNM2','DOK7','DOLK','DPAGT1','DPM1','DPM2','DPM3','DYSF','EMD','ENO3','ETFA','ETFB','ETFDH','FHL1','FKRP','FKTN','FLAD1','FLNC','GAA','GBE1','GFPT1','GMPPB','GNE','GOLGA2','GPR56','GYLTL1B','GYG1','GYS1','HNRNPA1','HNRNPDL','HSPG2','ISCU','ISPD','ITGA7','KBTBD13','KCNA1','KCNE3','KCNJ18','KCNJ2','KLHL40','KLHL41','KLHL9','KY','LAMA2','LAMB2','LAMP2','LARGE','LDB3','LDHA','LIMS2','LMNA','LMOD3','LPIN1','LRP4','MATR3','MEGF10','MTM1','MUSK','MYBPC3','MYH2','MYH3','MYH7','MYH8','MYO9A','MYO18B','MYOT','NEB','NEK5','ORAI1','PABPN1','PFKM','PGAM2','PGK1','PGM1','PHKA1','PHKB','PIEZO2','PLEC','PNPLA2','PNPLA8','POMGNT1','POMGNT2','POMK','POMT1','POMT2','PREPL','PRKAG2','PTPLA','PTRF','PYGM','PYROXD1','RAPSN','RBCK1','RYR1','SCN4A','SELENON','SGCA','SGCB','SGCD','SGCG','SLC22A5','SLC25A1','SLC25A20','SLC25A32','SLC35A1','SLC35A2','SLC5A7','SNAP25','SPEG','SQSTM1','STAC3','STIM1','SYT2','TCAP','TIA1','TMEM5','TNNT1','TNPO3','TOR1AIP1','TPM2','TPM3','TRAPPC11','TRIM54','TRIM32','TRIP4','TTN','TUBB2b','VCP','VMA21');
@@ -71,6 +71,7 @@ our @ND = ('AAAS','AARS','AARS2','ABCB7','ABCD1','ABHD12','ABHD5','ACO2','ACOX1'
 our $NUM_ONTARGET_READS = 1170000;
 our $NUM_ONTARGET_READS_152 = 1290900;
 our $NUM_ONTARGET_READS_158 = 1434612;
+our $NUM_ONTARGET_READS_149 = 1342425;
 our $TITV = 2.3;
 our $MDOC = 150;
 our $PC50X = 95;
@@ -1140,6 +1141,7 @@ sub one2three {
 	    'V' => 'Val',
 	    'W' => 'Trp',
 	    'Y' => 'Tyr',
+			'*' => 'Ter'
     );
     return $amino_acid{$aa};
 }
@@ -1167,7 +1169,9 @@ sub three2one {
 	    'Val' => 'V',
 	    'Trp' => 'W',
 	    'Tyr' => 'Y',
-	    'del' => 'del'
+	    'del' => 'del',
+			'dup' => 'dup',
+			'Ter' => '*'
     );
     return $amino_acid{$aa};
 }
@@ -1252,9 +1256,11 @@ sub run_vv {
 		if ($mode eq 'VCF') {
 			$url = "$vv_api_url/$genome/$var/$nm?content-type=application/json";
 		}
-		print STDERR "$url\n";
+		# print STDERR "$url\n";
 		my $request = $ua->get($url);
-		if ($request->is_success()) {return $request->content()}
+		# print STDERR "asked URL: $url\n";
+		# print STDERR '$request->decoded_content():'.Dumper($request->decoded_content())."\n";
+		if ($request->is_success()) {return $request->decoded_content()}
 		else {return '0'}
 	}
 	else {
