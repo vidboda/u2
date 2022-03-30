@@ -1703,6 +1703,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 			close HANDLE;
 			mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
 			copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
+      unlink $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf";
 		}
 		else {
 			print $q->span('Failed to generate coverage file');
