@@ -949,6 +949,23 @@ sub direct_submission {
 	else {return '';}
 }
 
+sub direct_submission_prepare {
+	# https://docstore.mik.ua/orelly/linux/dbi/ch05_05.htm
+	my ($value, $number, $id, $analysis, $dbh) = @_;
+	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} #we remove what is deleted or duplicated
+	my $query = "SELECT nom, nom_gene FROM variant WHERE nom_g = '$value';";
+	my $res = $dbh->selectrow_hashref($query);
+	if ($res) {
+		my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$res->{'nom'}' AND nom_gene[2] = '".$res->{'nom_gene'}[1]."';";
+		my $res_last_check = $dbh->selectrow_hashref($last_check);
+		if (!$res_last_check || $res_last_check eq '0E0') {
+			return ($res->{'nom'}, $res->{'nom_gene'}[0], $res->{'nom_gene'}[1])
+		}
+		else {return '';}
+	}
+	else {return '';}
+}
+
 sub get_detailed_pos {
 	my ($pos1, $pos2) = @_;
 	$pos1 =~ /(\d+)_(\d+)/o;
@@ -1274,68 +1291,7 @@ sub create_variant_vv {
 				}
 			}
 		}
-		#bad wt nt => sometimes key = new NMvar (autoremapped) ->{'validation_warnings}
-		#if ($key =~ /NM_.+/o) {
-		#	if (defined($vv_results->{$key}->{'validation_warnings'}[0]) && $vv_results->{$key}->{'validation_warnings'}[0] =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
-		#		if ($calling eq 'web') {
-		#			my $text = $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
-		#			print U2_modules::U2_subs_2::danger_panel($text, $q);
-		#			exit;
-		#		}
-		#		elsif($calling = 'background') {$error .= "ERROR: $vv_results->{$key}->{'validation_warnings'}[0]\n"; return $error}
-		#	}
-		#}
-		#elsif ($vv_results->{$key} =~ /validation_warning/) {
-		#	#print STDERR "1- ".$vv_results->{$key}->{'validation_warnings'}[0]."\n";
-		#	my $text = '';
-		#	foreach my $warning (@{$vv_results->{$key}->{'validation_warnings'}}) {
-		#		if ($warning eq "$acc_no.$acc_ver:$cdna") {
-		#			#bad wt  nt sometimes validation_warnings = key directly
-		#			$text = "VariantValidator error: $_".$vv_results->{$key}->{'validation_warnings'}[1];
-		#		}
-		#		elsif ($warning =~ /length must be/o) {$text = "VariantValidator error for $cdna : $_"}
-		#		elsif ($warning =~ /RefSeqGene record not available/o) {$nom_ng = 'NULL'}
-		#		elsif ($warning =~ /does not agree with reference/o) {$text = "VariantValidator error for $cdna ($_): ".$vv_results->{$key}->{'validation_warnings'}[1]}
-		#		else {$text = $warning}
-		#		#print STDERR $warning."\n";
-		#	}
-		#	if ($text ne '') {
-		#		if ($calling eq 'web') {
-		#			print U2_modules::U2_subs_2::danger_panel($text, $q);
-		#			exit;
-		#		}
-		#		elsif($calling = 'background') {$error .= "ERROR: $text\n"; return $error}
-		#	}
-		#}
-		#if ($calling eq 'web' && !$vv_results->{$vvkey}) {#VV changed variant name (ex with delAGinsT)
-		#	if (ref($vv_results->{$key}) eq ref {} && $vv_results->{$key}->{'submitted_variant'} eq $vvkey) {$vvkey = $key;print "<br/>".$vv_results->{$key}->{'submitted_variant'}."<br/>"}
-		#}
 
-		#if (($key =~ /NM_.+/o || $key =~ /validation_warning/o) && defined($vv_results->{$key}->{'validation_warnings'}[0])) {#there is a warning
-		#	my $text = '';
-		#	foreach my $warning (@{$vv_results->{$key}->{'validation_warnings'}}) {
-		#		if ($warning eq "$acc_no.$acc_ver:$cdna") {
-		#			#bad wt  nt sometimes validation_warnings = key directly
-		#			$text = "VariantValidator error: $_".$vv_results->{$key}->{'validation_warnings'}[1];
-		#		}
-		#		elsif ($warning =~ /length must be/o) {$text .= "VariantValidator error for $cdna : $warning"}
-		#		elsif ($warning =~ /RefSeqGene record not available/o) {$nom_ng = 'NULL'}
-		#		elsif ($warning =~ /does not agree with reference/o) {$text .= "VariantValidator error for $cdna ($warning): ".$vv_results->{$key}->{'validation_warnings'}[1]}
-		#		elsif ($warning =~ /automapped to $acc_no\.$acc_ver:(c\..+)/g) {
-		#			if ($calling eq 'web') {
-		#				$text .= $q->span("VariantValidator reports that your variant should be $1 instead of $cdna");
-		#			}
-		#			elsif($calling = 'background') {$text .= "VariantValidator error for $cdna : $warning"}
-		#		}
-		#	}
-		#	if ($text ne '') {
-		#		if ($calling eq 'web') {
-		#			print U2_modules::U2_subs_2::danger_panel($text, $q);
-		#			exit;
-		#		}
-		#		elsif($calling = 'background') {$error .= "ERROR: $text\n"; return $error}
-		#	}
-		#}
 		if ($calling eq 'web' && !$vv_results->{$vvkey}) {#VV changed variant name (ex with delAGinsT)
 			if (ref($vv_results->{$key}) eq ref {} && $vv_results->{$key}->{'submitted_variant'} eq $vvkey) {$vvkey = $key;print "<br/>".$vv_results->{$key}->{'submitted_variant'}."<br/>"}
 		}
@@ -1365,6 +1321,7 @@ sub create_variant_vv {
 		#print $nom_g_38."<br/>";
 	}
 	else {#SLOW
+		# print STDERR "Liftovering variant $nom_g\n";
 		my $chr_tmp = "chr$chr";
 		if ($nom_g =~ /g\.(\d+)_(\d+)([^\d]+)$/o) {
 			my ($s19, $e19, $rest) = ($1, $2, $3);
