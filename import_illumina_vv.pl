@@ -489,12 +489,6 @@ if ($step && $step == 2) {
 				my ($var_dp, $var_vf);
 
 				my @format_list = split(/:/, pop(@list));
-        # check if variant not reported in special table no to assess these variants each time
-        my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
-        my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
-        if ($res_variants_no_insert) {
-          $message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
-        }
 
 				#compute vf_index
 				my @label_list = split(/:/, pop(@list));
@@ -520,6 +514,12 @@ if ($step && $step == 2) {
 				#we just query ushvam2
 				#if  ($var_chr =~ /^chr([\dXYM]{1,2})$/o) {$var_chr = $1}
 				if  ($var_chr =~ /^chr($U2_modules::U2_subs_1::CHR_REGEXP)$/o) {$var_chr = $1}
+        # check if variant not reported in special table no to assess these variants each time
+        my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+        my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
+        if ($res_variants_no_insert) {
+          $message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
+        }
 
 
 				my $interest = 0;
