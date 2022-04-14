@@ -129,6 +129,7 @@ $SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTAT
 $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 # genome version for VV
 my $VVGENOME = $config->VARIANTVALIDATOR_GENOME();
+my $VVURL = $config->VARIANTVALIDATOR_GENUINE_API();
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -488,6 +489,12 @@ if ($step && $step == 2) {
 				my ($var_dp, $var_vf);
 
 				my @format_list = split(/:/, pop(@list));
+        # check if variant not reported in special table no to assess these variants each time
+        my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+        my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
+        if ($res_variants_no_insert) {
+          $message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
+        }
 
 				#compute vf_index
 				my @label_list = split(/:/, pop(@list));
@@ -502,7 +509,7 @@ if ($step && $step == 2) {
 					$label_count ++;
 				}
 				($var_dp, $var_vf) = ($format_list[$dp_index], $format_list[$vf_index]);
-				if ($var_vf =~ /,/o) {#multiple AB after splitting; is it VCF compliant? comes fomr IURC script to add AB to all variants in nenufaar
+				if ($var_vf =~ /,/o) {#multiple AB after splitting; is it VCF compliant? comes from IURC script to add AB to all variants in nenufaar
 					#we need to recompute with AD
 					my @ad_values = split(/,/, $format_list[$ad_index]);
 					$var_vf = sprintf('%.2f', (pop(@ad_values)/$var_dp));
@@ -713,7 +720,7 @@ if ($step && $step == 2) {
 					#
 					#}
 					#print STDERR $nm_list."\n";
-					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:https://rest.variantvalidator.org/VariantValidator/variantvalidator/hg19/$var_chr-$var_pos-$var_ref-$var_alt/all?content-type=application/json\n";next VCF}
+					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:$VVURL/VariantValidator/variantvalidator/$VVGENOME/$var_chr-$var_pos-$var_ref-$var_alt/all?content-type=application/json\n";next VCF}
 					elsif ($nm_list eq '' && $tag ne '') {$message .= $tag;next VCF}
 					#query U2 to get NM
 					chop($nm_list);#remove last ,
@@ -730,6 +737,10 @@ if ($step && $step == 2) {
 							$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[1] = $result->{'main'};
 							$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
 							$cdna = $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
+              if ($cdna =~ /=$/) {
+                $message .= "$id$number: WARNING: ALT equals REF in ".$result->{'nm'}." for $var_chr-$var_pos-$var_ref-$var_alt ($cdna)\n";
+                next VCF
+              }
 							#$hashvar->{$result->{'nm'}}[2] = $result->{'main'};
 							#$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}[0];
 							#$cdna = $hashvar->{$result->{'nm'}}[0];
@@ -847,6 +858,9 @@ if ($step && $step == 2) {
 						}
 						else {
 							#ERROR
+              # special table no to assess these variants each time
+              my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found');";
+              $dbh->do($insert_variants_no_insert);
 							$message .= "$id$number: ERROR: Impossible to run VariantValidator (no suitable NM found) for variant $var_chr-$var_pos-$var_ref-$var_alt-$candidate\n";
 						}
 					}
@@ -954,7 +968,12 @@ sub run_vv_results {
 	($nm_list, $tag) = ('', '');
 	foreach my $var (keys %{$vv_results_to_treat}) {
 		#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
-		if ($var eq 'flag' && $vv_results_to_treat->{$var} eq 'intergenic') {return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n"}
+		if ($var eq 'flag' && $vv_results_to_treat->{$var} eq 'intergenic') {
+      # special table no to assess these variants each time
+      my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant');";
+      $dbh->do($insert_variants_no_insert);
+      return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
+    }
 		my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
 		#print STDERR $nm."\n";
 		if ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] !~ /=/o) {
