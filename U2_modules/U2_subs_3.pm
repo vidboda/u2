@@ -909,9 +909,9 @@ sub search_position {
 
 sub build_hgvs_from_illumina {
 	my ($var_chr, $var_pos, $var_ref, $var_alt) = @_;
-	#we keep only the first variants if more than 1 e.g. alt = TAA, TA
-	if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
-	#if ($var_chr =~ /^([\dXYM]{1,2})/o) {$var_chr = "chr$1"}
+	# we keep only the first variants if more than 1 e.g. alt = TAA, TA
+	# if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
+	# if ($var_chr =~ /^([\dXYM]{1,2})/o) {$var_chr = "chr$1"}
 	if ($var_chr =~ /^($U2_modules::U2_subs_1::CHR_REGEXP)/o) {$var_chr = "chr$1"}
 	my $hgvs_pref = 'g.';
 	if ($var_chr eq 'chrM') {$hgvs_pref = 'm.'}
