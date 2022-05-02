@@ -67,7 +67,7 @@ my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_
 #my $REF_GENE_URI = $config->REF_GENE_URI();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'datatables.min.css', $CSS_PATH.'jquery-ui-1.12.1.min.css');
-#$CSS_PATH.'igv-1.0.5.css', 
+#$CSS_PATH.'igv-1.0.5.css',
 my $q = new CGI;
 
 my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
@@ -113,9 +113,9 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				#{-language => 'javascript',
 				#-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => 'https://cdn.jsdelivr.net/npm/igv@2.3.5/dist/igv.min.js', 'defer' => 'defer'},
+				-src => 'https://cdn.jsdelivr.net/npm/igv@2.10.0/dist/igv.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT}],		
+                                -src => $JS_DEFAULT}],
                         -encoding => 'ISO-8859-1', 'defer' => 'defer');
 
 my $user = U2_modules::U2_users_1->new();
@@ -169,10 +169,10 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
     }
     else { # get nenufaar analysis
-		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");	
+		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
 		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
 		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
-	}	
+	}
 	$nenufaar_ana = $nenufaar_ana_tmp;
 }
 else {
@@ -212,7 +212,7 @@ print $q->start_div({'class' => 'w3-container'}), $q->start_table({'class' => 't
 				$q->th({'class' => 'left_general'}, 'Size (bp)'), "\n",
 				$q->th({'class' => 'left_general'}, 'Type'), "\n",
 				$q->th({'class' => 'left_general'}, 'UCSC link'), "\n",
-				$q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";	
+				$q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";
 
 open F, $poor_coverage_absolute_path or die $poor_coverage_absolute_path, $!;
 
@@ -222,7 +222,7 @@ while (<F>) {
 	if ($_ !~ /^#/o) {
 		#print "$_<br/>";
 		my @line = split(/\t/);
-		my ($region, $size);		
+		my ($region, $size);
 		#$line[0] =~ /chr([\dXY]{1,2})/o;
 		$line[0] =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP)/o;
 		my $u2_chr = $1;
@@ -251,7 +251,7 @@ while (<F>) {
 				push @type, $result->{'type'};
 				if ($result->{'nom'} !~ /UTR/o) {push @nom, $result->{'nom'}}
 				else {push @nom, ''}
-				
+
 			}
 		}
 		else {
@@ -295,7 +295,7 @@ $(document).ready(function () {
 	    showNavigation: true,
 	    showRuler: true,
 	    genome: "hg19",
-	    tracks: [		
+	    tracks: [
 			{
 				name: "'.$id.$number.' '.$nenufaar_ana.' '.$file_type.' file",
 				type: "alignment",
@@ -311,7 +311,7 @@ $(document).ready(function () {
 	igv.createBrowser(div, options).
 		then(function (browser) {
 			igv.browser = browser;
-		});	
+		});
     });
 ';
 print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
@@ -331,7 +331,7 @@ print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5p
 #my $interest = 0;
 #foreach my $key (keys %{$intervals}) {
 #	$key =~ /(\d+)-(\d+)/o;
-#	if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr			
+#	if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr
 #		if ($var_chr eq $intervals->{$key}) {$interest = 1;last;}
 #	}
 #}

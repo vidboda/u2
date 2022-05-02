@@ -140,8 +140,9 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				#-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
 				#{-language => 'javascript',
 				#-src => 'https://igv.org/web/release/2.0.1/dist/igv.min.js', 'defer' => 'defer'},
+        # 2.7.2
 				{-language => 'javascript',
-				-src => 'https://cdn.jsdelivr.net/npm/igv@2.7.4/dist/igv.min.js', 'defer' => 'defer'},
+				-src => 'https://cdn.jsdelivr.net/npm/igv@2.10.0/dist/igv.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_DEFAULT, 'defer' => 'defer'}],
 			-encoding => 'ISO-8859-1');
@@ -259,47 +260,11 @@ print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(), $q->st
 		$q->font({'color' => U2_modules::U2_subs_1::color_by_classe('VUCS Class U', $dbh)}, "VUCS Class U&nbsp;&nbsp;&nbsp;&nbsp;"),
 	$q->end_li(), $q->end_ul(), $q->br();
 
-
-
-#if ($analysis ne 'non_ngs') {
-	#$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$bam_ftp
-	#my $bam_path = U2_modules::U2_subs_2::get_bam_path($id, $number, $analysis, $dbh);
-	#my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
-	#my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
-	#my $res_manifest = $dbh->selectrow_hashref($query_manifest);
-	#if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq'}
-	#
-	#my ($alignment_dir);
-	#if ($instrument eq 'miseq'){
-	#	$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
-	#	$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-	#}
-	#elsif($instrument eq 'miniseq'){
-	#	$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
-	#	$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
-	#	$alignment_dir = $1;
-	#	$alignment_dir =~ s/\\/\//og;
-	#}
-	##print $alignment_dir;
-	#my $bam_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir`;
-	##print $res_manifest->{'run_id'};
-	##create a hash which looks like {"illumina_run_id" => 0}
-	#my %files = map {$_ => '0'} split(/\s/, $bam_list);
-	#my $bam_file;
-	#foreach my $file_name (keys(%files)) {
-	#	#print $file_name;
-	#	if ($file_name =~ /$id$number(_S\d+\.bam)/) {
-	#		my $bam_file_suffix = $1;
-	#		$bam_file = "$alignment_dir/$id$number$bam_file_suffix";
-	#		#$bam_ftp = "$ftp_dir/$id$number$bam_file_suffix";
-	#	}
-	#}
-	#my $bam_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$bam_file";
 my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 if ($chr ne 'M') {
 	my $igv_script = '
 	$(document).ready(function () {
-		var div = $("#igv_div"),
+		var div = $(\'#igv_div\'),
 		options = {
 			showNavigation: true,
 			showRuler: true,
@@ -308,7 +273,8 @@ if ($chr ne 'M') {
 		};
 
 		igv.createBrowser(div, options).then(function (browser) {
-			igv.browser = browser;
+      console.log("Created IGV browser");
+      igv.browser = browser;
 		});
 	});
 	';
