@@ -22,6 +22,7 @@ use Net::Ping;
 use URI::Encode qw/uri_encode uri_decode/;
 use JSON;
 use File::Copy;
+use Net::OpenSSH;
 
 
 #use XML::Compile::WSDL11;      # use WSDL version 1.1
@@ -67,6 +68,8 @@ my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $NENUFAAR_ANALYSIS = $config->NENUFAAR_ANALYSIS();
 my $DBNSFP_V2 = $config->DBNSFP_V2();
 my $DBNSFP_V3_PATH = $config->DBNSFP_V3_PATH();
+my $SEAL_RS_IURC = $config->SEAL_RS_IURC();
+my $TMP_DIR = $config->TMP_DIR();
 
 my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         $DB_USER,
@@ -1706,8 +1709,8 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
       unlink $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf";
 		}
 		else {
-			print $q->span('Failed to generate coverage file');
 			U2_modules::U2_subs_2::send_general_mail($user, "CovReport failed for $id$number-$analysis-$filter\n\n", "Hi ".$user->getName().",\nUnfortunately, your CovReport generation failed. You can forward this message to David for debugging.\n");
+      print $q->span('Failed to generate coverage file');
 		}
 	}
 	#my $align_file = $q->param ('align_file');
@@ -1724,15 +1727,45 @@ if ($q->param('asked') && $q->param('asked') eq 'disease') {
 	$dbh->do($update);
 	print $q->span({'class' => 'pointer', 'onclick' => "window.open('patients.pl?phenotype=$new_disease', '_blank')"}, $new_disease);
 }
-
-#if ($q->param('asked') && $q->param('asked') eq 'covreport') {
-#	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
-#	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
-#	my $filter = U2_modules::U2_subs_1::check_filter($q);
-#	open(F, '>'.$ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.txt") or die $!;
-#	print F '1';
-#	close F;
-#}
+if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
+	print $q->header();
+	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+  my $family_id = U2_modules::U2_subs_1::check_family_id($q);
+  my $disease = U2_modules::U2_subs_1::check_phenotype($q);
+  my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
+  my $proband = U2_modules::U2_subs_1::check_proband($q);
+  my $vcf_path = U2_modules::U2_subs_1::check_illumina_vcf_path($q);
+  my $seal_ready = '';
+  open F, "$DATABASES_PATH/seal_json.token" or die $!;
+  my ($sample_field, $family_field, $run_field, $teams_field) = (0, 0, 0, 0);
+  while(<F>) {
+    if (/"sample"/o) {$sample_field = 1}
+    elsif (/"family"/o) {$family_field = 1}
+    elsif (/"run"/o) {$run_field = 1}
+    if (/"name":/o && $sample_field == 1) {s/"name": "",/"name": "$id$number",/; $sample_field = 0}
+    elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
+    elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
+    elsif (/"affected":/o) {
+      if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
+      else {s/"affected": ,/"affected": false,/}
+    }
+    elsif (/"index":/o) {
+      if ($proband eq 'yes') {s/"index":/"index": true/}
+      else {s/"index":/"index": false/}
+    }
+    if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$vcf_path"/}
+    $seal_ready .= $_;
+  }
+  close F;
+  open G, ">".$TMP_DIR."seal_json.token";
+  print G $seal_ready;
+  close G;
+  # send file to seal
+  my $ssh = U2_modules::U2_subs_1::seal_connexion('-', $q);
+  $ssh->scp_put($TMP_DIR."seal_json.token", "/home/adminbioinfo/SEAL/seal/static/temp/vcf/".$id.$number."_json.token")
+  # print STDERR $seal_ready."\n";
+	# print STDERR $family_id."-".$disease."-".$run_id."-".$vcf_path."\n";
+}
 
 sub miseq_details {
 	my ($miseq_analysis, $first_name, $last_name, $gene, $acc, $nom_c) = @_;

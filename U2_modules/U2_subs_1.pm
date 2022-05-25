@@ -110,7 +110,9 @@ my $config_file = U2_modules::U2_init_1->getConfFile();
 my $config = U2_modules::U2_init_1->initConfig();
 $config->file($config_file);# or die $!;
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
+my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $PATIENT_IDS = $config->PATIENT_IDS();
+my $PATIENT_FAMILY_IDS = $config->PATIENT_FAMILY_IDS();
 my $PATIENT_PHENOTYPE = $config->PATIENT_PHENOTYPE();
 my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
@@ -543,6 +545,18 @@ sub check_phenotype { # check phenotype param
 	if ($q->param('phenotype') =~ /$PATIENT_PHENOTYPE/og) {return $1}
 	else {&standard_error('3', $q)}
 }
+# in ajax.pl
+sub check_family_id {
+	my ($q) = shift;
+	if ($q->param('family_id') =~ /$PATIENT_FAMILY_IDS(\d+)/og) {return $1.$2}
+	else {&standard_error('27', $q)}
+}
+# used in ajax.pl
+sub check_proband {
+	my ($q) = shift;
+	if ($q->param('proband') =~ /(yes|no)/og) {return $1}
+	else {&standard_error('29', $q)}
+}
 #used in import_illumina.pl, add_analysis.pl
 sub sample2idnum { #transform a sample into an id and a number
 	my ($sample, $q) = @_;
@@ -686,7 +700,12 @@ sub check_illumina_run_id {
 	if ($q->param('run_id') =~ /^(\d{6}_[A-Z]\d{5}_\d{4}_0{9}-[A-Z0-9]{5})$/o || $q->param('run_id') =~ /^(\d{6}_[A-Z]{2}\d{5,6}_\d{4}_[A-Z0-9]{10})$/o) {return $1}
 	else {print $q->param('run_id').$q->br();&standard_error('21', $q)}
 }
-
+# used in ajax.pl
+sub check_illumina_vcf_path {
+	my ($q) = shift;
+	if ($q->param('vcf_path') =~ /^$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR\/data\/([\w\/]+.vcf)$/) {return $1}
+	else {&standard_error('28', $q)}
+}
 
 sub check_class {
 	my ($q, $dbh) = @_;
@@ -763,7 +782,10 @@ sub standard_error { #returns an error and ends script
 		23	=>	'the mutalyzer webservice which is unreachable. Try again later',
 		24	=>	'RNA status value',
 		25	=>	'User name',
-		26	=>	'Mutalyzer issue'
+		26	=>	'Mutalyzer issue',
+		27	=>	'Family ID',
+		28	=>	'Illumina VCF path',
+		29	=>	'proband'
 	);
 	print $q->start_p(), $q->span('USHVaM 2 encountered an error and cannot proceed further.'), $q->br(), $q->span("The error is linked to the $error_code{$code}."), $q->br(), $q->span('Please contact your admin.'), $q->end_p();
 	&standard_end_html($q, $HTDOCS_PATH);
@@ -1422,7 +1444,26 @@ sub nas_connexion {
 	return $ssh;
 }
 
-
+# in ajax.pl
+sub seal_connexion {
+	my ($link, $q) = @_;
+	my $SEAL_IP = $config->SEAL_IP();
+	my $SEAL_USER = $config->SEAL_USER();
+	my $SEAL_PASSWORD = $config->SEAL_PASSWORD();
+	# print STDERR "$SEAL_USER:$SEAL_PASSWORD\@$SEAL_IP\n";
+	#initiate connexion to RackStation where the data actually is
+	#we first need to set up the connexion, a little bit difficult under mod_perl as
+	#STDIN and STDOUT are not related to real file handles under mod_perl so we need to fix it
+	#and Net::OpenSSH requires a secure ctl_dir
+	#also needs ~/.ssh (see google .ssh apache) with a proper public key in the known_hosts file
+	#need to untaint /dev/null - not sure of the method but it works
+	# $ENV{PATH} = '/dev/null';
+	open my $def, '<', '/dev/null' or die "unable to open /dev/null";
+	my $ctl_dir = tempdir(CLEANUP => 1, TMPDIR => 1) or die $!;
+	my $ssh = Net::OpenSSH->new("$SEAL_USER:$SEAL_PASSWORD\@$SEAL_IP", default_stdin_fh => $def,default_stdout_fh => $def, ctl_dir => $ctl_dir);
+	$ssh->error() and die "$link Can't ssh to SEAL: " . $ssh->error() . $q->br() . "If you see this page, please contact youradmin and keep the error message.";
+	return $ssh;
+}
 
 
 #sub get_analysis_hash {#returns a hash of available analysis

@@ -64,7 +64,7 @@ my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
 my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
-
+my $SEAL_URL = $config->SEAL_URL();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
 
@@ -260,20 +260,23 @@ my $js = "
 			}
 		})
 		.done(function(covreport_res) {
-			//if (covreport_res !== '<span>Failed to generate coverage file</span>') {
-			//	\$.ajax({
-			//		type: \"POST\",
-			//		url: \"ajax.pl\",
-			//		data: {sample: sample, analysis: analysis, filter: filter, asked: 'confirm_covreport'},
-			//	})
-			//}
-			//location.reload();
 			\$(\"#\" + html_tag).html(covreport_res);
 			\$(\".ui-dialog\").css(\"cursor\", \"default\");
 			\$(\".w3-button\").css(\"cursor\", \"default\");
 			\$(\"html\").css(\"cursor\", \"default\");
 		});
 	}
+  function Send2SEAL(sample, vcf_path, html_tag) {
+    \$.ajax({
+			type: \"POST\",
+			url: \"ajax.pl\",
+			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , asked: 'send2SEAL'}
+		})
+		.done(function() {
+      alert(html_tag);
+			\$(\"#\" + html_tag).html('VCF file successfully queued on SEAL server. Connect to <a href=\"".$SEAL_URL."\" target=\"_blank\">SEAL</a> to check its status.');
+		});
+  }
 ";
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
@@ -421,9 +424,9 @@ if ($result) {
 				$q->th({'class' => 'left_general'}, 'Trio allele assignation'),
 			$q->end_Tr(), "\n",
 			$q->start_Tr(), "\n",
-				$q->start_td(), $q->span({'class' => 'pointer', 'onclick' => "window.open('engine.pl?search=$result->{'famille'}', '_blank')"}, $result->{'famille'}), $q->end_td(), "\n",
+				$q->start_td(), $q->span({'id' => 'family_id', 'class' => 'pointer', 'onclick' => "window.open('engine.pl?search=$result->{'famille'}', '_blank')"}, $result->{'famille'}), $q->end_td(), "\n",
 				$q->start_td({'id' => 'disease'}), "\n",
-					$q->span({'class' => 'pointer', 'onclick' => "window.open('patients.pl?phenotype=$result->{'pathologie'}', '_blank')"}, $result->{'pathologie'}), "\n",
+					$q->span({'class' => 'pointer', 'id' => 'current_phenotype', 'onclick' => "window.open('patients.pl?phenotype=$result->{'pathologie'}', '_blank')"}, $result->{'pathologie'}), "\n",
 					$q->start_span(), "\n",
 						$q->button({'onclick' => "setDialogDisease('$id$number', '$disease_form');", 'value' => 'Modify', 'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue'}), "\n",
 					$q->end_span(), "\n",
@@ -433,7 +436,7 @@ if ($result) {
 				$q->td($result->{'defgen_fam'}), "\n",
 				$q->td($result->{'sexe'}), "\n",
 #				$q->td($result->{'origine'}), "\n",
-				$q->td($proband), "\n",
+				$q->td({'id' => 'proband'}, $proband), "\n",
 				$q->td($result->{'date_creation'}), "\n",
 #				$q->td($last_analysis), "\n",
 				$q->start_td();
@@ -683,7 +686,7 @@ if ($result) {
 						}
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-									$q->span('Run id: ').$q->a({'href' => "stats_ngs.pl?run=$res_manifest->{'run_id'}", 'target' => '_blank'}, $res_manifest->{'run_id'}).
+									$q->span('Run id: ').$q->a({'href' => "stats_ngs.pl?run=$res_manifest->{'run_id'}", 'target' => '_blank', 'id' => 'run_id'}, $res_manifest->{'run_id'}).
 								$q->end_li();
 						if ($user->isValidator != 1) {$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Filter: $res_manifest->{'filter'}")}
 						#if ($user->getName() ne 'david') {$raw_data .= $q->li("Filter: $res_manifest->{'filter'}")}
@@ -923,20 +926,20 @@ if ($result) {
 									$q->end_li();
 						}
 						else {
-							#print $HOME_IP."\n";
-							if ($HOME_IP eq 'https://pp-gb-gen.iurc.montp.inserm.fr') {
-                                # prod server need to be redirected on dev server to run covreport
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
-										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'window.open("patient_file.pl?sample='.$id_tmp.$num_tmp.'");', 'value' => 'Go to the Dev server to launch Covreport'}).
-									$q->end_li();
-                            }
-                            else {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
-										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'", "'.$user.'");', 'value' => 'Launch CovReport auto'}).
-										$q->span("&nbsp;&nbsp;").
-										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$alignment_ftp.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
-									$q->end_li();
-							}
+							# print $HOME_IP."\n";
+							# if ($HOME_IP eq 'https://pp-gb-gen.iurc.montp.inserm.fr') {
+              #   # prod server need to be redirected on dev server to run covreport
+							# 	$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
+							# 			$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'window.open("patient_file.pl?sample='.$id_tmp.$num_tmp.'");', 'value' => 'Go to the Dev server to launch Covreport'}).
+							# 		$q->end_li();
+              # }
+              # else {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
+									$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'", "'.$user.'");', 'value' => 'Launch CovReport auto'}).
+									$q->span("&nbsp;&nbsp;").
+									$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$alignment_ftp.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
+								$q->end_li();
+							# }
 						}
 						if (-e "$panel_mobidl_path/$res_manifest->{'run_id'}_multiqc.html") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
@@ -1048,7 +1051,10 @@ if ($result) {
 						#	$raw_data .= $q->li("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}/$res_manifest->{'run_id'}_multiqc.html")
 						#}
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "search_controls.pl?step=3&iv=1&run=$res_manifest->{'run_id'}&sample=$id_tmp$num_tmp&analysis=$analysis", 'target' => '_blank'}, "Sample tracking: get private SNPs").$q->end_li();
-						$raw_data .=  $q->end_li().$q->end_ul();
+            # ajax call to send the MobiDL VCF file to SEAL
+            $raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
+                $q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "seal'.$analysis.'");', 'value' => 'Send2SEAL'}).$q->end_li();
+						$raw_data .= $q->end_li().$q->end_ul();
 								#.$q->start_li().$q->a({'href' => 'http://localhost:60151/load?file=https://194.167.35.158/USHER/'.$res_manifest->{'run_id'}.$bam_file.'&genome=hg19'}, 'Open BAM in IGV (on configurated computers only -- TEST)').$q->end_li().$q->end_ul();;
 
 								#.$q->a({'href' => 'http://localhost:60151/load?file=ftp://194.167.35.140/data/MiSeqDx/USHER/'.$res_manifest->{'run_id'}.$bam_file.',ftp://194.167.35.140/data/MiSeqDx/USHER/'.$res_manifest->{'run_id'}.$bam_file.'.bai&genome=hg19'}, 'Open BAM in IGV (on configurated computers only -- TEST)').$q->end_li().$q->end_ul();

@@ -149,7 +149,7 @@ if ($step && $step == 2) {
 	my %sample_hash = U2_modules::U2_subs_2::build_sample_hash($q, $analysis, $filtered);
 
 	#test mutalyzer
-	if (U2_modules::U2_subs_1::test_mutalyzer() != 1) {U2_modules::U2_subs_1::standard_error('23', $q)}
+	# if (U2_modules::U2_subs_1::test_mutalyzer() != 1) {U2_modules::U2_subs_1::standard_error('23', $q)}
 
 	#print $q->start_p({'class' => 'center'}), $q->start_big(), $q->span("Automatic treatment of run "), $q->strong("$run ($analysis)"), $q->span(":"), $q->end_big(), $q->end_p();
 
