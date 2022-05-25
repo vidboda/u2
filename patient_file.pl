@@ -273,7 +273,6 @@ my $js = "
 			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , asked: 'send2SEAL'}
 		})
 		.done(function() {
-      alert(html_tag);
 			\$(\"#\" + html_tag).html('VCF file successfully queued on SEAL server. Connect to <a href=\"".$SEAL_URL."\" target=\"_blank\">SEAL</a> to check its status.');
 		});
   }
