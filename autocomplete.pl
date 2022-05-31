@@ -88,6 +88,7 @@ if ($q->param('query') =~ /^([\w\s]+)$/o) {
 	my $i = 0;
 	if ($user->isPublic() != 1) {
 		my $query = "SELECT DISTINCT(last_name) FROM patient WHERE last_name LIKE '%".uc($search)."%' ORDER BY last_name;";
+    # print STDERR "$query\n";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		#$return->{'suggestions'} = [];
