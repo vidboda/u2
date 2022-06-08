@@ -98,7 +98,8 @@ sub initConfig {
 		'SEAL_IP' => {ARGCOUNT => 1},
 		'SEAL_RS_IURC' => {ARGCOUNT => 1},
 		'SEAL_USER' => {ARGCOUNT => 1},
-		'SEAL_PASSWORD' => {ARGCOUNT => 1}
+		'SEAL_PASSWORD' => {ARGCOUNT => 1},
+		'SEAL_VCF_PATH' => {ARGCOUNT => 1}
 	);
 }
 

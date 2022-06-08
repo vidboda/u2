@@ -69,6 +69,7 @@ my $NENUFAAR_ANALYSIS = $config->NENUFAAR_ANALYSIS();
 my $DBNSFP_V2 = $config->DBNSFP_V2();
 my $DBNSFP_V3_PATH = $config->DBNSFP_V3_PATH();
 my $SEAL_RS_IURC = $config->SEAL_RS_IURC();
+my $SEAL_VCF_PATH = $config->SEAL_VCF_PATH();
 my $TMP_DIR = $config->TMP_DIR();
 
 my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
@@ -1758,9 +1759,10 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
     $seal_ready .= $_;
   }
   close F;
-  open G, ">".$TMP_DIR."LRM_seal_json.token";
+  open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
   print G $seal_ready;
   close G;
+  undef $seal_ready;
   # do the same for MobiDL
   my $mobidl_vcf_path = '';
   if ($vcf_path =~ /^(.+$run_id).+/) {
@@ -1789,14 +1791,14 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
     $seal_ready .= $_;
   }
   close F;
-  open G, ">".$TMP_DIR."MobiDL_seal_json.token";
+  open G, ">".$TMP_DIR."MobiDL_seal_json.token" or die $!;
   print G $seal_ready;
   close G;
   # send file to seal
   my $ssh = U2_modules::U2_subs_1::seal_connexion('-', $q);
-  $ssh->scp_put($TMP_DIR."LRM_seal_json.token", "/home/adminbioinfo/SEAL/seal/static/temp/vcf/".$id.$number."_LRM_json.token");
-  $ssh->scp_put($TMP_DIR."MobiDL_seal_json.token", "/home/adminbioinfo/SEAL/seal/static/temp/vcf/".$id.$number."_MobiDL_json.token");
-  close $ssh;
+  $ssh->scp_put($TMP_DIR."LRM_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_LRM_json.token");
+  $ssh->scp_put($TMP_DIR."MobiDL_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_MobiDL_json.token");
+  undef $ssh;
   # print STDERR $seal_ready."\n";
 	# print STDERR $family_id."-".$disease."-".$run_id."-".$vcf_path."\n";
 }
