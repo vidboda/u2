@@ -889,7 +889,7 @@ if ($user->isPublic != 1) {
 	my $res_filter = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
 
-		if ($result->{'filter'} eq 'RP' && ($result->{'rp'} == 1 && $result->{'usher'} == 0)) {next}
+		if ($result->{'filter'} eq 'RP' && $result->{'rp'} == 1) {next}
 		#elsif ($result->{'filter'} eq 'DFN' && ($result->{'dfn'} == 1 && $result->{'usher'} == 0)) {next}
 		#03/20119 test CIB2/PDZD7 is usher = t and dfn = t
 		elsif ($result->{'filter'} eq 'DFN' && $result->{'dfn'} == 1) {next}
