@@ -897,7 +897,7 @@ sub insert_analysis {
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
 		# my $insert = "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, valide, result, date_analyse, date_valid, date_result, analyste, validateur, referee, technical_valid) VALUES ('$number', '$id', ".$result->{'refseq'}."', '$analysis', 'f', NULL, '$date', NULL, NULL, '".$name."', NULL, NULL, '$neg');";
-		my $insert = "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, valide, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', ".$result->{'refseq'}."', '$analysis', 'f', '$date', '".$name."', '$neg');";
+		my $insert = "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, valide, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '".$result->{'refseq'}."', '$analysis', 'f', '$date', '".$name."', '$neg');";
 		print STDERR $insert;
 		$dbh->do($insert);
 	}
