@@ -47,10 +47,10 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         $DB_PASSWORD,
                         {'RaiseError' => 1}
                 ) or die $DBI::errstr;
-		
 
 
-my $query = "SELECT DISTINCT (nom[1]) as gene FROM gene ORDER BY nom[1];";
+
+my $query = "SELECT DISTINCT (gene_symbol) as gene FROM gene ORDER BY gene_symbol;";
 
 my $sth = $dbh->prepare($query);
 my $res = $sth->execute();

@@ -82,13 +82,13 @@ if ($user->isAnalyst() == 1 && $type ne '' && $type ne 'valide') {#technical val
 	my $value = 't';
 	if ($type eq 'negatif') {$value = 'f'}
 	if ($type eq 'positif' || $type eq 'negatif') {$type = 'result'}
-	my $query = "UPDATE analyse_moleculaire SET $type = '$value' WHERE num_pat = '$number' AND id_pat = '$id' AND nom_gene[1] = '$gene' AND type_analyse = '$analysis';";
+	my $query = "UPDATE analyse_moleculaire SET $type = '$value' FROM gene b WHERE analyse_moleculaire.refseq = b.refseq AND analyse_moleculaire.num_pat = '$number' AND analyse_moleculaire.id_pat = '$id' AND b.gene_symbol = '$gene' AND analyse_moleculaire.type_analyse = '$analysis';";
 	$dbh->do($query);
 	if ($type eq 'result') {
-		$query = "UPDATE analyse_moleculaire SET date_result = '$date', referee = '".$user->getName()."' WHERE num_pat = '$number' AND id_pat = '$id' AND nom_gene[1] = '$gene' AND type_analyse = '$analysis';";
+		$query = "UPDATE analyse_moleculaire SET date_result = '$date', referee = '".$user->getName()."' FROM gene b WHERE analyse_moleculaire.refseq = b.refseq AND analyse_moleculaire.num_pat = '$number' AND analyse_moleculaire.id_pat = '$id' AND b.gene_symbol = '$gene' AND analyse_moleculaire.type_analyse = '$analysis';";
 		$dbh->do($query);
 	}
-	
+
 	#print $query;
 	#en ternaire
 	($value eq 'f') ? print '-':print '+';
@@ -96,14 +96,13 @@ if ($user->isAnalyst() == 1 && $type ne '' && $type ne 'valide') {#technical val
 	#else {print '+'}
 }
 elsif ($user->isValidator() == 1 && $type eq 'valide') {
-	my $query = "UPDATE analyse_moleculaire SET $type = 't', validateur = '".$user->getName()."', date_valid = '$date' WHERE num_pat = '$number' AND id_pat = '$id' AND nom_gene[1] = '$gene' AND type_analyse = '$analysis';";
+	my $query = "UPDATE analyse_moleculaire SET $type = 't', validateur = '".$user->getName()."', date_valid = '$date' FROM gene b WHERE analyse_moleculaire.refseq = b.refseq AND analyse_moleculaire.num_pat = '$number' AND analyse_moleculaire.id_pat = '$id' AND b.gene_symbol = '$gene' AND analyse_moleculaire.type_analyse = '$analysis';";
 	$dbh->do($query);
 	print '+';
 }
 elsif ($user->isAnalyst() == 1 && $q->param('delete') == 1) {#delete analysis
 	if ($analysis ne 'aCGH') {
 		&delete_analysis($number, $id, $gene, $analysis, $dbh);
-		#my $query = "DELETE FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis' AND nom_gene[1] = '$gene';";
 		#$dbh->do($query);
 	}
 	else {
@@ -122,13 +121,11 @@ sub delete_analysis {
 	my ($number, $id, $gene, $analysis, $dbh) = @_;
 	# get #acc for all isoforms;
 	# print SDTERR "analyssi:$analysis\n";
-	my $query = "DELETE FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis' AND nom_gene[1] = '$gene';";
+	my $query = "DELETE FROM analyse_moleculaire a USING gene b WHERE a.refseq = b.refseq AND a.num_pat = '$number' AND a.id_pat = '$id' AND a.type_analyse = '$analysis' AND b.gene_symbol = '$gene';";
 	if ($analysis =~ /xome$/o) {
 		$query = "DELETE FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
 	}
-	
+
 	#print $query;
 	$dbh->do($query);
 }
-
-

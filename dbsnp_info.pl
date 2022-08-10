@@ -99,7 +99,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                                -src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -130,17 +130,15 @@ $query = 'SELECT COUNT(nom) as nom FROM variant;';
 $res = $dbh->selectrow_hashref($query);
 my $var = $res->{'nom'};
 
-$query = 'SELECT COUNT(DISTINCT(nom[1])) as a FROM gene;';
+$query = 'SELECT COUNT(DISTINCT(gene_symbol)) as a FROM gene;';
 $res = $dbh->selectrow_hashref($query);
 my $nb_genes = $res->{'a'};
 
 my $text = $q->span('When UshVam2 encounters a new variant, it checks in this parallel database of SNP restricted to our regions of interest whether a rs id exists.').
 	$q->br().$q->span('Until May, 2015, the version of dbSNP used in U2 was 137.').
 	$q->br().$q->span('As of May, 2015, we have version 142, then december 2016 version 146 and october 2017 version 150.').
-	$q->br().$q->span("U2 uses a local database build from dbSNP but restricted to our regions of interest ($nb_genes genes).");
+	$q->br().$q->span("U2 uses a local database built from dbSNP but restricted to our regions of interest ($nb_genes genes).");
 	print U2_modules::U2_subs_2::info_panel($text, $q);
-	#print $q->br(), $q->start_p(), $q->span('When UshVam2 encounters a new variant, it checks in this parallel database of SNP restricted to our regions of interest whether a rs id exists. Until May, 2015, the version of dbSNP used in U2 was 137.'), $q->p('As of May, 2015, we have version 142, then december 2016 version 146 and october 2017 version 150.'), $q->br(), $q->p("U2 uses a local database build from dbSNP but restricted to our regions of interest ($nb_genes genes).");
-
 
 print $q->start_div({'class' => 'container'}), $q->start_table({'class' => 'great_table center technical'}),
 	$q->start_Tr(),
@@ -514,15 +512,15 @@ my %data = (
 	"NG_051601.1" => "5340",
 	"NG_051602.1" => "19374",
 	"NG_051604.1" => "8706",
-	"NG_051606.1" => "26503",    
+	"NG_051606.1" => "26503",
 );
 
 my %transformed;
 #my $query;
 foreach my $ng (keys(%data)) {
-	$query = "SELECT nom[1] as nom FROM gene WHERE acc_g = '$ng';";
+	$query = "SELECT gene_symbol FROM gene WHERE acc_g = '$ng';";
 	my $res = $dbh->selectrow_hashref($query);
-	$transformed{$res->{'nom'}} = $data{$ng};	
+	$transformed{$res->{'gene_symbol'}} = $data{$ng};
 }
 
 my ($data, $labels);
@@ -552,6 +550,3 @@ print $q->end_html();
 exit();
 
 ##End of Basic end
-
-
-

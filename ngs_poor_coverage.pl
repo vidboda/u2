@@ -240,7 +240,7 @@ while (<F>) {
 			}
 			if ($interest == 0) {next}
 		}
-		my $query = "SELECT a.nom_gene, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.chr = '$u2_chr' AND b.main = 't' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
+		my $query = "SELECT b.gene_symbol, b.refseq, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.refseq = b.refseq AND b.chr = '$u2_chr' AND b.main = 't' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		my ($gene, $nm, @type, @nom);
@@ -255,7 +255,7 @@ while (<F>) {
 			}
 		}
 		else {
-			$query = "SELECT a.nom_gene, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.chr = '$u2_chr' AND b.main = 'f' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
+			$query = "SELECT b.gene_symbol, b.refseq, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.refseq = b.nom AND b.refseq = '$u2_chr' AND b.main = 'f' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
 			$sth = $dbh->prepare($query);
 			$res = $sth->execute();
 			while (my $result = $sth->fetchrow_hashref()) {
@@ -315,29 +315,6 @@ $(document).ready(function () {
     });
 ';
 print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray'}), $q->script({'type' => 'text/javascript'}, $igv_script);
-
-
-#{
-#		    name: "Genes",
-#		    type: "annotation",
-#		    format: "bed",
-#		    sourceType: "file",
-#		    url: "'.$REF_GENE_URI.'",
-#		    indexURL: "'.$REF_GENE_URI.'.tbi",
-#		    order: Number.MAX_VALUE,
-#		    visibilityWindow: 300000000,
-#		    displayMode: "EXPANDED"
-#		},
-#my $interest = 0;
-#foreach my $key (keys %{$intervals}) {
-#	$key =~ /(\d+)-(\d+)/o;
-#	if ($var_pos >= $1 && $var_pos <= $2) {#good interval, check good chr
-#		if ($var_chr eq $intervals->{$key}) {$interest = 1;last;}
-#	}
-#}
-
-
-
 
 
 ##Basic end of USHVaM 2 perl scripts:

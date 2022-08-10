@@ -80,7 +80,7 @@ my $step = U2_modules::U2_subs_1::check_step($q);
 
 
 if ($step == 1) { #insert form
-	my $query = "SELECT statut, allele, denovo FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$technique' AND nom_gene[1] = '$gene' AND nom_c = '$cdna';";
+	my $query = "SELECT a.statut, a.allele, a.denovo FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND a.id_pat = '$id' AND a.num_pat = '$number' AND a.type_analyse = '$technique' AND b.gene_symbol = '$gene' AND a.nom_c = '$cdna';";
 	my $res = $dbh->selectrow_hashref($query);
 	my ($status, $allele, $denovo) = ($res->{'statut'}, $res->{'allele'}, $res->{'denovo'});
 	my $checked = '';
@@ -112,7 +112,7 @@ if ($step == 1) { #insert form
 						$q->start_li(), "\n",
 							$q->label({'for' => 'denovo'}, 'De novo:'), "\n",
 							$q->start_input({'type' => 'checkbox', 'name' => 'denovo_modify', 'id' => 'denovo_modify', $checked}), $q->end_input(), "\n",
-						$q->end_li(), "\n",	
+						$q->end_li(), "\n",
 						$q->end_ol(), $q->end_fieldset(), $q->end_form();
 }
 elsif ($step == 2) {
@@ -124,13 +124,12 @@ elsif ($step == 2) {
 	#my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$technique';";
 	#changed 05/12/2015 Update of allele and status must be done whatever the analysis - add also the gene to avoid changing anothe variant in another gene with the same name
 	#we lack analysis for other sample of same patient
-	my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele', denovo = '$denovo' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND nom_gene[1] = '$gene';";
-	
+	# my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele', denovo = '$denovo' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND nom_gene[1] = '$gene';";
+  my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele', denovo = '$denovo' FROM gene b WHERE variant2patient.refseq = b.refseq AND variant2patient.nom_c = '$cdna' AND variant2patient.id_pat = '$id' AND variant2patient.num_pat = '$number' AND b.gene_symbol = '$gene';";
+
 	$dbh->do($update) or die "Error when updating the analysis, there must be a mistake somewhere $!";
 	if ($denovo eq 'true') {$denovo = '_denovo'}
 	else {$denovo = ''}
 	#print "$status, allele: $allele, class: ";
 	print "$status-$allele$denovo";
 }
-
-

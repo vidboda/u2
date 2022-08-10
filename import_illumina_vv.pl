@@ -148,19 +148,6 @@ if ($step && $step == 2) {
 	#sample and filters do not arrive the same way
 	my %sample_hash = U2_modules::U2_subs_2::build_sample_hash($q, $analysis, $filtered);
 
-	#test mutalyzer
-	# if (U2_modules::U2_subs_1::test_mutalyzer() != 1) {U2_modules::U2_subs_1::standard_error('23', $q)}
-
-	#print $q->start_p({'class' => 'center'}), $q->start_big(), $q->span("Automatic treatment of run "), $q->strong("$run ($analysis)"), $q->span(":"), $q->end_big(), $q->end_p();
-
-	## creates mutalyzer client object
-	### old way to connect to mutalyzer deprecated September 2014
-	#my $soap = SOAP::Lite->new(proxy => 'http://mutalyzer.nl/2.0/services');
-	#$soap->defaul_ns('urn:https://mutalyzer.nl/services/?wsdl');
-	#$ENV{PERL_LWP_SSL_VERIFY_HOSTNAME}=0;
-	#my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
-	#my $call;
-
 	#we have the run id, the samples to import and the filter to record.... Let's go
 	#ssh again to the NAS, then scp files
 	#in Data/Intensities/BaseCalls/Alignement(\d)* (we take the last)
@@ -175,11 +162,6 @@ if ($step && $step == 2) {
 	my $access_method = 'autofs';
   opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
 	if ($access_method eq 'ssh') {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q)}
-	#1st get last alignment directory
-	#my $dirlist = $ssh->capture("ls -d $SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/Alignment*");
-	#  <AlignmentFolder>\\194.167.35.140\data\MiSeqDx\140228_M70106_0001_000000000-A81UN\Data\Intensities\BaseCalls\Alignment2</AlignmentFolder>
-
-	#my $alignment_dir = $ssh->capture("grep -Eo \"<AlignmentFolder>\\\\".$SSH_RACKSTATION_IP."\\data\\MiSeqDx\\".$run."\\Data\\Intensities\\BaseCalls\\Alignment\d*<\/AlignmentFolder>\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
 
 	###TO BE CHANGED 4 MINISEQ
 	###<AnalysisFolder>D:\Illumina\MiniSeq Sequencing Temp\160620_MN00265_0001_A000H02LJN\Alignment_8\20160621_155804</AnalysisFolder>
@@ -226,28 +208,16 @@ if ($step && $step == 2) {
 		}
 	}
 	my $report = 'aggregate.report.pdf';
-		#($report, $coverage, $enrichment, $gaps, $vcf, $sample_report) = ('aggregate.report.pdf', $sampleid.'_S*.coverage.csv', $sampleid.'_S*.enrichment_summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
-	#}
-	#elsif ($instrument eq 'miniseq') {###TO BE CHANGED 4 MINISEQ file names unknown at date 01/07/2016
-		#$location = "$SSH_RACKSTATION_BASE_DIR/$run/$alignment_dir/";
-	#	$report = 'aggregate.report.pdf';
-		#($report, $coverage, $enrichment, $gaps, $vcf, $sample_report) = ('aggregate.report.pdf', $sampleid.'_S*.coverage.csv', $sampleid.'_S*.summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
-	#}
-	#END ERASE
+
 	#print "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";exit;
 	mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";
-	#$ssh->scp_get({glob => 1, copy_attrs => 1}, $location.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf") or die $!;
-	#print $alignment_dir.'/'.$report;exit;
+
 	if ($access_method eq 'autofs') {system("cp -f '$alignment_dir/$report' '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf'")}
 	else {
 		my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
 		if ($success != 1) {if ($! !~ /File exists/o) {U2_modules::U2_subs_1::standard_error('22', $q)}}
 	}
-	#my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
-	#print STDERR "0-$success--\n";
 
-
-	#################################UNCOMMENT when sub
 	#create roi hash
 	my $new_var  = '';
 	my $interval = U2_modules::U2_subs_3::build_roi($dbh);
@@ -274,13 +244,14 @@ if ($step && $step == 2) {
     # print $q->li("Initiating $id$number...");
 		print STDERR "\nInitiating $id$number with transfer method: $access_method";
 		#loop 28-112-121 genes
-		$query = "SELECT nom FROM gene WHERE \"$analysis\" = 't' ORDER BY nom[1];";
+		$query = "SELECT refseq FROM gene WHERE \"$analysis\" = 't' ORDER BY gene_symbol;";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 
 		while (my $result = $sth->fetchrow_hashref()) {
-			$insert .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, nom_gene, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '{\"$result->{'nom'}[0]\",\"$result->{'nom'}[1]\"}', '$analysis', '$date', '".$user->getName()."','t');";
+			$insert .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '$result->{'refseq'}', '$analysis', '$date', '".$user->getName()."','t');";
 		}
+    # print STDERR "$insert\n";
 		#######UNCOMMENT WHEN DONE!!!!!!!
 		$dbh->do($insert);
 
@@ -458,7 +429,7 @@ if ($step && $step == 2) {
 		my ($i, $j, $k) = (0, 0, 0);
 		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf") or die $!;
     # prepare insert statement handle
-    my $isth = $dbh->prepare("INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    my $isth = $dbh->prepare("INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 		VCF: while (<F>) {
 			#if ($_ !~ /#/o && $_ =~ /GI=/o) {#we remove non mappable variants on our design
 			if ($_ !~ /#/o) {
@@ -562,13 +533,13 @@ if ($step && $step == 2) {
           # if ($insert =~ /'\{"([^"]+)",/o) {
           # 	my $gene = $1;
           # 	my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
-            my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$nom_gene_i';";
+            my $query_verif = "SELECT gene_symbol FROM gene WHERE \"$analysis\" = 't' AND gene_symbol = '$nom_gene_i';";
             my $res_verif = $dbh->selectrow_hashref($query_verif);
             # print STDERR "Gene verif2: $res_verif->{'nom'}[0]-$gene";
-            if ($res_verif->{'nom'}[0] eq $nom_gene_i) {
+            if ($res_verif->{'gene_symbol'} eq $nom_gene_i) {
               # print STDERR "execute: $nom_c_i-$nom_gene_i\n";
               # need to get individual values from direct submission
-              $isth->execute($nom_c_i, $number, $id, '{"'.$nom_gene_i.'","'.$acc_no_i.'"}', $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
+              $isth->execute($nom_c_i, $number, $id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
 							# $dbh->do($insert);
 							$j++;
 							next VCF;
@@ -600,12 +571,12 @@ if ($step && $step == 2) {
 						# if ($insert =~ /'\{"([^"]+)",/o) {
 						# 	my $gene = $1;
 						# 	my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
-              my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$nom_gene_i';";
+              my $query_verif = "SELECT gene_symbol FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$nom_gene_i';";
 							my $res_verif = $dbh->selectrow_hashref($query_verif);
 							# print STDERR "Gene verif2: $res_verif->{'nom'}[0]-$gene";
-							if ($res_verif->{'nom'}[0] eq $nom_gene_i) {
+							if ($res_verif->{'gene_symbol'} eq $nom_gene_i) {
                 # print STDERR "execute: $nom_c_i-$nom_gene_i\n";
-                $isth->execute($nom_c_i, $number, $id, '{"'.$nom_gene_i.'","'.$acc_no_i.'"}', $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
+                $isth->execute($nom_c_i, $number, $id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
 								# $dbh->do($insert);
 								$j++;
 								next VCF;
@@ -645,7 +616,7 @@ if ($step && $step == 2) {
           # print STDERR "End Run VV results\n";
 					if ($tmp_message ne '') {$message .= $tmp_message;next VCF}
 					elsif ($insert ne '') {
-						#print STDERR $k." - ".$insert."\n";
+						# print STDERR $k." - ".$insert."\n";
 						$dbh->do($insert);
 						$j++;
 						next VCF;
@@ -657,7 +628,7 @@ if ($step && $step == 2) {
 					chop($nm_list);#remove last ,
 					#print STDERR $nm_list."\n";
 					my ($acc_no, $acc_ver, $gene, $ng_accno, @possible);
-					my $query = "SELECT nom[1] as gene, nom[2] as nm, acc_version, acc_g, main FROM gene WHERE nom[2] IN ($nm_list) ORDER BY main DESC;";
+					my $query = "SELECT gene_symbol as gene, refseq as nm, acc_version, acc_g, main FROM gene WHERE refseq IN ($nm_list) ORDER BY main DESC;";
 					my $sth = $dbh->prepare($query);
 					my $res = $sth->execute();
 					while (my $result = $sth->fetchrow_hashref()) {
@@ -727,9 +698,9 @@ if ($step && $step == 2) {
 						my ($semaph1, $semaph2) = (0, 0);
 						foreach my $nm (keys (%{$hashvar})) {
 							#check if in U2:
-							my $query_nm = "SELECT nom, acc_version FROM gene WHERE nom[2] = '$nm';";
+							my $query_nm = "SELECT gene_symbol, acc_version FROM gene WHERE refseq = '$nm';";
 							my $res_nm = $dbh->selectrow_hashref($query_nm);
-							if ($res_nm->{'nom'}) {
+							if ($res_nm->{'gene_symbol'}) {
 								if ($hashvar->{$nm}->{$res_nm->{'acc_version'}}[1] != 1) {#non main - should be
 									$semaph1 = 1;
 									if ($hashvar->{$nm}->{$res_nm->{'acc_version'}}[0] =~ /^c\.[^-][^\+\*-]+$/o) {#exonic
@@ -781,18 +752,18 @@ if ($step && $step == 2) {
 					}
 
 					if ($message_tmp =~ /NEWVAR/o) {
-						my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
+						my $query_verif = "SELECT gene_symbol FROM gene WHERE \"$analysis\" = 't' AND gene_symbol = '$gene';";
 						my $res_verif = $dbh->selectrow_hashref($query_verif);
 						# print STDERR "Gene verif3: $res_verif->{'nom'}[0]-$gene";
-						if ($res_verif->{'nom'}[0] eq $gene) {
+						if ($res_verif->{'gene_symbol'} eq $gene) {
               # bug 210726 - 2 differents variants in LRM VCF give the very same HGVS hgvs_genomic_description
               # SU7542 17-4439727-T-TG and 17-4439731-G-GG both give c.1607+13dupG, 7542, SU, {SPNS2,NM_001124758}
               # then we should check whether the variant is not already inserted
-              my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$var_final' AND nom_gene[2] = '$acc_no';";
+              my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$var_final' AND refseq = '$acc_no';";
               my $res_last_check = $dbh->selectrow_hashref($last_check);
               # print STDERR "Last check: $res_last_check\n";
               if (!$res_last_check || $res_last_check eq '0E0') {
-                $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
+                $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '$acc_no', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
   							# print STDERR $insert."\n";
   							$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
   							$i++;$j++;
@@ -850,11 +821,10 @@ exit();
 
 sub search_position {
 	my ($chr, $pos) = @_;
-	my $query = "SELECT a.nom, a.nom_gene, a.type FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.chr = '$chr' AND '$pos' BETWEEN SYMMETRIC a.$postgre_start_g AND a.$postgre_end_g;";
+	my $query = "SELECT a.nom, b.gene_symbol, b.refseq, a.type FROM segment a, gene b WHERE a.refseq = b.refseq AND b.chr = '$chr' AND '$pos' BETWEEN SYMMETRIC a.$postgre_start_g AND a.$postgre_end_g;";
 	my $res = $dbh->selectrow_hashref($query);
-	if ($res ne '0E0') {return "\t$res->{'nom_gene'}[0] - $res->{'nom_gene'}[1]\t$res->{'type'}\t$res->{'nom'}"}
+	if ($res ne '0E0') {return "\t$res->{'gene_symbol'} - $res->{'refseq'}\t$res->{'type'}\t$res->{'nom'}"}
 	else {return "\tunknown position in U2\tunknown\tunknown"}
-
 }
 
 sub get_detailed_pos {
@@ -867,8 +837,6 @@ sub get_detailed_pos {
 
 sub get_start_end_pos {
 	my $var = shift;
-	#if ($var =~ /chr[\dXYM]+:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
-	#elsif ($var =~ /chr[\dXYM]+:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
 	if ($var =~ /chr$U2_modules::U2_subs_1::CHR_REGEXP:g\.(\d+)[dATCG][eu>][lpATCG].*/o) {return ($1, $1)}
 	elsif ($var =~ /chr$U2_modules::U2_subs_1::CHR_REGEXP:g\.(\d+)_(\d+)[di][enu][lsp].*/o) {return ($1, $2)}
 }
@@ -918,15 +886,15 @@ sub run_vv_results {
 				# if ($insert ne '') {return ('', $insert)}
         # if ($nom_c_i ne '') {
 				if ($insert ne '') {
-					my $query_verif = "SELECT nom, \"$analysis\" as analysis FROM gene WHERE nom[2] = '$nm';";
+					my $query_verif = "SELECT refseq, \"$analysis\" as analysis FROM gene WHERE refseq = '$nm';";
 					# print STDERR $query_verif;
 					my $res_verif = $dbh->selectrow_hashref($query_verif);
 					# print STDERR "Gene verif 4: $res_verif->{'nom'}[1]-$nm";
-					if ($res_verif->{'nom'}[1] eq $nm && $res_verif->{'analysis'} == 1) {
+					if ($res_verif->{'refseq'} eq $nm && $res_verif->{'analysis'} == 1) {
 						# print STDERR "insert 4a:$insert\n";
 						return ('', $insert);
 					}
-					elsif ($res_verif->{'nom'}[1] eq $nm && $res_verif->{'analysis'} != 1) {
+					elsif ($res_verif->{'refseq'} eq $nm && $res_verif->{'analysis'} != 1) {
 						# print STDERR "$id$number: ERROR a: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 						return  "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 					}
@@ -940,7 +908,7 @@ sub run_vv_results {
 			if ($vv_results_to_treat->{$var}->{'gene_symbol'} && $tmp_nom_g =~ /.+[di][eun][lps]$/o) {#last test: we directly test c. as sometimes genomic nomenclature can differ in dels/dup
 				#patches
 				# if ($vv_results->{$var}->{'gene_symbol'} eq 'ADGRV1') {$vv_results->{$var}->{'gene_symbol'} = 'GPR98'}
-				my $last_query = "SELECT nom_g FROM variant WHERE nom LIKE '".(split(/:/, $var))[1]."%' and nom_gene[1] = '$vv_results_to_treat->{$var}->{'gene_symbol'}';";
+				my $last_query = "SELECT a.nom_g FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom LIKE '".(split(/:/, $var))[1]."%' and b.gene_symbol = '$vv_results_to_treat->{$var}->{'gene_symbol'}';";
 				#print STDERR $last_query."\n";
 				my $res_last = $dbh->selectrow_hashref($last_query);
 				if ($res_last->{'nom_g'}) {
@@ -949,15 +917,15 @@ sub run_vv_results {
 					# print STDERR "Direct submission4 $insert";
 					# if ($insert ne '') {return ('', $insert)}
 					if ($insert ne '') {
-						my $query_verif = "SELECT nom, \"$analysis\" as analysis FROM gene WHERE nom[2] = '$nm';";
+						my $query_verif = "SELECT refseq, \"$analysis\" as analysis FROM gene WHERE refseq = '$nm';";
 						# print STDERR $query_verif;
 						my $res_verif = $dbh->selectrow_hashref($query_verif);
 						# print STDERR "Gene verif 5: $res_verif->{'nom'}[1]-$nm";
-						if ($res_verif->{'nom'}[1] eq $nm && $res_verif->{'analysis'} == 1) {
+						if ($res_verif->{'refseq'} eq $nm && $res_verif->{'analysis'} == 1) {
 							# print STDERR "insert 4b:$insert\n";
 							return ('', $insert);
 						}
-						elsif ($res_verif->{'nom'}[1] eq $nm && $res_verif->{'analysis'} != 1) {
+						elsif ($res_verif->{'refseq'} eq $nm && $res_verif->{'analysis'} != 1) {
 							# print STDERR "$id$number: ERROR b: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 							return  "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 						}

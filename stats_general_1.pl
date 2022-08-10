@@ -97,7 +97,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                                -src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -107,7 +107,6 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Extended init
 
-#print $q->br(), $q->br(), $q->start_h2({'class' => 'center'}), $q->strong("General statistics page for USHVaM 2:"), $q->end_h2();
 
 my $date = U2_modules::U2_subs_1::get_date();
 
@@ -123,24 +122,24 @@ U2_modules::U2_subs_2::graph_pie('pie-relatives', 'Relatives pathology pie chart
 
 #3rd chart all variants/gene
 my $threshold = 120;
-U2_modules::U2_subs_2::graph_pie('pie-all', 'Variants (all classes) per gene pie chart', 'variant_all_pie_chart', "SELECT COUNT(nom) as num, nom_gene[1] as label FROM variant GROUP BY nom_gene[1] HAVING COUNT(nom) >= $threshold ORDER BY COUNT(nom);", "SELECT SUM(A.num) as others FROM (SELECT COUNT(nom) as num FROM variant GROUP BY nom_gene[1] HAVING COUNT(nom) < $threshold) AS A;", "Distribution of variants per genes (Total: X, more than $threshold variants)", $date, 'All variants', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', 'Others', $q, $dbh);
+U2_modules::U2_subs_2::graph_pie('pie-all', 'Variants (all classes) per gene pie chart', 'variant_all_pie_chart', "SELECT COUNT(a.nom) as num, b.gene_symbol as label FROM variant a, gene b WHERE a.refseq = b.refseq GROUP BY b.gene_symbol HAVING COUNT(a.nom) >= $threshold ORDER BY COUNT(a.nom);", "SELECT SUM(A.num) as others FROM (SELECT COUNT(a.nom) as num FROM variant a, gene b WHERE a.refseq = b.refseq GROUP BY b.gene_symbol HAVING COUNT(a.nom) < $threshold) AS A;", "Distribution of variants per genes (Total: X, more than $threshold variants)", $date, 'All variants', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', 'Others', $q, $dbh);
 
 #4th chart pathogenic variants/gene
 $threshold = 5;
-U2_modules::U2_subs_2::graph_pie('pie-pathogenic', 'Variants (pathogenic classes) per gene pie chart', 'variant_patho_pie_chart', "SELECT COUNT(nom) as num, nom_gene[1] as label FROM variant WHERE classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') GROUP BY nom_gene[1] HAVING COUNT(nom) >= $threshold ORDER BY COUNT(nom);", "SELECT SUM(A.num) as others FROM (SELECT COUNT(nom) as num FROM variant WHERE classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') GROUP BY nom_gene[1] HAVING COUNT(nom) < $threshold) AS A;", "Distribution of pathogenic variants per genes (Total: X, more than $threshold variants)", $date, 'Pathogenic variants', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', 'Others', $q, $dbh);
+U2_modules::U2_subs_2::graph_pie('pie-pathogenic', 'Variants (pathogenic classes) per gene pie chart', 'variant_patho_pie_chart', "SELECT COUNT(a.nom) as num, b.gene_symbol as label FROM variant a, gene b WHERE a.refseq = b.refseq AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') GROUP BY b.gene_symbol HAVING COUNT(a.nom) >= $threshold ORDER BY COUNT(a.nom);", "SELECT SUM(A.num) as others FROM (SELECT COUNT(a.nom) as num FROM variant a, gene b WHERE a.refseq = b.refseq AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic') GROUP BY b.gene_symbol HAVING COUNT(a.nom) < $threshold) AS A;", "Distribution of pathogenic variants per genes (Total: X, more than $threshold variants)", $date, 'Pathogenic variants', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', 'Others', $q, $dbh);
 
 #5th chart unknown variants/gene
 $threshold = 50;
-U2_modules::U2_subs_2::graph_pie('pie-unknown', 'Unknown variants per gene', 'variant_unknown_pie_chart', "SELECT COUNT(nom) as num, nom_gene[1] as label FROM variant WHERE classe = 'unknown' GROUP BY nom_gene[1] HAVING COUNT(nom) >= $threshold ORDER BY COUNT(nom);", "SELECT SUM(A.num) as others FROM (SELECT COUNT(nom) as num FROM variant WHERE classe = 'unknown' GROUP BY nom_gene[1] HAVING COUNT(nom) < $threshold) AS A;", "Distribution of unknown variants per genes (Total: X, more than $threshold variants)", $date, 'Unknown variants', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', 'Others', $q, $dbh);
+U2_modules::U2_subs_2::graph_pie('pie-unknown', 'Unknown variants per gene', 'variant_unknown_pie_chart', "SELECT COUNT(a.nom) as num, b.gene_symbol as label FROM variant a, gene b WHERE a.refseq = b.refseq AND a.classe = 'unknown' GROUP BY b.gene_symbol HAVING COUNT(a.nom) >= $threshold ORDER BY COUNT(a.nom);", "SELECT SUM(A.num) as others FROM (SELECT COUNT(a.nom) as num FROM variant a, gene b WHERE a.refseq = b.refseq AND a.classe = 'unknown' GROUP BY b.gene_symbol HAVING COUNT(a.nom) < $threshold) AS A;", "Distribution of unknown variants per genes (Total: X, more than $threshold variants)", $date, 'Unknown variants', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', 'Others', $q, $dbh);
 
 #6th usher mutation distribution
-U2_modules::U2_subs_2::graph_pie('usher-mut', 'Distribution of Usher mutations', 'usher_mutations_pie_chart', "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, gene b, variant c, patient d WHERE a.nom_c = c.nom AND a.nom_gene = c.nom_gene AND a.nom_gene = b.nom AND a.num_pat = d.numero AND a.id_pat = d.identifiant AND c.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND (b.usher = 't' OR d.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH')) AND d.proband = 't')\nSELECT COUNT(a.nom_c) as num, a.nom_gene[1] as label FROM tmp a GROUP BY a.nom_gene[1] ORDER BY COUNT(a.nom_c);", '', "Frequency of Usher-associated variants per genes (Total: X)", $date, 'Usher mutations', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', '', $q, $dbh);
+U2_modules::U2_subs_2::graph_pie('usher-mut', 'Distribution of Usher mutations', 'usher_mutations_pie_chart', "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, b.gene_symbol), a.nom_c, b.gene_symbol FROM variant2patient a, gene b, variant c, patient d WHERE a.nom_c = c.nom AND a.refseq = c.refseq AND a.refseq = b.refseq AND a.num_pat = d.numero AND a.id_pat = d.identifiant AND c.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND (b.usher = 't' OR d.pathologie IN ('USH1', 'USH2', 'USH3', 'ATYPICAL USH')) AND d.proband = 't')\nSELECT COUNT(a.nom_c) as num, a.gene_symbol as label FROM tmp a GROUP BY a.gene_symbol ORDER BY COUNT(a.nom_c);", '', "Frequency of Usher-associated variants per genes (Total: X)", $date, 'Usher mutations', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', '', $q, $dbh);
 
 #7th NSHL mutation distribution
-U2_modules::U2_subs_2::graph_pie('nshl-mut', 'Distribution of NSHL mutations', 'nshl_mutations_pie_chart', "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, gene b, variant c, patient d WHERE a.nom_c = c.nom AND a.nom_gene = c.nom_gene AND a.nom_gene = b.nom AND a.num_pat = d.numero AND a.id_pat = d.identifiant AND c.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND (b.dfn = 't' OR d.pathologie IN ('DFNA', 'DFNB', 'DFNX')) AND d.proband = 't')\nSELECT COUNT(a.nom_c) as num, a.nom_gene[1] as label FROM tmp a GROUP BY a.nom_gene[1] ORDER BY COUNT(a.nom_c);", '', "Frequency of NSHL-associated variants per genes (Total: X)", $date, 'NSHL mutations', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', '', $q, $dbh);
+U2_modules::U2_subs_2::graph_pie('nshl-mut', 'Distribution of NSHL mutations', 'nshl_mutations_pie_chart', "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, b.gene_symbol), a.nom_c, b.gene_symbol FROM variant2patient a, gene b, variant c, patient d WHERE a.nom_c = c.nom AND a.refseq = c.refseq AND a.refseq = b.refseq AND a.num_pat = d.numero AND a.id_pat = d.identifiant AND c.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND (b.dfn = 't' OR d.pathologie IN ('DFNA', 'DFNB', 'DFNX')) AND d.proband = 't')\nSELECT COUNT(a.nom_c) as num, a.gene_symbol as label FROM tmp a GROUP BY a.gene_symbol ORDER BY COUNT(a.nom_c);", '', "Frequency of NSHL-associated variants per genes (Total: X)", $date, 'NSHL mutations', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', '', $q, $dbh);
 
 #8th
-U2_modules::U2_subs_2::graph_pie('nsrp-mut', 'Distribution of NSRP/LCA mutations', 'nsrp_mutations_pie_chart', "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, gene b, variant c, patient d WHERE a.nom_c = c.nom AND a.nom_gene = c.nom_gene AND a.nom_gene = b.nom AND a.num_pat = d.numero AND a.id_pat = d.identifiant AND b.dfn = 'f' AND b.nom[1] <> 'CHM' AND c.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND (b.rp = 't' OR d.pathologie IN ('NSRP', 'LCA')) AND d.proband = 't')\nSELECT COUNT(a.nom_c) as num, a.nom_gene[1] as label FROM tmp a GROUP BY a.nom_gene[1] ORDER BY COUNT(a.nom_c);", '', "Frequency of NS-eye-disease-associated variants per genes (Total: X)", $date, 'NSRP mutations', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', '', $q, $dbh);
+U2_modules::U2_subs_2::graph_pie('nsrp-mut', 'Distribution of NSRP/LCA mutations', 'nsrp_mutations_pie_chart', "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, b.gene_symbol), a.nom_c, b.gene_symbol FROM variant2patient a, gene b, variant c, patient d WHERE a.nom_c = c.nom AND a.refseq = c.refseq AND a.refseq = b.refseq AND a.num_pat = d.numero AND a.id_pat = d.identifiant AND b.dfn = 'f' AND b.gene_symbol <> 'CHM' AND c.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND (b.rp = 't' OR d.pathologie IN ('NSRP', 'LCA')) AND d.proband = 't')\nSELECT COUNT(a.nom_c) as num, a.gene_symbol as label FROM tmp a GROUP BY a.gene_symbol ORDER BY COUNT(a.nom_c);", '', "Frequency of NS-eye-disease-associated variants per genes (Total: X)", $date, 'NSRP mutations', $PERL_SCRIPTS_HOME.'gene.pl?info=all_vars&amp;&sort=classe&amp;gene=', 'variants', 'false', '', '', $q, $dbh);
 
 #9th
 #3nd variant types
@@ -149,10 +148,10 @@ U2_modules::U2_subs_2::graph_pie('variant-type', 'Types of alterations', 'varian
 
 #10th RNA variant types
 #cannonical sites, exonic, non cannonical intronic, deep intronic
-U2_modules::U2_subs_2::RNA_pie("SELECT nom, nom_g, num_segment, type_segment, num_segment_end, type_segment_end, nom_gene FROM variant WHERE classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND type_arn = 'altered' AND taille < 100;", $date, $q, $dbh);
+U2_modules::U2_subs_2::RNA_pie("SELECT nom, nom_g, num_segment, type_segment, num_segment_end, type_segment_end, refseq FROM variant WHERE classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND type_arn = 'altered' AND taille < 100;", $date, $q, $dbh);
 
 
-	
+
 print	$q->end_div(), "\n",
 $q->end_div();
 

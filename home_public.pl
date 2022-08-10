@@ -74,7 +74,7 @@ my $js = "
 		if (type === 'class') {jAlert('<ul>".U2_modules::U2_subs_2::info_text($q, 'class')."</ul>', 'Information box');}
 		else if (type === 'neg') {jAlert('<ul>".U2_modules::U2_subs_2::info_text($q, 'neg')."</ul>', 'Information box');}
 	}
-"; 
+";
 #end custom js
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
@@ -107,7 +107,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 				$js,
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                                -src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -120,7 +120,7 @@ U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh);
 
 #1st query to the database - basic statistics
 
-my $query = "SELECT COUNT(DISTINCT(nom[1])) as a, COUNT(nom[2]) as b FROM gene;";
+my $query = "SELECT COUNT(DISTINCT(gene_symbol)) as a, COUNT(refseq) as b FROM gene;";
 my $res = $dbh->selectrow_hashref($query);
 
 #my $user = users->new();
@@ -181,8 +181,8 @@ print $q->start_div({'id' => 'farside', 'class' => 'appear center'}), $q->end_di
 	#	$q->start_li(), $q->span('Search engine is '), $q->font({'color' => 'green'}, 'active'), $q->end_li(),
 	#	$q->start_li(), $q->span('Statistics is '), $q->font({'color' => 'green'}, 'active'), $q->end_li(),
 	#	#$q->start_li(), $q->span('Variants is '), $q->font({'color' => 'red'}, 'inactive'), $q->end_li(),
-	#	
-	#$q->end_ul(),	
+	#
+	#$q->end_ul(),
 	$q->end_div();
 	#$q->start_div(),
 	my $text = $q->span('Example research for search engine:').
@@ -195,7 +195,7 @@ print $q->start_div({'id' => 'farside', 'class' => 'appear center'}), $q->end_di
 			$q->li('And, last but not least, typing a number will seek for variants (DNA c. and protein)!').
 		$q->end_ul()."\n";
 	print U2_modules::U2_subs_2::info_panel($text, $q);
-	#$q->span('Example research for search engine:'), 
+	#$q->span('Example research for search engine:'),
 	#	$q->start_ul(),
 	#		$q->li('\'SU1034\', \'su1034\', \'CHM52\', \'chm52\' will look for a patient ID'),
 	#		$q->li('\'p.(Arg34*)\', \'p.Arg34*\', \'p.R34*\', \'p.R34X\', \'R34X\' will look for variants linked to these protein name'),

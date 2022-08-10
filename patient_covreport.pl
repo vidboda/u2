@@ -135,7 +135,7 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
   elsif ($filter eq 'RP-USH') {$filter_subquery = "((rp = '$rp' AND dfn = '$dfn') OR usher = '$usher') AND"}
 	elsif ($filter eq 'CHM') {$filter_subquery = "nom[1] = 'CHM' AND "}
 
-	my $query = "SELECT nom[1] AS gene_name, nom[2] AS nm, diag FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND nom[1] <> 'CEVA' ORDER BY nom[1];";
+	my $query = "SELECT gene_symbol, refseq, diag FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND gene_symbol <> 'CEVA' ORDER BY nom[1];";
 	# print STDERR $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -163,21 +163,14 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 						print $q->end_div(),
 							$q->start_div({'class' => 'w3-row-padding w3-section w3-padding-8 w3-left-align'}), "\n";
 					}
-					#my $check = 'false';
-					#if ($result->{'diag'} == 1) {$check = 'true'}
-					#print $result->{'diag'};
 					print $q->start_div({'class' => 'w3-quarter'}), "\n";
 					if ($result->{'diag'} == 1) {
-						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form' , 'checked' => 'true'}), "\n";
+						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'refseq'}, 'id' => $result->{'refseq'}, 'form' => 'covreport_form' , 'checked' => 'true'}), "\n";
 					}
 					else {
-						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form'}), "\n";
+						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'refseq'}, 'id' => $result->{'refseq'}, 'form' => 'covreport_form'}), "\n";
 					}
-
-							#"<input class='w3-check' form='covreport_form' id='".$result->{'nm'}."' name='transcript' type='checkbox' value='".$result->{'nm'}."'  />\n",
-							#$q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form' , 'checked' => $check}), "\n",
-							#$q->checkbox({'class' => 'w3-check', 'name' => 'transcript', 'value' => $result->{'nm'}, 'id' => $result->{'nm'}, 'form' => 'covreport_form', 'checked' => 'true'}), "\n",
-					print		$q->label({'for' => $result->{'nm'}}, $result->{'gene_name'}),
+					print		$q->label({'for' => $result->{'refseq'}}, $result->{'gene_symbol'}),
 						$q->end_div(), "\n";
 					$i++;
 				}

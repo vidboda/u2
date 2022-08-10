@@ -99,7 +99,10 @@ sub initConfig {
 		'SEAL_RS_IURC' => {ARGCOUNT => 1},
 		'SEAL_USER' => {ARGCOUNT => 1},
 		'SEAL_PASSWORD' => {ARGCOUNT => 1},
-		'SEAL_VCF_PATH' => {ARGCOUNT => 1}
+		'SEAL_VCF_PATH' => {ARGCOUNT => 1},
+		'MD_API_KEY' => {ARGCOUNT => 1},
+		'MD_BASE_URL' => {ARGCOUNT => 1},
+		'MD_API_CREATE' => {ARGCOUNT => 1}
 	);
 }
 

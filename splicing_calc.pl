@@ -103,7 +103,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                                 {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
-                                -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                                -src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -123,24 +123,24 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 
 
 if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
-	
-	
-	
-	my ($wt, $mt, $dna_type, $size, $cname, $segment_type, $segment_num, $gene, $nom_seg) = &get_seq($var);
+
+
+
+	my ($wt, $mt, $dna_type, $size, $cname, $segment_type, $segment_num, $gene_symbol, $refseq, $nom_seg) = &get_seq($var);
 	if ($size < 10 || $dna_type eq 'indel') {
 		#print $q->p('ok man');
-	
-		print $q->p({'class' => 'title'}, "Splicing Predictions for $var ($gene->[0]:$cname / $segment_type $nom_seg)");
-		
+
+		print $q->p({'class' => 'title'}, "Splicing Predictions for $var ($gene_symbol:$cname / $segment_type $nom_seg)");
+
 		#get natural sites positions
-		my $query_strand = "SELECT brin FROM gene WHERE nom = '{\"$gene->[0]\",\"$gene->[1]\"}';";
+		my $query_strand = "SELECT brin FROM gene WHERE refseq = '$refseq';";
 		my $res_strand = $dbh->selectrow_hashref($query_strand);
 		my $strand = $res_strand->{'brin'};
-		my $query = "SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE nom_gene = '{\"$gene->[0]\",\"$gene->[1]\"}' AND numero = '$segment_num' AND type = '$segment_type';";
+		my $query = "SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE refseq = '$refseq' AND numero = '$segment_num' AND type = '$segment_type';";
 		my $res = $dbh->selectrow_hashref($query);
 		my ($start_g, $end_g, $seg_size) = ($res->{$postgre_start_g}, $res->{$postgre_end_g}, $res->{'taille'});
 		#print $query;
-		
+
 		#HTML5 canvas to draw exon/intron and place variant
 		#we need var_name, 3 segments #, a position for variant name and a case
 		#case a: exonic variant and intronic flanking (<100bp)
@@ -151,28 +151,28 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 		#print $cname."-".$segment_type;
 		if ($segment_type eq 'intron' && $dist_from_exon > 100) {
 			#print $q->p('ok man');
-			($case, $seg1, $seg2, $seg3) = ('b', $nom_seg, $nom_seg, &get_neighbouring_nom_seg($segment_num+1, $gene->[0], $gene->[1], $segment_type));
+			($case, $seg1, $seg2, $seg3) = ('b', $nom_seg, $nom_seg, &get_neighbouring_nom_seg($segment_num+1, $refseq, $segment_type));
 			if ($cname =~ /\+/o) {$pos = 200+sprintf('%.0f',(($dist_from_exon/$seg_size)*200))}
 			else {$pos = 400-sprintf('%.0f',(($dist_from_exon/$seg_size)*200))}
 		}
 		else {
 			if ($segment_type eq 'intron' && $cname =~ /[^\.]-/o) {
-				my $segplus = &get_neighbouring_nom_seg($segment_num+1, $gene->[0], $gene->[1], $segment_type);
+				my $segplus = &get_neighbouring_nom_seg($segment_num+1, $refseq, $segment_type);
 				#we need exon size not intron
-				$seg_size  = &get_neighbouring_seg_size($segment_num+1, $gene->[0], $gene->[1], $segment_type);
+				$seg_size  = &get_neighbouring_seg_size($segment_num+1, $refseq, $segment_type);
 				($seg1, $seg2, $seg3) = ($nom_seg, $segplus, $segplus);
-				($label1, $label2) = &get_label($segment_num, $gene->[1], $segment_type, $cname);
+				($label1, $label2) = &get_label($segment_num, $refseq, $segment_type, $cname);
 				$pos = 200 - $dist_from_exon;
 			}
 			else {
 				#print $q->p('ok man');
-				($seg1, $seg2, $seg3) = (&get_neighbouring_nom_seg($segment_num-1, $gene->[0], $gene->[1], $segment_type), $nom_seg, $nom_seg);
-				($label1, $label2) = &get_label($segment_num, $gene->[1], $segment_type, $cname);
+				($seg1, $seg2, $seg3) = (&get_neighbouring_nom_seg($segment_num-1, $refseq, $segment_type), $nom_seg, $nom_seg);
+				($label1, $label2) = &get_label($segment_num, $refseq, $segment_type, $cname);
 				if ($segment_type eq 'intron') {
 					$pos = 400 + $dist_from_exon;
 					#we need exon size not intron
-					if ($cname =~ /-/o) {$seg_size  = &get_neighbouring_seg_size($segment_num+1, $gene->[0], $gene->[1], $segment_type);}
-					else {$seg_size  = &get_neighbouring_seg_size($segment_num, $gene->[0], $gene->[1], $segment_type)}
+					if ($cname =~ /-/o) {$seg_size  = &get_neighbouring_seg_size($segment_num+1, $refseq, $segment_type);}
+					else {$seg_size  = &get_neighbouring_seg_size($segment_num, $refseq, $segment_type)}
 					#print $q->p('ok man');
 				}
 				else {
@@ -183,9 +183,9 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 					elsif ($label_site eq 'donor') {$pos = 400-sprintf('%.0f',(($dist/$seg_size)*200))}
 					elsif ($label_site eq 'acceptor') {$pos = 200+sprintf('%.0f',(($dist/$seg_size)*200))}
 				}
-			}			
-		}	
-		
+			}
+		}
+
 		my ($score3, $txt3, $site3, $chr3, $x3, $y3, $score5, $txt5, $site5, $chr5, $x5, $y5);
 		#$var =~ /(chr[\dXYM]+):/o;
 		$var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP):/o;
@@ -198,18 +198,13 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 			($score3, $txt3, $site3, $chr3, $x3, $y3) = &get_natural($end_g, '3', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg);
 			($score5, $txt5, $site5, $chr5, $x5, $y5) = &get_natural($start_g, '5', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg);
 		}
-		#if ($segment_type eq 'intron') {my ($score5, $txt5, $site5, $chr5, $x5, $y5) = &get_natural($start_g, '5', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}
-		#elsif ($segment_type eq 'exon') {my ($score5, $txt5, $site5, $chr5, $x5, $y5) = &get_natural($end_g, '5', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}
-		#print $score5->[0];
-		
+
 		my $js = U2_modules::U2_subs_2::segment_canvas($cname, $seg1, $seg2, $seg3, $pos, $case, $seg_size, $label1, $label2, $score3, $score5);
 		print $q->start_div({'class' => 'container center'}), "\n<canvas class=\"ambitious\" width = \"600\" height = \"150\" id=\"segment_drawing\">Change web browser for a more recent please!</canvas>", $q->end_div(), "\n", $q->script({'type' => 'text/javascript'}, $js), "\n";
-		
-		
-		
-		
+
+
 		my ($window3_wt, $window3_mt, $html3_wt, $html3_mt) = &build_window($wt, $mt, $dna_type, $size, '22');
-		my ($score3_wt, $txt3_wt) = &get_maxent_score('3', $window3_wt, $DATABASES_PATH);	
+		my ($score3_wt, $txt3_wt) = &get_maxent_score('3', $window3_wt, $DATABASES_PATH);
 		my ($score3_mt, $txt3_mt) = &get_maxent_score('3', $window3_mt, $DATABASES_PATH);
 		print $q->p({'class' => 'title'}, '3\'ss (acceptor) MaxEntScan scores'), "\n",
 			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
@@ -221,7 +216,7 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 			$q->end_Tr(), "\n";
 		my $i = 0;
 		my $html = '';
-		
+
 		foreach (@{$score3_wt}) {
 			if ($_ < 0 && (!$score3_mt->[$i] || $score3_mt->[$i] < 0)) {$i++;next;}
 			$html .= $q->start_Tr()."\n".
@@ -238,21 +233,19 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 			$q->end_Tr();
 		}
 		else {print $html;$html = '';}
-		
+
 		print $q->end_table(), $q->end_div(), "\n";
 		#$var =~ /(chr[\dXYM]+):/o;
 		$var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP):/o;
 		my $chr = $1;
 		&print_natural($score3, $txt3, $site3, $chr3, $x3, $y3, $segment_type, $nom_seg, '3');
-		#if ($segment_type eq 'exon') {&get_natural($start_g, '3', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}
-		#elsif ($segment_type eq 'intron') {&get_natural($end_g, '3', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}
-		
+
 		#print $q->br(), $q->br(), $q->br();
-		
+
 		my ($window5_wt, $window5_mt, $html5_wt, $html5_mt) = &build_window($wt, $mt, $dna_type, $size, '8');
 		my ($score5_wt, $txt5_wt) = &get_maxent_score('5', $window5_wt, $DATABASES_PATH);
 		my ($score5_mt, $txt5_mt) = &get_maxent_score('5', $window5_mt, $DATABASES_PATH);
-			
+
 		print $q->p({'class' => 'title'}, '5\'ss (donor) MaxEntScan scores'), "\n",
 			$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
 			$q->start_Tr(), "\n",
@@ -279,7 +272,7 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 		}
 		else {print $html;}
 		print $q->end_table(), $q->end_div(), $q->br(), $q->br(), "\n";
-		
+
 		&print_natural($score5, $txt5, $site5, $chr5, $x5, $y5, $segment_type, $nom_seg, '5');
 		#if ($segment_type eq 'intron') {&get_natural($start_g, '5', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}
 		#elsif ($segment_type eq 'exon') {&get_natural($end_g, '5', $segment_type, $strand, $chr, $DATABASES_PATH, $nom_seg)}
@@ -287,18 +280,18 @@ if ($q->param('calc') && $q->param('calc') eq 'maxentscan') {
 	else {
 		print $q->p('USHVaM 2 is not currently confident on its own ability to provide accurate data on splicing for variants > 10 bp or for indels');
 	}
-	
+
 	#print $q->start_p(), $q->span('MaxEnt predictions are made with '), $q->a({'href' => 'http://genes.mit.edu/burgelab/maxent/Xmaxentscan_scoreseq.html', 'target' => '_blank'}, 'MaxEntScan'), $q->span('. Sequences are dynamically retrieved by ushvam2, which builds all possible input sequences for maxent given the variant and displays interesting ones as well as natural sites scores for comparison.'), $q->end_p(), "\n";
 	my $text = $q->span('MaxEnt predictions are made with ').
 		$q->a({'href' => 'http://genes.mit.edu/burgelab/maxent/Xmaxentscan_scoreseq.html', 'target' => '_blank'}, 'MaxEntScan').
 		$q->span('. ').$q->br().$q->span('Sequences are dynamically retrieved by ushvam2, which builds all possible input sequences for maxent given the variant and displays interesting ones as well as natural sites scores for comparison.');
 	print U2_modules::U2_subs_2::info_panel($text, $q);
-	
+
 }
 my @hyphen = split(/-/, U2_modules::U2_subs_1::getExacFromGenoVar($var));
 my ($chr, $pos, $wt, $mt) = ($hyphen[0], $hyphen[1], $hyphen[2], $hyphen[3]);
 if ($q->param('add') && $q->param('add') eq 'spliceai') {
-	
+
 	my @spliceai = split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/spliceAI/exome_spliceai_scores.vcf.gz $chr:$pos-$pos`);
 	my $spliceai_content = U2_modules::U2_subs_2::info_panel('no spliceAI score', $q);
 	foreach (@spliceai) {
@@ -324,10 +317,10 @@ if ($q->param('add') && $q->param('add') eq 'spliceai') {
 				my @distances = split(/=/, $spliceai_res[$i+4]);
 				print $q->start_td(), $q->span({'style' => 'color:'.U2_modules::U2_subs_1::spliceAI_color($fields[1])}, $fields[1]).$q->span(" ($distances[1]bp)"), $q->end_td(), "\n";
 			}
-			print $q->end_Tr(), "\n";			
+			print $q->end_Tr(), "\n";
 		}
 	}
-	print $q->end_table(),$q->end_div(), "\n";	
+	print $q->end_table(),$q->end_div(), "\n";
 	my $text .= $q->span('*').
 		$q->a({'href' => 'https://www.cell.com/cell/fulltext/S0092-8674(18)31629-5', 'target' => '_blank'}, 'spliceAI').
 		$q->span(' is a dataset which provides access, for all SNVs located into an exon or near splice junctions to precomputed splice sites alterations likelyhood scores.').$q->br().
@@ -340,43 +333,10 @@ if ($q->param('add') && $q->param('add') eq 'spliceai') {
 if ($q->param('retrieve') && $q->param('retrieve') eq 'spidex') {
 	# removed 20201019
 	print '';
-	##my $var = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
-	##my @hyphen = split(/-/, U2_modules::U2_subs_1::getExacFromGenoVar($var));
-	##my ($chr, $pos, $wt, $mt) = ($hyphen[0], $hyphen[1], $hyphen[2], $hyphen[3]);
-	##print "$EXE_PATH/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos";
-	#my @spidex = split(/\n/, `$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos`);
-	##print "$DATABASES_PATH/htslib-1.2.1/tabix $DATABASES_PATH/spidex_public_noncommercial_v1.0/spidex_public_noncommercial_v1_0.tab.gz chr$chr:$pos-$pos";
-	#foreach (@spidex) {
-	#	#print $_;
-	#	if (/\t$wt\t$mt\t/) {
-	#		my @res = split(/\t/, $_);
-	#		print $q->p({'class' => 'title'}, 'Spidex Results**'), "\n",
-	#		$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
-	#		$q->start_Tr(), "\n",
-	#			$q->th({'class' => 'left_general'}, 'Variant'), "\n",
-	#			$q->th({'class' => 'left_general'}, 'SPANR dPSI (%)'), "\n",
-	#			$q->th({'class' => 'left_general'}, 'dPSI Z-score'), "\n",
-	#		$q->end_Tr(), "\n",
-	#		$q->start_Tr(), "\n",
-	#			$q->td($var), "\n",
-	#			$q->td(sprintf('%.2f', $res[4])), "\n",
-	#			$q->td(sprintf('%.2f', $res[5])), "\n",
-	#		$q->end_Tr(), "\n",
-	#		$q->end_table(),$q->end_div(), $q->br(), $q->br(), "\n";
-	#		
-	#		my $text = $q->span('**').
-	#			$q->a({'href' => 'http://www.deepgenomics.com/spidex', 'target' => '_blank'}, 'Spidex').$q->span(' is a dataset which provide access, for all variants in and around 300bp of exons, to ').$q->a({'href' => 'http://tools.genes.toronto.edu/', 'target' => '_blank'}, 'SPANR').$q->span(' predictions').$q->br().$q->span('percent inclusion ratio (PSI) of the affected exon given the wildtype and the mutant sequence).')."\n".
-	#			$q->start_ul().
-	#				$q->li('dPSI: The delta PSI. This is the predicted change in percent-inclusion due to the variant, reported as the maximum across tissues (in percent).').
-	#				$q->li('dPSI z-score: This is the z-score of dpsi_max_tissue relative to the distribution of dPSI that are due to common SNP. 0 means dPSI equals to mean common SNP. A negative score means dPSI is less than mean common SNP dataset, positive greater.').
-	#			$q->end_ul()."\n";
-	#			print U2_modules::U2_subs_2::info_panel($text, $q);
-	#	}		
-	#}
 }
 
 if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
-	
+
 	my @dbscsnv = split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/dbscSNV/dbscSNV.txt.gz $chr:$pos-$pos`);
 	my ($rf_content, $ada_content) = (U2_modules::U2_subs_2::info_panel('no RF score', $q), U2_modules::U2_subs_2::info_panel('no ADA score', $q));
 	foreach (@dbscsnv) {
@@ -396,7 +356,7 @@ if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
 		}
 	}
 	print $q->td($rf_content), $q->td($ada_content), $q->end_Tr(), "\n",
-			$q->end_table(),$q->end_div(), "\n";	
+			$q->end_table(),$q->end_div(), "\n";
 	my $text .=$q->span('***').
 		$q->a({'href' => 'http://nar.oxfordjournals.org/content/42/22/13534.full', 'target' => '_blank'}, 'dbscSNV').
 		$q->span(' is a dataset which provide access, for all variants located into identified intron/exon junctions ').$q->br().
@@ -404,42 +364,7 @@ if ($q->param('find') && $q->param('find') eq 'dbscSNV') {
 		$q->span(' to precomputed splicing alterations likelyhood scores. These scores called Random Forest or ADA depending on the learning machine used rely on both MaxEntScan and Position Weight Matrix (Shapiro) prediction scores.').$q->br().
 		$q->span({'class' => 'gras'}, 'The closer to 1, the likely to disrupt splicing.').$q->end_p()."\n";
 	print U2_modules::U2_subs_2::info_panel($text, $q);
-	
-	
-	#my $gene = U2_modules::U2_subs_1::get_gene_from_nom_g($q, $dbh);
-	#my $tempfile = File::Temp->new(UNLINK => 1);
-	#if ($var =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {print $tempfile "$1 $2 $2 $3/$4 +\n";}
-	#else {print "pb with variant $var with VEP"}
-	#if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
-	#	delete $ENV{PATH};
-	#	my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress "gunzip -c" --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin dbscSNV,$DATABASES_PATH/dbscSNV/dbscSNV.txt.gz -o STDOUT`); ###VEP78
-	#	#print "$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/78_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress \"gunzip -c\" --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin dbscSNV,$DATABASES_PATH/dbscSNV/dbscSNV.txt.gz -o STDOUT";
-	#	
-	#	if ($gene->[1] =~ /(N[MR]_\d+)/o) {
-	#		my @good_line = grep(/$1/, @results);
-	#		print $q->br(), $q->br(),
-	#		$q->p({'class' => 'title'}, 'dbscSNV Results*'), "\n",
-	#		$q->start_div({'class' => 'container'}), $q->start_table({'class' => 'technical great_table'}), "\n",
-	#		$q->start_Tr(), "\n",
-	#			$q->th({'class' => 'left_general'}, 'Variant'), "\n",
-	#			$q->th({'class' => 'left_general'}, 'dbscSNV Random Forest Score'), "\n",
-	#			$q->th({'class' => 'left_general'}, 'dbscSNV ADA score'), "\n",
-	#		$q->end_Tr(), "\n",
-	#		$q->start_Tr(), "\n",
-	#			$q->td($var), "\n";
-	#		my ($rf_content, $ada_content) = ('no RF score', 'no ADA score');
-	#		if ($good_line[0] =~ /rf_score=([\d\.]+);*/o) {
-	#			$rf_content = sprintf('%.2f', $1)
-	#		}
-	#		if ($good_line[0] =~ /ada_score=([\d\.]+);*/o) {
-	#			$ada_content = sprintf('%.2f', $1)
-	#		}
-	#		print $q->td($rf_content), $q->td($ada_content), $q->end_Tr(), "\n",
-	#		$q->end_table(),$q->end_div(), $q->br(), $q->br(), "\n",		
-	#		$q->start_p(), $q->span('**'), $q->a({'href' => 'http://nar.oxfordjournals.org/content/42/22/13534.full', 'target' => '_blank'}, 'dbscSNV'), $q->span(' is a dataset which provide access, for all variants located into identified intron/exon junctions '), $q->span({'class' => 'gras'}, '(-3 to +8 at the 5\' splice site and -12 to +2 at the 3\' splice site)'), $q->span(' to precomputed splicing alterations likelyhood scores. These scores called random Forest or ADA depending on the learning machine used rely on both MaxEntScan and Position Weight Matrix (Shapiro) prediction scores.'), $q->br(), $q->span({'class' => 'gras'}, 'The closer to 1, the likely to disrupt splicing.'), $q->end_p(), "\n";
-	#	}
-	#	#foreach(@results) {print "$_<br/>"}
-	#}
+
 }
 
 
@@ -457,14 +382,14 @@ exit();
 
 sub get_seq {
 	my $var = shift;
-	my $query = "SELECT a.seq_wt, a.seq_mt, a.type_adn, a.type_segment, a.num_segment, a.nom, a.taille, a.nom_gene, b.nom as nom_seg FROM variant a, segment b WHERE a.num_segment = b.numero AND a.type_segment = b.type AND a.nom_gene = b.nom_gene AND a.nom_g = '$var';";
-	my $res = $dbh->selectrow_hashref($query);	
+	my $query = "SELECT a.seq_wt, a.seq_mt, a.type_adn, a.type_segment, a.num_segment, a.nom, a.taille, c.gene_symbol, c.refseq, b.nom as nom_seg FROM variant a, segment b, gene c WHERE a.num_segment = b.numero AND a.type_segment = b.type AND a.refseq = b.refseq And b.refseq = c.refseq AND a.nom_g = '$var';";
+	my $res = $dbh->selectrow_hashref($query);
 	$res->{'seq_wt'} =~ /([ATCG]{25})\s+([ATGC-]+)\s+([ATCG]{25})/o or die "bad seq in get_seq in splicing_calc.pl for var $var ($res->{'nom'})";
 	my @wt = ($1, $2, $3);
 	$res->{'seq_mt'} =~ /([ATCG]{25})\s+([ATGC-]+)\s+([ATCG]{25})/o or die "bad seq in get_seq in splicing_calc.pl for var $var ($res->{'nom'})";
 	my @mt = ($1, $2, $3);
-	
-	return (\@wt, \@mt, $res->{'type_adn'}, $res->{'taille'}, $res->{'nom'}, $res->{'type_segment'}, $res->{'num_segment'}, $res->{'nom_gene'}, $res->{'nom_seg'});	
+
+	return (\@wt, \@mt, $res->{'type_adn'}, $res->{'taille'}, $res->{'nom'}, $res->{'type_segment'}, $res->{'num_segment'}, $res->{'gene_symbol'}, $res->{'refseq'}, $res->{'nom_seg'});
 }
 
 sub build_window {
@@ -487,7 +412,7 @@ sub build_window {
 			push @html_wt, $temp_html_wt;
 			push @window_mt, $temp_mt;
 			push @html_mt, $temp_html_mt;
-			
+
 		}
 	}
 	elsif ($dna_type eq 'deletion') {
@@ -546,13 +471,13 @@ sub get_natural {
 		if ($type eq 'exon' && $strand eq '+') {$x = $pos-20;$y = $pos+2;}
 		elsif ($type eq 'exon' && $strand eq '-') {$x = $pos-2;$y = $pos+20;}
 		elsif ($type eq 'intron' && $strand eq '+') {$x = $pos-19;$y = $pos+3;}
-		elsif ($type eq 'intron' && $strand eq '-') {$x = $pos-3;$y = $pos+19;}		
+		elsif ($type eq 'intron' && $strand eq '-') {$x = $pos-3;$y = $pos+19;}
 	}
 	elsif ($version == 5) {
 		if ($type eq 'exon' && $strand eq '+') {$x = $pos-2;$y = $pos+6;}
 		elsif ($type eq 'exon' && $strand eq '-') {$x = $pos-6;$y = $pos+2;}
 		elsif ($type eq 'intron' && $strand eq '+') {$x = $pos-3;$y = $pos+5;}
-		elsif ($type eq 'intron' && $strand eq '-') {$x = $pos-5;$y = $pos+3;}		
+		elsif ($type eq 'intron' && $strand eq '-') {$x = $pos-5;$y = $pos+3;}
 	}
 	# UCSC is 0-based
 	$x = $x-1;
@@ -572,12 +497,12 @@ sub get_natural {
 		$seq[0] = $seqrev;
 	}
 	my ($score, $txt) = &get_maxent_score($version, \@seq, $path);
-	
+
 	my $site = 'acceptor';
 	if ($version == 5) {$site = 'donor'}
-	
+
 	return ($score, $txt, $site, $chr, $x, $y);
-	
+
 }
 
 sub print_natural {
@@ -598,7 +523,7 @@ sub get_maxent_score {
 	my ($version, $input, $path) = @_;
 	my $tempfile = File::Temp->new(UNLINK => 1);
 	my (@scores, @txt);
-	foreach(@{$input}) {print $tempfile "$_\n"}	
+	foreach(@{$input}) {print $tempfile "$_\n"}
 	if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
 		delete $ENV{PATH};
 		my @temp = split(/\n/, `perl $path/maxentscan/score$version.pl $1 $path/maxentscan`);
@@ -607,7 +532,7 @@ sub get_maxent_score {
 				push @scores, $2;
 				if ($version == 5) {push @txt, substr($1, 0, 3).lc(substr($1, 3, 6))}
 				else {push @txt, lc(substr($1, 0, 20)).substr($1, 20, 22)}
-			}			
+			}
 		}
 	}
 	return (\@scores, \@txt);
@@ -622,14 +547,14 @@ sub get_label {
 	else {return ('Intron', 'Intron')}
 }
 sub get_neighbouring_nom_seg {
-	my ($number, $gene, $transcript, $type) = @_;
+	my ($number, $transcript, $type) = @_;
 	#my $query_nom = "SELECT nom_seg FROM segment WHERE numero = '$number' AND nom_gene = '{\"$gene\",\"$transcript\"}' AND type = '$type';";
-	my $res = $dbh->selectrow_hashref("SELECT nom FROM segment WHERE numero = '$number' AND nom_gene = '{\"$gene\",\"$transcript\"}' AND type != '$type';");
+	my $res = $dbh->selectrow_hashref("SELECT nom FROM segment WHERE numero = '$number' AND refseq = '$transcript' AND type != '$type';");
 	return $res->{'nom'};
 }
 sub get_neighbouring_seg_size {
-	my ($number, $gene, $transcript, $type) = @_;
+	my ($number, $transcript, $type) = @_;
 	#my $query_nom = "SELECT nom_seg FROM segment WHERE numero = '$number' AND nom_gene = '{\"$gene\",\"$transcript\"}' AND type = '$type';";
-	my $res = $dbh->selectrow_hashref("SELECT taille FROM segment WHERE numero = '$number' AND nom_gene = '{\"$gene\",\"$transcript\"}' AND type != '$type';");
+	my $res = $dbh->selectrow_hashref("SELECT taille FROM segment WHERE numero = '$number' AND refseq = '$transcript' AND type != '$type';");
 	return $res->{'taille'};
 }

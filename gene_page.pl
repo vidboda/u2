@@ -28,7 +28,7 @@ use U2_modules::U2_subs_2;
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-#		Home page of U2
+#		Gene page of U2
 
 
 ##Custom init of USHVaM 2 perl scripts: slightly modified with jquery ui and headers are printed later for redirection purpose
@@ -98,24 +98,6 @@ else {
 	}"
 }
 
-#my $js = 'function chooseSortingType(gene) {
-#		var $dialog = $(\'<div></div>\')
-#			.html("<p>Choose how your variants will be sorted:</p><ul><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=classe\' target = \'_blank\'>Pathogenic class</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_adn\' target = \'_blank\'>DNA type (subs, indels...)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_prot\' target = \'_blank\'>Protein type (missense, silent...)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=type_arn\' target = \'_blank\'>RNA type (neutral / altered)</a></li><li><a href = \'gene.pl?gene="+gene+"&info=all_vars&sort=taille\' target = \'_blank\'>Variant size (get only large rearrangements)</a></li><li><a href = \'https://194.167.35.158/perl/led/engine.pl?research="+gene+"\' target = \'_blank\'>LED rare variants</a></li></ul>")
-#			.dialog({
-#			    autoOpen: false,
-#			    title: \'U2 choice\',
-#			    width: 450,
-#			});
-#		$dialog.dialog(\'open\');
-#		$(\'.ui-dialog\').zIndex(\'1002\');
-#	}';
-
-
-
-
-
-
-
 ##end of Basic init
 
 if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LCA|NSRP|DSD|NS|NM|DSDR|ND)$/o) {
@@ -155,17 +137,17 @@ if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LC
 					{-language => 'javascript',
 					-src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 					{-language => 'javascript',
-					-src => $JS_DEFAULT, 'defer' => 'defer'}],		
+					-src => $JS_DEFAULT, 'defer' => 'defer'}],
 				-encoding => 'ISO-8859-1');
 		if ($user->isPublic() == 1) {U2_modules::U2_subs_1::public_begin_html($q, $user->getName(), $dbh);}
 		else {U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh)}
 		my @list;
 		if ($sort eq 'ALL' && $user->isPublic() != 1) {
-			my $query = "SELECT DISTINCT(nom[1]) FROM gene WHERE ns_gene = 't' ORDER BY nom[1];";
+			my $query = "SELECT DISTINCT(gene_symbol) FROM gene WHERE ns_gene = 't' ORDER BY gene_symbol;";
 			@list = @{$dbh->selectcol_arrayref($query)};
 		}
 		elsif ($sort eq 'ALL' && $user->isPublic() == 1) {
-			my $query = "SELECT DISTINCT(nom[1]) FROM gene ORDER BY nom[1];";
+			my $query = "SELECT DISTINCT(gene_symbol) FROM gene ORDER BY gene_symbol;";
 			@list = @{$dbh->selectcol_arrayref($query)};
 		}
 		elsif ($sort eq 'USHER') {@list = @U2_modules::U2_subs_1::USHER}
@@ -180,7 +162,7 @@ if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LC
 		elsif ($sort eq 'NM') {@list = @U2_modules::U2_subs_1::NM}
 		elsif ($sort eq 'ND') {@list = @U2_modules::U2_subs_1::ND}
 		elsif ($sort eq 'NS') {
-			my $query = "SELECT DISTINCT(nom[1]) as gene FROM gene WHERE ns_gene = 't' ORDER BY nom[1];";
+			my $query = "SELECT DISTINCT(gene_symbol) as gene FROM gene WHERE ns_gene = 't' ORDER BY gene_symbol;";
 			@list = @{$dbh->selectcol_arrayref($query)}
 		}
 		print $q->start_p({'class' => 'center title'}), $q->start_big(), $q->strong("Gene group: $sort (".($#list+1)." genes)"), $q->end_big(), $q->end_p(), "\n";
@@ -188,7 +170,7 @@ if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LC
 		#	$q->start_ul(), "\n";
 		my $text = $q->span('Click on a link to go to the detailed page:');
 		print U2_modules::U2_subs_2::mini_info_panel($text, $q);
-		
+
 		print $q->start_div({'class' => 'fitin container'}), $q->start_table({'class' => 'great_table technical', 'id' => 'gene_table', 'data-page-length' => '25'}), $q->caption("Genes table:"), $q->start_thead(),
 					$q->start_Tr(), "\n",
 					$q->th({'class' => 'left_general'}, 'Genes'), "\n",
@@ -199,8 +181,8 @@ if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LC
 					#$q->start_Tr(), "\n",
 					#$q->th(), $q->th(), $q->th(), $q->th(), $q->th(), "\n",
 					#$q->end_Tr(),
-					$q->end_thead(), $q->start_tbody(), "\n";			 
-		
+					$q->end_thead(), $q->start_tbody(), "\n";
+
 		foreach (@list) {
 			print $q->start_Tr(),
 				$q->start_td(), $q->em($_), $q->end_td(),
@@ -212,7 +194,7 @@ if ($q->param('sort') && $q->param('sort') =~ /^(ALL|USHER|DFNB|DFNA|DFNX|CHM|LC
 						$q->start_td(), $q->a({'href' => "gene_graphs.pl?gene=$_", 'target' => '_blank'}, 'Graphs'), $q->end_td();
 				}
 			print $q->end_Tr();
-				
+
 		}
 		print $q->end_tbody(), $q->end_table(), $q->end_div();
 		#foreach (@list) {print $q->start_li({'class' => 'pointer', 'onclick' => "window.open('gene.pl?gene=$_&info=general');"}), $q->em($_), $q->end_li()}

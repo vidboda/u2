@@ -114,7 +114,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
                         {-language => 'javascript',
                         -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
                         {-language => 'javascript',
-                        -src => $JS_DEFAULT, 'defer' => 'defer'}],		
+                        -src => $JS_DEFAULT, 'defer' => 'defer'}],
                 -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -129,8 +129,8 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 
 if ($user->isAnalyst() == 1) {
-	
-	
+
+
 	my $step = U2_modules::U2_subs_1::check_step($q);
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
 	#step 2 => form with possible samples to import per run
@@ -168,7 +168,7 @@ if ($user->isAnalyst() == 1) {
 			print $q->p("Sorry, no Clinical exome to import for $id$number");
 		}
 	}
-	elsif ($step == 3) {	#step 3 => actual import	
+	elsif ($step == 3) {	#step 3 => actual import
 		my $query = "SELECT filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
 		my $res = $dbh->selectrow_hashref($query);
 		my $filtered = $res->{'filtering_possibility'};
@@ -178,14 +178,14 @@ if ($user->isAnalyst() == 1) {
 		$query = "SELECT id FROM illumina_run WHERE id ='$run';";
 		my $res = $dbh->selectrow_hashref($query);
 		if (!$res) {#unknown run
-			my $insert_run = "INSERT INTO illumina_run (id) VALUES ('$run');";		
+			my $insert_run = "INSERT INTO illumina_run (id) VALUES ('$run');";
 			################## UNCOMMENT
 			$dbh->do($insert_run);
-			################## UNCOMMENT			
+			################## UNCOMMENT
 			#print $q->p($insert_run);
-		}	
-		
-		
+		}
+
+
 		#create roi hash
 		my $interval = U2_modules::U2_subs_3::build_roi($dbh);
 		#test mutalyzer
@@ -193,9 +193,9 @@ if ($user->isAnalyst() == 1) {
 		my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
 		my ($manual, $not_inserted, $general, $mutalyzer_no_answer, $sample_end, $to_follow, $new_var) = ('', '', '', '', '', '', '');#$manual will contain variants that cannot be delt automatically i.e. PTPRQ (at least in hg19), NR_, non mappable; $notinserted variants wt homozygous, $general global data for final email, $sample_end last treated patient for redirection $to_follow is to get info on certain variants that were buggy
 		my $date = U2_modules::U2_subs_1::get_date();
-		
-		
-		
+
+
+
 		#sample and filters do not arrive the same way
 		while (my ($sampleid, $filter) = each(%sample_hash)) {
 			#get log's number
@@ -204,17 +204,17 @@ if ($user->isAnalyst() == 1) {
 			print STDERR "\nInitiating $id$number...";
 			#loop  genes
 			my $insert_analysis;
-			$query = "SELECT nom FROM gene WHERE \"$analysis\" = 't' ORDER BY nom[1];";
+			$query = "SELECT gene_symbol, refseq FROM gene WHERE \"$analysis\" = 't' ORDER BY gene_symbol;";
 			my $sth = $dbh->prepare($query);
-			my $res = $sth->execute();			
+			my $res = $sth->execute();
 			while (my $result = $sth->fetchrow_hashref()) {
-				$insert_analysis .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, nom_gene, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '{\"$result->{'nom'}[0]\",\"$result->{'nom'}[1]\"}', '$analysis', '$date', '".$user->getName()."','t');";
+				$insert_analysis .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '".$result->{'refseq'}."', '$analysis', '$date', '".$user->getName()."','t');";
 			}
 			#print "$insert_analysis<br/>";
 			#######UNCOMMENT WHEN DONE!!!!!!!
 			$dbh->do($insert_analysis);
-			
-			
+
+
 			#my $nenufaar_log = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run/*.log | xargs basename`;
 			#$nenufaar_log =~ /_(\d+).log/og;
 			#my $nenufaar_id = $1;
@@ -235,15 +235,15 @@ if ($user->isAnalyst() == 1) {
 				'snp_num' => ['multiqc_data/multiqc_gatk_varianteval.txt', 'snps', 'miseq_analysis', ''],
 				'duplicates' => ['multiqc_data/multiqc_picard_HsMetrics.txt', 'PCT_PF_UQ_READS', 'miseq_analysis', ''],
 				'snp_tstv' => ['multiqc_data/multiqc_gatk_varianteval.txt', 'known_titv', 'miseq_analysis', ''],
-				#'insert_size_sd' => ["$id$number/$nenufaar_id/genome_results.txt", 'std insert size', 'miseq_analysis', ''], résultats très surprenants de qualimap
+				#'insert_size_sd' => ["$id$number/$nenufaar_id/genome_results.txt", 'std insert size', 'miseq_analysis', ''], rï¿½sultats trï¿½s surprenants de qualimap
 			};
 			my $insert_metrics = "INSERT INTO miseq_analysis (num_pat, id_pat, type_analyse, run_id, filter, ";
 			my ($col, $val);
-			foreach my $u2_key (sort keys (%{$metrics})) {				
+			foreach my $u2_key (sort keys (%{$metrics})) {
 				$col .= "$u2_key, ";
 				if ($metrics->{$u2_key}->[0] =~ /multiqc/o) {
 					$val .= "'".U2_modules::U2_subs_2::get_raw_detail_ce($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0])."', ";
-					#$metrics->{$u2_key}->[3] = U2_modules::U2_subs_2::get_raw_detail_ce($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0]);	
+					#$metrics->{$u2_key}->[3] = U2_modules::U2_subs_2::get_raw_detail_ce($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0]);
 				}
 				else {
 					$val .= "'".U2_modules::U2_subs_2::get_raw_detail_ce_qualimap($global_path, $run, $id.$number, $metrics->{$u2_key}->[1], $metrics->{$u2_key}->[0])."', ";
@@ -258,11 +258,11 @@ if ($user->isAnalyst() == 1) {
 			################## UNCOMMENT
 			$dbh->do($insert_metrics);
 			################## UNCOMMENT
-			
-			
-			
+
+
+
 			#foreach my $key (keys %{$interval}) {print "$key<br/>"}
-			
+
 			#now get left normed vcf and treat it
 			open F, $data_path."$id$number.final.vcf.norm.vcf" or die "can't find normalised vcf for $id$number $!";
 			my ($i, $j, $k) = (0, 0, 0);
@@ -287,18 +287,18 @@ if ($user->isAnalyst() == 1) {
 				}
 			}
 			close F;
-			
+
 			$general .= "Insertion for $id$number:\n\n- $i/$k variants (".(sprintf('%.2f', ($i/$k)*100))."%) have been automatically inserted,\nincluding $j new variants that have been successfully created\n\n";
 			my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
 			#print "$valid<br/>";
 			########UNCOMMENT WHEN READY
-			$dbh->do($valid);			
+			$dbh->do($valid);
 		}
 		########UNCOMMENT WHEN READY
 		U2_modules::U2_subs_2::send_manual_mail($user, $manual, $not_inserted, $run, $general, $mutalyzer_no_answer, $to_follow);
 		$q->redirect("patient_file.pl?sample=$sample_end");
 		#print "$general<br/>$manual<br/>$not_inserted<br/>$mutalyzer_no_answer<br/>$to_follow<br/>";
-	}	
+	}
 }
 else {U2_modules::U2_subs_1::standard_error('13', $q)}
 

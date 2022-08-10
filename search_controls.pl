@@ -101,7 +101,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => $JS_PATH.'datatables.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_DEFAULT, 'defer' => 'defer'}],		
+				-src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -130,15 +130,7 @@ if ($step == 1) {
 		$q->end_ul().$q->br().
 		$q->span('Fill in the form below by choosing a gene and an exon:');
 	print $q->start_div({'style' => 'width:70%'}).U2_modules::U2_subs_2::info_panel($text, $q).$q->end_div();
-	#print $q->br(), $q->p({'class' => 'w3-margin'}, "This function will alow you to select candidates controls based on the following rules:"),
-	#$q->start_div({'class' => 'w3-container', 'style' => 'width:50%'}), $q->start_ul({'class' => 'w3-ul w3-hoverable'}),
-	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The patient MUST be a proband AND"),
-	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "MUST have been sequenced either by Sanger or NGS in the specified gene OR"),
-	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "Only by NGS for UTRs AND"),
-	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "The sequencing analyses MUST NOT report variants in the selected exon and flanking introns AND"),
-	#	$q->li({'class' => 'w3-padding-8 w3-hover-light-grey'}, "For genes included in USHVaM (USH genes mainly), the exon MUST NOT be reported as not analysed."),
-	#	$q->end_ul(), $q->end_div(), "\n",
-	#	$q->p({'class' => 'w3-margin'}, "Fill in the form below by choosing a gene and an exon:"), $q->br(),
+
 	print 	$q->start_div({'align' => 'center'}),
 			$q->start_form({'action' => '', 'method' => 'post', 'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin w3-large', 'id' => 'exon_form', 'enctype' => &CGI::URL_ENCODED, 'style' => 'width:50%'}),
 			$q->input({'type' => 'hidden', 'name' => 'step', 'value' => '2'}), "\n",
@@ -163,7 +155,7 @@ print 				$q->end_div(), "\n",
 			$q->end_div(), "\n",
 			$q->br(),
 			$q->submit({'value' => 'Search!', 'form' => 'exon_form', 'class' => 'w3-btn w3-blue'}), $q->br(), $q->br(), "\n", $q->br(),
-		$q->end_form(), $q->end_div(), "\n";	
+		$q->end_form(), $q->end_div(), "\n";
 }
 elsif ($step == 2) {
 	#perform actual search
@@ -174,11 +166,11 @@ elsif ($step == 2) {
 	my $nom_seg = U2_modules::U2_subs_1::get_nom_segment_main($exon, $gene, $dbh);
 	my $techniques = "'SANGER', '454-19', '454-28'";
 	if ($nom_seg =~ /UTR/) {$techniques = "'454-19', '454-28'"}
-	
-	my $query = "SELECT numero, identifiant FROM patient WHERE proband = 't' AND (ROW(numero, identifiant) IN (SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse IN ($techniques) AND nom_gene[1] = '$gene')) AND (ROW (numero, identifiant) NOT IN (SELECT num_pat, id_pat FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene[1] = '$gene' AND (b.num_segment = '$exon' OR b.num_segment = '".($exon+1)."'))) AND (ROW(numero, identifiant) NOT IN (SELECT num_pat, id_pat FROM segment_non_analyse WHERE nom_gene[1] = '$gene' AND num_segment = '$exon')) ORDER BY identifiant, numero;";
+
+	my $query = "SELECT numero, identifiant FROM patient WHERE proband = 't' AND (ROW(numero, identifiant) IN (SELECT a.num_pat, a.id_pat FROM analyse_moleculaire a, gene b WHERE a.refseq = b.refseq AND a.type_analyse IN ($techniques) AND b.gene_symbol = '$gene')) AND (ROW (numero, identifiant) NOT IN (SELECT a.num_pat, a.id_pat FROM variant2patient a, variant b, gene c WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' AND (b.num_segment = '$exon' OR b.num_segment = '".($exon+1)."'))) AND (ROW(numero, identifiant) NOT IN (SELECT a.num_pat, a.id_pat FROM segment_non_analyse a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene' AND a.num_segment = '$exon')) ORDER BY identifiant, numero;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
-	
+
 	if ($res ne '0E0') {
 		my $text = $q->span("Please consider the $res candidate samples below as controls for Amplicon $nom_seg in ").$q->em($gene).$q->span(':');
 		print U2_modules::U2_subs_2::info_panel($text, $q);
@@ -208,10 +200,6 @@ if ($q->param('iv') && $q->param('iv') == 1 && $step == 3) {
 			my $res = $sth->execute();
 			if ($res ne '0E0') {
 				$run_list_html = $q->h3('Select one or more runs to add to the query:');
-					#$q->start_p() .
-					#	$q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'run_ids', 'value' => $run_id.";", 'checked' => 'checked', 'disabled' => 'disabled'}) .
-					#	$q->label($run_id) .
-					#$q->br()."\n";
 				while (my $result = $sth->fetchrow_hashref()) {
 					$run_list_html .= $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'run_ids', 'value' => $result->{'run_id'}}) .
 										$q->label($result->{'run_id'}) .
@@ -220,7 +208,7 @@ if ($q->param('iv') && $q->param('iv') == 1 && $step == 3) {
 				$run_list_html .= $q->end_p();
 			}
 		}
-		
+
 		#get patients for the run
 		print $q->start_ul();
 		if ($q->param('sample')) {
@@ -236,8 +224,8 @@ if ($q->param('iv') && $q->param('iv') == 1 && $step == 3) {
 				&get_patient_table($result->{'id_pat'}, $result->{'num_pat'}, $run_id, '0', $run_list, $run_list_html, '1');
 			}
 		}
-	}	
-	
+	}
+
 }
 if ($q->param('iv') && $q->param('iv') == 2 && $step == 4) {
 	#print $q->param('run_ids');
@@ -266,8 +254,8 @@ if ($q->param('iv') && $q->param('iv') == 2 && $step == 4) {
 				#build patient list
 				&get_patient_table($result->{'id_pat'}, $result->{'num_pat'}, $run_id, '1', $run_list_sql, $run_list_html, '1');
 			}
-		}		
-	}	
+		}
+	}
 }
 
 
@@ -286,14 +274,14 @@ exit();
 
 sub get_patient_table {
 	my ($id, $num, $run_id, $multiple_run, $run_list, $run_list_html, $multiple_sample) = @_;
-	my $query_snp = "SELECT DISTINCT(a.nom_c), a.nom_gene, a.statut FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.nom_gene) NOT IN (SELECT a.nom_c, a.nom_gene FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id = '$run_id' AND (b.id_pat || b.num_pat) <> '$id$num') ORDER BY a.nom_gene, a.nom_c;";
+	my $query_snp = "SELECT DISTINCT(a.nom_c), c.gene_symbol, c.refseq, a.statut FROM variant2patient a, variant b, gene c WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = c.refseq AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.refseq) NOT IN (SELECT a.nom_c, a.refseq FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id = '$run_id' AND (b.id_pat || b.num_pat) <> '$id$num') ORDER BY c.gene_symbol, a.nom_c;";
 	if ($multiple_run == 1) {#multiple runs processed at the same time (automated library prep)
-		$query_snp = "SELECT DISTINCT(a.nom_c), a.nom_gene, a.statut FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.nom_gene) NOT IN (SELECT a.nom_c, a.nom_gene FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id IN $run_list AND (b.id_pat || b.num_pat) <> '$id$num') ORDER BY a.nom_gene, a.nom_c;";
+		$query_snp = "SELECT DISTINCT(a.nom_c), c.gene_symbol, c.refseq, a.statut FROM variant2patient a, variant b, gene c WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = c.refseq AND a.num_pat = '$num' AND a.id_pat = '$id' AND a.msr_filter = 'PASS' AND b.type_adn = 'substitution' AND b.classe NOT IN ('VUCS Class III', 'VUCS Class IV', 'pathogenic') AND (a.nom_c, a.refseq) NOT IN (SELECT a.nom_c, a.refseq FROM variant2patient a, miseq_analysis b WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND b.run_id IN $run_list AND (b.id_pat || b.num_pat) <> '$id$num') ORDER BY c.gene_symbol, a.nom_c;";
 	}
-	
+
 	my $sth_snp = $dbh->prepare($query_snp);
 	my $res_snp = $sth_snp->execute();
-	
+
 	my $table_js = "\$('#".$id.$num."_table').DataTable({
 		aaSorting:[],
 		paging: false
@@ -336,13 +324,13 @@ sub get_patient_table {
 			$q->start_tbody(), "\n";
 	while (my $result_snp = $sth_snp->fetchrow_hashref()) {
 		print $q->start_Tr(), "\n",
-			$q->start_td(), $q->a({'href' => "variant.pl?nom_c=".uri_escape($result_snp->{'nom_c'})."&gene=$result_snp->{'nom_gene'}[0]&accession=$result_snp->{'nom_gene'}[1]", 'target' => '_blank', 'title' => 'Click to open variant page in new tab'}, $result_snp->{'nom_c'}),$q->end_td(), "\n",
-			$q->start_td(), $q->em({'onclick' => "gene_choice('$result_snp->{'nom_gene'}[0]');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $result_snp->{'nom_gene'}[0]), $q->span(" / "), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$result_snp->{'nom_gene'}[1]", 'target' => '_blank', 'title' => 'Click to open GenBank in new tab'}, $result_snp->{'nom_gene'}[1]),$q->end_td(), "\n",
+			$q->start_td(), $q->a({'href' => "variant.pl?nom_c=".uri_escape($result_snp->{'nom_c'})."&gene=$result_snp->{'gene_symbol'}&accession=$result_snp->{'refseq'}", 'target' => '_blank', 'title' => 'Click to open variant page in new tab'}, $result_snp->{'nom_c'}),$q->end_td(), "\n",
+			$q->start_td(), $q->em({'onclick' => "gene_choice('$result_snp->{'gene_symbol'}');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $result_snp->{'gene_symbol'}), $q->span(" / "), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$result_snp->{'refseq'}", 'target' => '_blank', 'title' => 'Click to open GenBank in new tab'}, $result_snp->{'refseq'}),$q->end_td(), "\n",
 			$q->td($result_snp->{'statut'}), "\n",
 		$q->end_Tr();
 	}
 	print $q->end_tbody(), $q->end_table(), $q->end_div(), $q->end_li(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $table_js);
-	
+
 }
 
 sub intro_text {

@@ -106,7 +106,7 @@ if ($step == 1) { #insert form and possibility to create variants.
 	#build query
 
 	#get strand - NG acc no
-	my $query = "SELECT brin, chr, acc_g FROM gene WHERE nom[2] = '$acc_no';";
+	my $query = "SELECT brin, chr, acc_g FROM gene WHERE refseq = '$acc_no';";
 	my $res = $dbh->selectrow_hashref($query);
 	my $order = 'ASC';
 	if ($res->{'brin'} eq '-'){$order = 'DESC';}
@@ -124,8 +124,8 @@ if ($step == 1) { #insert form and possibility to create variants.
 	my $name = 'nom_prot';
 	if ($type ne 'exon') {$name = 'nom_ivs'}
 
-	#$query = "SELECT nom, $name as nom2, classe FROM variant WHERE nom_gene[2] = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' AND nom NOT IN (SELECT nom_c FROM variant2patient WHERE num_segment = '$num_seg' AND type_segment = '$type' AND type_analyse = '$technique' AND nom_gene[2] = '$acc_no' AND num_pat = '$number' AND id_pat = '$id') ORDER BY nom_g $order;";
-	$query = "SELECT nom, $name as nom2, classe FROM variant WHERE nom_gene[2] = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' ORDER BY nom_g $order;";
+
+	$query = "SELECT nom, $name as nom2, classe FROM variant WHERE refseq = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' ORDER BY nom_g $order;";
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
 
@@ -207,7 +207,7 @@ elsif ($step == 2) { #insert variant and print
 		if ($cdna =~ /(c\..+d[eu][lp])[ATCG]+$/o) {$truncated = $1}
 		#elsif ($cdna =~ /(c\..+d[eu][lp])$/o) {}
 		my ($type_segment, $classe, $var_final);
-		my $query = "SELECT nom FROM variant WHERE (nom = '$cdna' OR (nom = '$truncated' AND type_adn IN ('deletion','duplication')) OR (nom ~ '^".$cdna."[ATCG]+\$' AND type_adn IN ('deletion','duplication'))) AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc_no';";
+		my $query = "SELECT nom FROM variant WHERE (nom = '$cdna' OR (nom = '$truncated' AND type_adn IN ('deletion','duplication')) OR (nom ~ '^".$cdna."[ATCG]+\$' AND type_adn IN ('deletion','duplication'))) AND refseq = '$acc_no';";
 		#print "$query<br/>";
 		my $res = $dbh->selectrow_hashref($query);
 		#print $cdna;
@@ -217,7 +217,7 @@ elsif ($step == 2) { #insert variant and print
 #			my ($nom_g, $nom_ng, $nom_g_38, $nom_ivs, $nom_prot, $seq_wt, $seq_mt, $type_adn, $type_arn, $type_prot, $type_segment, $type_segment_end, $num_segment, $num_segment_end, $taille, $snp_id, $snp_common, $classe, $variant, $defgen_export, $chr);
 #			($nom_prot, $nom_ivs, $type_arn, $classe, $defgen_export, $nom_g_38, $snp_id, $snp_common, $seq_wt, $seq_mt) = ('NULL', 'NULL', 'neutral', 'unknown', 'f', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL');
 			#get NM_ acc version for mutalyzer
-			my $query = "SELECT acc_version FROM gene where nom[2] = '$acc_no';";
+			my $query = "SELECT acc_version FROM gene where refseq = '$acc_no';";
 			my $res = $dbh->selectrow_hashref($query);
 			my $acc_ver = $res->{'acc_version'};
 
@@ -248,7 +248,7 @@ elsif ($step == 2) { #insert variant and print
 				print STDERR $message;
 
 				if ($id ne '') {
-					my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$var_final', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";
+					my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, denovo) VALUES ('$var_final', '$number', '$id', '$acc_no', '$technique', '$status', '$allele', '$denovo');\n";
 					print $insert;
 					$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
 				}
@@ -290,16 +290,16 @@ elsif ($step == 2) { #insert variant and print
 			my $status = U2_modules::U2_subs_1::check_status($q);
 			my $allele = U2_modules::U2_subs_1::check_allele($q);
 			my $denovo = U2_modules::U2_subs_1::check_denovo($q);
-			my $query = "SELECT nom_c FROM variant2patient WHERE nom_c = '$cdna' AND nom_gene[1] = '$gene' AND nom_gene[2] = '$acc_no' AND num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$technique';";
+			my $query = "SELECT nom_c FROM variant2patient WHERE nom_c = '$cdna' AND refseq = '$acc_no' AND num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$technique';";
 			my $res = $dbh->selectrow_hashref($query);
 			if (!$res->{'nom_c'}) {
-				my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$cdna', '$number', '$id', '{\"$gene\", \"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');";
-				my $query = "SELECT classe FROM variant WHERE nom = '$cdna' AND nom_gene[1] = '$gene';";
+				my $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, denovo) VALUES ('$cdna', '$number', '$id', '$acc_no', '$technique', '$status', '$allele', '$denovo');";
+				my $query = "SELECT classe FROM variant WHERE nom = '$cdna' AND refseq = '$acc_no';";
 				my $res_classe = $dbh->selectrow_hashref($query);
 				$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
 				##update 05/12/2015 add allele and status should modifiy existing e.g. if allele already exists as 'unknown' post to miseq sequencing and we here add an allele 1 by Sanger, should change miseq allele
 				## not relevant by definition when creating new variants above
-				my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele', denovo = '$denovo' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND nom_gene[1] = '$gene';";
+				my $update = "UPDATE variant2patient SET statut = '$status', allele = '$allele', denovo = '$denovo' WHERE nom_c = '$cdna' AND id_pat = '$id' AND num_pat = '$number' AND refseq = '$acc_no';";
 				$dbh->do($update) or die "Error when updating the analysis, there must be a mistake somewhere $!";
 
 				if ($type !~ /on/o) {$type = ''}
@@ -321,7 +321,7 @@ elsif ($step == 2) { #insert variant and print
 }
 elsif ($step == 3) { #delete variant
 	my $var = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
-	my $delete = "DELETE FROM variant2patient WHERE num_pat = '$number' AND id_pat = '$id' AND nom_gene[1] = '$gene' AND type_analyse = '$technique' AND nom_c = '$var';";
+	my $delete = "DELETE FROM variant2patient WHERE num_pat = '$number' AND id_pat = '$id' AND refseq = '$acc_no' AND type_analyse = '$technique' AND nom_c = '$var';";
 	$dbh->do($delete) or die "Error when deleting the analysis, there must be a mistake somewhere $!";
 	#print "$var deleted";
 }

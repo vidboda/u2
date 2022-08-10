@@ -71,20 +71,6 @@ my $return->{'suggestions'} = [];
 #gene and patient names
 if ($q->param('query') =~ /^([\w\s]+)$/o) {
 	my $search = $1;
-	#if ($search =~ /^\d+$/o) {
-	#	my $query = "SELECT DISTINCT(nom) FROM variant WHERE nom LIKE '%$search%' ORDER BY nom;";
-	#	my $sth = $dbh->prepare($query);
-	#	my $res = $sth->execute();
-	#	if ($res) {
-	#		$return = &variant($sth);
-	#		#my $i = 0;
-	#		#while (my $result = $sth->fetchrow_hashref()) {
-	#		#	$return->{'suggestions'}[$i] = $result->{'nom'};
-	#		#	$i++;
-	#		#}
-	#	}
-	#}
-	#else {
 	my $i = 0;
 	if ($user->isPublic() != 1) {
 		my $query = "SELECT DISTINCT(last_name) FROM patient WHERE last_name LIKE '%".uc($search)."%' ORDER BY last_name;";
@@ -105,28 +91,17 @@ if ($q->param('query') =~ /^([\w\s]+)$/o) {
 	}
   if ($search !~ /[cC]\do/o) {$search = uc($search)}
   else {$search = ucfirst($search)}
-	my $query = "SELECT DISTINCT(nom[1]) FROM gene WHERE nom[1] LIKE '%".$search."%' OR second_name LIKE '%".$search."%' ORDER BY nom[1];";
+	my $query = "SELECT DISTINCT(gene_symbol) FROM gene WHERE gene_symbol LIKE '%".$search."%' OR second_name LIKE '%".$search."%' ORDER BY gene_symbol;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	if ($res) {
 		#my $i = 0;
 		while (my $result = $sth->fetchrow_hashref()) {
-			$return->{'suggestions'}[$i] = $result->{'nom'};
+			$return->{'suggestions'}[$i] = $result->{'gene_symbol'};
 			$i++;
 		}
 	}
-  # else {
-  #   $query = "SELECT DISTINCT(nom[1]) FROM gene WHERE second_name LIKE '%".uc($search)."%' ORDER BY nom[1];";
-  #   my $sth = $dbh->prepare($query);
-  #   my $res = $sth->execute();
-  #   if ($res) {
-  #     while (my $result = $sth->fetchrow_hashref()) {
-  #       $return->{'suggestions'}[$i] = $result->{'nom'};
-  # 			$i++;
-  # 		}
-  #   }
-  # }
-	#}
+
 }#variants
 #elsif ($q->param('query') =~ /([c\.\+->_\?\(\)\*]+)/o) {
 #	my $query = "SELECT DISTINCT(nom) FROM variant WHERE nom LIKE '$1%' ORDER BY nom;";

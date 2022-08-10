@@ -82,7 +82,7 @@ sub getName {
 
 sub isPublic {
 	my $self = shift;
-	my $query = "SELECT * FROM public_access  WHERE username = '".$self->getName()."';";
+	my $query = "SELECT * FROM public_access WHERE username = '".$self->getName()."';";
 	my $res = $dbh->selectrow_hashref($query);
 	if (defined $res->{'username'} && $res->{'username'} ne '') {return '1'}
 	else {return '0'}

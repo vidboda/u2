@@ -73,12 +73,6 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         {'RaiseError' => 1}
                 ) or die $DBI::errstr;
 
-#$q->Link({-rel => 'stylesheet',
-#					-type => 'text/css',
-#	 				-href => $CSS_PATH.'bootstrap.min.css',
-#					-media => 'screen'}),
-#{-language => 'javascript',
-#				-src => $JS_PATH.'bootstrap.min.js', 'defer' => 'defer'},
 
 print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 	$q->start_html(	-title=>"U2 patient genotype",
@@ -159,8 +153,6 @@ my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')),
 my ($gene, $second) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 
 
-
-
 # get all ids for a patient given a gene
 
 #get the name
@@ -220,15 +212,11 @@ print $q->br(), $q->start_div({'class' => 'patient_file_frame hidden print_hidde
 
 my ($list, $list_context, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
 #get vars for specific gene/sample
-#my $query = "SELECT a.*, b.*, c.first_name, c.last_name FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe <> 'artefact' AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
 
-#my $query = "SELECT b.nom, b.nom_gene, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.nom_gene = d.nom_gene AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
-
-my $query = "SELECT b.nom, b.nom_gene, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.nom_gene = d.nom_gene AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND (a.id_pat, a.num_pat) IN ($list) AND a.nom_gene[1] = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
+# my $query = "SELECT b.nom, b.nom_gene, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.nom_gene = d.nom_gene AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND (a.id_pat, a.num_pat) IN ($list) AND a.nom_gene[1] = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
+my $query = "SELECT b.nom, e.gene_symbol, e.refseq , b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND a.refseq = e.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.refseq = d.refseq AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND (a.id_pat, a.num_pat) IN ($list) AND e.gene_symbol = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
 # print "$query\n";
 
-#order by type_analyse because 454 before sanger for doc, etc in popup - TODO: be sure sanger = last for point mutations NOT enough with MiSeq #fixed in U2_subs_2 directly
-#$query = "SELECT a.*, b.*, c.first_name, c.last_name, d.common FROM variant2patient a, variant b, patient c, restricted_snp d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.snp_id = d.rsid AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' order by num_segment, b.nom_g $sens;";
 
 my $nb_var = 0;
 my $list;

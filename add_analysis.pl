@@ -696,7 +696,7 @@ if ($user->isAnalyst() == 1) {
 				#record analysis
 				#1st, check if experience already exists
 				my ($tech_val, $tech_val_class, $result_ana, $result_ana_class, $bio_val, $bio_val_class);
-				my $query = "SELECT num_pat, analyste, date_analyse, technical_valid, result, valide FROM analyse_moleculaire WHERE num_pat = '$number' AND id_pat = '$id' AND nom_gene[1] = '$gene' AND type_analyse = '$analysis';";
+				my $query = "SELECT a.num_pat, a.analyste, a.date_analyse, a.technical_valid, a.result, a.valide FROM analyse_moleculaire a, gene b WHERE a.refseq = b.refseq AND a.num_pat = '$number' AND a.id_pat = '$id' AND b.gene_symbol = '$gene' AND a.type_analyse = '$analysis';";
 				my $res = $dbh->selectrow_hashref($query);
 				#my ($to_fill, $order, $to_fill_table) = ('', 'ASC', '');
 				my $fented_class = 'fented_noleft';
@@ -716,7 +716,7 @@ if ($user->isAnalyst() == 1) {
 								$q->th({'class' => 'left_general'}, 'Delete').
 								$q->th({'class' => 'left_general'}, 'Status Link').
 							$q->end_Tr()."\n";
-					$query = "SELECT a.nom_c, a.statut, a.allele, a.denovo, b.type_segment, b.classe, c.nom FROM variant2patient a, variant b, segment c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND b.nom_gene = c.nom_gene AND b.num_segment = c.numero AND b.type_segment = c.type AND a.num_pat = '$number' AND a.id_pat = '$id' AND a.nom_gene[1] = '$gene' AND a.type_analyse = '$analysis' ORDER by b.nom_g $order;";
+					$query = "SELECT a.nom_c, a.statut, a.allele, a.denovo, b.type_segment, b.classe, c.nom FROM variant2patient a, variant b, segment c, gene d WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.refseq = d.refseq AND b.num_segment = c.numero AND b.type_segment = c.type AND a.num_pat = '$number' AND a.id_pat = '$id' AND d.gene_symbol = '$gene' AND a.type_analyse = '$analysis' ORDER by b.nom_g $order;";
 					my $sth = $dbh->prepare($query);
 					my $res2 = $sth->execute();
 					my $j;
@@ -762,15 +762,6 @@ if ($user->isAnalyst() == 1) {
 						&insert_analysis($number, $id, $gene, $analysis, $date, $user->getName(), 'f', $dbh);
 						$tech_val = U2_modules::U2_subs_1::translate_boolean('0');
 						$tech_val_class = U2_modules::U2_subs_1::translate_boolean_class('0');
-						##2nd, get #acc for all isoforms;
-						#$query = "SELECT nom FROM gene WHERE nom[1] = '$gene';";
-						#my $sth = $dbh->prepare($query);
-						#my $res = $sth->execute();
-						#while (my $result = $sth->fetchrow_hashref()) {
-						#	my $insert = "INSERT INTO analyse_moleculaire VALUES ('$number', '$id', '{\"$result->{'nom'}[0]\",\"$result->{'nom'}[1]\"}', '$analysis', 'f', NULL, '$date', NULL, NULL, '".$user->getName()."', NULL, NULL, 'f');";
-						#	$dbh->do($insert);
-						#	#print $insert;
-						#}
 					}
 					else {
 						#insert for all genes in aCGH
@@ -898,14 +889,15 @@ exit();
 sub insert_analysis {
 	my ($number, $id, $gene, $analysis, $date, $name, $neg, $dbh) = @_;
 	#get #acc for all isoforms;
-	my $query = "SELECT nom FROM gene WHERE nom[1] = '$gene';";
+	my $query = "SELECT gene_symbol, refseq FROM gene WHERE gene_symbol = '$gene';";
 	if ($gene eq '*') { # exome: all genes
-		$query = "SELECT nom FROM gene ;";
+		$query = "SELECT gene_symbol, refseq FROM gene ;";
 	}
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
-		my $insert = "INSERT INTO analyse_moleculaire VALUES ('$number', '$id', '{\"$result->{'nom'}[0]\",\"$result->{'nom'}[1]\"}', '$analysis', 'f', NULL, '$date', NULL, NULL, '".$name."', NULL, NULL, '$neg');";
+		# my $insert = "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, valide, result, date_analyse, date_valid, date_result, analyste, validateur, referee, technical_valid) VALUES ('$number', '$id', ".$result->{'refseq'}."', '$analysis', 'f', NULL, '$date', NULL, NULL, '".$name."', NULL, NULL, '$neg');";
+		my $insert = "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, valide, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', ".$result->{'refseq'}."', '$analysis', 'f', '$date', '".$name."', '$neg');";
 		print STDERR $insert;
 		$dbh->do($insert);
 	}

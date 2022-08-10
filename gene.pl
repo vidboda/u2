@@ -245,7 +245,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		}
 	}
 
-	my $query = "SELECT * FROM gene WHERE nom[1] = '$gene' ORDER BY main DESC;";
+	my $query = "SELECT * FROM gene WHERE gene_symbol = '$gene' ORDER BY main DESC;";
 	#my $order = 'ASC';
 	my $order = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 	my $sth = $dbh->prepare($query);
@@ -260,14 +260,14 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 
 				$chr = $result->{'chr'};
 				print $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' main accession: '),
-					$q->span({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$result->{'nom'}[1].$result->{'acc_version'}"),
+					$q->span({'onclick' => "window.open('$ncbi_url$result->{'refseq'}.$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, "$result->{'refseq'}.$result->{'acc_version'}"),
 					$q->br(), $q->br(), $q->span("($second_name / "), $q->span({'onclick' => "window.open('http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?db=core;t=$result->{'enst'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Ensembl in new tab'}, $result->{'enst'}), $q->span(')'),
 					$q->end_strong(), $q->end_big(), $q->end_p(), "\n";
 
 					my $ng_td = $q->span({'onclick' => "window.open('$ncbi_url$result->{'acc_g'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $result->{'acc_g'});
 					if ($result->{'acc_g'} eq 'NG_000000.0') {$ng_td = $q->span("No NG accession number. Mutalyzer accession: $result->{'mutalyzer_acc'}")}
 
-					print U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'nom'}[1], $result->{'acc_g'}),
+					print U2_modules::U2_subs_3::add_variant_button($q, $gene, $result->{'refseq'}, $result->{'acc_g'}),
 					$q->start_div({'class' => 'w3-responsive', 'id' => 'single_gene_table'}), "\n",
 					$q->start_table({'class' => 'w3-table w3-striped w3-bordered w3-centered'}), $q->caption("Gene info table:"),#technical ombre peche
 					$q->start_Tr(), "\n",
@@ -337,8 +337,8 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 
 
 			print $q->start_Tr(), "\n",
-				$q->start_td({'onclick' => "window.open('$ncbi_url$result->{'nom'}[1].$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}),
-					$q->start_strong(), $q->span("$result->{'nom'}[1].$result->{'acc_version'}");
+				$q->start_td({'onclick' => "window.open('$ncbi_url$result->{'refseq'}.$result->{'acc_version'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}),
+					$q->start_strong(), $q->span("$result->{'refseq'}.$result->{'acc_version'}");
 			if ($result->{'main'} == 1) {print $q->span(' (main)')}
 			print $q->end_strong(), $q->end_td();
 
@@ -431,38 +431,18 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		";
 
 		print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'container'}, 'Dalliance Browser here'), $q->br(), $q->br();
-
-		#modified 06/07/2015 gene structure now on separate page
-		#print	$q->p('Click on an exon/intron  on the picture below to get the variants lying in it:'),
-		##otherwise, '), $q->button({'onclick' => "chooseSortingType('$gene');", 'value' => 'get all variants'}),
-		##		$q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;OR&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->button({'onclick' => "window.open('gene_graphs.pl?gene=$gene');", 'value' => 'get graphs for pathogenic variants'}),
-		#	#$q->start_ul(), "\n",
-		#	#$q->start_li(),$q->a({'href' => "gene.pl?gene=$gene&info=all_vars&sort=classe", 'target' => '_blank'}, 'Pathogenic class'), $q->end_li(), "\n",
-		#	#$q->start_li(),$q->a({'href' => "gene.pl?gene=$gene&info=all_vars&sort=type_adn", 'target' => '_blank'}, 'DNA type (subs, indels...)'), $q->end_li(), "\n",
-		#	#$q->start_li(),$q->a({'href' => "gene.pl?gene=$gene&info=all_vars&sort=type_prot", 'target' => '_blank'}, 'Protein type (missense, silent...)'), $q->end_li(), "\n",
-		#	#$q->start_li(),$q->a({'href' => "gene.pl?gene=$gene&info=all_vars&sort=type_arn", 'target' => '_blank'}, 'RNA type (neutral / altered)'), $q->end_li(), "\n",
-		#	#$q->start_li(),$q->a({'href' => "gene.pl?gene=$gene&info=all_vars&sort=taille", 'target' => '_blank'}, 'Variant size (show only large rearrangements)'), $q->end_li(), "\n",
-		#	#$q->end_ul(), "\n",
-		#	$q->br(), $q->br();
-		#
-		#my @js_params = ('showVariants', 'NULL', 'NULL');
-		#my ($js, $map) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
-		#
-		#
-		#print $q->start_div({'class' => 'container'}), $map, "\n<canvas class=\"ambitious\" width = \"1100\" height = \"500\" id=\"exon_selection\">Change web browser for a more recent please!</canvas>", $q->img({'src' => $HTDOCS_PATH.'data/img/transparency.png', 'usemap' => '#segment', 'class' => 'fented', 'id' => 'transparent_image'}), $q->end_div(), "\n", $q->script({'type' => 'text/javascript'}, $js), "\n",
-		#	$q->start_div({'id' => 'dialog-form', 'title' => 'Add a variant'}), $q->p({'id' => 'fill_in'}), $q->end_div(), "\n";
 	}
 	else {print $q->p("Sorry I cannot recognize that gene name ($gene).")}
 }
 elsif ($q->param('gene') && $q->param('info') eq 'structure') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	U2_modules::U2_subs_1::gene_header($q, 'structure', $gene, $user);
-	my $query = "SELECT DISTINCT(brin) FROM gene WHERE nom[1] = '$gene' ORDER BY main DESC;";
+	my $query = "SELECT DISTINCT(brin) FROM gene WHERE gene_symbol = '$gene' ORDER BY main DESC;";
 	my $order = U2_modules::U2_subs_1::get_strand($gene, $dbh);
 	my @js_params = ('showVariants', 'NULL', 'NULL');
 	my ($js, $map, $main, $ng) = U2_modules::U2_subs_2::gene_canvas($gene, $order, $dbh, \@js_params);
 	#get exon number for gene
-	$query = "SELECT MAX(nbre_exons) as a FROM gene WHERE nom[1] = '$gene';";
+	$query = "SELECT MAX(nbre_exons) as a FROM gene WHERE gene_symbol = '$gene';";
 	my $res_exons = $dbh->selectrow_hashref($query);
 	my $nb_exons = $res_exons->{'a'};
 	my ($canvas_height, $img_suffix, $css_suffix) = ('500', '', '');
@@ -506,7 +486,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 
 	print $q->br(), $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene),
 		$q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), "\n";
-	my $query = "SELECT nom, acc_g FROM gene WHERE nom[1] = '$gene' and main = 't';";
+	my $query = "SELECT nom, acc_g FROM gene WHERE gene_symbol = '$gene' and main = 't';";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '0E0') {
 		my ($ng, $acc) = ($res->{'acc_g'}, $res->{'nom'}[1]);
@@ -519,8 +499,8 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 		print $q->p('All classes are represented in the table below. Click on a category to get all the associated variants (probands and relatives).');
 		my ($i, $j) = (0, 0);
 
-		my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a WHERE a.nom_gene[1] = '$gene')
-				SELECT COUNT(DISTINCT(a.nom)) as var, a.$sort as sort, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND a.$sort <> '' GROUP BY a.$sort ORDER BY a.$sort;";
+		my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, b.gene_symbol, b.refseq), a.nom_c, b.gene_symbol, b.refseq FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene')
+				SELECT COUNT(DISTINCT(a.nom)) as var, a.$sort as sort, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.gene_symbol = '$gene' AND a.$sort <> '' GROUP BY a.$sort ORDER BY a.$sort;";
 
 		#old fashion not rigourous with analysis_type in variant2patient
 		#my $query = "SELECT COUNT(DISTINCT(a.nom)) as var, a.$sort as sort, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND a.$sort <> '' GROUP BY a.$sort ORDER BY a.$sort;";
@@ -607,7 +587,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	}
 	elsif ($sort eq 'taille') {
 		print $q->p("All large rearrangements recorded for $gene are listed in the table below.");
-		my $query = "SELECT a.classe, a.taille, a.nom, a.nom_gene, a.type_adn, a.num_segment, a.num_segment_end,  COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND taille > 50 GROUP BY a.taille, a.nom, a.classe, a.nom_gene, a.nom_g, a.type_adn, a.num_segment, a.num_segment_end ORDER BY a.nom_g ".U2_modules::U2_subs_1::get_strand($gene, $dbh).";";
+		my $query = "SELECT a.classe, a.taille, a.nom, c.gene_symbol, c.refseq, a.type_adn, a.num_segment, a.num_segment_end, COUNT(b.nom_c) as allel FROM variant a, variant2patient b, gene c WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = c.refseq AND a.gene_symbol = '$gene' AND taille > 50 GROUP BY a.taille, a.nom, a.classe, c.gene_symbol, c.refseq, a.nom_g, a.type_adn, a.num_segment, a.num_segment_end ORDER BY a.nom_g ".U2_modules::U2_subs_1::get_strand($gene, $dbh).";";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		if ($res ne '0E0') {
@@ -637,12 +617,8 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 
 	my ($rp, $dfn, $usher) = U2_modules::U2_subs_1::get_gene_group($gene, $dbh);
 
-	#if (grep($gene, @U2_modules::U2_subs_1::USHER) || grep($gene, @U2_modules::U2_subs_1::DFNB) || grep($gene, @U2_modules::U2_subs_1::NSRP) ||  grep($gene, @U2_modules::U2_subs_1::LCA)) {
-	#my $query = "SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.nom_gene[1] = '$gene' AND c.proband = 't' ORDER BY c.pathologie, a.id_pat, a.num_pat, a.statut;";
+	my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, d.gene_symbol, d.refseq), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c, gene d WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = d.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.gene_symbol = '$gene' AND c.proband = 't')\nSELECT DISTINCT(a.id_pat, a.num_pat, a.statut, b.filter, a.nom_c), a.pathologie, a.id_pat, a.num_pat, a.statut FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;";
 
-	my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.nom_gene[1] = '$gene' AND c.proband = 't')\nSELECT DISTINCT(a.id_pat, a.num_pat, a.statut, b.filter, a.nom_c), a.pathologie, a.id_pat, a.num_pat, a.statut FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;";
-
-	#SELECT a.id_pat, a.num_pat, a.statut, a.pathologie, b.filter FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;
 
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -653,8 +629,6 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 
 		while (my $result = $sth->fetchrow_hashref()) {
 			#filters!!!
-			#my $query_filter = "SELECT b.filter, c.rp, c.dfn, c.usher FROM variant2patient a, miseq_analysis b, gene c WHERE a.num_pat = b.num_pat AND a.id_pat = b.id_pat AND a.type_analyse = b.type_analyse AND a.nom_gene = c.nom AND a.nom_gene[1] = '$gene' AND c.main = 't' AND a.id_pat = '$result->{'id_pat'}' AND a.num_pat = '$result->{'num_pat'}';";
-			#my $res_filter = $dbh->selectrow_hashref($query_filter);
 			#
 			if ($result->{'filter'} eq 'RP' && $rp == 0) {next}
 			elsif ($result->{'filter'} eq 'DFN' && $dfn == 0) {next}
@@ -755,7 +729,8 @@ exit();
 
 sub variants_div {
 	my ($id, $subquery, $dbh, $q, $txt, $gene) = @_;
-	my $query ="SELECT a.nom, a.nom_gene[2] as acc, a.nom_ivs, a.nom_prot, a.type_segment, a.num_segment FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.nom_gene = b.nom_gene WHERE a.nom_gene[1] = '$gene' AND b.nom_c IS NULL $subquery ORDER BY a.nom_g;";
+	# my $query ="SELECT a.nom, a.refseq as acc, a.nom_ivs, a.nom_prot, a.type_segment, a.num_segment FROM variant a LEFT JOIN variant2patient b ON a.nom = b.nom_c AND a.refseq = b.refseq WHERE a.nom_gene[1] = '$gene' AND b.nom_c IS NULL $subquery ORDER BY a.nom_g;";
+  my $query ="SELECT a.nom, c.refseq as acc, a.nom_ivs, a.nom_prot, a.type_segment, a.num_segment FROM variant a, variant2patient b, gene c WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' AND b.nom_c IS NULL $subquery ORDER BY a.nom_g;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my ($html, $var_text) = ('', "No $txt");
@@ -775,18 +750,6 @@ sub variants_div {
 	}
 	return $html, $var_text;
 }
-
-#sub variant_div {
-#	my ($id, $gene, $sth, $q, $txt) = @_;
-#	my $html =  $q->start_div({'class' => 'w3-container', 'id' => "$id", 'style' => 'display:none'}). $q->start_p(). $q->span("$txt variants recorded in "). $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene). $q->span(':'). $q->end_p(). $q->start_ul({'class' => 'w3-ul w3-hoverable  w3-center', 'style' => 'width:50%'});
-#	while (my $result = $sth->fetchrow_hashref()) {
-#		my $other_name = $result->{'nom_prot'};
-#		if ($result->{'nom_ivs'} ne '') {$other_name = $result->{'nom_ivs'}}
-#		$html .= $q->start_li(). $q->a({'href' => "variant.pl?gene=$gene&accession=$result->{'acc'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}, "$result->{'acc'}:$result->{'nom'}"). $q->span(" - $other_name"). $q->end_li();
-#	}
-#	$html .= $q->end_ul(). $q->end_div(), "\n";
-#	return $html;
-#}
 
 sub build_hash {
 	my ($hash_count, $hash_html, $hash_done, $disease, $id, $num, $index, $gene) = @_;

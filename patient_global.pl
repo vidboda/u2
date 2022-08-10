@@ -85,7 +85,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 					-media => 'screen'}),
 				$q->Link({-rel => 'stylesheet',
                                         -type => 'text/css',
-                                        -href => $CSS_PATH.'font-awesome.min.css', 
+                                        -href => $CSS_PATH.'font-awesome.min.css',
                                         -media => 'screen'}),
 				$q->Link({-rel => 'stylesheet',
 					-type => 'text/css',
@@ -128,7 +128,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_DEFAULT, 'defer' => 'defer'}],		
+				-src => $JS_DEFAULT, 'defer' => 'defer'}],
 			-encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -149,12 +149,6 @@ else {U2_modules::U2_subs_1::standard_error('1', $q)}
 
 print $q->start_p({'class' => 'center'}), $q->start_big(), $q->span("Sample "), $q->strong({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(": Global Results for "), $q->strong("$first_name $last_name"), $q->end_big(), $q->end_p(), "\n";
 
-#prints info and table which will also include technical table
-#
-#print $q->start_table({'class' => 'zero_table width_general'}),
-#		$q->start_Tr(), $q->start_td({'class' => 'zero_td'}), "\n",
-#print $q->p("You will find below a global validation table sumarising all analyses performed for the patient");# followed by a global genotype view, reporting for all genes VUCS class II, III, IV and pathogenic variants.");
-#, $q->end_td();
 
 #get rid of '
 $last_name =~ s/'/''/og;
@@ -162,11 +156,7 @@ $first_name =~ s/'/''/og;
 
 #reports technical table
 if ($type eq 'analyses') {
-	
-	#print $q->p({'class' => 'w3-margin'}, "You will find below a timeline and a global validation table summarising all analyses performed for the patient."), $q->br(), $q->br();
-	#print $q->start_td({'class' => 'zero_td right_general'});
 
-	
 	#ok for the timeline we get the analyses, and the result multiple from valid_type_analyse to group e.g. NGS experiments
 	#1st query to get patient info
 	my $query = "SELECT numero, identifiant, famille, pathologie, proband, date_creation, trio_assigned FROM patient WHERE first_name = '$first_name' AND last_name = '$last_name' ORDER BY date_creation, numero;";
@@ -182,12 +172,12 @@ if ($type eq 'analyses') {
 	#my $tag = 'Creation';
 	my ($num_list, $id_list) = ("'$number'", "'$id'");
 	while (my $result = $sth->fetchrow_hashref()) {
-		$i++;		
+		$i++;
 		if ($result->{'proband'} == 1) {$proband = 'yes'}
 		if ($result->{'trio_assigned'} == 1) {$trio_assigned = 'yes'}
 		if ($i == 1) {$headline = "Creation in U2 $result->{'identifiant'}$result->{'numero'}";$creation_date = U2_modules::U2_subs_1::date_pg2tjs($result->{'date_creation'});}
 		else {$headline = "New sample $result->{'identifiant'}$result->{'numero'}"}#$tag = 'New sample';}
-		$dates .= "			
+		$dates .= "
 			{
 			    \"startDate\":\"$creation_date\",
 			    \"endDate\":\"$creation_date\",
@@ -225,39 +215,39 @@ if ($type eq 'analyses') {
 	my $text = 'You will find below a timeline and a global validation table summarising all analyses performed for the patient.';
 	print U2_modules::U2_subs_2::info_panel($text, $q);
 	#2nd query for non-groupable analyses
-	
-	$query = "SELECT DISTINCT(a.nom_gene[1]), a.type_analyse, a.valide, a.result, a.date_analyse, a.date_valid, a.date_result, a.analyste, a.validateur, a.referee, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND c.multiple = 'f' AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY date_analyse;";
+
+	$query = "SELECT DISTINCT(d.gene_symbol), a.type_analyse, a.valide, a.result, a.date_analyse, a.date_valid, a.date_result, a.analyste, a.validateur, a.referee, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND a.refseq = d.refseq AND c.multiple = 'f' AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY date_analyse;";
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
-	
+
 	while (my $result = $sth->fetchrow_hashref()) {
 		my ($picture, $thumbnail) = ('pipette.jpg', 'pipette_thumb.jpg');
 		my $analysis_date = U2_modules::U2_subs_1::date_pg2tjs($result->{'date_analyse'});
 		if (!$analysis_date) {$analysis_date = $creation_date}
 		if ($result->{'type_analyse'} eq 'SANGER') {($picture, $thumbnail) = ('abi_3130.jpg', 'abi_3130_thumb.jpg')}
 		elsif ($result->{'type_analyse'} eq 'MLPA') {($picture, $thumbnail) = ('mlpa.jpg', 'mlpa_thumb.jpg')}
-		$dates .= "			
+		$dates .= "
 			{
 			    \"startDate\":\"$analysis_date\",
 			    \"endDate\":\"$analysis_date\",
-			    \"headline\":\"$result->{'type_analyse'} $result->{'nom_gene'} ".U2_modules::U2_subs_1::translate_valide_human($result->{'valide'})."\",
+			    \"headline\":\"$result->{'type_analyse'} $result->{'gene_symbol'} ".U2_modules::U2_subs_1::translate_valide_human($result->{'valide'})."\",
 			    \"tag\":\"B-Single gene analysis\",
-			    \"text\":\"<p>Gene: <em>$result->{'nom_gene'}</em>, Analyst: ".ucfirst($result->{'analyste'})."<br/> Result: ".U2_modules::U2_subs_1::translate_result_human($result->{'result'})." ($result->{'referee'} / $result->{'date_result'}), Validation: ".U2_modules::U2_subs_1::translate_boolean_class($result->{'valide'})." ($result->{'validateur'} / $result->{'date_valid'}) </p><p><a href = 'add_analysis.pl?step=2&amp;sample=$result->{'identifiant'}$result->{'numero'}&amp;gene=$result->{'nom_gene'}&amp;analysis=$result->{'type_analyse'}' target = '_blank'>Modify analysis</a> / <a href = 'patient_genotype.pl?sample=$result->{'identifiant'}$result->{'numero'}&amp;gene=$result->{'nom_gene'}' target = '_blank'>See genotype</a></p>\",
+			    \"text\":\"<p>Gene: <em>$result->{'nom_gene'}</em>, Analyst: ".ucfirst($result->{'analyste'})."<br/> Result: ".U2_modules::U2_subs_1::translate_result_human($result->{'result'})." ($result->{'referee'} / $result->{'date_result'}), Validation: ".U2_modules::U2_subs_1::translate_boolean_class($result->{'valide'})." ($result->{'validateur'} / $result->{'date_valid'}) </p><p><a href = 'add_analysis.pl?step=2&amp;sample=$result->{'identifiant'}$result->{'numero'}&amp;gene=$result->{'gene_symbol'}&amp;analysis=$result->{'type_analyse'}' target = '_blank'>Modify analysis</a> / <a href = 'patient_genotype.pl?sample=$result->{'identifiant'}$result->{'numero'}&amp;gene=$result->{'gene_symbol'}' target = '_blank'>See genotype</a></p>\",
 			    \"asset\": {
 				\"media\":\"".$HTDOCS_PATH."data/img/$picture\",
 				\"thumbnail\":\"".$HTDOCS_PATH."data/img/$thumbnail\",
 			    }
 			},
-		";	
-	
+		";
+
 	}
-	
+
 	#3rd groupable analysis (eg NGS, CGH)
 	$query = "SELECT DISTINCT(a.type_analyse), a.date_analyse, a.analyste, c.manifest_name, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND c.multiple = 't' AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY date_analyse;";
-	
+
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
-	
+
 	while (my $result = $sth->fetchrow_hashref()) {
 		#for miseq get the run number
 		my $text = '';
@@ -266,7 +256,7 @@ if ($type eq 'analyses') {
 			my $res = $dbh->selectrow_hashref($query2);
 			$text = "<br/>Filter: $res->{'filter'}<br/> Run: <a href = 'stats_ngs.pl?run=$res->{'run_id'}' target = '_blank'>$res->{'run_id'}</a>";
 		}
-				
+
 		my ($picture, $thumbnail) = ('pipette.jpg', 'pipette_thumb.jpg');
 		my $analysis_date = U2_modules::U2_subs_1::date_pg2tjs($result->{'date_analyse'});
 		if (!$analysis_date) {$analysis_date = $creation_date}
@@ -275,7 +265,7 @@ if ($type eq 'analyses') {
 		elsif ($result->{'type_analyse'} =~ /MiniSeq/o) {($picture, $thumbnail) = ('miniseq.jpg', 'miniseq_thumb.jpg')}
 		elsif ($result->{'type_analyse'} =~ /NextSeq/o) {($picture, $thumbnail) = ('nextseq.jpg', 'nextseq_thumb.jpg')}
 		elsif ($result->{'type_analyse'} =~ /CGH/o) {($picture, $thumbnail) = ('cgh.jpg', 'cgh_thumb.jpg')}
-		$dates .= "			
+		$dates .= "
 			{
 			    \"startDate\":\"$analysis_date\",
 			    \"endDate\":\"$analysis_date\",
@@ -287,40 +277,11 @@ if ($type eq 'analyses') {
 				\"thumbnail\":\"".$HTDOCS_PATH."data/img/$thumbnail\",
 			    }
 			},
-		";	
-	
+		";
+
 	}
-	
-	
-	
-	
-	#\"date\": [
-	#		{
-	#		    \"startDate\":\"".U2_modules::U2_subs_2::date_pg2tjs($creation_date)."\",
-	#		    \"endDate\":\"".U2_modules::U2_subs_2::date_pg2tjs($creation_date)."\",
-	#		    \"headline\":\"Creation in U2\",
-	#		    \"text\":\"<p>Body text goes here, some HTML is OK</p>\",
-	#		    \"tag\":\"Creation\",
-	#		    //\"classname\":\"optionaluniqueclassnamecanbeaddedhere\",
-	#		    \"asset\": {
-	#			    \"media\":\"http://twitter.com/ArjunaSoriano/status/164181156147900416\",
-	#			    \"thumbnail\":\"http://194.167.35.158/ushvam2/data/img/favicon.ico\",
-	#			    \"credit\":\"Credit Name Goes Here\",
-	#			    \"caption\":\"Caption text goes here\"
-	#		    }
-	#		}
-	#	    ],
-	#	    \"era\": [
-	#		{
-	#		    \"startDate\":\"2011,12,10\",
-	#		    \"endDate\":\"2011,12,11\",
-	#		    \"headline\":\"Headline era Goes Here\",
-	#		    \"tag\":\"This is Optional\"
-	#		}
-	#    
-	#	    ]
-	
-	
+
+
 	$dates .= "
 	],";
 	my $timeline = "
@@ -335,7 +296,7 @@ if ($type eq 'analyses') {
 			//\"credit\":\"Credit Name Goes Here\",
 			\"caption\":\"USHVaM 2 using Timeline JS\"
 		    },
-		    $dates	    
+		    $dates
 		}
 	};
 	\$(document).ready(function() {
@@ -349,18 +310,18 @@ if ($type eq 'analyses') {
                 });
 		\$('#validation_table').DataTable({aaSorting:[],lengthMenu: [ [25, 50, 100, -1], [25, 50, 100, \"All\"] ]});
             });
-	
+
 	";
-	
-	
+
+
 	print $q->script({'defer' => 'defer'}, $timeline), $q->start_div({'id' => 'patient-timeline'}), $q->end_div(), $q->br(), $q->br();
-	
+
 	print $q->start_div({'align' => 'center'});
 	U2_modules::U2_subs_2::print_validation_table($first_name, $last_name, '', $q, $dbh, $user, 'global');
 	print $q->end_div();
 	#print $q->end_td(), $q->end_Tr(), $q->end_table();
 }
-else {#reports genotype table	
+else {#reports genotype table
 	#beginning of  table
 	my $text = 'You will find below a global genotype view, reporting for all genes VUCS class II, III, IV, unknown and pathogenic variants.';
 	print U2_modules::U2_subs_2::info_panel($text, $q);
@@ -380,57 +341,55 @@ else {#reports genotype table
 			$q->th({'width' => '7%'}, 'Analysis type'), "\n",
 			$q->th({'width' => '10%'}, 'dbSNP'), "\n";
 		$q->end_Tr(), "\n";
-	
-	
+
+
 	#we can't get all vars at once, as they should be sorted depending on the strand. So we need to get all genes first, then check strand, get vars and print
-	
-	my $query = "SELECT DISTINCT(a.nom_gene[1]) as gene, a.type_analyse FROM analyse_moleculaire a, patient b, variant2patient c WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND c.type_analyse = a.type_analyse AND b.numero = c.num_pat AND b.identifiant = c.id_pat AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY a.nom_gene[1];";
-	
+
+	my $query = "SELECT DISTINCT(d.gene_symbol) as gene, a.type_analyse FROM analyse_moleculaire a, patient b, variant2patient c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND c.type_analyse = a.type_analyse AND a.refseq = c.refseq AND c.refseq = d.refseq AND b.numero = c.num_pat AND b.identifiant = c.id_pat AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY d.gene_symbol;";
+
 	#my $query = "SELECT DISTINCT(a.nom_gene[1]) as gene, a.num_pat, a.id_pat, a.type_analyse, c.filtering_possibility, d.rp, d.dfn FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND a.type_analyse = c.type_analyse AND a.nom_gene = d.nom AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY a.nom_gene[1];";
 	#print $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
-	
+
 	my $nb_var = 0;
 	my ($allele1, $allele2) = ('#F45B5B', '#337AB7');
 	while (my $result = $sth->fetchrow_hashref()) {
-		
+
 		#my $tgene = Benchmark->new();
-		
+
 		my $gene = $result->{'gene'};
-		
-		my $query_filter = "SELECT a.num_pat, a.id_pat, a.type_analyse, c.filtering_possibility, d.rp, d.dfn, d.usher, d.nom[1] as nom_gene FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND a.type_analyse = c.type_analyse AND a.nom_gene = d.nom AND d.nom[1] = '$gene' AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY c.filtering_possibility DESC;";
-		my $result_filter = $dbh->selectrow_hashref($query_filter);		
+
+		my $query_filter = "SELECT a.num_pat, a.id_pat, a.type_analyse, c.filtering_possibility, d.rp, d.dfn, d.usher, d.gene_symbol as nom_gene FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND a.type_analyse = c.type_analyse AND a.refseq = d.refseq AND d.gene_symbol = '$gene' AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY c.filtering_possibility DESC;";
+		my $result_filter = $dbh->selectrow_hashref($query_filter);
 		my $display = 1;
 		#display data?
 		if ($result_filter->{'filtering_possibility'} == 1) {
 			#get filter
 			$display = U2_modules::U2_subs_2::gene_to_display($result_filter, $dbh);
 		}
-		
+
 		#my $tfilter = Benchmark->new();
-		
+
 		if ($display == 1) {
-			
+
 			#my $t1 = Benchmark->new();
-			
+
 			#defines gene strand
 			my ($direction, $main_acc, $acc_g, $acc_v) = U2_modules::U2_subs_2::get_direction($gene, $dbh);
-			
+
 			#my $t2 = Benchmark->new();
-			
+
 			#defines an interval for putative large deletions as genomic positions
 			my ($mini, $maxi) = U2_modules::U2_subs_2::get_interval($first_name, $last_name, $gene, $dbh);
 			#get vars for specific gene/sample
-			#my $query = "SELECT a.*, b.*, c.first_name, c.last_name, d.filtering_possibility, e.rp, e.dfn FROM variant2patient a, variant b, patient c, valid_type_analyse d, gene e WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND a.type_analyse = d.type_analyse AND b.nom_gene = e.nom AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I') ORDER BY num_segment, b.nom_g $direction, type_analyse;";
-			my $query = "SELECT DISTINCT(b.nom), b.nom_gene, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.nom_gene = d.nom_gene AND b.type_segment = d.type AND b.num_segment = d.numero AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I', 'R8', 'VUCS Class F') ORDER BY b.num_segment, b.nom_g $direction, a.type_analyse;";
-			#my $query = "SELECT a.*, b.*, c.first_name, c.last_name FROM variant2patient a, variant b, patient c WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND a.nom_gene[1] = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I') ORDER BY b.num_segment, b.nom_g $direction, a.type_analyse;";
+			my $query = "SELECT DISTINCT(b.nom), e.gene_symbol, e.refseq, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.refseq = d.refseq AND d.refseq = e.refseq AND b.type_segment = d.type AND b.num_segment = d.numero AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND e.gene_symbol = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I', 'R8', 'VUCS Class F') ORDER BY b.num_segment, b.nom_g $direction, a.type_analyse;";
 			#order by type_analyse because 454 before sanger for doc, etc in popup - TODO: be sure sanger = last for point mutations
 			my $list;
 			#my $display = 1;
-			
+
 			#my $t3 = Benchmark->new();
-			
+
 			my $sth2 = $dbh->prepare($query);
 			my $res2 = $sth2->execute();
 			if ($res2 ne '0E0') {
@@ -441,34 +400,33 @@ else {#reports genotype table
 					#}
 					#if ($display == 1) {
 						my $analysis = 'non_ngs';
-						if ($analysis eq 'non_ngs' && $result->{'type_analyse'} =~ /^Mi.+/o) {$analysis = $result->{'type_analyse'}}	
+						if ($analysis eq 'non_ngs' && $result->{'type_analyse'} =~ /^Mi.+/o) {$analysis = $result->{'type_analyse'}}
 						my $nom = U2_modules::U2_subs_2::genotype_line_optimised($result2, $mini, $maxi, $q, $dbh, $list, $main_acc, $nb_var, $acc_g, 't');
 						$list->{$nom}++;
 						if ($list->{$nom} == 1) {$nb_var ++}
-					#}				
+					#}
 				}
-				#if ($display == 1) {print $q->start_Tr({'class' => 'bordure'}), $q->td("&nbsp;"), $q->td("&nbsp;"), $q->td("&nbsp;"), $q->td({'bgcolor' => '#990000'}, "&nbsp;"), $q->td({'bgcolor' => '#FF6600'}, "&nbsp;"), $q->td("&nbsp;"), $q->td({'bgcolor' => '#990000'}, "&nbsp;"), $q->td("&nbsp;"), $q->td({'bgcolor' => '#FF6600'}, "&nbsp;"), $q->td("&nbsp;"), $q->td("&nbsp;"), $q->end_Tr()}
 				print $q->start_Tr({'class' => 'bordure'}), $q->td("&nbsp;"), $q->td("&nbsp;"), $q->td("&nbsp;"), $q->td({'bgcolor' => $allele1}, "&nbsp;"), $q->td({'bgcolor' => $allele2}, "&nbsp;"), $q->td("&nbsp;"), $q->td({'bgcolor' => $allele1}, "&nbsp;"), $q->td("&nbsp;"), $q->td({'bgcolor' => $allele2}, "&nbsp;"), $q->td("&nbsp;"), $q->td("&nbsp;"), $q->end_Tr()
 			}
-			
+
 			#my $t4 = Benchmark->new();
-			
+
 			#my $b1 = timediff($t2, $t1);
 			#my $b2 = timediff($t3, $t2);
 			#my $b3 = timediff($t4, $t3);
 			#print $q->span('new'), timestr($b1), $q->br(), timestr($b2), $q->br(), timestr($b3), $q->br();
-			
+
 		}
-		
+
 		#my $tdisplay = Benchmark->new();
-		
+
 		#my $b1 = timediff($tfilter, $tgene);
 		#my $b2 = timediff($tdisplay, $tfilter);
 		#print $q->span('new'), timestr($b1), $q->br(), timestr($b2), $q->br();
-		
+
 	}
-	
-	
+
+
 	print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(), $q->start_ul(),
 		$q->start_li(), $q->span("Shown: "), $q->start_strong(), $q->span({'id' => 'nb_var'}, $nb_var), $q->span(" / $nb_var variants."), $q->end_strong(), $q->end_li(),
 		$q->start_li(), $q->strong("Color code:"), $q->span("&nbsp;&nbsp;&nbsp;&nbsp;"),

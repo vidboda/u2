@@ -92,7 +92,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_DEFAULT, 'defer' => 'defer'}],		
+				-src => $JS_DEFAULT, 'defer' => 'defer'}],
                         -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
@@ -150,23 +150,17 @@ while (my $result  = $sth->fetchrow_hashref()) {
 	my ($number, $id, $pathologie) = ($result->{'numero'}, $result->{'identifiant'}, $result->{'pathologie'});
 	my $proband = 'relative';
 	if ($result->{'proband'} == 1) {$proband = 'proband'}
-	
+
 	#first line only
 	if ($semaph eq '') {
-		#if ($number <= 99) {print $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$id 0 to 99"), $q->start_ul({'class' => 'hidden', 'id' => $id.$i})}
-		#else {print $q->start_ul()}#initiates empty ul to respect <ul></ul> (ul closed line 140)
-		#if ($number <= 99) {print $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$id 0 to 99");&initiare_table();, $q->start_table({'class' => 'hidden great_table technical', 'id' => $id.$i})}
 		if ($number <= 99) {print $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$id 0 to 99");&initiate_table($q, "$id$i");}
 		else {&initiate_table($q, "$id$i")}
-		#else {print $q->start_table({'class' => 'hidden great_table technical', 'id' => $id.$i})}#initiates empty table to respect <ul></ul>
-		
+
 	}
 	#initiates new identifier
 	if ($j == 0) {$semaph = $id;$j = 1;}
 	if ($semaph ne $id) {
 		($i, $j, $semaph) = (0, 0, $id);
-		#print  $q->end_ul(), $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$id 0 to 99"), $q->start_ul({'class' => 'hidden', 'id' => $id.$i});
-		#print  $q->end_table, $q->end_div(), $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$id 0 to 99"), $q->start_table({'class' => 'hidden hidden great_table technical', 'id' => $id.$i});
 		print  $q->end_tbody(), $q->end_table, $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$id 0 to 99");
 		&initiate_table($q, "$id$i");
 	}
@@ -174,21 +168,14 @@ while (my $result  = $sth->fetchrow_hashref()) {
 	if ($number > $i && $number < ($i+100)) {
 		&fill_table("$id$number", $proband, $pathologie)
 	}
-		#print $q->start_Tr(), $q->start_td({'class' => 'center'}), $q->start_a({'href' => "patient_file.pl?sample=$id$number", 'title' => 'Access to patient\'s details'}), $q->span({'class' => 'list'}, "$id$number&nbsp;"), $q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}), $q->end_a(), $q->span("&nbsp;, $proband ($pathologie)"), $q->end_td(), $q->end_Tr(), "\n";}
 	elsif ($number >= ($i+100)) {
 		while ($number >= $i+100) {
-			$i = $i+100				
+			$i = $i+100
 		}
-		#print $q->end_ul(), $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$result->{'identifiant'} $i to ".($i+99)), $q->start_ul({'class' => 'hidden', 'id' => $id.$i}), $q->start_li({'class' => 'center'}),
-		#		$q->start_a({'href' => "patient_file.pl?sample=$id$number"}), $q->span({'class' => 'list'}, "$id$number&nbsp;"), $q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15', 'class' => 'text_img'}), $q->end_a(), $q->span("&nbsp;, $proband ($pathologie)"), $q->end_li(), "\n";
-		#print $q->end_table(), $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$result->{'identifiant'} $i to ".($i+99)), $q->start_table({'class' => 'hidden hidden great_table technical', 'id' => $id.$i}), $q->start_Tr(), $q->start_td({'class' => 'center'}),
-		#		$q->start_a({'href' => "patient_file.pl?sample=$id$number"}), $q->span({'class' => 'list'}, "$id$number&nbsp;"), $q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15', 'class' => 'text_img'}), $q->end_a(), $q->span("&nbsp;, $proband ($pathologie)"), $q->end_td(), $q->end_Tr(), "\n";
 		print $q->end_tbody(), $q->end_table(), $q->p({'class' => 'title pointer', 'onclick' => '$(\'#'.$id.$i.'\').toggle(\'slow\');'}, "--$result->{'identifiant'} $i to ".($i+99));
 		&initiate_table($q, "$id$i");
 		&fill_table("$id$number", $proband, $pathologie);
-		#print		$q->start_Tr(), $q->start_td({'class' => 'center'}),
-		#		$q->start_a({'href' => "patient_file.pl?sample=$id$number"}), $q->span({'class' => 'list'}, "$id$number&nbsp;"), $q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15', 'class' => 'text_img'}), $q->end_a(), $q->span("&nbsp;, $proband ($pathologie)"), $q->end_td(), $q->end_Tr(), "\n";
-	}
+		}
 }
 
 print $q->end_table(), $q->end_div();
@@ -214,15 +201,7 @@ exit();
 
 sub initiate_table() {
 	my ($q, $id) = @_;
-	#my $table_js = "\$('#$id').DataTable({
-	#	paging: false,
-	#	//scrollY: 400
-	#});
-	#\$('#".$id."_info').hide();
-	#//\$('#".$id."-wrapper').hide();
-	#//\$('.odd').hide();";
-	#print ;
-	#print $q->start_div({'class' => 'hidden', 'id' => "div_$id"}, ), $q->start_table({'class' => 'great_table technical', 'id' => $id}), $q->start_thead(), "\n",
+
 	print $q->start_table({'class' => 'hidden great_table technical', 'id' => $id}), $q->start_thead(), "\n",
 		$q->start_Tr(), "\n",
 			$q->th({'class' => 'left_general'}, 'Sample ID'), "\n",

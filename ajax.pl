@@ -87,7 +87,7 @@ my $user = U2_modules::U2_users_1->new();
 if ($q->param('asked') && $q->param('asked') eq 'exons') {
 	print $q->header();
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
-	my $query = "SELECT a.nom as name, a.numero as number FROM segment a, gene b WHERE a.nom_gene = b.nom AND a.nom_gene[1] = '$gene' AND b.main = 't' AND a.type <> 'intron' ORDER BY a.numero;";
+	my $query = "SELECT a.nom as name, a.numero as number FROM segment a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene' AND b.main = 't' AND a.type <> 'intron' ORDER BY a.numero;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my ($labels, @values);
@@ -104,54 +104,9 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	print $q->header();
 	my $variant = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 
-
-
-
-
-
-	####OLD STYLE 17/11/2014
-	#my ($chr, $pos_start, $pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'evs');#evs style but for 1000 genomes!!
-	#
-	#my $reg = 'Bio::EnsEMBL::Registry';
-	##print "$chr, $pos_start, $pos_end, $variant";exit;
-	#my ($semaph, $unfound) = (0, 0);
-	#$reg->load_registry_from_db(
-	#    -host => 'ensembldb.ensembl.org',
-	#    -user => 'anonymous'
-	#) or do {print "pb connecting to 1000 genomes $!"; exit;};
-	##$reg->set_reconnect_when_lost();
-	#
-	#my $sa = $reg->get_adaptor("human", "core", "slice") or do {print "Error: can't get adaptator 1...";$semaph = 2;};
-	#my $vfa = $reg->get_adaptor("human", "variation", "variationfeature") or do {print "Error: can't get adaptator 2...";$semaph = 2;};
-	#
-	#my $slice = $sa->fetch_by_region('chromosome', $chr, $pos_start, $pos_end) or do {print "Error: can't get slice...";$semaph = 2;};
-	#
-	#my @vfs = @{$vfa->fetch_all_by_Slice($slice)} or do {print "No 1000 genomes variant at this position.";$semaph = 2;};
-	#
-	#THOUSANDG: foreach my $vf(@vfs){
-	#	my $hgvs = $vf->get_all_hgvs_notations($slice, 'g');
-	#	foreach my $key (keys (%{$hgvs})) {
-	#		#print $key."-".$hgvs->{$key}."\n";
-	#		#print "$hgvs->{$key} - $variant";
-	#		my $thoug_var = "chr".$hgvs->{$key};
-	#		if ($thoug_var =~ /$variant/ && $vf->minor_allele_frequency() ne '') {$semaph = 1;print "1000 genomes MAF: ".sprintf('%.4f', $vf->minor_allele_frequency());$unfound = 0;last THOUSANDG;}
-	#		elsif ($thoug_var =~ /$variant/) {$semaph = 1;$unfound = 1;}
-	#	}
-	#}
-	#if ($unfound == 1) {print 'reported in 1000 genomes but no MAF'}
-	#elsif ($semaph == 0) {print 'no MAF in 1000 genomes'}
-	####END OLD STYLE 17/11/2014
-
-
-
-
-
-
-	my $query = "SELECT a.nom, a.nom_gene[1] as gene, a.nom_gene[2] as acc, a.nom_g_38, a.snp_id, a.type_adn, a.type_segment, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.nom_gene = b.nom AND a.nom_g = '$variant';";
+	my $query = "SELECT a.nom, b.gene_symbol as gene, b.refseq as acc, a.nom_g_38, a.snp_id, a.type_adn, a.type_segment, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
 	my ($text, $semaph) = ('', 0);#$q->strong('MAFs &amp; databases:').
-
-
 
 	if ($res->{'snp_id'} ne '') {
 		# my $test_ncbi = U2_modules::U2_subs_1::test_ncbi();
@@ -576,20 +531,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	print $text;
 	###END NEW style using VEP
 }
-#if ($q->param('asked') && $q->param('asked') eq 'class') {
-#	print $q->header();
-#	my $variant = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
-#	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
-#	my $acc = U2_modules::U2_subs_1::check_acc($q, $dbh);
-#	my $class = U2_modules::U2_subs_1::check_class($q, $dbh);
-#	my $update = "UPDATE variant SET classe = '$class' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
-#	if (U2_modules::U2_subs_1::is_class_pathogenic($class) == 1){
-#		$update = "UPDATE variant SET classe = '$class', defgen_export = 't' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
-#	}
-#	#print $update;
-#	$dbh->do($update);
-#	#print ($class, U2_modules::U2_subs_1::color_by_classe($class, $dbh));
-#}
+
 if ($q->param('asked') && $q->param('asked') eq 'class') {
 	print $q->header();
 	my $variant = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
@@ -602,9 +544,9 @@ if ($q->param('asked') && $q->param('asked') eq 'class') {
 	if ($field eq 'classe') {$class= U2_modules::U2_subs_1::check_class($q, $dbh)}
 	else {$class= U2_modules::U2_subs_1::check_acmg_class($q, $dbh)}
 
-	my $update = "UPDATE variant SET $field = '$class' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+	my $update = "UPDATE variant SET $field = '$class' WHERE nom = '$variant' AND refseq = '$acc';";
 	if (U2_modules::U2_subs_1::is_class_pathogenic($class) == 1){
-		$update = "UPDATE variant SET $field = '$class', defgen_export = 't' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+		$update = "UPDATE variant SET $field = '$class', defgen_export = 't' WHERE nom = '$variant' AND refseq = '$acc';";
 	}
 	#print $update;
 	$dbh->do($update);
@@ -612,12 +554,8 @@ if ($q->param('asked') && $q->param('asked') eq 'class') {
 }
 if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 	print $q->header();
-	#my ($variant, $main, $nom_c);
 	my $i = 0;
-	#if ($q->param('nom_g') =~ /(chr[\dXYM]+:g\..+)/o) {$variant = $1}
-	#if ($q->param('main_acc') =~ /(N[MR]_\d+)/o) {$main = $1}
-	#my $nom_c;
-	#if ($q->param('nom_c') =~ /(c\..+)/o) {$nom_c = $1}
+
 	my $variant = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 	my $main = U2_modules::U2_subs_1::check_acc($q, $dbh);
 	my $nom_c = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
@@ -626,14 +564,6 @@ if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 	#test mutalyzer
 	if (U2_modules::U2_subs_1::test_mutalyzer() != 1) {U2_modules::U2_subs_1::standard_error('23', $q)}
 
-
-	#my $wsdl = XML::Compile::WSDL11->new('https://mutalyzer.nl/services?wsdl');
-
-	#my $caller = $wsdl->compileClient('numberConversion');
-
-	#my $call = $call->({'build' => 'hg19', 'variant', $variant});
-
-
 	my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
 
 
@@ -641,7 +571,6 @@ if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 			SOAP::Data->name('build')->value('hg19'),
 			SOAP::Data->name('variant')->value($variant));
 
-	#my $call = $soap->numberConversion(SOAP::Data->name('build')->value('hg19'), SOAP::Data->name('variant')->value($variant));
 
 	#print Dumper($call);exit;
 
@@ -674,49 +603,20 @@ if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 }
 if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 	print $q->header();
-	#print 'AJAX!!!!';
-	# gene: '$gene', accession: '$acc', nom_c: '$var->{'nom'}', analysis_all: '$type_analyse', depth: '$var->{'depth'}', current_analysis: '$var->{'type_analyse'}, frequency: '$var->{'frequency'}', wt_f: '$var->{'wt_f'}', wt_r: '$var->{'wt_r'}, mt_f: '$var->{'mt_f'}, mt_r: '$var->{'mt_r'}, last_name: '$var->{'last_name'}', first_name: '$var->{'first_name'}', msr_filter: '$var->{'msr_filter'}', nb: '$nb'
 	my ($gene, $second, $acc, $nom_c, $analyses, $current_analysis, $depth, $frequency, $wt_f, $wt_r, $mt_f, $mt_r, $msr_filter, $last_name, $first_name, $nb) = (U2_modules::U2_subs_1::check_gene($q, $dbh), U2_modules::U2_subs_1::check_acc($q, $dbh), U2_modules::U2_subs_1::check_nom_c($q, $dbh), $q->param('analysis_all'), $q->param('current_analysis'), $q->param('depth'), $q->param('frequency'), $q->param('wt_f'), $q->param('wt_r'), $q->param('mt_f'), $q->param('mt_r'), $q->param('msr_filter'), $q->param('last_name'), $q->param('first_name'), $q->param('nb'));
 
 	my $info = $q->start_ul().$q->start_li().$q->start_strong().$q->em("$gene:").$q->span($nom_c).$q->end_strong().$q->end_li();
 
-	#MAFs
-	#my ($MAF, $maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA', 'NA');
-	##if ($var->{'type_analyse'} eq 'NGS-454') {
-	##MAF 454
-	#$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '454-\d+');
-	##MAF SANGER
-	#$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, 'SANGER');
-	##MAF MiSeq
-	#$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, $ANALYSIS_ILLUMINA_PG_REGEXP);
-	##my $maf_url = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF MiSeq: $maf_miseq";
-	##$MAF = "MAF 454: <strong>$maf_454</strong> / MAF Sanger: <strong>$maf_sanger</strong><br/>MAF MiSeq: <strong>$maf_miseq</strong>";
-	#$MAF = $q->start_li().$q->span("MAF 454: ").$q->strong($maf_454).$q->end_li().$q->start_li().$q->span("MAF Sanger: ").$q->strong($maf_sanger).$q->end_li().$q->start_li().$q->span("MAF Illumina: ").$q->strong($maf_miseq).$q->end_li();
-	##454-USH2A for only a few patients
-	#my $maf_454_ush2a = '';
-	#if ($gene eq 'USH2A' && $analyses =~ /454-USH2A/o) {
-	#	$maf_454_ush2a = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $nom_c, '454-USH2A');
-	#	#$maf_url = "MAF 454-USH2A: $maf_454_ush2a / $maf_url";
-	#	#$MAF = "MAF 454-USH2A: <strong>$maf_454_ush2a</strong><br/>$MAF";
-	#	$MAF .= $q->li("MAF 454-USH2A: $maf_454_ush2a");
-	#}
-	#$info .= $q->start_li().$q->strong("MAFs:").$q->start_ul().$MAF.$q->end_ul().$q->end_li();
-	#print $MAF;
 	my $print_ngs = '';
 	if ($depth) {
 		#$info .= "--$current_analysis--";
 		if ($current_analysis =~ /454-/o) {
-			#$print_ngs = "DOC 454: <strong>$depth</strong> Freq: <strong> $frequency</strong><br/>wt f: $wt_f, wt r: $wt_r<br/>mt f: $mt_f, mt r: $mt_r<br/>";
 			$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($depth).$q->span(" Freq: ").$q->strong($frequency).$q->end_li().$q->start_li().$q->span("wt f: ").$q->strong($wt_f).$q->span(", wt r: ").$q->strong($wt_r).$q->end_li().$q->start_li().$q->span("mt f: ").$q->strong($mt_f).$q->span(", mt r: ").$q->strong($mt_r).$q->end_li().$q->end_ul().$q->end_li();
 			#check if Illumina also??
 			if ($analyses =~ /$ANALYSIS_ILLUMINA_REGEXP/) {
 				my @matches = $analyses =~ /$ANALYSIS_ILLUMINA_REGEXP/g;
 				foreach (@matches) {
 					$info .= &miseq_details($_, $first_name, $last_name, $gene, $acc, $nom_c);
-					#my $query_ngs = "SELECT depth, frequency, msr_filter FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND  nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$nom_c' AND type_analyse = '$_';";
-					#my $res_ngs = $dbh->selectrow_hashref($query_ngs);
-					##$print_ngs .= "DOC MiSeq: <strong>$res_ngs->{'depth'}</strong> Freq: <strong>$res_ngs->{'frequency'}</strong><br/>MSR filter:<strong>$res_ngs->{'msr_filter'}</strong><br/>";
-					#$info .= $q->start_li().$q->strong("$_ values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($res_ngs->{'depth'}).$q->span(" Freq: ").$q->strong($res_ngs->{'frequency'}).$q->end_li().$q->start_li().$q->span("MSR filter: ").$q->strong($res_ngs->{'msr_filter'}).$q->end_li().$q->end_ul().$q->end_li();
 				}
 			}
 
@@ -732,7 +632,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 			}
 			#check if 454 also??
 			if ($analyses =~ /(454-\d+)/o) {
-				my $query_ngs = "SELECT depth, frequency, wt_f, wt_r, mt_f, mt_r FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND  nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$nom_c' AND type_analyse = '$1';";
+				my $query_ngs = "SELECT depth, frequency, wt_f, wt_r, mt_f, mt_r FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.refseq = '$acc' AND nom_c = '$nom_c' AND type_analyse = '$1';";
 				my $res_ngs = $dbh->selectrow_hashref($query_ngs);
 				#$print_ngs .= "DOC 454: <strong>$res_ngs->{'depth'}</strong> Freq: <strong>$res_ngs->{'frequency'}</strong><br/>wt f: $res_ngs->{'wt_f'}, wt r: $res_ngs->{'wt_r'}<br/>mt f: $res_ngs->{'mt_f'}, mt r: $res_ngs->{'mt_r'}<br/>";
 				$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($res_ngs->{'depth'}).$q->span(" Freq: ").$q->strong($res_ngs->{'frequency'}).$q->end_li().$q->start_li().$q->span("wt f: ").$q->strong($res_ngs->{'wt_f'}).$q->span(", wt r: ").$q->strong($res_ngs->{'wt_r'}).$q->end_li().$q->start_li().$q->span("mt f: ").$q->strong($res_ngs->{'mt_f'}).$q->span(", mt r: ").$q->strong($res_ngs->{'mt_r'}).$q->end_li().$q->end_ul().$q->end_li();
@@ -755,37 +655,6 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 	print $q->header();
 	my $text = $q->start_ul();
-	#SELECT H FROM PREDICTIONS WHERE ENSP = '00000265944' AND POS = '319';
-	#SIFT old fashion with SQLlite
-	#if ($q->param('var_prot') && $q->param('var_prot') =~ /p\.\(?([A-Z][a-z]{2})(\d+)([A-Z][a-z]{2})\)?/o) {
-	#	my ($wt, $pos, $mut) = ($1, $2, $3);
-	#	if ($q->param('ensp') && $q->param('ensp') =~ /ENSP(\d+)$/o) {
-	#		my $ensp = $1;
-	#		$wt = U2_modules::U2_subs_1::three2one($wt);
-	#		$mut = U2_modules::U2_subs_1::three2one($mut);
-	#		##Connect to database
-	#		my $dbh2 = DBI->connect( 'DBI:SQLite:dbname='.$DATABASES_PATH.'/Human_enst.sqlite',"", "", { RaiseError => 1, AutoCommit => 1 } ) or die $DBI::errstr;
-	#		my $query = "SELECT $mut, CON FROM PREDICTIONS WHERE ENSP = '$ensp' AND POS = '$pos';";
-	#		#print $query;
-	#		my $res = $dbh2->selectrow_hashref($query);
-	#		if ($res) {
-	#			if ($res->{'CON'} eq $wt) {
-	#				#$text = $q->start_li().$q->span('SIFT score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::sift_color($res->{$mut})}, "$res->{$mut} (".U2_modules::U2_subs_1::sift_interpretation($res->{$mut}).")").$q->end_li()."\n";
-	#				$text = $q->start_li().$q->span('SIFT score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::sift_color($res->{$mut})}, U2_modules::U2_subs_1::sift_interpretation($res->{$mut})."($res->{$mut})").$q->end_li()."\n";
-	#			}
-	#			else {$text = $q->li("bad wt $res->{'CON'} for SIFT")}
-	#		}
-	#		else {$text = $q->li('no SIFT')}
-	#	}
-	#	else {$text = $q->li('no ENSP for SIFT')}
-	#}
-	#else {$text = $q->li('no variant')}
-
-	#VEP => get PPH2 & SIFT
-	#perl variant_effect_predictor.pl --fasta /Users/david/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress "gunzip -c" --polyphen b  --refseq --no_progress -q --fork 4 --no_stats --dir /Users/david/.vep/ --force --filter coding_change -i input_hgvs.txt -o test.txt
-	#5 89988504 89988504 A/G +
-	#my $vep_output;
-	### we also compute predictions score like in missense_prioritize.pl
 
 	my ($aa_ref, $aa_alt) = U2_modules::U2_subs_1::decompose_nom_p($q->param('var_prot'));
 
@@ -861,144 +730,6 @@ if ($q->param('asked') && $q->param('asked') eq 'ponps') {
 			}
 		}
 	}
-
-
-
-
-		#my $tempfile = File::Temp->new(UNLINK => 0);
-	#	my $tempfile = File::Temp->new();
-	#
-	#	#open(F, '>'.$DATABASES_PATH.'variant_effect_predictor/input.txt') or die $!;
-	#	#print F "$1 $2 $2 $3/$4 +\n";
-	#	#close F;
-	#
-	#	print $tempfile "$chr $pos1 $pos1 $ref/$alt +\n";
-	#	if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
-	#		#http://www.nada.kth.se/~esjolund/writing-more-secure-perl-cgi-scripts/output/writing-more-secure-perl-cgi-scripts.html.utf8  run vep without tempfile not working don't know why
-	#		#my($child_out, $child_in);
-	#		#$pid = open2($child_out, $child_in, "/home/esjolund/public_html/cgi-bin/count.py", $type,"/dev/stdin");
-	#		#print $child_in $content;
-	#		#close($child_in);
-	#		#my $result=<$child_out>;
-	#		#waitpid($pid,0);
-	#		#print $q->li($result);
-	#		#my @results = split('\n', $result);
-	#		#print $q->li($ENV{PATH});
-	#		delete $ENV{PATH};
-	#
-	#		#my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress "gunzip -c" --polyphen b --sift b --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 -o STDOUT`);   ###VEP75
-	#		my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress "gunzip -c" --maf_esp --polyphen b --sift b --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 --plugin FATHMM,"python $DATABASES_PATH/.vep/Plugins/fathmm.py" --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`);  ##VEP 78 Grch37
-	#		#print $q->li("$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/78_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --offline --cache --compress \"gunzip -c\" --polyphen b --sift b --refseq --maf_esp --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force --filter coding_change -i $1 --plugin FATHMM,\"python $DATABASES_PATH/.vep/Plugins/fathmm.py\" -o STDOUT");
-	#		if ($q->param('acc_no') =~ /(NM_\d+)/o) {
-	#			my @good_line = grep(/$1/, @results);
-	#			my $space_var = $chr.'_'.$pos1.'_'.$ref.'/'.$alt;
-	#			#print $space_var;
-	#			my @results_split = split(/\s/, $good_line[0]);
-	#			#if ($good_line[0] =~ /$space_var/o) { sometimes does not work even by escaping /
-	#			if ($results_split[0] eq $space_var) {
-	#				if ($good_line[0] =~ /SIFT=([^\)]+\))/o) {
-	#					$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://sift.bii.a-star.edu.sg/");', 'target' => '_blank', 'class' => 'pointer'}, 'SIFT').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::sift_color2($1)}, $1).$q->end_li()."\n";
-	#					if (U2_modules::U2_subs_1::sift_color2($1) eq '#FF0000') {$i++}
-	#					$j++;
-	#				}
-	#				else {$text .= $q->li("No SIFT for this position.")}
-	#				if ($good_line[0] =~ /PolyPhen=([\w\d\(\)\.^\)]+\))/o) {
-	#					$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://genetics.bwh.harvard.edu/pph2/");', 'target' => '_blank', 'class' => 'pointer'}, 'PolyPhen2').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::pph2_color($1)}, $1).$q->end_li()."\n";
-	#					if (U2_modules::U2_subs_1::pph2_color($1) eq '#FF0000') {$i++}
-	#					$j++;
-	#				}
-	#				else {
-	#					$text .= $q->li("No Polyphen for this position.")#.$q->start_li().$q->span('Complete VEP output:').$q->start_ul();
-	#					#foreach (@results) {$text .= $q->li($_)}
-	#					#$text .= $q->end_ul().$q->end_li();
-	#				}
-	#				if ($good_line[0] =~ /FATHMM=([\d\.-]+)\(/o) {
-	#					$text .= $q->start_li().$q->span({'onclick' => 'window.open("http://fathmm.biocompute.org.uk/");', 'target' => '_blank', 'class' => 'pointer'}, 'FATHMM').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::fathmm_color($1)}, $1).$q->end_li()."\n";
-	#					if (U2_modules::U2_subs_1::fathmm_color($1) eq '#FF0000') {$i++}
-	#					$j++;
-	#				}
-	#
-	#				#ESP replaced with ExAC 07/27/2015
-	#
-	#				my $ea_maf = my $aa_maf = my $exac_maf = -1;
-	#				if ($good_line[0] =~ /EA_MAF=[ATCG-]+:([\d\.]+);*/o) {$ea_maf = $1}
-	#				if ($good_line[0] =~ /AA_MAF=[ATCG-]+:([\d\.]+);*/o) {$aa_maf = $1}
-	#				#my $max_maf = $ea_maf;
-	#				#if ($aa_maf > $max_maf) {$max_maf = $aa_maf}
-	#				#my $maf;
-	#				if ($good_line[0] =~ /ExAC_AF=([\d\.e-]+);*/) {$exac_maf = $1}
-	#
-	#				if (max($ea_maf, $aa_maf, $exac_maf) > -1) {
-	#					$j++;
-	#					if (max($ea_maf, $aa_maf, $exac_maf) < 0.005) {$i++}
-	#				}
-	#
-	#				if ($good_line[0] =~ /CLIN_SIG=(\w+)/o) {
-	#					if ($1 =~ /pathogenic/o) {$i++}
-	#					$j++;
-	#				}
-	#
-	#				#MCAP results for missense
-	#				my @mcap =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/mcap/mcap_v1_0.txt.gz $chr:$pos1-$pos1`);
-	#				foreach (@mcap) {
-	#					my @current = split(/\t/, $_);
-	#					if (/\t$ref\t$alt\t/) {
-	#						$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://bejerano.stanford.edu/mcap/\')', 'class' => 'pointer'}, 'M-CAP').$q->span(' score: ').$q->span({'style' => 'color:'.U2_modules::U2_subs_1::mcap_color($current[4])}, sprintf('%.4f', $current[4])).$q->end_li()."\n";
-	#						if (U2_modules::U2_subs_1::mcap_color($current[4]) eq '#FF0000') {$i++}
-	#						$j++;
-	#					}
-	#				}
-	#
-	#				my ($ratio, $class) = (0, 'one_quarter');
-	#				if ($j != 0) {
-	#					$ratio = sprintf('%.2f', ($i)/($j));
-	#					if ($ratio >= 0.25 && $ratio < 0.5) {$class = 'two_quarter'}
-	#					elsif ($ratio >= 0.5 && $ratio < 0.75) {$class = 'three_quarter'}
-	#					elsif ($ratio >= 0.75) {$class = 'four_quarter'}
-	#
-	#					$text .= $q->start_li().$q->span({'class' => $class}, 'U2 experimental pathogenic ratio: ').$q->span({'class' => $class}, "$ratio, ($i/$j)").$q->end_li();
-	#				}
-	#
-	#				#$text .= $q->li($good_line[0]);
-	#			}
-	#			else {
-	#				#$text .= $q->li("variant '$space_var' not found in VEP results:\n '$results_split[0]'");
-	#				$text .= $q->li("variant '$space_var' not found in VEP results:").$q->start_li().$q->span('Complete VEP output:').$q->start_ul();
-	#				foreach (@results) {$text .= $q->li($_)}
-	#				$text .= $q->end_ul().$q->end_li();
-	#			}
-	#		}
-	#	}
-	#	else {$text .= $q->li("Predictors not run because of a security issue. Please report.")}
-	#}
-
-	#my $nom_c = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
-	#my $gene = U2_modules::U2_subs_1::check_gene($q, $dbh);
-	#my $enst = U2_modules::U2_subs_1::check_ens($q, $dbh, 'enst');
-
-	#HSF needs enst, nom_c
-
-	#my $soap = SOAP::Lite->uri('http://www.4d.com/namespace/default')->proxy('http://www.umd.be/HSF3/4DWSDL');
-	#
-	#my $hsf = $soap->WS_HSF($enst, $nom_c, 'tab');
-	#foreach my $key (keys(%{$hsf})) {
-	#	if (ref($hsf->{$key}) eq 'ARRAY') {foreach (@{$hsf->{$key}}) {$text .= $q->li("ARRAY $_")}}
-	#	if (ref($hsf->{$key}) eq 'HASH') {$text .= $q->li("REF $key: $hsf->{$key}")}
-	#	if (ref($hsf->{$key}) eq 'REF') {$text .= $q->li("REF $key: $hsf->{$key}")}
-	#	else {$text .= $q->li("OTHER ".(ref($hsf->{$key}))." $key: $hsf->{$key}")}
-	#}
-	#HSF is a real mess - above code gives sthg like the following - we keep the single link and try later with json TODO: try json
-	#ARRAY definitions
-	#ARRAY HASH(0x10321bce8)
-	#ARRAY ARRAY(0x103233b10)
-	#ARRAY
-	#ARRAY HASH(0x100bfc090)
-	#ARRAY {http://schemas.xmlsoap.org/wsdl/}definitions
-	#ARRAY HASH(0x103337d40)
-	#OTHER ARRAY _content: ARRAY(0x103231630)
-	#OTHER SOAP::Lite _context: SOAP::Lite=HASH(0x1033597a0)
-	#ARRAY ARRAY(0x103231630)
-	#OTHER ARRAY _current: ARRAY(0x10324e8f0)
 	$text .= $q->end_ul();
 	print $text;
 
@@ -1021,8 +752,8 @@ if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 	my $name = 'nom_prot';
 	if ($type ne 'exon') {$name = 'nom_ivs'}
 
-	my $query = "SELECT nom, $name as nom2, classe FROM variant WHERE nom_gene[2] = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' ORDER BY nom_g $order;";
-	if ($user->isPublic == 1) {$query = "SELECT nom, $name as nom2, classe FROM variant WHERE nom_gene[2] = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' AND (nom, nom_gene) NOT IN (SELECT nom_c, nom_gene FROM variant2patient WHERE nom_gene[2] = '$acc_no') ORDER BY nom_g $order;"}
+	my $query = "SELECT nom, $name as nom2, classe FROM variant WHERE refseq = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' ORDER BY nom_g $order;";
+	if ($user->isPublic == 1) {$query = "SELECT nom, $name as nom2, classe FROM variant WHERE refseq = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' AND (nom) NOT IN (SELECT nom_c FROM variant2patient WHERE refseq = '$acc_no') ORDER BY nom_g $order;"}
 	#print $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -1080,7 +811,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 
 	my $text;
 	#need to know main #acc
-	my $query = "SELECT nom[2] as main FROM gene WHERE nom[1] = '$gene' AND main = 't'";
+	my $query = "SELECT refseq as main FROM gene WHERE gene_symbol = '$gene' AND main = 't'";
 	my $res = $dbh->selectrow_hashref($query);
 	my $main = $res->{'main'};
 
@@ -1088,19 +819,10 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 	if ($q->param('freq') && $q->param('freq') == 1) {($order, $toprint, $freq) = ('COUNT(b.nom_c) DESC', 'position', '2')}
 
 
-	#$query = "SELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
-	#changed 06/23/2015 to remove duplicates (e.g. variant seen in MiSeq and sanger were counted twice)
-
-	$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value')\nSELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs, a.nom_g ORDER BY $order;";
-	#$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a, variant b WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value')\nSELECT a.*, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
-
-	#$query = "SELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' AND $sort_type = '$sort_value' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY a.nom_g ".U2_modules::U2_subs_1::get_strand($gene, $dbh).";";
+	$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.refseq), a.nom_c, a.refseq, c.gene_symbol FROM variant2patient a, variant b, gene c WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' AND $sort_type = '$sort_value')\nSELECT a.nom, a.classe, a.refseq, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND a.gene_symbol = '$gene' GROUP BY a.classe, a.nom, a.refseq, a.nom_prot, a.nom_ivs, a.nom_g ORDER BY $order;";
 	if ($sort_type eq 'all') {
-		#$query = "SELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
-		#changed 06/23/2015 to remove duplicates (e.g. variant seen in MiSeq and sanger were counted twice)
-		$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.nom_gene), a.nom_c, a.nom_gene FROM variant2patient a WHERE a.nom_gene[1] = '$gene')\nSELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, variant2patient b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
-
-		#SELECT a.nom, a.classe, a.nom_gene, a.nom_prot, a.nom_ivs, COUNT(DISTINCT(b.type_analyse)) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.nom_gene = b.nom_gene AND a.nom_gene[1] = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
+		# $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.refseq), a.nom_c, a.refseq, b.gene_symbol FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene')\nSELECT a.nom, a.classe, a.refseq, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, variant2patient b, gene c WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
+    $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.refseq), a.nom_c, a.refseq, b.gene_symbol FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene')\nSELECT a.nom, a.classe, a.refseq, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, tmp b, gene c WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' GROUP BY a.nom_g, a.classe, a.nom, a.refseq, a.nom_prot, a.nom_ivs ORDER BY $order;";
 	}
 	#print $query;
 	my $sth = $dbh->prepare($query);
@@ -1115,7 +837,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 			my $name2 = $result->{'nom_prot'} if $result->{'nom_prot'};
 			if ($result->{'nom_ivs'} ne '') {$name2 = $result->{'nom_ivs'}}
 			my $acc_no = '';
-			if ($result->{'nom_gene'}[1] ne $main) {$acc_no = "$result->{'nom_gene'}[1]:"}
+			if ($result->{'ref_seq'} ne $main) {$acc_no = "$result->{'refseq'}:"}
 
 			my $spec = '';
 			if ($sort_type eq 'type_arn') {
@@ -1125,7 +847,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 				$spec = $q->span({'class' => $css_class}, " - $value")
 			}
 
-			$text .= $q->start_li().$q->span({'style' => "color:$color", 'class' => 'pointer', 'onclick' => "window.open('variant.pl?gene=$gene&accession=$result->{'nom_gene'}[1]&nom_c=".uri_escape($result->{'nom'})."', \'_blank\')", 'title' => 'Go to the variant page'}, "$acc_no$result->{'nom'} - $name2").$q->span(" in $result->{'allel'} patients(s) ").$spec.$q->end_li();
+			$text .= $q->start_li().$q->span({'style' => "color:$color", 'class' => 'pointer', 'onclick' => "window.open('variant.pl?gene=$gene&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'})."', \'_blank\')", 'title' => 'Go to the variant page'}, "$acc_no$result->{'nom'} - $name2").$q->span(" in $result->{'allel'} patients(s) ").$spec.$q->end_li();
 		}
 		$text .= $q->end_ul();
 	}
@@ -1152,7 +874,7 @@ if ($q->param('asked') && $q->param('asked') eq 'rna_status') {
 	my ($gene, $second_name) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 	my $acc = U2_modules::U2_subs_1::check_acc($q, $dbh);
 	my $status = U2_modules::U2_subs_1::check_rna_status($q, $dbh);
-	my $update = "UPDATE variant SET type_arn = '$status' WHERE nom = '$variant' AND nom_gene = '{\"$gene\", \"$acc\"}';";
+	my $update = "UPDATE variant SET type_arn = '$status' WHERE nom = '$variant' AND refseq = '$acc';";
 	$dbh->do($update);
 	print $status;
 }
@@ -1171,20 +893,12 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	#print $number;
-	#my $query = "SELECT a.*, b.*, a.nom_prot as hgvs_prot, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
-	#my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.classe IN ('VUCS class III', 'VUCS class IV', 'pathogenic');";
-
 	#need to get info on patients (for multiple samples)
 	my ($list, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
-	my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version, c.dfn, c.rp, c.usher FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND (b.id_pat, b.num_pat) IN ($list) AND a.defgen_export = 't';";
+	my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version, c.dfn, c.rp, c.usher, c.gene_symbol FROM variant a, variant2patient b, gene c WHERE a.refseq = b.refseq AND a.nom = b.nom_c AND a.refseq = c.refseq AND (b.id_pat, b.num_pat) IN ($list) AND a.defgen_export = 't';";
 	# print STDERR $query;
-	# exit;
-	#my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version FROM variant a, variant2patient b, gene c WHERE a.nom_gene = b.nom_gene AND a.nom = b.nom_c AND a.nom_gene = c.nom AND b.id_pat = '$id' AND b.num_pat = '$number' AND a.defgen_export = 't';";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
-	#my $content = "GENE;VARIANT;GENOME_REFERENCE;NOMENCLATURE_HGVS;NOMPROTEINE;VARIANT_C;CHROMOSOME;SEQUENCE_REF;LOCALISATION;POSITION_GENOMIQUE;NM;VARIANT_P;CLASSESUR3;CLASSESUR5;DOMAINE_FCTL;CONSEQUENCES;RS;COSMIC;ENST;DATEDESAISIE;REFERENCES;COMMENTAIRE;ETAT;A_ENREGISTRER;STATUT;RESULTAT;ALLELE;NOTES\n";
-	#updated with defgen file 28/12/2017
-	#my $content = "GENE;VARIANT;A_ENREGISTRER;STATUT;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ALLELE;CLASSESUR3;CLASSESUR5;NOTES;COSMIC;ENST;NM;RS;REFERENCES;CONSEQUENCES;POSITION_GENOMIQUE;COMMENTAIRE\n";
 	my $content =  "GENE;VARIANT;A_ENREGISTRER;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2\r\n";
 	if ($res ne '0E0') {
 		while (my $result = $sth->fetchrow_hashref()) {
@@ -1195,7 +909,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 			elsif ($filter eq 'USH' && $result->{'usher'} == 0) {next}
 			elsif ($filter eq 'DFN-USH' && ($result->{'dfn'} == 0 && $result->{'usher'} == 0)) {next}
 			elsif ($filter eq 'RP-USH' && ($result->{'rp'} == 0 && $result->{'usher'} == 0)) {next}
-			elsif ($filter eq 'CHM' && $result->{'nom_gene'}[0] ne 'CHM') {next}
+			elsif ($filter eq 'CHM' && $result->{'gene_symbol'} ne 'CHM') {next}
 
 
 			my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($result->{'nom_g'}, 'clinvar');
@@ -1203,9 +917,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 			if ($acmg_class eq '') {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($result->{'classe'}, $dbh)}
 			my $defgen_acmg = &u22defgen_acmg($acmg_class);
 			my ($defgen_a1, $defgen_a2) = U2_modules::U2_subs_3::get_defgen_allele($result->{'allele'});
-			#$content .= "$result->{nom_gene}[0];$result->{nom_g};;;$result->{'statut'};$result->{classe};$result->{hgvs_prot};$result->{nom_c};$result->{'allele'};;;$result->{type_segment} $result->{num_segment};;$result->{enst};$result->{nom_gene}[1];$result->{snp_id};hg19;$result->{type_prot};;$result->{nom_prot}\n";
-			$content .= "$result->{nom_gene}[0];$result->{nom_gene}[1].$result->{acc_version}:$result->{nom_c};;".&u22defgen_status($result->{'statut'}).";;$result->{hgvs_prot};$result->{nom_c};$result->{enst};$result->{nom_gene}[1].$result->{acc_version};$pos;$defgen_acmg;;;$result->{snp_id};;$result->{type_prot};$result->{classe};$chr;hg19;$result->{nom_g};$result->{type_segment} $result->{num_segment};;;$defgen_a1;$defgen_a2\r\n";
-			#$content .= "$result->{nom_gene}[0];$result->{nom_c};hg19;$result->{nom_g};$result->{nom_prot};$result->{nom_c};chr$chr;;$result->{type_segment} $result->{num_segment};$pos;$result->{nom_gene}[1].$result->{acc_version};$result->{hgvs_prot};;;;$result->{type_prot};$result->{snp_id};;$result->{enst};;;$result->{classe};;;$result->{'statut'};;$result->{'allele'};\n";
+			$content .= "$result->{gene_symbol};$result->{refseq}.$result->{acc_version}:$result->{nom_c};;".&u22defgen_status($result->{'statut'}).";;$result->{hgvs_prot};$result->{nom_c};$result->{enst};$result->{refseq}.$result->{acc_version};$pos;$defgen_acmg;;;$result->{snp_id};;$result->{type_prot};$result->{classe};$chr;hg19;$result->{nom_g};$result->{type_segment} $result->{num_segment};;;$defgen_a1;$defgen_a2\r\n";
 		}
 	}
 	open F, '>'.$ABSOLUTE_HTDOCS_PATH.'data/defgen/'.$id.$number.'_defgen.csv' or die $!;
@@ -1217,7 +929,7 @@ if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
 	print $q->header();
 	my $nom_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 	#print $nom_g;
-	my $query = "SELECT a.nom, a.acc_version, b.nom as var, b.nom_prot as hgvs_prot, b.acmg_class, b.classe, a.enst, b.snp_id, b.type_prot, b.nom_g, b.type_segment, b.num_segment FROM gene a, variant b WHERE a.nom = b.nom_gene AND b.nom_g = '$nom_g';";
+	my $query = "SELECT a.gene_symbol, a.refseq, a.acc_version, b.nom as var, b.nom_prot as hgvs_prot, b.acmg_class, b.classe, a.enst, b.snp_id, b.type_prot, b.nom_g, b.type_segment, b.num_segment FROM gene a, variant b WHERE a.refseq = b.refseq AND b.nom_g = '$nom_g';";
 	my $res = $dbh->selectrow_hashref($query);
 	#
 	my $content =  "GENE;VARIANT;A_ENREGISTRER;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2\r\n";
@@ -1226,13 +938,13 @@ if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
 		my $acmg_class = $res->{'acmg_class'};
 		if ($acmg_class eq '') {$acmg_class = U2_modules::U2_subs_3::u2class2acmg($res->{'classe'}, $dbh)}
 		my $defgen_acmg = &u22defgen_acmg($acmg_class);
-		$content .= "$res->{nom}[0];$res->{nom}[1].$res->{acc_version}:$res->{var};;;;$res->{hgvs_prot};$res->{var};$res->{enst};$res->{nom}[1].$res->{acc_version};$pos;$defgen_acmg;;;$res->{snp_id};;$res->{type_prot};;$chr;hg19;$res->{nom_g};$res->{type_segment} $res->{num_segment};;;;\r\n";
+		$content .= "$res->{gene_symbol};$res->{refseq}.$res->{acc_version}:$res->{var};;;;$res->{hgvs_prot};$res->{var};$res->{enst};$res->{refseq}.$res->{acc_version};$pos;$defgen_acmg;;;$res->{snp_id};;$res->{type_prot};;$chr;hg19;$res->{nom_g};$res->{type_segment} $res->{num_segment};;;;\r\n";
 		$nom_g =~ s/>/_/og;
 		$nom_g =~ s/:/_/og;
 		open F, '>'.$ABSOLUTE_HTDOCS_PATH.'data/defgen/'.$nom_g.'_defgen.csv' or die $!;
 		print F $content;
 		close F;
-		print '<a href="'.$HTDOCS_PATH.'data/defgen/'.$nom_g.'_defgen.csv" download>Download file for '.$res->{nom}[1].$res->{acc_version}.':'.$res->{var}.'</a>';
+		print '<a href="'.$HTDOCS_PATH.'data/defgen/'.$nom_g.'_defgen.csv" download>Download file for '.$res->{refseq}.$res->{acc_version}.':'.$res->{var}.'</a>';
 	}
 
 }
@@ -1269,7 +981,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 
 	my $query;
 	if ($analysis eq 'all') {$query = 'SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse ORDER BY a.type_analyse DESC, a.run_id;'}
-	else {$query = "SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.type_analyse  = '$analysis' ORDER BY a.type_analyse DESC, a.run_id;"}
+	else {$query = "SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.type_analyse = '$analysis' ORDER BY a.type_analyse DESC, a.run_id;"}
 	#my $dates = "\"date\": [
 	#";
 	my $i = my $j = my $k = my $l = my $m = my $n = my $o = my $p = my $r = my $s = my $t = my $u = my $v = my $w = 0;
@@ -1281,28 +993,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			my $query_samples = 'SELECT COUNT(id_pat || num_pat) as a FROM miseq_analysis WHERE run_id = \''.$result->{'run_id'}.'\';';
 			my $num_samples = $dbh->selectrow_hashref($query_samples);
 
-			#timeline
-
-
-			#my $title = '';
-			#my $thumbnail = 'miseq_thumb.jpg';
-
-			#my $analysis_date = U2_modules::U2_subs_1::date_pg2tjs(U2_modules::U2_subs_1::get_run_date($result->{'run_id'}));
-			#my $text = "Run ID: <a href = 'stats_ngs.pl?run=$result->{'run_id'}' target = '_blank'>$result->{'run_id'}</a>";
-
-			#if ($result->{'type_analyse'} eq 'MiSeq-28') {$i++;$text .= "<br/>Run Number: $i";$title = "Run $i";}
-			#elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$j++;$text .= "<br/>Run Number: $j";$title = "Run $j";}
-			#elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$k++;$text .= "<br/>Run Number: $k";$title = "Run $k";}
-			#elsif ($result->{'type_analyse'} eq 'MiSeq-3') {$l++;$text .= "<br/>Run Number: $l";$title = "Run $l";}
-			#elsif ($result->{'type_analyse'} eq 'MiSeq-132') {$o++;$text .= "<br/>Run Number: $o";$title = "Run $o";}
-			#elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$m++;$text .= "<br/>Run Number: $m";$title = "Run $m";$thumbnail = 'miniseq_thumb.jpg';}
-			#elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$n++;$text .= "<br/>Run Number: $n";$title = "Run $n";$thumbnail = 'miniseq_thumb.jpg';}
-			#elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$p++;$text .= "<br/>Run Number: $p";$title = "Run $p";$thumbnail = 'miniseq_thumb.jpg';}
-			#elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$r++;$text .= "<br/>Run Number: $r";$title = "Run $r";$thumbnail = 'nextseq_thumb.jpg';}
-			#$text .= "<br/><a href='search_controls.pl?step=3&iv=1&run=$result->{'run_id'}'>Sample tracking</a>";
-
-
-			if ($result->{'type_analyse'} eq 'MiSeq-28') {$i++;}
+					if ($result->{'type_analyse'} eq 'MiSeq-28') {$i++;}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$j++;}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$k++;}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-152') {$u++;}
@@ -1317,37 +1008,12 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$r++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-2') {$s++;}
 
-			#my $text = "<br/>Analyst: ".ucfirst($result->{'analyste'})."<br/> Run: <a href = 'stats_ngs.pl?run=$result->{'run_id'}' target = '_blank'>$result->{'run_id'}</a>";
-			#$dates .= "
-			#	{
-			#	    \"startDate\":\"$analysis_date\",
-			#	    \"endDate\":\"$analysis_date\",
-			#	    \"headline\":\"$result->{'type_analyse'} $title\",
-			#	    //\"tag\":\"$result->{'type_analyse'}\",
-			#	    \"text\":\"<p>$text</p>\",
-			#	    \"asset\": {
-			#		//\"media\":\"".$HTDOCS_PATH."data/img/$thumbnail\",
-			#		\"thumbnail\":\"".$HTDOCS_PATH."data/img/$thumbnail\",
-			#	    }
-			#	},
-			#";
-
-			#text
-			#my $subst = '6';
-			#if ($result->{'type_analyse'} =~ /Mini/o) {$subst = '8'}
-
-			$content .= $q->start_Tr().
+						$content .= $q->start_Tr().
 					$q->start_td().
 						$q->a({'href' => "stats_ngs.pl?run=$result->{'run_id'}"}, $result->{'run_id'}).
 					$q->end_td().
 					$q->td($result->{'type_analyse'}." genes");
-					#$q->td(substr($result->{'type_analyse'}, $subst)." genes");
-			#$ul .= $q->start_li().$q->a({'href' => "stats_ngs.pl?run=$result->{'run_id'}"}, $result->{'run_id'}).$q->span(" - ".substr($result->{'type_analyse'}, 6)." genes");
-			#if ($result->{'type_analyse'} eq 'MiSeq-28') {$ul .= " - Run $i";$new_style .= $q->td("Run $i");}
-			#elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$ul .= " - Run $j";$new_style .= $q->td("Run $j");}
-			#elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$ul .= " - Run $k";$new_style .= $q->td("Run $k");}
-			#elsif ($result->{'type_analyse'} eq 'MiSeq-3') {$ul .= " - Run $l";$new_style .= $q->td("Run $l");}
-			#elsif ($result->{'type_analyse'} eq 'MiniSeq-121') {$ul .= " - Run $m";$new_style .= $q->td("Run $m");}
+
 			if ($result->{'type_analyse'} eq 'MiSeq-28') {$content .= $q->td("Run $i")}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$content .= $q->td("Run $j")}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$content .= $q->td("Run $k")}
@@ -1368,42 +1034,6 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 		}
 		#$ul .= $q->end_ul();
 		$content .= $q->end_tbody().$q->end_table().$q->end_div();
-
-		#$dates .= "
-		#],";
-		#my $timeline = "
-		#storyjs_jsonp_data = {
-		#	\"timeline\":
-		#	{
-		#	    \"headline\":\"".ucfirst($analysis)." Analysis\",
-		#	    \"type\":\"default\",
-		#	    \"text\":\"<p>$total_runs, $total_samples</p>\",
-		#	    \"asset\": {
-		#		\"media\":\"$HTDOCS_PATH/data/img/U2.png\",
-		#		//\"credit\":\"Credit Name Goes Here\",
-		#		\"caption\":\"USHVaM 2 using Timeline JS\"
-		#	    },
-		#	    $dates
-		#	}
-		#};
-		#\$(\'#patient-timeline\').load(function() {
-		#	timeline = createStoryJS({
-		#	    type:       'timeline',
-		#	    width:      '100%',
-		#	    height:     '400',
-		#	    source:     storyjs_jsonp_data,
-		#	    embed_id:   'patient-timeline',
-		#	    font:	'NixieOne-Ledger',
-		#	    start_zoom_adjust:	'-1',
-		#	    start_at_end:	'true'
-		#	});
-		#});
-		#";
-
-
-		#$content .= $q->script($timeline).$q->start_div({'id' => 'patient-timeline', 'defer' => 'defer'}).$q->end_div().$q->br().$q->br(), $content;
-		#print $q->script($timeline).$q->start_div({'id' => 'patient-timeline'}).$q->end_div().$content;
-		#f..timeline.js does not really work with ajax, sthg must remain persistent and it bugs
 		print $content;
 
 	}
@@ -1557,13 +1187,13 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 	}
 	my ($total_runs, $total_samples) = (U2_modules::U2_subs_3::get_total_runs($analysis, $dbh), U2_modules::U2_subs_3::get_total_samples($analysis, $dbh));
 	my $query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) AS f FROM miseq_analysis WHERE type_analyse = '$analysis';";
-	my $query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.nom_gene = b.nom AND b.\"$analysis\" = 't' AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
+	my $query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.refseq = b.refseq AND b.\"$analysis\" = 't' AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
 	if ($analysis eq 'all') {
 		$query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) AS f FROM miseq_analysis;";
-		$query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.nom_gene = b.nom AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
+		$query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.refseq = b.refseq AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
 	}
 	elsif ($analysis =~ /Min?i?Seq-[32]$/o) {
-		$query_size = "WITH tmp AS (SELECT MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment b WHERE a.nom[1] = b.nom_gene[1] AND type LIKE '%UTR' AND a.\"$analysis\" = 't' GROUP BY a.nom[1], a.chr ORDER BY a.chr, min ASC)\nSELECT SUM(max - min) AS size FROM tmp";
+		$query_size = "WITH tmp AS (SELECT MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment b WHERE a.refseq = b.refseq AND type LIKE '%UTR' AND a.\"$analysis\" = 't' GROUP BY a.refseq, a.chr ORDER BY a.chr, min ASC)\nSELECT SUM(max - min) AS size FROM tmp";
 	}
 	my $res = $dbh->selectrow_hashref($query);
 
@@ -1617,7 +1247,7 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 	my $res = $dbh->selectrow_hashref($query_check_analysis);
 	if ($res->{'a'} != 3) {print 'Sorry the analyses types for the 3 samples do not match.';exit;}
 
-	my $query = "SELECT nom_c, nom_gene, depth FROM variant2patient WHERE type_analyse  = '$analysis' AND id_pat = '$id' AND num_pat = '$number' AND statut NOT IN ('homozygous', 'heteroplasmic', 'homoplasmic') AND allele = 'unknown';";
+	my $query = "SELECT a.nom_c, b.gene_symbol, b.refseq, a.depth FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND a.type_analyse  = '$analysis' AND a.id_pat = '$id' AND a.num_pat = '$number' AND a.statut NOT IN ('homozygous', 'heteroplasmic', 'homoplasmic') AND a.allele = 'unknown';";
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	my ($i, $j, $k, $l, $m) = (0, 0, 0, 0, 0);#counter for changing alleles
@@ -1626,7 +1256,7 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 	while (my $result = $sth->fetchrow_hashref()) {
 		if ($result->{'depth'} > 30) {#if bad coverage in CI, possibly also in parents and error prone
 			$l++;
-			my $query_assign = "SELECT allele, statut, id_pat, num_pat FROM variant2patient WHERE nom_c = '$result->{'nom_c'}' AND nom_gene = '{$result->{'nom_gene'}[0],$result->{'nom_gene'}[1]}' AND (id_pat || num_pat) IN ('$id_father$number_father', '$id_mother$number_mother') AND  type_analyse  = '$analysis';";
+			my $query_assign = "SELECT allele, statut, id_pat, num_pat FROM variant2patient WHERE nom_c = '$result->{'nom_c'}' AND refseq = '$result->{'refseq'}' AND (id_pat || num_pat) IN ('$id_father$number_father', '$id_mother$number_mother') AND  type_analyse  = '$analysis';";
 			my $sth_assign = $dbh->prepare($query_assign);
 			my $res_assign = $sth_assign->execute();
 			if ($res_assign ne '0E0') {
@@ -1651,7 +1281,7 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 						}
 					}
 				}
-				my $update = "UPDATE variant2patient SET allele = '$allele' WHERE id_pat = '$id' AND num_pat = '$number' AND nom_gene = '{$result->{'nom_gene'}[0],$result->{'nom_gene'}[1]}' AND nom_c = '$result->{'nom_c'}';";
+				my $update = "UPDATE variant2patient SET allele = '$allele' WHERE id_pat = '$id' AND num_pat = '$number' AND refseq = '$result->{'refseq'}' AND nom_c = '$result->{'nom_c'}';";
 				$dbh->do($update);
 				$i++;
 				#$content .= $result->{'nom_gene'}[0]." - ".$result->{'nom_gene'}[1]." - ".$result->{'nom_c'}." - ".$allele."\n";
@@ -1661,11 +1291,11 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 				#denovo?
 				#remove neutral from list
 				$k++;
-				my $query_class = "SELECT classe FROM variant WHERE nom_gene = '{$result->{'nom_gene'}[0],$result->{'nom_gene'}[1]}' AND nom = '$result->{'nom_c'}';";
+				my $query_class = "SELECT classe FROM variant WHERE refseq = '$result->{'refseq'}}' AND nom = '$result->{'nom_c'}';";
 				my $res_classe = $dbh->selectrow_hashref($query_class);
 				#print $res_classe->{'classe'}."\n";
 				if ($res_classe->{'classe'} eq 'neutral' || $res_classe->{'classe'} eq 'R8' || $res_classe->{'classe'} eq 'VUCS Class F' || $res_classe->{'classe'} eq 'VUCS Class U' || $res_classe->{'classe'} eq 'artefact') {next}
-				$denovo .= $result->{'nom_gene'}[0]." - ".$result->{'nom_gene'}[1]." - ".$result->{'nom_c'}." - ".$res_classe->{'classe'}.$q->br();
+				$denovo .= $result->{'gene_symbol'}." - ".$result->{'refseq'}." - ".$result->{'nom_c'}." - ".$res_classe->{'classe'}.$q->br();
 			}
 		}
 	}
@@ -1807,9 +1437,8 @@ sub miseq_details {
 	my ($miseq_analysis, $first_name, $last_name, $gene, $acc, $nom_c) = @_;
 	$first_name =~ s/'/''/og;
 	$last_name =~ s/'/''/og;
-	my $query_ngs = "SELECT depth, frequency, msr_filter FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND  nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND nom_c = '$nom_c' AND type_analyse = '$miseq_analysis';";
+	my $query_ngs = "SELECT depth, frequency, msr_filter FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.refseq = '$acc' AND nom_c = '$nom_c' AND type_analyse = '$miseq_analysis';";
 	my $res_ngs = $dbh->selectrow_hashref($query_ngs);
-	#$print_ngs .= "DOC MiSeq: <strong>$res_ngs->{'depth'}</strong> Freq: <strong>$res_ngs->{'frequency'}</strong><br/>MSR filter:<strong>$res_ngs->{'msr_filter'}</strong><br/>";
 	return $q->start_li().$q->strong("$miseq_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($res_ngs->{'depth'}).$q->span(" Freq: ").$q->strong($res_ngs->{'frequency'}).$q->end_li().$q->start_li().$q->span("MSR filter: ").$q->strong($res_ngs->{'msr_filter'}).$q->end_li().$q->end_ul().$q->end_li();
 }
 

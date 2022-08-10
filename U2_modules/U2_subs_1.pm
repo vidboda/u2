@@ -52,7 +52,6 @@ our @CEVA = ('CEVA');
 our @OTHER_NS = ('ACOX1', 'ACTB', 'ACY1', 'ALMS1', 'ATP2B2', 'ATP6V0A4', 'ATP6V1B1', 'BSND', 'CACNA1D', 'CATSPER2', 'CHD7', 'CISD2', 'COL11A1', 'COL2A1', 'COL4A1', 'COL4A3', 'COL4A4', 'COL4A5', 'COL9A1', 'COL9A2', 'COL9A3', 'COLEC11', 'ECE1', 'EDN3', 'EDNRA', 'EDNRB', 'ERCC2', 'EYA1', 'FGF3', 'FGFR3', 'GATA3', 'HARS2', 'HSD17B4', 'JAG1', 'KARS1', 'KCNE1', 'KCNQ1', 'KIT', 'LARS2', 'MASP1', 'MITF', 'MTAP', 'MYO1F', 'NDP', 'NF2', 'OPA1', 'PAX1', 'PAX3', 'PAX6', 'PEX1', 'PEX6', 'PHYH', 'PLS1', 'PMP22', 'POLR1C', 'POLR1D', 'SEMA3E', 'SIX1', 'SIX5', 'SLC4A11', 'SNAI2', 'SOX10', 'SOX2', 'TCOF1', 'TFAP2A', 'TIMM8A', 'TNC', 'TSHZ1', 'TWNK');
 our @DAV = ('SIX1', 'KMT2D', 'KDM6A', 'ATP6V1B1', 'SLC26A4', 'FOXI1', 'KCNJ10', 'ATP6V0A4');
 our @DSD = ('AKR1C2','AKR1C4','AMH','AMHR2','AR','ARL6','ARX','ATF3','ATRX','CBX2','CHD7','CITED2','CYB5A','CYP11A1','CYP17A1','DHH','DMRT1','DMRT2','FGF8','FGF9','FGFR1','FGFR2','FSHB','FSHR','GATA4','HOXA13','HSD17B3','HSD3B2','INSL3','ANOS1','LHB','LHCGR','MAMLD1','MAP3K1','MKKS','NR0B1','NR5A1','POR','RXFP2','SOX2','SOX3','SOX8','SOX9','SOX10','SRD5A2','SRY','STAR','TSPYL1','WDR11','WNT4','WT1','ZFPM2');
-#our @NM = ('ABHD5','ACAD9','ACADVL','ACTA1','ADSSL1','AGL','AGRN','ALG13','ALG14','ALG2','AMPD1','ANO5','ATP2A1','B3GALNT2','B3GNT1','BAG3','BIN1','BVES','CACNA1A','CACNA1S','CAPN3','CAV3','CASQ1','CCDC78','CFL2','CHAT','CHKB','CHRNA1','CHRNB1','CHRND','CHRNE','CHRNG','CLCN1','CLN3','CNTN1','COL4A1','COL6A1','COL6A2','COL6A3','COL12A1','COL13A1','COLQ','CPT2','CRYAB','DAG1','DES','DMD','DNAJB6','DNM2','DOK7','DOLK','DPAGT1','DPM1','DPM2','DPM3','DYSF','EMD','ENO3','ETFA','ETFB','ETFDH','FHL1','FKRP','FKTN','FLAD1','FLNC','GAA','GBE1','GFPT1','GMPPB','GNE','GOLGA2','GPR56','GYLTL1B','GYG1','GYS1','HNRNPA1','HNRNPDL','HSPG2','ISCU','ISPD','ITGA7','KBTBD13','KCNA1','KCNE3','KCNJ18','KCNJ2','KLHL40','KLHL41','KLHL9','KY','LAMA2','LAMB2','LAMP2','LARGE','LDB3','LDHA','LIMS2','LMNA','LMOD3','LPIN1','LRP4','MATR3','MEGF10','MTM1','MUSK','MYBPC3','MYH2','MYH3','MYH7','MYH8','MYO9A','MYO18B','MYOT','NEB','NEK5','ORAI1','PABPN1','PFKM','PGAM2','PGK1','PGM1','PHKA1','PHKB','PIEZO2','PLEC','PNPLA2','PNPLA8','POMGNT1','POMGNT2','POMK','POMT1','POMT2','PREPL','PRKAG2','PTPLA','PTRF','PYGM','PYROXD1','RAPSN','RBCK1','RYR1','SCN4A','SELENON','SGCA','SGCB','SGCD','SGCG','SLC22A5','SLC25A1','SLC25A20','SLC25A32','SLC35A1','SLC35A2','SLC5A7','SNAP25','SPEG','SQSTM1','STAC3','STIM1','SYT2','TCAP','TIA1','TMEM5','TNNT1','TNPO3','TOR1AIP1','TPM2','TPM3','TRAPPC11','TRIM54','TRIM32','TRIP4','TTN','TUBB2b','VCP','VMA21');
 our @NM = ('ABHD5','ACAD9','ACADVL','ACTA1','ADSSL1','AGL','AGRN','ALG13','ALG14','ALG2','AMPD1','ANO5','ATP2A1','B3GALNT2','BAG3','BIN1','BVES','CACNA1A','CACNA1S','CAPN3','CASQ1','CAV3','CCDC78','CFL2','CHAT','CHKB','CHRNA1','CHRNB1','CHRND','CHRNE','CHRNG','CLCN1','CLN3','CNTN1','COL12A1','COL13A1','COL4A1','COL6A1','COL6A2','COL6A3','COLQ','CPT2','CRYAB','DAG1','DES','DMD','DNAJB6','DNM2','DOK7','DOLK','DPAGT1','DPM1','DPM2','DPM3','DYSF','EMD','ENO3','ETFA','ETFB','ETFDH','FHL1','FKRP','FKTN','FLAD1','FLNC','GAA','GBE1','GFPT1','GMPPB','GNE','GOLGA2','GYG1','GYS1','HNRNPA1','HNRNPDL','HSPG2','ISCU','ISPD','ITGA7','KBTBD13','KCNA1','KCNE3','KCNJ18','KCNJ2','KLHL40','KLHL41','KLHL9','KY','FOXL2','LAMA2','LAMB2','LAMP2','LDB3','LDHA','LIMS2','LMNA','LMOD3','LPIN1','LRP4','MATR3','MEGF10','MTM1','MUSK','MYBPC3','MYH2','MYH3','MYH7','MYH8','MYO18B','MYO9A','MYOT','NEB','NEK5','ORAI1','PABPN1','PFKM','PGAM2','PGK1','PGM1','PHKA1','PHKB','PIEZO2','PLEC','PNPLA2','PNPLA8','POMGNT1','POMGNT2','POMK','POMT1','POMT2','PREPL','PRKAG2','PYGM','PYROXD1','RAPSN','RBCK1','RYR1','SCN4A','SELENON','SGCA','SGCB','SGCD','SGCG','SLC22A5','SLC25A1','SLC25A20','SLC25A32','SLC35A1','SLC35A2','SLC5A7','SNAP25','SPEG','SQSTM1','STAC3','STIM1','SYT2','TCAP','TIA1','TMEM5','TNNT1','TNPO3','TOR1AIP1','TPM2','TPM3','TRAPPC11','TRIM32','TRIM54','TRIP4','TTN','VCP','VMA21');
 
 our @DSD_RESEARCH = ('GPAT2','AIRE','ALMS1','ALX4','ARID1B','ATR','BBS10','BBS12','BBS2','BBS4','BBS5','BBS7','BBS9','BLM','BMP15','BMP4','BMPR1B','BRCC3','BRWD3','BSCL2','CD96','CDKN1C','CEP290','CHRM3','CUL7','CYP19A1','CYP21A2','DCAF17','DDX3Y','DGKK','DHCR7','DIAPH2','DMRT3','DOCK8','EBP','EIF1AY','EIF2B1','EIF2B2','EIF2B3','EIF2B4','EIF2B5','ERCC8','EVC','EVC2','FGD1','FIGLA','FLNA','FOXL2','GATA1','GHR','GK','GNRH1','GNRHR','GLI3','GNAS','GPC6','H6PD','HARS2','HCCS','HDAC8','HESX1','HOXD13','HPRT1','HS6ST1','HSD11B1','HSD17B4','ICK','IGSF1','INPP5E','INSR','IRF6','IRX5','KDM5C','KDM5D','KIF7','KISS1','KISS1R','KLHL4','LEP','LEPR','LHX3','LMNA','MAP2K1','MBTPS2','MECP2','MED12','MID1','MKS1','MTCP1','MTM1','NAA10','NBN','NOBOX','NOTCH2','NR3C1','NRP1','NSDHL','NSMF','OCRL','OFD1','OPHN1','ORC1','PAPSS2','PAX2','PCDH11Y','PCSK1','PEX1','PEX12','PEX14','PEX2','PEX26','PEX3','PEX5','PEX6','PHF6','PITX2','PMM2','POF1B','POLG','POLR3A','PRKAR1A','PROP1','PROK2','PROKR2','PSMC3IP','PTPN11','RAB23','RAB3GAP2','RAB40AL','RAF1','RECQL4','RSPO1','SF3B4','SLC29A3','SLC39A4','SMS','SOS1','TAC3','TACR3','TMEM67','TRIM32','TTC8','UBR1','USP26','USP9Y','WT1','WWOX','BBS1','BMP2','BUB1B','CREBBP','CTNNB1','CUL4B','CYP11B1','EMX2','FRAS1','FREM2','KRT19','RIPK4','ROR2','SEMA3A','SEMA3E','SMARCA2','STK11','STRA6','TBCE','TBX3','TP63','UPK3A','WDPCP');
@@ -302,26 +301,6 @@ sub gene_header {
 	print $q->end_div(), $q->end_div(),"\n",
 		$q->div({'class' => 'tab_content', 'style' => 'display:block;'}), "\n";
 
-
-
-
-	#print $q->start_h2(), $q->em($gene), $q->span(" page:"), $q->end_h2(), "\n",
-	#	$q->br(), $q->start_div(), "\n";
-	#if ($current_tab eq 'general_info') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General features', $q)}
-	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=general', '_self');", 'General info', $q)}
-	#if ($current_tab eq 'structure') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exon structure', $q)}
-	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=structure', '_self');", 'Exons structure', $q)}
-	#if ($current_tab eq 'var_all') {&print_span('tab tab_current', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
-	#else {&print_span('tab tab_other', $current_tab, "chooseSortingType('$gene');", 'Get all variants', $q)}
-	#if ($current_tab eq 'genotypes') {&print_span('tab tab_current', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
-	#else {&print_span('tab tab_other', $current_tab, "window.open('gene.pl?gene=$gene&amp;info=genotype', '_self');", 'Genotypes', $q)}
-	#if ($current_tab eq 'graphs') {&print_span('tab tab_current', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
-	#else {&print_span('tab tab_other', $current_tab, "window.open('gene_graphs.pl?gene=$gene', '_self');", 'Beautiful graphs', $q)}
-	#
-	##"chooseSortingType('$gene');"
-	#
-	#print $q->end_div(), "\n",
-	#	$q->div({'class' => 'tab_content', 'style' => 'display:block;'}), "\n";
 }
 #used in gene_header
 sub print_span {
@@ -431,7 +410,7 @@ sub select_phenotype { #insert a list of phenotypes in a pop up menu
 sub select_gene { #insert a list of genes in a pop up menu
 	my ($q, $dbh) = @_;
 	my @gene_list;
-	my $sth = $dbh->prepare("SELECT nom[1] as gene FROM gene;");
+	my $sth = $dbh->prepare("SELECT gene_symbol as gene FROM gene;");
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {push @gene_list, $result->{'gene'}}
 	print $q->popup_menu(-name => 'gene', -id => 'genes', -values => \@gene_list, -class => 'w3-select w3-border');
@@ -477,30 +456,17 @@ sub select_analysis {
 	return $q->popup_menu(-name => 'analysis', -id => 'analysis', -form => $form, -values => \@analysis_list, -onchange => 'associate_gene();', -class => 'w3-select w3-border');
 }
 
-
-#was used to present the analyses under a radio button style - changed 05/07/2014 for a select style
-#sub radio_analysis {
-#	my ($q, $dbh) = @_;
-#	my @analysis_list;
-#	my $sth = $dbh->prepare("SELECT type_analyse FROM valid_type_analyse WHERE form = 't';");
-#	my $res = $sth->execute();
-#	while (my $result = $sth->fetchrow_hashref()) {push @analysis_list, $result->{'type_analyse'}}
-#	@analysis_list = sort(@analysis_list);
-#	print $q->radio_group(-name => 'analysis', -values => \@analysis_list, -columns => 1, -defaults => '', -onchange => 'associate_gene();');
-#}
-
-
 sub valid {
 	my ($user, $number, $id, $dbh, $q) = @_;
 	if ($user->isAnalyst() == 1) {
-		my $tech_val = "SELECT DISTINCT(a.nom_gene[1]), a.type_analyse FROM analyse_moleculaire a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.multiple = 'f' AND a.num_pat = '$number' AND a.id_pat = '$id' AND (a.technical_valid = 'f' OR a.result IS NULL OR a.valide = 'f');";
+		my $tech_val = "SELECT DISTINCT(c.gene_symbol), a.type_analyse FROM analyse_moleculaire a, valid_type_analyse b, gene c WHERE a.type_analyse = b.type_analyse AND a.refseq = b.refseq AND b.multiple = 'f' AND a.num_pat = '$number' AND a.id_pat = '$id' AND (a.technical_valid = 'f' OR a.result IS NULL OR a.valide = 'f');";
 		my $sth = $dbh->prepare($tech_val);
 		my $res = $sth->execute();
 		my $html;
 		if ($res ne '0E0') {
 			while (my $result = $sth->fetchrow_hashref()) {
-				$html .= $q->start_li().$q->em($result->{'nom_gene'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-				$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'});
+				$html .= $q->start_li().$q->em($result->{'gene_symbol'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+				$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'gene_symbol'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'});
 				$html .= $q->end_li();
 			}
 		}
@@ -512,19 +478,16 @@ sub valid {
 sub valid_table {
 	my ($user, $number, $id, $dbh, $q) = @_;
 	if ($user->isAnalyst() == 1) {
-		my $tech_val = "SELECT DISTINCT(a.nom_gene[1]), a.type_analyse FROM analyse_moleculaire a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.multiple = 'f' AND a.type_analyse NOT LIKE '%xome' AND a.num_pat = '$number' AND a.id_pat = '$id' AND (a.technical_valid = 'f' OR a.result IS NULL OR a.valide = 'f');";
+		my $tech_val = "SELECT DISTINCT(c.gene_symbol), a.type_analyse FROM analyse_moleculaire a, valid_type_analyse b, gene c WHERE a.type_analyse = b.type_analyse AND a.refseq = c.refseq AND b.multiple = 'f' AND a.type_analyse NOT LIKE '%xome' AND a.num_pat = '$number' AND a.id_pat = '$id' AND (a.technical_valid = 'f' OR a.result IS NULL OR a.valide = 'f');";
 		my $sth = $dbh->prepare($tech_val);
 		my $res = $sth->execute();
 		my $html;
 		if ($res ne '0E0') {
 			$html .= $q->start_table({'class' => 'great_table technical'}).$q->start_Tr().$q->th({'class' => 'left_general'}, 'Gene').$q->th({'class' => 'left_general'}, 'Analysis').$q->end_Tr();#$q->th({'class' => 'left_general'}, 'Link').
 			while (my $result = $sth->fetchrow_hashref()) {
-				$html .= $q->start_Tr().$q->td({'class' => 'italique'}, $result->{'nom_gene'});#.$q->td($result->{'type_analyse'});
-				$html .= $q->start_td().$q->button({'value' => $result->{'type_analyse'}, 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'}).$q->end_td();
+				$html .= $q->start_Tr().$q->td({'class' => 'italique'}, $result->{'gene_symbol'});#.$q->td($result->{'type_analyse'});
+				$html .= $q->start_td().$q->button({'value' => $result->{'type_analyse'}, 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'gene_symbol'}&analysis=$result->{'type_analyse'}';", 'class' => 'w3-button w3-ripple w3-blue'}).$q->end_td();
 				$html .= $q->end_Tr();
-				#$html .= $q->start_li().$q->em($result->{'nom_gene'}).$q->span("&nbsp;&nbsp;($result->{'type_analyse'})&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
-				#$html .= $q->button({'value' => 'Access', 'onclick' => "document.location = 'add_analysis.pl?step=2&sample=$id$number&gene=$result->{'nom_gene'}&analysis=$result->{'type_analyse'}';"});
-				#$html .= $q->end_li();
 			}
 			$html .= $q->end_table();
 		}
@@ -571,7 +534,7 @@ sub check_gene { #checks gene param
 	elsif ($q->param('gene') =~ /([\w-]+)/og) {
 		my $name = $1;
 		if ($name =~ /ORF/o) {$name =~ s/ORF/orf/og}
-		my $query = "SELECT DISTINCT (nom[1]) as gene, second_name FROM gene WHERE nom[1] = '$name';";
+		my $query = "SELECT DISTINCT (gene_symbol) as gene, second_name FROM gene WHERE gene_symbol = '$name';";
 		my $res = $dbh->selectrow_hashref($query);
 		if ($res->{'gene'} ne '0E0') {return ($res->{'gene'}, $res->{'second_name'})}
 		else {&standard_error('5', $q)}
@@ -590,8 +553,8 @@ sub check_acc {
 	#checks gene param
 	my ($q, $dbh) = @_;
 	if ($q->param('accession') =~ /(N[MRGC]_\d+\.*\d*)/og) {
-		my $query = "SELECT nom[2] as acc FROM gene WHERE nom[2] = '$1';";
-		if ($1 =~ /NG_.+/o) {$query = "SELECT acc_g as acc FROM gene WHERE nom[2] = '$1';";}
+		my $query = "SELECT refseq as acc FROM gene WHERE refseq = '$1';";
+		if ($1 =~ /NG_.+/o) {$query = "SELECT acc_g as acc FROM gene WHERE refseq = '$1';";}
 		my $res = $dbh->selectrow_hashref($query);
 		if ($res->{'acc'} ne '0E0') {return $res->{'acc'}}
 		else {&standard_error('6', $q)}
@@ -602,7 +565,7 @@ sub check_acc {
 sub check_nom_c {
 	my ($q, $dbh) = @_;
 	if (uri_decode($q->param('nom_c')) =~ /([nc]\.[>\w\*\-\+\?_\{\}]+)/og) {
-		my $query = "SELECT nom as var FROM variant WHERE nom = '$1' AND nom_gene[1] = '".$q->param('gene')."';";
+		my $query = "SELECT a.nom as var FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom = '$1' AND b.gene_symbol = '".$q->param('gene')."';";
 		#print $query;
 		my $res = $dbh->selectrow_hashref($query);
 		if ($res->{'var'} ne '0E0') {return $res->{'var'}}
@@ -744,14 +707,6 @@ sub check_rna_status {
 	&standard_error('24', $q)
 }
 
-
-#sub check_number {
-#	my ($q) = @_;
-#	if ($q->param('number') =~ /^(\d+)$/og) {return $1}
-#	else {&standard_error($self, '4', $q)}
-#}
-
-
 # Error sub
 
 sub standard_error { #returns an error and ends script
@@ -792,16 +747,11 @@ sub standard_error { #returns an error and ends script
 	print $q->end_html();
 	exit();
 }
-
-# Patients subs
-
-
-
 # gene subs
 
 sub get_gene_group {
 	my ($gene, $dbh) = @_;
-	my $query = "SELECT rp, dfn, usher FROM gene WHERE nom[1] = '$gene';";
+	my $query = "SELECT rp, dfn, usher FROM gene WHERE gene_symbol = '$gene';";
 	my $res = $dbh->selectrow_hashref($query);
 	return ($res->{'rp'}, $res->{'dfn'}, $res->{'usher'});
 }
@@ -810,9 +760,9 @@ sub get_gene_from_nom_g {
 	my ($q, $dbh) = @_;
 	#if (uri_decode($q->param('nom_g')) =~ /(chr[\dXY]+:g\.[>\w\*\-\+\?_\{\}]+)/og) {
 	if (uri_decode($q->param('nom_g')) =~ /(chr$CHR_REGEXP:$HGVS_CHR_TAG\.[>\w\*\-\+\?_\{\}]+)/og) {
-		my $query = "SELECT nom_gene FROM variant WHERE nom_g = '$1';";
+		my $query = "SELECT refseq FROM variant WHERE nom_g = '$1';";
 		my $res = $dbh->selectrow_hashref($query);
-		if ($res->{'nom_gene'} ne '0E0') {return ($res->{'nom_gene'})}
+		if ($res->{'nom_gene'} ne '0E0') {return ($res->{'refseq'})}
 		else {&standard_error('9', $q)}
 	}
 	else {&standard_error('8', $q)}
@@ -821,23 +771,13 @@ sub get_gene_from_nom_g {
 sub get_ng_accno {
 	my ($gene, $acc, $dbh, $q) = @_;
 	#gene, acc must have been checked before
-	my $query = "SELECT acc_g FROM gene WHERE nom[1] = '$gene' AND nom[2] = '$acc';";
+	my $query = "SELECT acc_g FROM gene WHERE refseq = '$acc';";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {return $res->{'acc_g'}}
 	else {&standard_error('5', $q)}
 }
 
 # Variants subs
-
-#deprecated is now in U2_subs_2 2013/12/23
-#sub is_in_interval {
-#	my ($var, $mini, $maxi) = @_;
-#	my $pos;
-#	$var->{'nom_g'} =~ /chr\w+:g\.(\d+)[^\d]+.+/o;
-#	$pos = $1;
-#	if (($var->{'num_segment'} eq $var->{'num_segment_end'}) && ($pos >= $mini && $pos <= $maxi)) {return 1}
-#	else {return 0}
-#}
 
 sub color_by_classe {
 	my ($classe, $dbh) = @_;
@@ -937,30 +877,6 @@ sub spliceAI_color {
 	else {return '#00A020'}
 }
 
-
-#in variant.pl, engine.pl, gene.pl, ajax.pl
-#sub get_interpreted_position2 {
-#	my ($result, $dbh, , $q) = @_;
-#	#my $spec = '';
-#	if ($result->{'type_segment'} eq 'exon') {
-#		my ($dist, $label) = U2_modules::U2_subs_1::get_pos_from_intron($result, $dbh);
-#		if ($dist <= 3 && $dist >= 0) {if ($type eq 'hash'){return "exonic near $label"}++}elsif ($type eq 'span') {return $q->span(" - exonic near $label")}}
-#		elsif ($label eq 'overlap') {if ($type eq 'hash'){$spec->{'overlap junction'}++}elsif ($type eq 'span') {$spec = $q->span(' - overlap junction')}}
-#		else {if ($type eq 'hash'){$spec->{'exonic middle'}++}elsif ($type eq 'span') {$spec = $q->span(' - exonic middle')}}
-#
-#		if ($dist <= 3 && $dist >= 0) {if ($type eq 'hash'){$spec->{"exonic near $label"}++}elsif ($type eq 'span') {$spec = $q->span(" - exonic near $label")}}
-#		elsif ($label eq 'overlap') {if ($type eq 'hash'){$spec->{'overlap junction'}++}elsif ($type eq 'span') {$spec = $q->span(' - overlap junction')}}
-#		else {if ($type eq 'hash'){$spec->{'exonic middle'}++}elsif ($type eq 'span') {$spec = $q->span(' - exonic middle')}}
-#	}
-#	elsif ($result->{'type_segment'} eq 'intron') {
-#		my $dist = U2_modules::U2_subs_1::get_pos_from_exon($result->{'nom'});
-#		if ($dist < 3 && $dist > 0) {if ($type eq 'hash'){$spec->{'cannonical site'}++}elsif ($type eq 'span') {$spec = $q->span(' - cannonical site')}}
-#		elsif ($dist > 100) {if ($type eq 'hash'){$spec->{'deep intronic'}++}elsif ($type eq 'span') {$spec = $q->span(' - deep intronic')}}
-#		elsif ($dist != -1) {if ($type eq 'hash'){$spec->{'other intronic'}++}elsif ($type eq 'span') {$spec = $q->span(' - other intronic')}}
-#		elsif ($dist == -1) {if ($type eq 'hash'){$spec->{'overlap junction'}++}elsif ($type eq 'span') {$spec = $q->span(' - overlap junction')}}
-#	}
-#	return $spec;
-#}
 #in engine.pl, U2_subs_2 (RNA_pie), ajax.pl
 sub get_interpreted_position {
 	my ($result, $dbh) = @_;
@@ -1024,25 +940,25 @@ sub get_pos_from_exon {
 #in gene_graphs.pl, variant.pl, engine.pl, ajax.pl
 sub get_pos_from_intron {
 	my ($result, $dbh) = @_;
-	my ($nom_g, $gene, $acc, $num_seg, $type_seg, $num_seg_end, $type_seg_end) = ($result->{'nom_g'}, $result->{'nom_gene'}[0], $result->{'nom_gene'}[1], $result->{'num_segment'}, $result->{'type_segment'}, $result->{'num_segment_end'}, $result->{'type_segment_end'});
+	my ($nom_g, $gene, $acc, $num_seg, $type_seg, $num_seg_end, $type_seg_end) = ($result->{'nom_g'}, $result->{'gene_symbol'}, $result->{'refseq'}, $result->{'num_segment'}, $result->{'type_segment'}, $result->{'num_segment_end'}, $result->{'type_segment_end'});
 	#1st extract position(s)
 	my ($chr, $pos1, $pos2) = &extract_pos_from_genomic($nom_g, 'evs');
 	#2nd get strand
-	my $query = "SELECT brin FROM gene WHERE nom[1] = '$gene' AND nom[2] = '$acc';";
+	my $query = "SELECT brin FROM gene WHERE refseq = '$acc';";
 	my $res = $dbh->selectrow_hashref($query);
 	#possible overlapping?
 
 	if ($pos1 == $pos2) {
 		#NO - simple case
-		return &compute_exonic_positions("SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND type = '$type_seg' AND numero = '$num_seg';", $pos1, $res->{'brin'}, $dbh);
+		return &compute_exonic_positions("SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE refseq = '$acc' AND type = '$type_seg' AND numero = '$num_seg';", $pos1, $res->{'brin'}, $dbh);
 	}
 	else {
 		if ($type_seg ne $type_seg_end) { #overlap
 			return ('-1', 'overlap')
 		}
 		else {#only exonic
-			my ($dist5, $label5) = &compute_exonic_positions("SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND type = '$type_seg' AND numero = '$num_seg';", $pos1, $res->{'brin'}, $dbh);
-			my ($dist3, $label3) = &compute_exonic_positions("SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE nom_gene[1] = '$gene' AND nom_gene[2] = '$acc' AND type = '$type_seg_end' AND numero = '$num_seg_end';", $pos2, $res->{'brin'}, $dbh);
+			my ($dist5, $label5) = &compute_exonic_positions("SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE refseq = '$acc' AND type = '$type_seg' AND numero = '$num_seg';", $pos1, $res->{'brin'}, $dbh);
+			my ($dist3, $label3) = &compute_exonic_positions("SELECT $postgre_start_g, $postgre_end_g, taille FROM segment WHERE refseq = '$acc' AND type = '$type_seg_end' AND numero = '$num_seg_end';", $pos2, $res->{'brin'}, $dbh);
 			if ($dist5 > $dist3) {return ($dist3, $label3)}
 			elsif ($dist5 < $dist3) {return ($dist5, $label5)}
 			elsif ($dist5 == $dist3) {return ($dist5, 'middle')}
@@ -1090,7 +1006,7 @@ sub getExacFromGenoVar {
 
 sub get_chr_from_gene {
 	my ($gene, $dbh) = @_;
-	my $query = "SELECT chr FROM gene where nom[1] = '$gene';";
+	my $query = "SELECT chr FROM gene where gene_symbol = '$gene';";
 	my $res = $dbh->selectrow_hashref($query);
 	return $res->{'chr'};
 }
@@ -1116,7 +1032,7 @@ sub is_class_pathogenic {
 #in splicing_calc.pl
 sub get_last_exon_number {
 	my ($transcript, $dbh) = @_;
-	my $query = "SELECT numero-1 as a FROM segment WHERE nom_gene[2] = '$transcript' AND type = '3UTR';";
+	my $query = "SELECT numero-1 as a FROM segment WHERE refseq = '$transcript' AND type = '3UTR';";
 	my $res = $dbh->selectrow_hashref($query);
 	#print "--$res->{'a'}--";
 	return $res->{'a'};
@@ -1125,12 +1041,12 @@ sub get_last_exon_number {
 sub maf {
 	my ($dbh, $gene, $acc, $var, $analyse) = @_;
 	my $maf = 'NA';
-	my $query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient b, patient c WHERE b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.type_analyse ~ '$analyse' AND b.nom_gene[1] = '$gene'  AND b.nom_gene[2] = '$acc' AND nom_c = '$var' AND b.statut <> 'homozygous' AND c.proband = 't';";
+	my $query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse ~ '$analyse' AND a.refseq = '$acc' AND a.nom_c = '$var' AND a.statut <> 'homozygous' AND b.proband = 't';";
 	my $res_1 = $dbh->selectrow_hashref($query);
-	$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient b, patient c WHERE b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.type_analyse ~ '$analyse' AND b.nom_gene[1] = '$gene'  AND b.nom_gene[2] = '$acc' AND nom_c = '$var' AND b.statut = 'homozygous' AND c.proband = 't';";
+	$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse ~ '$analyse' AND a.refseq = '$acc' AND a.nom_c = '$var' AND a.statut = 'homozygous' AND b.proband = 't';";
 	my $res_2 = $dbh->selectrow_hashref($query);
 	my $alleles = $res_1->{'a'} + ($res_2->{'a'} * 2);
-	$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM analyse_moleculaire b, patient c WHERE b.num_pat = c.numero AND b.id_pat = c.identifiant AND b.type_analyse ~ '$analyse' AND b.nom_gene[1] = '$gene'  AND b.nom_gene[2] = '$acc' AND c.proband = 't';";
+	$query = "SELECT COUNT(DISTINCT(num_pat)) as a FROM analyse_moleculaire a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse ~ '$analyse' AND a.refseq = '$acc' AND b.proband = 't';";
 	my $res_3 = $dbh->selectrow_hashref($query);
 	my $total = $res_3->{'a'} * 2;
 	if ($total == 0) {$maf = 'NA';return $maf;}
@@ -1208,7 +1124,7 @@ sub nom_three2one{
 
 sub get_strand {
 	my ($gene, $dbh) = @_;
-	my $res = $dbh->selectrow_hashref("SELECT brin FROM gene WHERE nom[1] = '$gene' AND main = 't';");
+	my $res = $dbh->selectrow_hashref("SELECT brin FROM gene WHERE gene_symbol = '$gene' AND main = 't';");
 	my $order = 'ASC';
 	if ($res->{'brin'} eq '-') {$order = 'DESC'}
 	return $order;
@@ -1216,7 +1132,7 @@ sub get_strand {
 
 sub get_nom_segment_main {
 	my ($num, $gene, $dbh) = @_;
-	my $query = "SELECT a.nom FROM segment a, gene b WHERE a.nom_gene = b.nom AND a.nom_gene[1] = '$gene' AND b.main = 't' AND a.numero = '$num' AND a.type <> 'intron';";
+	my $query = "SELECT a.nom FROM segment a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene' AND b.main = 't' AND a.numero = '$num' AND a.type <> 'intron';";
 	my $res = $dbh->selectrow_hashref($query);
 	return $res->{'nom'};
 }
@@ -1464,21 +1380,6 @@ sub seal_connexion {
 	$ssh->error() and die "$link Can't ssh to SEAL: " . $ssh->error() . $q->br() . "If you see this page, please contact youradmin and keep the error message.";
 	return $ssh;
 }
-
-
-#sub get_analysis_hash {#returns a hash of available analysis
-#	my ($dbh) = shift;
-#	my $hash_ref;
-#	my $query = 'SELECT type_analyse FROM valid_type_analyse';
-#	my $sth = $dbh->prepare($query);
-#	my $res = $sth->execute();
-#	while (my $result = $sth->fetchrow_hashref()) {
-#		$hash_ref->{$result->{'type_analyse'}} = '0';
-#	}
-#	return $hash_ref;
-#}
-
-
 
 
 1;

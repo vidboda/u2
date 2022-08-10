@@ -79,42 +79,6 @@ sub main {
 
 	my $user = U2_modules::U2_users_1->new();
 	if ($user->isPublic()) {$q->redirect("engine_public.pl?search=".$q->param('search'));exit;}
-	#print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
-	#	$q->start_html(
-	#		-title=>"U2 search engine",
-	#                -lang => 'en',
-	#                -style => {-src => \@styles},
-	#                -head => [
-	#			$q->Link({-rel => 'icon',
-	#				-type => 'image/gif',
-	#				-href => $HTDOCS_PATH.'data/img/animated_favicon1.gif'}),
-	#			$q->Link({-rel => 'search',
-	#				-type => 'application/opensearchdescription+xml',
-	#				-title => 'U2 search engine',
-	#				-href => $HTDOCS_PATH.'u2browserengine.xml'}),
-	#			$q->meta({-http_equiv => 'Cache-control',
-	#				-content => 'no-cache'}),
-	#			$q->meta({-http_equiv => 'Pragma',
-	#				-content => 'no-cache'}),
-	#			$q->meta({-http_equiv => 'Expires',
-	#				-content => '0'})],
-	#                -script => [{-language => 'javascript',
-	#                        -src => $JS_PATH.'jquery-1.7.2.min.js'},
-	#                        {-language => 'javascript',
-	#                        -src => $JS_PATH.'jquery.fullsize.pack.js'},
-	#			{-language => 'javascript',
-	#                        -src => $JS_PATH.'jquery.validate.min.js'},
-	#                        {-language => 'javascript',
-	#                        -src => $JS_PATH.'DIV_SRC.js'},
-	#                        {-language => 'javascript',
-	#                        -src => $JS_DEFAULT}],
-	#		-encoding => 'ISO-8859-1');
-
-
-
-	#U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
-
-
 
 	my $keyword = &get_genes($dbh);
 
@@ -129,12 +93,12 @@ sub main {
 	foreach(@ids) {$keyword->{$_."number"} = 'familyID';$keyword->{lc($_)."number"} = 'familyID';}
 
 
-	$keyword->{'c\.'} = 'DNA-nom';
-	$keyword->{'g\.'} = 'DNA-nom_ng';
-	$keyword->{'[Cc][Hh][Rr]'} = 'DNA-nom_g';
-	$keyword->{'[Ii][Vv][Ss]'} = 'DNA-nom_ivs';
-	$keyword->{'p\.'} = 'nom_prot';
-	$keyword->{'[rR][sS]number'} = 'DNA-snp_id';
+	$keyword->{'c\.'} = 'DNA-a.nom';
+	$keyword->{'g\.'} = 'DNA-a.nom_ng';
+	$keyword->{'[Cc][Hh][Rr]'} = 'DNA-a.nom_g';
+	$keyword->{'[Ii][Vv][Ss]'} = 'DNA-a.nom_ivs';
+	$keyword->{'p\.'} = 'a.nom_prot';
+	$keyword->{'[rR][sS]number'} = 'DNA-a.snp_id';
 	$keyword->{'^Enumber-?\d*[delupins]*$'} = 'LR';
 	$keyword->{'[Rr][Nn][Aa]'} = 'RNA';
 
@@ -172,16 +136,13 @@ sub main {
 		}
 		#exit;
 		#print $motif;
-		#if ($motif ne '' && $motif !~ /DNA-/o && $motif ne 'nom_prot') {
 		if ($motif eq 'LR') {
 			$recherche =~ /E(\d+)-?(\d*)/o;
 			if ($2) {
-				$query = "SELECT * FROM variant WHERE taille > 100 AND (num_segment IN ($1, ".($1-1).") AND num_segment_end IN ($2, ".($2-1).")) AND (num_segment_end-num_segment = $2-$1);";
-				#my $sth_nom_g = $dbh->prepare($query_nom_g);
-				#my $res_nom_g = $sth_nom_g->execute();
+				$query = "SELECT a.*, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.taille > 100 AND (a.num_segment IN ($1, ".($1-1).") AND a.num_segment_end IN ($2, ".($2-1).")) AND (a.num_segment_end-a.num_segment = $2-$1);";
 			}
 			else {
-				$query = "SELECT * FROM variant WHERE taille > 100 AND (num_segment IN ($1, ".($1-1).") OR num_segment_end IN ($1, ".($1-1).")) AND (num_segment_end-num_segment > 0);";
+				$query = "SELECT a.* FROM variant a, gene b WHERE a.refseq = b.refseq AND a.taille > 100 AND (a.num_segment IN ($1, ".($1-1).") OR a.num_segment_end IN ($1, ".($1-1).")) AND (a.num_segment_end-a.num_segment > 0);";
 			}
 			&print_results($query, $motif, '2', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 			$query = '';
@@ -199,8 +160,8 @@ sub main {
 			if ($recherche =~ /\>/o) {$motif = 'DNA'}
 			elsif ($recherche =~ /^[\d_\?\+-]+[delupins]{3}/o) {$motif = 'DNA'}
 			elsif ($recherche =~ /^\d+$/o) {$motif = 'multiple_number'}
-			elsif ($recherche =~ /^\w{1,3}\d+[\w\*]{1,3}$/o) {$motif = 'nom_prot';$recherche = "p.$recherche";}
-			elsif ($recherche =~ /^\w{1,3}[\d_]+[delupins]{3}/o) {$motif = 'nom_prot';$recherche = "p.$recherche";}
+			elsif ($recherche =~ /^\w{1,3}\d+[\w\*]{1,3}$/o) {$motif = 'a.nom_prot';$recherche = "p.$recherche";}
+			elsif ($recherche =~ /^\w{1,3}[\d_]+[delupins]{3}/o) {$motif = 'a.nom_prot';$recherche = "p.$recherche";}
 			elsif ($recherche =~ /^([A-Za-z\s-']+)$/o) {$motif = 'patient_name';$recherche = uc($recherche);}
 			#print $recherche;
 		}
@@ -210,19 +171,19 @@ sub main {
 			$recherche =~ s/[Ii][Vv][Ss]/IVS/;
 			$recherche =~ s/[rR][sS]/rs/;
 			if ($recherche =~ /(.+[delup]{3})/o) {$recherche = $1}
-			if ($motif eq 'DNA-nom_ivs' && $recherche =~ /X/o) {$recherche =~ s/\+/\\\+/o;$recherche =~ s/X/\\d+/o;$query = "SELECT  nom, nom_gene, nom_prot FROM variant WHERE nom_ivs ~ '".$recherche."[^\\d]+.+' ORDER BY nom_gene, nom_g;";$motif = '';}
+			if ($motif eq 'DNA-a.nom_ivs' && $recherche =~ /X/o) {$recherche =~ s/\+/\\\+/o;$recherche =~ s/X/\\d+/o;$query = "SELECT  a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_ivs ~ '".$recherche."[^\\d]+.+' ORDER BY b.gene_symbol, a.nom_g;";$motif = '';}
 		}
 		if ($motif =~ /DNA-(.+)/o) {
-			if ($1 eq 'nom_g') {$query = "SELECT nom, nom_gene, nom_prot FROM variant WHERE nom_g LIKE '$recherche%' OR nom_g_38 LIKE '$recherche%' ORDER BY nom_gene, nom_g;";}
-			else {$query = "SELECT nom, nom_gene, nom_prot FROM variant WHERE $1 LIKE '$recherche%' ORDER BY nom_gene, nom_g;"};
+			if ($1 eq 'nom_g') {$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g LIKE '$recherche%' OR a.nom_g_38 LIKE '$recherche%' ORDER BY b.gene_symbol, a.nom_g;";}
+			else {$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND $1 LIKE '$recherche%' ORDER BY b.gene_symbol, a.nom_g;"};
 		}
 		elsif ($motif eq 'DNA') {
-			$query = "SELECT nom, nom_gene, nom_prot FROM variant WHERE (nom LIKE '%$recherche%' OR nom_g LIKE '%$recherche%' OR nom_g_38 LIKE '%$recherche%' OR nom_ng LIKE '%$recherche%' OR nom_ivs LIKE '%$recherche%') ORDER BY nom_gene, nom_g;";
+			$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND (a.nom LIKE '%$recherche%' OR a.nom_g LIKE '%$recherche%' OR a.nom_g_38 LIKE '%$recherche%' OR a.nom_ng LIKE '%$recherche%' OR a.nom_ivs LIKE '%$recherche%') ORDER BY b.gene_symbol, a.nom_g;";
 		}
 		elsif ($motif eq 'RNA') {
-			$query = "SELECT * FROM variant WHERE type_arn = 'altered' AND taille < '100' ORDER BY nom_gene[1], nom_g;"; # we keep false variants identified by 454 AND classe NOT IN ('pathogenic', 'VUCS class IV', 'VUCS class III');";
+			$query = "SELECT a.*, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.type_arn = 'altered' AND a.taille < '100' ORDER BY b.gene_symbol, a.nom_g;"; # we keep false variants identified by 454 AND classe NOT IN ('pathogenic', 'VUCS class IV', 'VUCS class III');";
 		}
-		elsif ($motif eq 'nom_prot') {
+		elsif ($motif eq 'a.nom_prot') {
 			if ($recherche !~ /\(.+\)/o) {
 				$recherche =~ s/p\.(.+)/p\.\($1\)/o;
 			}
@@ -233,7 +194,7 @@ sub main {
 				#elsif ($3 eq '*') {$recherche = "p.(".U2_modules::U2_subs_1::one2three(uc($1)).$2.U2_modules::U2_subs_1::one2three(uc($3)))"}
 				else {$recherche = "p.(".U2_modules::U2_subs_1::one2three(uc($1)).$2.U2_modules::U2_subs_1::one2three(uc($3)).")"}
 			}
-			$query = "SELECT  nom, nom_gene, nom_prot FROM variant WHERE $motif LIKE '$recherche%' ORDER BY nom_gene, nom_g;";
+			$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND $motif LIKE '$recherche%' ORDER BY b.gene_symbol, a.nom_g;";
 		}
 		elsif ($motif eq 'patient_name') {
 			$recherche =~ s/'/''/og;
@@ -248,7 +209,6 @@ sub main {
 			&print_results($query, $motif, '1', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 		}
 
-
 		## multiple possibilities
 		# > => DNA OK
 		#only \d => variant (DNA, prot), patientID, family ID (OK)
@@ -261,7 +221,7 @@ sub main {
 			$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE famille LIKE '%$recherche%' OR numero::text LIKE '%$recherche%' ORDER BY identifiant, numero;";
 			&print_results($query, 'familyID', '2', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 			#2nd dna/prot variant
-			$query = "SELECT * FROM variant WHERE nom LIKE '%$recherche%' OR nom_prot LIKE '%$recherche%' ORDER BY nom_gene, nom_g;";
+			$query = "SELECT a.* FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom LIKE '%$recherche%' OR a.nom_prot LIKE '%$recherche%' ORDER BY b.gene_symbol, a.nom_g;";
 			&print_results($query, 'variant', '3', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 		}
 
@@ -271,8 +231,6 @@ sub main {
 			print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
 			print $q->start_p(), $q->strong("Sorry, I did not find anything matching your query in U2 (query: '$recherche'). If you believe I should have found something, please contact David."), $q->end_p();
 		}
-
-
 
 	}
 	else {
@@ -307,7 +265,7 @@ sub print_results {
 		if ($res == 1 && $call == 1) {#only one result => redirect
 			my $result = $dbh->selectrow_hashref($query);
 			if ($motif eq 'patient_name' || $motif eq 'familyID') {$url = "patient_file.pl?sample=$result->{'identifiant'}$result->{'numero'}"}
-			else {$url = "variant.pl?gene=$result->{'nom_gene'}[0]&accession=$result->{'nom_gene'}[1]&nom_c=".uri_escape($result->{'nom'})}
+			else {$url = "variant.pl?gene=$result->{'gene_symbol'}&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'})}
 			#print $url;
 			$q->redirect("$url");
 			exit;
@@ -332,7 +290,7 @@ sub print_results {
 				if ($query =~ /taille > 100/o) {#for LR
 					while (my $result = $sth->fetchrow_hashref()) {
 						my $name = U2_modules::U2_subs_2::create_lr_name($result, $dbh);
-						print $q->start_li(), $q->start_a({'href' => "variant.pl?gene=$result->{'nom_gene'}[0]&accession=$result->{'nom_gene'}[1]&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}), $q->em($result->{'nom_gene'}[0]), $q->span(":$result->{'nom'} - $result->{'nom_prot'} - $name"), $q->end_a(), $q->end_li(), "\n";
+						print $q->start_li(), $q->start_a({'href' => "variant.pl?gene=$result->{'gene_symbol'}&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}), $q->em($result->{'gene_symbol'}), $q->span(":$result->{'nom'} - $result->{'nom_prot'} - $name"), $q->end_a(), $q->end_li(), "\n";
 					}
 				}
 				else {#for normal variants
@@ -344,7 +302,7 @@ sub print_results {
 							$css_class =~ s/ /_/og;
 							$spec = $q->span({'class' => $css_class}, " - $value");
 						}
-						print $q->start_li(), $q->start_a({'href' => "variant.pl?gene=$result->{'nom_gene'}[0]&accession=$result->{'nom_gene'}[1]&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}), $q->em($result->{'nom_gene'}[0]), $q->span(":$result->{'nom'} - $result->{'nom_prot'}"), $q->end_a(), $spec, $q->end_li(), "\n";
+						print $q->start_li(), $q->start_a({'href' => "variant.pl?gene=$result->{'gene_symbol'}&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}), $q->em($result->{'gene_symbol'}), $q->span(":$result->{'nom'} - $result->{'nom_prot'}"), $q->end_a(), $spec, $q->end_li(), "\n";
 					}
 					if ($q->param('dynamic') && $q->param('dynamic') =~ /([\w\s]+)/o) {
 						my $class = $1;
@@ -395,11 +353,11 @@ sub build_link {
 
 sub get_genes { #sub to get gene names recorded
 	my $dbh = shift;
-	my $query = "SELECT DISTINCT (nom[1]) as gene FROM gene ORDER BY nom[1];";
+	my $query = "SELECT DISTINCT(gene_symbol) FROM gene ORDER BY gene_symbol;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $gene;
-	while (my $result = $sth->fetchrow_hashref()) {$gene->{$result->{'gene'}} = 'gene';$gene->{lc($result->{'gene'})} = 'gene_lc';}
+	while (my $result = $sth->fetchrow_hashref()) {$gene->{$result->{'gene_symbol'}} = 'gene';$gene->{lc($result->{'gene_symbol'})} = 'gene_lc';}
 	return $gene;
 }
 
