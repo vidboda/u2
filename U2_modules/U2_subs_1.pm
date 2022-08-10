@@ -556,7 +556,7 @@ sub check_acc {
 		my $query = "SELECT refseq as acc FROM gene WHERE refseq = '$1';";
 		if ($1 =~ /NG_.+/o) {$query = "SELECT acc_g as acc FROM gene WHERE refseq = '$1';";}
 		my $res = $dbh->selectrow_hashref($query);
-		if ($res->{'acc'} ne '0E0') {return $res->{'acc'}}
+		if ($res->{'acc'} && $res->{'acc'} ne '0E0') {return $res->{'acc'}}
 		else {&standard_error('6', $q)}
 	}
 	else {&standard_error('7', $q)}
