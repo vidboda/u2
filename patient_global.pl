@@ -351,7 +351,7 @@ else {#reports genotype table
 	#print $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
-
+  my $list;
 	my $nb_var = 0;
 	my ($allele1, $allele2) = ('#F45B5B', '#337AB7');
 	while (my $result = $sth->fetchrow_hashref()) {
@@ -383,9 +383,9 @@ else {#reports genotype table
 			#defines an interval for putative large deletions as genomic positions
 			my ($mini, $maxi) = U2_modules::U2_subs_2::get_interval($first_name, $last_name, $gene, $dbh);
 			#get vars for specific gene/sample
-			my $query = "SELECT DISTINCT(b.nom), e.gene_symbol, e.refseq, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.refseq = d.refseq AND d.refseq = e.refseq AND b.type_segment = d.type AND b.num_segment = d.numero AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND e.gene_symbol = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I', 'R8', 'VUCS Class F') ORDER BY b.num_segment, b.nom_g $direction, a.type_analyse;";
+			my $query = "SELECT b.nom, e.gene_symbol, e.refseq, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.refseq = d.refseq AND d.refseq = e.refseq AND b.type_segment = d.type AND b.num_segment = d.numero AND c.first_name = '$first_name' AND c.last_name = '$last_name' AND e.gene_symbol = '$gene' AND b.classe NOT IN ('artefact', 'neutral', 'VUCS class I', 'R8', 'VUCS Class F') ORDER BY b.num_segment, b.nom_g $direction, a.type_analyse;";
 			#order by type_analyse because 454 before sanger for doc, etc in popup - TODO: be sure sanger = last for point mutations
-			my $list;
+
 			#my $display = 1;
 
 			#my $t3 = Benchmark->new();
@@ -394,13 +394,6 @@ else {#reports genotype table
 			my $res2 = $sth2->execute();
 			if ($res2 ne '0E0') {
 				while (my $result2 = $sth2->fetchrow_hashref()) {
-					#if ($result2->{'filtering_possibility'}  == 1) {
-					#	#get filter
-					#	$display = U2_modules::U2_subs_2::gene_to_display($result2, $dbh);
-					#}
-					#if ($display == 1) {
-						my $analysis = 'non_ngs';
-						if ($analysis eq 'non_ngs' && $result->{'type_analyse'} =~ /^Mi.+/o) {$analysis = $result->{'type_analyse'}}
 						my $nom = U2_modules::U2_subs_2::genotype_line_optimised($result2, $mini, $maxi, $q, $dbh, $list, $main_acc, $nb_var, $acc_g, 't');
 						$list->{$nom}++;
 						if ($list->{$nom} == 1) {$nb_var ++}

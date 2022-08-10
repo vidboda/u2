@@ -288,8 +288,6 @@ sub genotype_line_optimised { #prints a line in the genotype table
 
 
 	#print a same variant only once but prints all the identifying analyses
-
-
 	if ($list->{$var->{'nom'}} && $list->{$var->{'nom'}} >= 1) {return $var->{'nom'}}
 	else {
 		my $type_analyse;
