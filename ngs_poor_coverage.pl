@@ -255,7 +255,7 @@ while (<F>) {
 			}
 		}
 		else {
-			$query = "SELECT b.gene_symbol, b.refseq, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.refseq = b.nom AND b.refseq = '$u2_chr' AND b.main = 'f' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
+			$query = "SELECT b.gene_symbol, b.refseq, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.refseq = b.refseq AND b.refseq = '$u2_chr' AND b.main = 'f' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
 			$sth = $dbh->prepare($query);
 			$res = $sth->execute();
 			while (my $result = $sth->fetchrow_hashref()) {

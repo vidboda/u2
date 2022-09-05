@@ -361,7 +361,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		##genome browser
 		#http://www.biodalliance.org/
 		#my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
-		my $query_dalliance = "SELECT MIN($postgre_start_g), MAX($postgre_end_g) FROM segment where nom_gene[1] = '$gene';";
+		my $query_dalliance = "SELECT MIN(a.$postgre_start_g), MAX(a.$postgre_end_g) FROM segment a, gene b where a.refseq = b.refseq and b.gene_symbol = '$gene';";
 		my $res_dalliance = $dbh->selectrow_hashref($query_dalliance);
 		my ($dal_start, $dal_stop) = (($res_dalliance->{'min'}-5000), ($res_dalliance->{'max'}+5000));
 		#if ($highlight_start == $highlight_end) {$highlight_end++}
