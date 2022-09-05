@@ -705,7 +705,7 @@ function openMD(id) {
         if (! data.url) {
             \$('#md_message').html('<i class=\"fas fa-times-circle w3-text-flat-alizarin\"></i> ' + data.mobidetails_error);
         } else {
-            window.open('data.url', '_blank');
+            window.open(data.url, '_blank');
             \$('#md_message').html('Follow this <a href=\"' + data.url + '\" target=\"_blank\" target=\"_blank\">Link</a>');
         }
     });
