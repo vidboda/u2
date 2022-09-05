@@ -486,10 +486,10 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 
 	print $q->br(), $q->start_p({'class' => 'title w3-xlarge'}), $q->start_big(), $q->start_strong(), $q->span('Variants found in '), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene),
 		$q->end_strong(), $q->end_big(), $q->end_p(), $q->br(), "\n";
-	my $query = "SELECT nom, acc_g FROM gene WHERE gene_symbol = '$gene' and main = 't';";
+	my $query = "SELECT refseq, acc_g FROM gene WHERE gene_symbol = '$gene' and main = 't';";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res ne '0E0') {
-		my ($ng, $acc) = ($res->{'acc_g'}, $res->{'nom'}[1]);
+		my ($ng, $acc) = ($res->{'acc_g'}, $res->{'refseq'});
 		print $q->start_div({'class' => 'w3-container w3-center w3-xlarge'}), U2_modules::U2_subs_3::add_variant_button($q, $gene, $acc, $ng), $q->end_div(), $q->br();
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 	}
@@ -617,7 +617,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'genotype') {
 
 	my ($rp, $dfn, $usher) = U2_modules::U2_subs_1::get_gene_group($gene, $dbh);
 
-	my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, d.gene_symbol, d.refseq), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c, gene d WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = d.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND a.gene_symbol = '$gene' AND c.proband = 't')\nSELECT DISTINCT(a.id_pat, a.num_pat, a.statut, b.filter, a.nom_c), a.pathologie, a.id_pat, a.num_pat, a.statut FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;";
+	my $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, d.gene_symbol, d.refseq), a.nom_c, a.id_pat, a.num_pat, a.statut, c.pathologie FROM variant2patient a, variant b, patient c, gene d WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = d.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.classe in ('pathogenic', 'VUCS class III', 'VUCS class IV') AND d.gene_symbol = '$gene' AND c.proband = 't')\nSELECT DISTINCT(a.id_pat, a.num_pat, a.statut, b.filter, a.nom_c), a.pathologie, a.id_pat, a.num_pat, a.statut FROM tmp a LEFT OUTER JOIN miseq_analysis b ON a.id_pat = b.id_pat AND a.num_pat = b.num_pat ORDER BY a.pathologie, a.id_pat, a.num_pat, a.statut;";
 
 
 	my $sth = $dbh->prepare($query);

@@ -597,7 +597,7 @@ if ($step && $step == 2) {
         # done earlier
 				#  if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				#ok let's deal with VV
-        print STDERR "Run VV1: $var_chr-$var_pos-$var_ref-$var_alt\n";
+        # print STDERR "Run VV1: $var_chr-$var_pos-$var_ref-$var_alt\n";
         # in case VV returns weird results
         my $fail = 0;
 				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
