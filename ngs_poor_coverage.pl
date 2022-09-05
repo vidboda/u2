@@ -246,7 +246,7 @@ while (<F>) {
 		my ($gene, $nm, @type, @nom);
 		if ($res ne '0E0') {
 			while (my $result = $sth->fetchrow_hashref()) {
-				($gene, $nm) = ($result->{'nom_gene'}[0], $result->{'nom_gene'}[1]);
+				($gene, $nm) = ($result->{'gene_symbol'}, $result->{'refseq'});
 				if ($#type > 0 && ($result->{'nom'} eq $nom[0] && $result->{'type'} eq $type[0])) {last}
 				push @type, $result->{'type'};
 				if ($result->{'nom'} !~ /UTR/o) {push @nom, $result->{'nom'}}
@@ -259,7 +259,7 @@ while (<F>) {
 			$sth = $dbh->prepare($query);
 			$res = $sth->execute();
 			while (my $result = $sth->fetchrow_hashref()) {
-				($gene, $nm) = ($result->{'nom_gene'}[0], $result->{'nom_gene'}[1]);
+				($gene, $nm) = ($result->{'gene_symbol'}, $result->{'refseq'});
 				if ($#type > 0 && ($result->{'nom'} eq $nom[0] && $result->{'type'} eq $type[0])) {last}
 				push @type, $result->{'type'};
 				if ($result->{'nom'} !~ /UTR/o) {push @nom, $result->{'nom'}}
