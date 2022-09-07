@@ -61,12 +61,12 @@ our @ND = ('AAAS','AARS','AARS2','ABCB7','ABCD1','ABHD12','ABHD5','ACO2','ACOX1'
 #our @NOGROUP = ();
 
 
-#values for quality criteria (NGS) panel
-#number of on target reads mini
-#= (panel size in kb * enrichment coeff * mean expected doc) / read size
-#= (900000 * 1,3 * 150) / 150 = 1170000
-#152 genes
-#= (993000 *1,3 * 150) / 150 = 1290900
+# values for quality criteria (NGS) panel
+# number of on target reads mini
+# = (panel size in kb * enrichment coeff * mean expected doc) / read size
+# = (900000 * 1,3 * 150) / 150 = 1170000
+# 152 genes
+# = (993000 *1,3 * 150) / 150 = 1290900
 our $NUM_ONTARGET_READS = 1170000;
 our $NUM_ONTARGET_READS_152 = 1290900;
 our $NUM_ONTARGET_READS_158 = 1434612;
@@ -75,13 +75,16 @@ our $TITV = 2.3;
 our $MDOC = 150;
 our $PC50X = 95;
 our $Q30 = 80;
-#for whole genes
+# for whole genes
 our $TITV_WG = 1.8;
 our $PC50X_WG = 70;
-#Clinical exomes
+# Clinical exomes
 our $PC20X_CE = 75;
 our $MDOC_CE = 30;
 our $TITV_CE = 2.8;
+# Values to estimate contamination - NS149
+our $NB_HOMOZYGOUS_VARS_149 = 300;
+our $MEAN_AB_149 = 0.58;
 
 #threshold values for POMPS
 our $SIFT_THRESHOLD = 0.05;

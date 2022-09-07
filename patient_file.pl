@@ -982,7 +982,32 @@ if ($result) {
 						my $query_robot = "SELECT robot FROM illumina_run WHERE id = '$run_id';";
 						my $res_robot = $dbh->selectrow_hashref($query_robot);
 						if ($res_robot->{'robot'} == 1) {print $q->span({'class' => 'blue'}, '&nbsp;&nbsp;&nbsp;&nbsp;ROBOT')}
-
+            # contaminations
+            my $homo_thresh = my $mean_ab_thresh = my $conta_semaph = 0;
+            if ($analysis =~ /-149/o)  {
+              $homo_thresh = $U2_modules::U2_subs_1::NB_HOMOZYGOUS_VARS_149;
+              $mean_ab_thresh = $U2_modules::U2_subs_1::MEAN_AB_149;
+            }
+            if ($homo_thresh > 0 && $mean_ab_thresh > 0) {
+              my $query_homo = "SELECT COUNT(nom_c) AS homoz FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis' AND frequency > 0.8;"; # statut = 'homozygous'
+              my $res_homo = $dbh->selectrow_hashref($query_homo);
+              # print STDERR $res_homo->{'homoz'}."\n";
+              # print STDERR $list."\n";
+              if ($res_homo->{'homoz'} < $homo_thresh) {
+                # 2nd step
+                my $query_avg_freq = "SELECT AVG(frequency) as freq FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis';";
+                my $res_avg_freq = $dbh->selectrow_hashref($query_avg_freq);
+                # print STDERR $res_avg_freq->{'freq'}."\n";
+                if ($res_avg_freq->{'freq'} < $mean_ab_thresh) {
+                  # CONTAMINATION ALERT
+                  print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS ('.$res_homo->{'homoz'}.' < '.$homo_thresh.') AND MEAN AB ('.sprintf('%.2f', $res_avg_freq->{'freq'}).' < '.$mean_ab_thresh.') NOT REACHED');
+                  $conta_semaph = 1;
+                }
+              }
+              if ($conta_semaph == 0) {
+                print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION WATCHDOG OK');
+              }
+            }
 					}
 					print  $q->end_li(), "\n";#$q->span('&nbsp;&nbsp;,&nbsp;&nbsp;');
 				}
