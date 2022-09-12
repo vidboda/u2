@@ -587,7 +587,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 	}
 	elsif ($sort eq 'taille') {
 		print $q->p("All large rearrangements recorded for $gene are listed in the table below.");
-		my $query = "SELECT a.classe, a.taille, a.nom, c.gene_symbol, c.refseq, a.type_adn, a.num_segment, a.num_segment_end, COUNT(b.nom_c) as allel FROM variant a, variant2patient b, gene c WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = c.refseq AND a.gene_symbol = '$gene' AND taille > 50 GROUP BY a.taille, a.nom, a.classe, c.gene_symbol, c.refseq, a.nom_g, a.type_adn, a.num_segment, a.num_segment_end ORDER BY a.nom_g ".U2_modules::U2_subs_1::get_strand($gene, $dbh).";";
+		my $query = "SELECT a.classe, a.taille, a.nom, c.gene_symbol, c.refseq, a.type_adn, a.num_segment, a.num_segment_end, COUNT(b.nom_c) as allel FROM variant a, variant2patient b, gene c WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' AND taille > 50 GROUP BY a.taille, a.nom, a.classe, c.gene_symbol, c.refseq, a.nom_g, a.type_adn, a.num_segment, a.num_segment_end ORDER BY a.nom_g ".U2_modules::U2_subs_1::get_strand($gene, $dbh).";";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		if ($res ne '0E0') {
@@ -602,7 +602,7 @@ elsif ($q->param('gene') && $q->param('info') eq 'all_vars') {
 			while (my $result = $sth->fetchrow_hashref()) {
 				my $color = U2_modules::U2_subs_1::color_by_classe($result->{'classe'}, $dbh);
 				print $q->start_Tr(), "\n",
-					$q->td($result->{'taille'}), $q->start_td({'onclick' => "window.open('variant.pl?gene=$gene&accession=$result->{'nom_gene'}[1]&nom_c=".uri_escape($result->{'nom'})."', \'_blank\')", 'title' => 'Go to the variant page', 'class' => 'pointer'}), $q->span({'style' => "color:$color", }, "$result->{'nom'} - (".U2_modules::U2_subs_2::create_lr_name($result, $dbh).")"), $q->end_td(), $q->td($result->{'allel'}), "\n",
+					$q->td($result->{'taille'}), $q->start_td({'onclick' => "window.open('variant.pl?gene=$gene&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'})."', \'_blank\')", 'title' => 'Go to the variant page', 'class' => 'pointer'}), $q->span({'style' => "color:$color", }, "$result->{'nom'} - (".U2_modules::U2_subs_2::create_lr_name($result, $dbh).")"), $q->end_td(), $q->td($result->{'allel'}), "\n",
 					$q->end_Tr(), "\n";
 			}
 			print $q->end_table(), $q->end_div();

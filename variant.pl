@@ -335,7 +335,7 @@ print $q->start_div({'class' => 'fitin', 'id' => 'main'}), $q->start_table({'cla
 
 my $chevauchant = 0;
 if (($res->{'num_segment_end'} != $res->{'num_segment'}) || ($res->{'type_segment_end'} ne $res->{'type_segment'})) {
-	$query = "SELECT nom FROM segment WHERE numero = '$res->{'num_segment_end'}' AND gene_symbol = '$gene' AND refseq ='$acc';";
+	$query = "SELECT nom FROM segment WHERE numero = '$res->{'num_segment_end'}' AND refseq ='$acc';";
 	my $nom_seg_end = $dbh->selectrow_hashref($query);
 	print $q->span(" until $res->{'type_segment_end'}: $nom_seg_end->{'nom'}");
 	$chevauchant = 1;
@@ -888,7 +888,7 @@ print $q->end_table(), $q->end_div();
 
 #check if image already exist, otherwise create it
 if ($res->{'taille'} > 100) {
-	my $query = "SELECT gi_ng FROM gene WHERE gene_symbol = '$gene' AND nom[2] = '$acc';";
+	my $query = "SELECT gi_ng FROM gene WHERE gene_symbol = '$gene' AND refseq = '$acc';";
 	my $res_gi = $dbh->selectrow_hashref($query);
 	my ($image_name, $beg, $end, $type) = U2_modules::U2_subs_1::create_image_file_name($gene, $res->{'nom_ng'});
 	my $name = U2_modules::U2_subs_2::create_lr_name($res, $dbh);
