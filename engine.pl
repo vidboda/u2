@@ -220,8 +220,8 @@ sub main {
 			#1st family/patient
 			$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE famille LIKE '%$recherche%' OR numero::text LIKE '%$recherche%' ORDER BY identifiant, numero;";
 			&print_results($query, 'familyID', '2', $recherche, $q, $dbh, $url, \@styles, $user, $original);
-			#2nd dna/prot variant
-			$query = "SELECT a.* FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom LIKE '%$recherche%' OR a.nom_prot LIKE '%$recherche%' ORDER BY b.gene_symbol, a.nom_g;";
+			#2nd dna/prot variant  ORDER BY b.gene_symbol, a.nom_g
+			$query = "SELECT a.*, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom LIKE '%$recherche%' OR a.nom_prot LIKE '%$recherche%' ORDER BY RANDOM() LIMIT 1000;";
 			&print_results($query, 'variant', '3', $recherche, $q, $dbh, $url, \@styles, $user, $original);
 		}
 
@@ -286,11 +286,15 @@ sub print_results {
 			}
 			else {
 				#print $q->p("U2 interpreted your query '$original' as '$recherche' and has looked in the dataset '$motif':");
-				print $q->p({'class' => 'gros'}, "Please choose from the following: ($res variant(s))"), $q->start_ul();
+				print $q->p({'class' => 'gros'}, "Please choose from the following: ($res variant(s))");
+				if ($res == 1000) {
+					print $q->span(" - the query returned more than 1000 results, but only 1000 have been randomly chosen to speed up the page loading - if you're loocking for a particular variant, you'll have to be more specific.")
+				}
+				print $q->start_ul();
 				if ($query =~ /taille > 100/o) {#for LR
 					while (my $result = $sth->fetchrow_hashref()) {
 						my $name = U2_modules::U2_subs_2::create_lr_name($result, $dbh);
-						print $q->start_li(), $q->start_a({'href' => "variant.pl?gene=$result->{'gene_symbol'}&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}), $q->em($result->{'gene_symbol'}), $q->span(":$result->{'nom'} - $result->{'nom_prot'} - $name"), $q->end_a(), $q->end_li(), "\n";
+						print $q->start_li(), $q->start_a({'href' => "variant.pl?gene=$result->{'gene_symbol'}&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}), $q->span($result->{'refseq'}.'('), $q->em($result->{'gene_symbol'}), $q->span("):$result->{'nom'} - $result->{'nom_prot'} - $name"), $q->end_a(), $q->end_li(), "\n";
 					}
 				}
 				else {#for normal variants
@@ -302,7 +306,7 @@ sub print_results {
 							$css_class =~ s/ /_/og;
 							$spec = $q->span({'class' => $css_class}, " - $value");
 						}
-						print $q->start_li(), $q->start_a({'href' => "variant.pl?gene=$result->{'gene_symbol'}&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}), $q->em($result->{'gene_symbol'}), $q->span(":$result->{'nom'} - $result->{'nom_prot'}"), $q->end_a(), $spec, $q->end_li(), "\n";
+						print $q->start_li(), $q->start_a({'href' => "variant.pl?gene=$result->{'gene_symbol'}&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'}), 'target' => '_blank'}), $q->span($result->{'refseq'}.'('), $q->em($result->{'gene_symbol'}), $q->span("):$result->{'nom'} - $result->{'nom_prot'}"), $q->end_a(), $spec, $q->end_li(), "\n";
 					}
 					if ($q->param('dynamic') && $q->param('dynamic') =~ /([\w\s]+)/o) {
 						my $class = $1;
