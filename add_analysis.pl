@@ -208,7 +208,7 @@ my $js = "
 	function delete_var(sample, gene, technique, variant, html_id) {
 		\$.ajax({
 			type: \"POST\",
-			url: \"variant_input.pl\",
+			url: \"variant_input_vv.pl\",
 			data: {type: 'exon', nom: 'delete', numero: 1, gene: gene, accession: 'NM_000001.1', step: 3, sample: sample, analysis: technique, nom_c: variant}
 			})
 		.done(function() {

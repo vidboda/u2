@@ -556,6 +556,8 @@ sub check_acc {
 	#checks gene param
 	my ($q, $dbh) = @_;
 	if ($q->param('accession') =~ /(N[MRGC]_\d+\.*\d*)/og) {
+		# in variant_input_vv.pl step 3 fake NM
+		if ($1 eq 'NM_000001.1') {return $1}
 		my $query = "SELECT refseq as acc FROM gene WHERE refseq = '$1';";
 		if ($1 =~ /NG_.+/o) {$query = "SELECT acc_g as acc FROM gene WHERE refseq = '$1';";}
 		my $res = $dbh->selectrow_hashref($query);

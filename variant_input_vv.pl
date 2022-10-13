@@ -69,11 +69,10 @@ my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
 
 my $user = U2_modules::U2_users_1->new();
 
-
 #U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Minimal init
-
+print $q->header();
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 #print Dumper($q);
@@ -99,7 +98,7 @@ my $acc_no = U2_modules::U2_subs_1::check_acc($q, $dbh);
 
 #if ($q->param('technique') && $q->param('technique') =~ /(MLPA|QMPSF|SANGER|aCGH)/o) {$technique = $1}
 #else {print 5;U2_modules::U2_subs_1::standard_error(15, $q)}
-print $q->header();
+
 
 if ($step == 1) { #insert form and possibility to create variants.
 
@@ -321,7 +320,7 @@ elsif ($step == 2) { #insert variant and print
 }
 elsif ($step == 3) { #delete variant
 	my $var = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
-	my $delete = "DELETE FROM variant2patient WHERE num_pat = '$number' AND id_pat = '$id' AND refseq = '$acc_no' AND type_analyse = '$technique' AND nom_c = '$var';";
+	my $delete = "DELETE FROM variant2patient a USING gene b WHERE a.refseq = b.refseq AND a.num_pat = '$number' AND a.id_pat = '$id' AND b.gene_symbol = '$gene' AND a.type_analyse = '$technique' AND a.nom_c = '$var';";
 	$dbh->do($delete) or die "Error when deleting the analysis, there must be a mistake somewhere $!";
 	#print "$var deleted";
 }

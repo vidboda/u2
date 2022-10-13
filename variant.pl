@@ -8,6 +8,7 @@ use strict;
 #use AppConfig qw(:expand :argcount);
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use URI::Escape;
+use URI::Encode qw/uri_encode uri_decode/;
 use HTTP::Request::Common;
 use LWP::UserAgent;
 # use Net::SSL;
@@ -219,15 +220,16 @@ if ($res->{'type_adn'} eq 'substitution') {
 }
 
 #1kG
+# deprecated 20221013
 #https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=18&from=44109144&to=44109144&gts=rs187587197&mk=44109144:44109144|rs187587197
-if ($res->{'taille'} < 50) {
-	my ($rs, $gts) = ('', '');
-	if ($res->{'snp_id'} ne '') {$rs .= "|$res->{'snp_id'}";$gts = "&gts=$res->{'snp_id'}"}
-	#print $q->start_li(),
-	print $q->a({'href' => "https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=$evs_chr&from=$evs_pos_start&to=$evs_pos_end$gts&mk=$evs_pos_start:$evs_pos_end$rs", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, '1000 genomes'), "\n";
-	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/1kG_button.png'}, '1000 genomes'), "\n";
-		#, $q->end_a(), $q->end_li(), "\n";
-}
+# if ($res->{'taille'} < 50) {
+# 	my ($rs, $gts) = ('', '');
+# 	if ($res->{'snp_id'} ne '') {$rs .= "|$res->{'snp_id'}";$gts = "&gts=$res->{'snp_id'}"}
+# 	#print $q->start_li(),
+# 	print $q->a({'href' => "https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=$evs_chr&from=$evs_pos_start&to=$evs_pos_end$gts&mk=$evs_pos_start:$evs_pos_end$rs", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, '1000 genomes'), "\n";
+# 	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/1kG_button.png'}, '1000 genomes'), "\n";
+# 		#, $q->end_a(), $q->end_li(), "\n";
+# }
 
 
 #clinvar
@@ -732,7 +734,7 @@ if ($res->{'snp_id'} ne '') {
 }
 else {print $q->span("Not reported in dbSNP")}
 print $q->end_td(), $q->td('dbSNP related information'), $q->end_Tr(), "\n";#, $litvar_tr;
-#1000 genomes
+
 
 print $q->start_Tr({'id' => 'ext_data'}), $q->td('MAFs & databases & Pubmed:'), $q->start_td(), $q->span('loading external data...'), $q->end_td(), $q->td('Diverse population MAFs and links to LSDBs'), $q->end_Tr(), "\n";
 
