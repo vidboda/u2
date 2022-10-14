@@ -402,12 +402,12 @@ if ($user->isReferee == 1) {
 		};";
 	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'rna_status_button', 'value' => 'Change RNA status', 'onclick' => 'rnaStatusForm();', 'class' => 'w3-button w3-blue'}), "\n";
 }
-if ($res->{'taille'} < 10 && $res->{'type_adn'} ne 'indel') {
-	if ($res->{'type_adn'} eq 'substitution') {
-		print $q->button({'value' => 'Predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&find=dbscSNV&add=spliceai&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"
-	}
-	else {print $q->button({'value' => 'MaxEntScan', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"}
-}
+# if ($res->{'taille'} < 10 && $res->{'type_adn'} ne 'indel') {
+# 	if ($res->{'type_adn'} eq 'substitution') {
+# 		print $q->button({'value' => 'Predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&find=dbscSNV&add=spliceai&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"
+# 	}
+# 	else {print $q->button({'value' => 'MaxEntScan', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"}
+# }
 
 print $q->end_td(), $q->td('Impact on mRNA, either predicted (inferred) or observed (confirmed)'), $q->end_Tr(), "\n";
 
@@ -436,58 +436,58 @@ if ($res->{'protein'} ne '') {
 			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');
 		}
 	}
-	if ($res->{'type_prot'} eq 'missense') {
-		my $missense_js = "
-			function getPonps() {
-				\$.ajax({
-					type: \"POST\",
-					url: \"ajax.pl\",
-					data: {asked: 'ponps', var_prot: '$res->{'protein'}', ensp: '$res->{'ensp'}', nom_g: '$res->{'nom_g'}', acc_no : '$acc', enst: '$res->{'enst'}', nom_c: '$var', gene: '$gene'}
-				})
-				.done(function(msg) {
-					\$('#ponps').html('<ul>'+msg+'</ul>');
-				});
-			};";
-		print $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $missense_js), $q->span('&nbsp;&nbsp;&nbsp;'), $q->start_span({'id' => 'ponps'}), $q->button({'value' => 'Get predictors', 'onclick' => 'getPonps();$(\'#ponps\').html("Please wait...");', 'class' => 'w3-button w3-blue'}), $q->end_span();
-	}
+	# if ($res->{'type_prot'} eq 'missense') {
+	# 	my $missense_js = "
+	# 		function getPonps() {
+	# 			\$.ajax({
+	# 				type: \"POST\",
+	# 				url: \"ajax.pl\",
+	# 				data: {asked: 'ponps', var_prot: '$res->{'protein'}', ensp: '$res->{'ensp'}', nom_g: '$res->{'nom_g'}', acc_no : '$acc', enst: '$res->{'enst'}', nom_c: '$var', gene: '$gene'}
+	# 			})
+	# 			.done(function(msg) {
+	# 				\$('#ponps').html('<ul>'+msg+'</ul>');
+	# 			});
+	# 		};";
+	# 	print $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $missense_js), $q->span('&nbsp;&nbsp;&nbsp;'), $q->start_span({'id' => 'ponps'}), $q->button({'value' => 'Get predictors', 'onclick' => 'getPonps();$(\'#ponps\').html("Please wait...");', 'class' => 'w3-button w3-blue'}), $q->end_span();
+	# }
 	print $q->end_td(), $q->td('Protein HGVS nomenclature'), $q->end_Tr(), "\n";
 
-	if ($res->{'protein'} =~ /(\d+)_\w{3}(\d+)/og) {
-		print $q->start_Tr(), $q->td('Domain:'), $q->start_td();
-		my ($pos1, $pos2) = ($1, $2);
-		$query = "SELECT nom FROM domaine WHERE nom_prot = '$res->{'short_prot'}' AND ((aa_deb BETWEEN $pos1 AND $pos2) OR (aa_fin BETWEEN $pos1 AND $pos2));";
-		my $sth_dom = $dbh->prepare($query);
-		my $res_dom = $sth_dom->execute();
-		if ($res_dom ne '0E0') {
-			my $txt_dom;
-			while (my $result = $sth_dom->fetchrow_hashref()) {
-				$txt_dom .= $result->{'nom'}.", ";
-			}
-			chop($txt_dom);
-			chop($txt_dom);
-			print $q->span($txt_dom), $q->br(), "\n";
-		}
-		else {print $q->span('no domain'), $q->br(), "\n"}
-		print $q->end_td(), $q->td('Domain Name according to UNIPROT'), $q->end_Tr(), "\n";
-	}
-	elsif ($res->{'protein'} =~ /(\d+)/og) {
-		print $q->start_Tr(), $q->td('Domain:'), $q->start_td();
-		my $pos = $1;
-		$query = "SELECT nom FROM domaine WHERE nom_prot = '$res->{'short_prot'}' AND $pos BETWEEN aa_deb AND aa_fin;";
-		my $sth_dom = $dbh->prepare($query);
-		my $res_dom = $sth_dom->execute();
-		if ($res_dom ne '0E0') {
-			my $txt_dom;
-			while (my $result = $sth_dom->fetchrow_hashref()) {
-				$txt_dom .= $result->{'nom'}.", ";
-			}
-			chop($txt_dom);
-			chop($txt_dom);
-			print $q->span($txt_dom), $q->br(), "\n";
-		}
-		else {print $q->span('no domain'), $q->br(), "\n"}
-		print $q->end_td(), $q->td('Domain Name according to UNIPROT'), $q->end_Tr(), "\n";
-	}
+	# if ($res->{'protein'} =~ /(\d+)_\w{3}(\d+)/og) {
+	# 	print $q->start_Tr(), $q->td('Domain:'), $q->start_td();
+	# 	my ($pos1, $pos2) = ($1, $2);
+	# 	$query = "SELECT nom FROM domaine WHERE nom_prot = '$res->{'short_prot'}' AND ((aa_deb BETWEEN $pos1 AND $pos2) OR (aa_fin BETWEEN $pos1 AND $pos2));";
+	# 	my $sth_dom = $dbh->prepare($query);
+	# 	my $res_dom = $sth_dom->execute();
+	# 	if ($res_dom ne '0E0') {
+	# 		my $txt_dom;
+	# 		while (my $result = $sth_dom->fetchrow_hashref()) {
+	# 			$txt_dom .= $result->{'nom'}.", ";
+	# 		}
+	# 		chop($txt_dom);
+	# 		chop($txt_dom);
+	# 		print $q->span($txt_dom), $q->br(), "\n";
+	# 	}
+	# 	else {print $q->span('no domain'), $q->br(), "\n"}
+	# 	print $q->end_td(), $q->td('Domain Name according to UNIPROT'), $q->end_Tr(), "\n";
+	# }
+	# elsif ($res->{'protein'} =~ /(\d+)/og) {
+	# 	print $q->start_Tr(), $q->td('Domain:'), $q->start_td();
+	# 	my $pos = $1;
+	# 	$query = "SELECT nom FROM domaine WHERE nom_prot = '$res->{'short_prot'}' AND $pos BETWEEN aa_deb AND aa_fin;";
+	# 	my $sth_dom = $dbh->prepare($query);
+	# 	my $res_dom = $sth_dom->execute();
+	# 	if ($res_dom ne '0E0') {
+	# 		my $txt_dom;
+	# 		while (my $result = $sth_dom->fetchrow_hashref()) {
+	# 			$txt_dom .= $result->{'nom'}.", ";
+	# 		}
+	# 		chop($txt_dom);
+	# 		chop($txt_dom);
+	# 		print $q->span($txt_dom), $q->br(), "\n";
+	# 	}
+	# 	else {print $q->span('no domain'), $q->br(), "\n"}
+	# 	print $q->end_td(), $q->td('Domain Name according to UNIPROT'), $q->end_Tr(), "\n";
+	# }
 }
 
 #mutalyzer position converter for hg38

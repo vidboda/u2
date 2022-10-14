@@ -418,7 +418,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 				my $content = $fetch->content();
 				# if ($content !~ /Unable\sto\sfind\svariant/o) {$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Iowa DB') . $q->end_li() . "\n"}
 				if ($content !~ /is\snot\sin\sthe\sDVD/o) {$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'DVD') . $q->end_li() . "\n"}
-				else {$text .= $q->li('Not recorded in Iowa DB')}
+				else {$text .= $q->li('Not recorded in the DVD')}
 			}
 			else {
 				$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Try DVD?') . $q->end_li() . "\n";
@@ -529,7 +529,7 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
   $text .= $q->end_ul() . $q->end_li();
 	# }
 
-	$text .= $q->end_ul() .  $q->end_td() . $q->td('Diverse population MAFs and links to LSDBs') . $q->end_Tr() . "\n";
+	$text .= $q->end_ul() .  $q->end_td() . $q->td('Links to the DVD and LOVD') . $q->end_Tr() . "\n";
 	print $text;
 	###END NEW style using VEP
 }
