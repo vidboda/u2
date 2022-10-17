@@ -104,10 +104,11 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	print $q->header();
 	my $variant = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 
-	# my $query = "SELECT a.nom, b.gene_symbol as gene, b.refseq as acc, a.nom_g_38, a.snp_id, a.type_adn, a.type_segment, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g = '$variant';";
-	my $query = "SELECT b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g = '$variant';";
+	my $query = "SELECT a.nom, b.gene_symbol as gene, b.refseq as acc, a.nom_g_38, a.snp_id, a.type_adn, a.type_segment, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g = '$variant';";
+	# my $query = "SELECT b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
-	my ($text, $semaph) = ('', 0);#$q->strong('MAFs &amp; databases:').
+	my ($text, $semaph) = ('', 0);
+	#$q->strong('MAFs &amp; databases:').
 
 	# if ($res->{'snp_id'} ne '') {
 	# 	# my $test_ncbi = U2_modules::U2_subs_1::test_ncbi();
@@ -464,14 +465,14 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	my ($evs_chr, $evs_pos_start, $evs_pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'evs');
 
 	my $url = "http://www.lovd.nl/search.php?build=hg19&position=chr$evs_chr:".$evs_pos_start."_".$evs_pos_end;
-  # my $lovd_gene = $res->{'gene'} == 'ADGRV1' ? 'GPR98' : $res->{'gene'};
-  my $lovd_gene = $res->{'gene'};
-  if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
-  elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
-  elsif ($lovd_gene eq 'ADGRV1') {$lovd_gene = 'GPR98'}
+	# my $lovd_gene = $res->{'gene'} == 'ADGRV1' ? 'GPR98' : $res->{'gene'};
+	my $lovd_gene = $res->{'gene'};
+	if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
+	elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
+	elsif ($lovd_gene eq 'ADGRV1') {$lovd_gene = 'GPR98'}
 
-  my $local_url = "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/api/rest.php/variants/$lovd_gene?search_Variant/DNA=$res->{'nom'}";
-  # print STDERR "$local_url\n";
+	my $local_url = "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/api/rest.php/variants/$lovd_gene?search_Variant/DNA=$res->{'nom'}";
+	# print STDERR "$local_url\n";
 	#$text .= $url;
 	my $ua = new LWP::UserAgent();
 	$ua->timeout(10);

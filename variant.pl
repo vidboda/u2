@@ -736,7 +736,7 @@ else {print $q->span("Not reported in dbSNP")}
 print $q->end_td(), $q->td('dbSNP related information'), $q->end_Tr(), "\n";#, $litvar_tr;
 
 
-print $q->start_Tr({'id' => 'ext_data'}), $q->td('MAFs & databases & Pubmed:'), $q->start_td(), $q->span('loading external data...'), $q->end_td(), $q->td('Diverse population MAFs and links to LSDBs'), $q->end_Tr(), "\n";
+print $q->start_Tr({'id' => 'ext_data'}), $q->td('DVD & LOVD:'), $q->start_td(), $q->span('loading external data...'), $q->end_td(), $q->td('Links to the DVD and LOVD'), $q->end_Tr(), "\n";
 
 
 #infos on cohort: # of seen, MAFS, 454: mean depth, mean freq, mean f/r
