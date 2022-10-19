@@ -436,20 +436,20 @@ if ($res->{'protein'} ne '') {
 			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');
 		}
 	}
-	# if ($res->{'type_prot'} eq 'missense') {
-	# 	my $missense_js = "
-	# 		function getPonps() {
-	# 			\$.ajax({
-	# 				type: \"POST\",
-	# 				url: \"ajax.pl\",
-	# 				data: {asked: 'ponps', var_prot: '$res->{'protein'}', ensp: '$res->{'ensp'}', nom_g: '$res->{'nom_g'}', acc_no : '$acc', enst: '$res->{'enst'}', nom_c: '$var', gene: '$gene'}
-	# 			})
-	# 			.done(function(msg) {
-	# 				\$('#ponps').html('<ul>'+msg+'</ul>');
-	# 			});
-	# 		};";
-	# 	print $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $missense_js), $q->span('&nbsp;&nbsp;&nbsp;'), $q->start_span({'id' => 'ponps'}), $q->button({'value' => 'Get predictors', 'onclick' => 'getPonps();$(\'#ponps\').html("Please wait...");', 'class' => 'w3-button w3-blue'}), $q->end_span();
-	# }
+	if ($res->{'type_prot'} eq 'missense') {
+		my $missense_js = "
+			function getPonps() {
+				\$.ajax({
+					type: \"POST\",
+					url: \"ajax.pl\",
+					data: {asked: 'ponps', var_prot: '$res->{'protein'}', ensp: '$res->{'ensp'}', nom_g: '$res->{'nom_g'}', acc_no : '$acc', enst: '$res->{'enst'}', nom_c: '$var', gene: '$gene'}
+				})
+				.done(function(msg) {
+					\$('#ponps').html('<ul>'+msg+'</ul>');
+				});
+			};";
+		print $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $missense_js), $q->span('&nbsp;&nbsp;&nbsp;'), $q->start_span({'id' => 'ponps'}), $q->button({'value' => 'Get predictors', 'onclick' => 'getPonps();$(\'#ponps\').html("Please wait...");', 'class' => 'w3-button w3-blue'}), $q->end_span();
+	}
 	print $q->end_td(), $q->td('Protein HGVS nomenclature'), $q->end_Tr(), "\n";
 
 	# if ($res->{'protein'} =~ /(\d+)_\w{3}(\d+)/og) {
