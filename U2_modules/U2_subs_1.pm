@@ -1147,7 +1147,7 @@ sub test_mutalyzer {
 	#http://mutalyzer.nl/2.0/services
 	#####remove when certificate ok at mutalyzer.nl!!!!!
 	#$ua->ssl_opts(verify_hostname => 0);
-	my $request = $ua->get('https://mutalyzer.nl/services');
+	my $request = $ua->get('https://v2.mutalyzer.nl/services');
 	my $content = $request->content();
 	# print "$content<br/>";
 	if ($content !~ /soap/o) {return 0}

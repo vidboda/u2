@@ -211,7 +211,8 @@ elsif ($step == 2) { #insert variant and print
 				### old way to connect to mutalyzer deprecated September 2014
 				#my $soap = SOAP::Lite->new(proxy => 'http://mutalyzer.nl/2.0/services');
 				#$soap->defaul_ns('urn:https://mutalyzer.nl/services/?wsdl');
-				my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
+				# my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
+				my $soap = SOAP::Lite->uri('https://v2.mutalyzer.nl/services/')->proxy('https://v2.mutalyzer.nl/services/?wsdl');
 
 				my ($call, $http_mutalyzer);
 

@@ -595,7 +595,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 			if ($i == 0) {$return .= $q->li("Alternative nomenclatures found as follow:")}
 			#https://mutalyzer.nl/check?name=NM_001142763.1%3Ac.1319A%3EC
 			if ($_ =~ /[\+-]/g) {$return .= $q->li($_)}
-			else {$return .= $q->start_li().$q->span("$_ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'https://mutalyzer.nl/check?name='.uri_escape($_), 'target' => '_blank'}).$q->span('Mutalyzer').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_li()."\n"}
+			else {$return .= $q->start_li().$q->span("$_ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'https://v2.mutalyzer.nl/check?name='.uri_escape($_), 'target' => '_blank'}).$q->span('Mutalyzer').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_li()."\n"}
 			$i++;
 		}
 	}
@@ -1364,75 +1364,93 @@ if ($q->param('asked') && $q->param('asked') eq 'disease') {
 if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
-  my $family_id = U2_modules::U2_subs_1::check_family_id($q);
-  my $disease = U2_modules::U2_subs_1::check_phenotype($q);
-  my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
-  my $proband = U2_modules::U2_subs_1::check_proband($q);
-  my $vcf_path = U2_modules::U2_subs_1::check_illumina_vcf_path($q);
-  my $seal_ready = '';
-  open F, "$DATABASES_PATH/seal_json.token" or die $!;
-  my ($sample_field, $family_field, $run_field, $teams_field) = (0, 0, 0, 0);
-  my $seal_id = $id.$number.'_LRM';
-  while(<F>) {
-    if (/"sample"/o) {$sample_field = 1}
-    elsif (/"family"/o) {$family_field = 1}
-    elsif (/"run"/o) {$run_field = 1}
-    if (/"name":/o && $sample_field == 1) {s/"name": "",/"name": "$seal_id",/; $sample_field = 0}
-    elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
-    elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
-    elsif (/"affected":/o) {
-      if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
-      else {s/"affected": ,/"affected": false,/}
-    }
-    elsif (/"index":/o) {
-      if ($proband eq 'yes') {s/"index":/"index": true/}
-      else {s/"index":/"index": false/}
-    }
-    if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$vcf_path"/}
-    $seal_ready .= $_;
-  }
-  close F;
-  open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
-  print G $seal_ready;
-  close G;
-  undef $seal_ready;
-  # do the same for MobiDL
-  my $mobidl_vcf_path = '';
-  if ($vcf_path =~ /^(.+$run_id).+/) {
-    $mobidl_vcf_path = $1."/MobiDL/$id$number/panelCapture/$id$number.vcf"
-  }
-  # print STDERR $mobidl_vcf_path."\n";
-  open F, "$DATABASES_PATH/seal_json.token" or die $!;
-  ($sample_field, $family_field, $run_field, $teams_field) = (0, 0, 0, 0);
-  $seal_id = $id.$number.'_MobiDL';
-  while(<F>) {
-    if (/"sample"/o) {$sample_field = 1}
-    elsif (/"family"/o) {$family_field = 1}
-    elsif (/"run"/o) {$run_field = 1}
-    if (/"name":/o && $sample_field == 1) {s/"name": "",/"name": "$seal_id",/; $sample_field = 0}
-    elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
-    elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
-    elsif (/"affected":/o) {
-      if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
-      else {s/"affected": ,/"affected": false,/}
-    }
-    elsif (/"index":/o) {
-      if ($proband eq 'yes') {s/"index":/"index": true/}
-      else {s/"index":/"index": false/}
-    }
-    if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$mobidl_vcf_path"/}
-    $seal_ready .= $_;
-  }
-  close F;
-  open G, ">".$TMP_DIR."MobiDL_seal_json.token" or die $!;
-  print G $seal_ready;
-  close G;
-  # send file to seal
-  my $ssh = U2_modules::U2_subs_1::seal_connexion('-', $q);
-  $ssh->scp_put($TMP_DIR."LRM_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_LRM_json.token");
-  $ssh->scp_put($TMP_DIR."MobiDL_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_MobiDL_json.token");
-  undef $ssh;
-  # print STDERR $seal_ready."\n";
+	my $family_id = U2_modules::U2_subs_1::check_family_id($q);
+	my $disease = U2_modules::U2_subs_1::check_phenotype($q);
+	my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
+	my $proband = U2_modules::U2_subs_1::check_proband($q);
+	my $vcf_path = U2_modules::U2_subs_1::check_illumina_vcf_path($q);
+	my $seal_ready = '';
+	open F, "$DATABASES_PATH/seal_json.token" or die $!;
+	my ($sample_field, $family_field, $run_field, $teams_field) = (0, 0, 0, 0);
+	my $seal_id = $id.$number.'_LRM';
+	# while(<F>) {
+	# 	if (/"sample"/o) {$sample_field = 1}
+	# 	elsif (/"family"/o) {$family_field = 1}
+	# 	elsif (/"run"/o) {$run_field = 1}
+	# 	if (/"name":/o && $sample_field == 1) {s/"name": "",/"name": "$seal_id",/; $sample_field = 0}
+	# 	elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
+	# 	elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
+	# 	elsif (/"affected":/o) {
+	# 	if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
+	# 	else {s/"affected": ,/"affected": false,/}
+	# 	}
+	# 	elsif (/"index":/o) {
+	# 	if ($proband eq 'yes') {s/"index":/"index": true/}
+	# 	else {s/"index":/"index": false/}
+	# 	}
+	# 	if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$vcf_path"/}
+	# 	$seal_ready .= $_;
+	# }
+	# new format 20221124
+	while(<F>) {
+		if (/"samplename"/o) {s/"samplename": "",/"samplename": "$seal_id",/}
+		elsif (/"family"/o) {$family_field = 1}
+		elsif (/"run"/o) {$run_field = 1}
+		if (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
+		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
+		elsif (/"affected":/o) {
+		if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
+		else {s/"affected": ,/"affected": false,/}
+		}
+		elsif (/"index":/o) {
+		if ($proband eq 'yes') {s/"index":/"index": true/}
+		else {s/"index":/"index": false/}
+		}
+		if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$vcf_path"/}
+		$seal_ready .= $_;
+	}
+	close F;
+	open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
+	print G $seal_ready;
+	close G;
+	undef $seal_ready;
+	# do the same for MobiDL
+	my $mobidl_vcf_path = '';
+	if ($vcf_path =~ /^(.+$run_id).+/) {
+		$mobidl_vcf_path = $1."/MobiDL/$id$number/panelCapture/$id$number.vcf"
+	}
+	# print STDERR $mobidl_vcf_path."\n";
+	open F, "$DATABASES_PATH/seal_json.token" or die $!;
+	($sample_field, $family_field, $run_field, $teams_field) = (0, 0, 0, 0);
+	$seal_id = $id.$number.'_MobiDL';
+	while(<F>) {
+		if (/"sample"/o) {$sample_field = 1}
+		elsif (/"family"/o) {$family_field = 1}
+		elsif (/"run"/o) {$run_field = 1}
+		if (/"name":/o && $sample_field == 1) {s/"name": "",/"name": "$seal_id",/; $sample_field = 0}
+		elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
+		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
+		elsif (/"affected":/o) {
+		if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
+		else {s/"affected": ,/"affected": false,/}
+		}
+		elsif (/"index":/o) {
+		if ($proband eq 'yes') {s/"index":/"index": true/}
+		else {s/"index":/"index": false/}
+		}
+		if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$mobidl_vcf_path"/}
+		$seal_ready .= $_;
+	}
+	close F;
+	open G, ">".$TMP_DIR."MobiDL_seal_json.token" or die $!;
+	print G $seal_ready;
+	close G;
+	# send file to seal
+	my $ssh = U2_modules::U2_subs_1::seal_connexion('-', $q);
+	$ssh->scp_put($TMP_DIR."LRM_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_LRM_json.token");
+	$ssh->scp_put($TMP_DIR."MobiDL_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_MobiDL_json.token");
+	undef $ssh;
+	# print STDERR $seal_ready."\n";
 	# print STDERR $family_id."-".$disease."-".$run_id."-".$vcf_path."\n";
 }
 
