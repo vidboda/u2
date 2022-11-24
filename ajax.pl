@@ -1399,19 +1399,20 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		if (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
 		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
 		elsif (/"affected":/o) {
-		if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
-		else {s/"affected": ,/"affected": false,/}
+			if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
+			else {s/"affected": ,/"affected": false,/}
 		}
 		elsif (/"index":/o) {
-		if ($proband eq 'yes') {s/"index":/"index": true/}
-		else {s/"index":/"index": false/}
+			if ($proband eq 'yes') {s/"index":/"index": true/}
+			else {s/"index":/"index": false/}
 		}
 		if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$vcf_path"/}
 		$seal_ready .= $_;
 	}
 	close F;
-	open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
 	print G $seal_ready;
+	open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
+	print STDERR $seal_ready;
 	close G;
 	undef $seal_ready;
 	# do the same for MobiDL
@@ -1424,19 +1425,18 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	($sample_field, $family_field, $run_field, $teams_field) = (0, 0, 0, 0);
 	$seal_id = $id.$number.'_MobiDL';
 	while(<F>) {
-		if (/"sample"/o) {$sample_field = 1}
+		if (/"samplename"/o) {s/"samplename": "",/"samplename": "$seal_id",/}
 		elsif (/"family"/o) {$family_field = 1}
 		elsif (/"run"/o) {$run_field = 1}
-		if (/"name":/o && $sample_field == 1) {s/"name": "",/"name": "$seal_id",/; $sample_field = 0}
 		elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
 		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
 		elsif (/"affected":/o) {
-		if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
-		else {s/"affected": ,/"affected": false,/}
+			if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
+			else {s/"affected": ,/"affected": false,/}
 		}
 		elsif (/"index":/o) {
-		if ($proband eq 'yes') {s/"index":/"index": true/}
-		else {s/"index":/"index": false/}
+			if ($proband eq 'yes') {s/"index":/"index": true/}
+			else {s/"index":/"index": false/}
 		}
 		if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$mobidl_vcf_path"/}
 		$seal_ready .= $_;
@@ -1445,6 +1445,8 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	open G, ">".$TMP_DIR."MobiDL_seal_json.token" or die $!;
 	print G $seal_ready;
 	close G;
+	print STDERR $seal_ready;
+	exit;
 	# send file to seal
 	my $ssh = U2_modules::U2_subs_1::seal_connexion('-', $q);
 	$ssh->scp_put($TMP_DIR."LRM_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_LRM_json.token");
