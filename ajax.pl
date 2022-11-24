@@ -1410,9 +1410,8 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		$seal_ready .= $_;
 	}
 	close F;
-	print G $seal_ready;
 	open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
-	print STDERR $seal_ready;
+	print G $seal_ready;
 	close G;
 	undef $seal_ready;
 	# do the same for MobiDL
@@ -1445,8 +1444,6 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	open G, ">".$TMP_DIR."MobiDL_seal_json.token" or die $!;
 	print G $seal_ready;
 	close G;
-	print STDERR $seal_ready;
-	exit;
 	# send file to seal
 	my $ssh = U2_modules::U2_subs_1::seal_connexion('-', $q);
 	$ssh->scp_put($TMP_DIR."LRM_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_LRM_json.token");
