@@ -436,6 +436,14 @@ if ($res->{'protein'} ne '') {
 			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');
 		}
 	}
+	else {
+		my $reg_var = $var;
+		$reg_var =~ s/c\.//og;
+		$reg_var =~ s/>/_/og;
+		if (-f $ABSOLUTE_HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/variants/".$gene."_".$reg_var.".pdf") {
+			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/variants/".$gene."_".$reg_var.".pdf", 'target' => "_blank"}, 'analysis');
+		}
+	}
 	if ($res->{'type_prot'} eq 'missense') {
 		my $missense_js = "
 			function getPonps() {

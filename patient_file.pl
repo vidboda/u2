@@ -784,6 +784,12 @@ if ($result) {
 											$q->a({'href' => "$partial_link_panel_nenufaar_path/$res_manifest->{'run_id'}/$res_manifest->{'run_id'}.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
 										$q->end_li();
 						}
+						# # complementary analysis pdf
+						# if (-f $ABSOLUTE_HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/samples/$id_tmp$num_tmp.pdf") {
+						# 	$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+						# 					$q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/samples/$id_tmp$num_tmp.pdf", 'target' => "_blank"}, 'Get complementary analysis').
+						# 				$q->end_li();
+						# }
 						# covreport launch button
 						# print STDERR $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."_coverage.pdf\n";
 						if (-e $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf") {
@@ -1031,7 +1037,10 @@ if ($result) {
 	if ($user->isAnalyst() == 1) {
 		print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-border'}), $q->p({'class' => 'title min_height_50'}, 'Validations and negatives shortcuts:');
 		print U2_modules::U2_subs_1::valid_table($user, $number, $id, $dbh, $q);
-
+		# complementary analysis pdf
+		if (-f $ABSOLUTE_HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/samples/$id$number.pdf") {
+			print $q->strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open("'.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/samples/'.$id.$number.'.pdf");'}, 'Complementary analysis'), "\n";
+		}
 		print $q->end_div(), "\n";
 		if ($illumina_semaph == 1) {
 			print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-margin w3-border'});
