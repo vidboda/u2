@@ -1006,17 +1006,17 @@ if ($result) {
               # print STDERR $res_avg_freq->{'freq'}."\n";
               if ($res_avg_freq->{'freq'} < $mean_ab_thresh) {$watchdog_mab = 1}
               if ($watchdog_homo == 0 && $watchdog_mab == 0) {
-                print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION WATCHDOG OK');
+                print $q->span({'color' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION WATCHDOG OK');
               }
               elsif ($watchdog_homo == 1 && $watchdog_mab == 0) {
-                print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') NOT REACHED');
+                print $q->span({'color' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') NOT REACHED');
               }
               elsif ($watchdog_mab == 1 && $watchdog_homo == 0) {
-                print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR MEAN AB '.$res_avg_freq->{'freq'}.' < '.sprintf('%.2f', $mean_ab_thresh).') NOT REACHED');
+                print $q->span({'color' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR MEAN AB '.sprintf('%.2f',$res_avg_freq->{'freq'}).' < '.sprintf('%.2f', $mean_ab_thresh).') NOT REACHED');
               }
               else {
                 # CONTAMINATION ALERT
-                print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') AND MEAN AB ('.sprintf('%.2f', $res_avg_freq->{'freq'}).' < '.$mean_ab_thresh.') NOT REACHED');
+                print $q->span({'color' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') AND MEAN AB ('.sprintf('%.2f', $res_avg_freq->{'freq'}).' < '.$mean_ab_thresh.') NOT REACHED');
               }
             }
 					}
