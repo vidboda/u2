@@ -1012,7 +1012,7 @@ if ($result) {
                 print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') NOT REACHED');
               }
               elsif ($watchdog_mab == 1 && $watchdog_homo == 0) {
-                print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_avg_freq->{'freq'}.' < '.sprintf('%.2f', $res_avg_freq->{'freq'}).') NOT REACHED');
+                print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR MEAN AB '.$res_avg_freq->{'freq'}.' < '.sprintf('%.2f', $mean_ab_thresh).') NOT REACHED');
               }
               else {
                 # CONTAMINATION ALERT
