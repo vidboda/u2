@@ -997,13 +997,13 @@ if ($result) {
             if ($homo_thresh > 0 && $mean_ab_thresh > 0) {
               my $query_homo = "SELECT COUNT(nom_c) AS homoz FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis' AND frequency > 0.8;"; # statut = 'homozygous'
               my $res_homo = $dbh->selectrow_hashref($query_homo);
-              # print STDERR $res_homo->{'homoz'}."\n";
+            #   print STDERR $res_homo->{'homoz'}."\n";
               # print STDERR $list."\n";
               if ($res_homo->{'homoz'} < $homo_thresh) {$watchdog_homo = 1}
               # 2nd step
               my $query_avg_freq = "SELECT AVG(frequency) as freq FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis';";
               my $res_avg_freq = $dbh->selectrow_hashref($query_avg_freq);
-              # print STDERR $res_avg_freq->{'freq'}."\n";
+            #   print STDERR $res_avg_freq->{'freq'}."\n";
               if ($res_avg_freq->{'freq'} < $mean_ab_thresh) {$watchdog_mab = 1}
               if ($watchdog_homo == 0 && $watchdog_mab == 0) {
                 print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION WATCHDOG OK');
