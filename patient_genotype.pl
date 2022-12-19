@@ -121,7 +121,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				$q->meta({-http_equiv => 'Expires',
 					-content => '0'})],
 			-script => [{-language => 'javascript',
-				-src => $JS_PATH.'jquery-1.7.2.min.js', 'defer' => 'defer'},
+			 	-src => $JS_PATH.'jquery-1.7.2.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.fullsize.pack.js', 'defer' => 'defer'},
 				{-language => 'javascript',
@@ -136,7 +136,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				#-src => 'https://igv.org/web/release/2.0.1/dist/igv.min.js', 'defer' => 'defer'},
         # 2.7.2
 				{-language => 'javascript',
-				-src => 'https://cdn.jsdelivr.net/npm/igv@2.10.0/dist/igv.min.js', 'defer' => 'defer'},
+				-src => 'https://cdn.jsdelivr.net/npm/igv@2.13.4/dist/igv.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
 				-src => $JS_DEFAULT, 'defer' => 'defer'}],
 			-encoding => 'ISO-8859-1');
@@ -252,17 +252,32 @@ my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 if ($chr ne 'M') {
 	my $igv_script = '
 	$(document).ready(function () {
-		var div = $(\'#igv_div\'),
+		// var igv_div = $(\'#igv_div\');
+		var igv_div = document.getElementById(\'igv_div\');
 		options = {
 			showNavigation: true,
 			showRuler: true,
-			genome: "hg19",
-			locus: "'.$gene.'"
+			// genome: \'hg19\',
+			reference: {
+            	id: \'hg19\',
+            	name: \'Human (GRCh37/hg19)\',
+            	fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz\',
+				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.fai\',
+				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.gzi\'
+            },
+			locus: "'.$gene.'",
+			tracks: [			
+				{
+					name: \'Refseq Genes\',
+					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/refGene.txt.gz\',
+					order: 1000000,
+					indexed: false
+				}
+	    	]
 		};
-
-		igv.createBrowser(div, options).then(function (browser) {
-      console.log("Created IGV browser");
-      igv.browser = browser;
+		igv.createBrowser(igv_div, options).then(function (browser) {
+      		console.log("Created IGV browser");
+      		igv.browser = browser;
 		});
 	});
 	';

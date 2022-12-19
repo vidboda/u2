@@ -113,7 +113,7 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				#{-language => 'javascript',
 				#-src => $JS_PATH.'igv-1.0.5.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => 'https://cdn.jsdelivr.net/npm/igv@2.10.0/dist/igv.min.js', 'defer' => 'defer'},
+				-src => 'https://cdn.jsdelivr.net/npm/igv@2.13.4/dist/igv.min.js', 'defer' => 'defer'},
                                 {-language => 'javascript',
                                 -src => $JS_DEFAULT}],
                         -encoding => 'ISO-8859-1', 'defer' => 'defer');
@@ -290,11 +290,20 @@ print $q->end_tbody(), $q->end_table(), $q->end_div(), $q->br(), $q->br();
 
 my $igv_script = '
 $(document).ready(function () {
-	var div = $("#igv_div"),
+	// var div = $("#igv_div")
+	var igv_div = document.getElementById(\'igv_div\');
 	options = {
 	    showNavigation: true,
 	    showRuler: true,
-	    genome: "hg19",
+	    // genome: "hg19",
+		reference: {
+            	id: \'hg19\',
+            	name: \'Human (GRCh37/hg19)\',
+            	fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz\',
+				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.fai\',
+				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.gzi\',
+				cytobandURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/cytoBand.txt\'
+            },
 	    tracks: [
 			{
 				name: "'.$id.$number.' '.$nenufaar_ana.' '.$file_type.' file",
@@ -303,12 +312,18 @@ $(document).ready(function () {
 				format: "'.$file_type.'",
 				url: "'.$HTDOCS_PATH.$ali_path.$file_ext.'",
 				indexURL: "'.$HTDOCS_PATH.$ali_path.$index_ext.'",
-			}
+			},
+			{
+                name: \'Refseq Genes\',
+                url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/refGene.txt.gz\',
+                order: 1000000,
+                indexed: false
+            }
 	    ]
 	};
 
 	//igv.createBrowser(div, options);
-	igv.createBrowser(div, options).
+	igv.createBrowser(igv_div, options).
 		then(function (browser) {
 			igv.browser = browser;
 		});
