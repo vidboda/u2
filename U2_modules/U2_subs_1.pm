@@ -101,6 +101,15 @@ our $CHR_REGEXP = '[\dXYM]{1,2}';
 our $HGVS_CHR_TAG = '[gm]';
 our $HGVS_TRANSCRIPT_TAG = '[cm]';
 
+# SEAL correspondance hash between BED filters and ids
+our $SEAL_BED_IDS = {
+	'DFN' => 19,
+	'DFN-USH' => 20,
+	'CHM' => 21,
+	'RP' => 22,
+	'RP-USH' => 23,
+	'USH' => 24
+};
 
 #genes for aCGH
 our @ACGH = ('MYO7A', 'USH1C', 'CDH23', 'PCDH15', 'USH1G', 'CIB2', 'USH2A', 'ADGRV1', 'WRHN', 'CLRN1', 'PDZD7', 'CHM', 'OTOF', 'TECTA', 'MYO15A', 'COCH', 'TMC1', 'SLC26A4', 'KCNQ4', 'EYA4', 'TMPRSS3', 'WFS1', 'MYO6', 'EYS', 'GJB2', 'GJB6', 'POU3F4', 'ACTG1');
@@ -121,6 +130,8 @@ my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $PYTHON = $config->PYTHON_PATH();
 my $VARIANTVALIDATOR_GENUINE_API = $config->VARIANTVALIDATOR_GENUINE_API();
 my $VARIANTVALIDATOR_EMERGENCY_API = $config->VARIANTVALIDATOR_EMERGENCY_API();
+
+
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 

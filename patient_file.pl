@@ -241,11 +241,11 @@ my $js = "
 			\$(\"html\").css(\"cursor\", \"default\");
 		});
 	}
-  function Send2SEAL(sample, vcf_path, html_tag) {
+  function Send2SEAL(sample, vcf_path, html_tag, filter) {
     \$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
-			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , asked: 'send2SEAL'}
+			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'}
 		})
 		.done(function() {
 			\$(\"#\" + html_tag).html('VCF file successfully queued on SEAL server. Connect to <a href=\"".$SEAL_URL."\" target=\"_blank\">SEAL</a> to check its status.');
@@ -904,7 +904,7 @@ if ($result) {
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "search_controls.pl?step=3&iv=1&run=$res_manifest->{'run_id'}&sample=$id_tmp$num_tmp&analysis=$analysis", 'target' => '_blank'}, "Sample tracking: get private SNPs").$q->end_li();
             # ajax call to send the MobiDL VCF file to SEAL
             $raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
-                $q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "seal'.$analysis.'");', 'value' => 'Send2SEAL'}).$q->end_li();
+                $q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "seal'.$analysis.'", "'.$res_manifest->{'filter'}.'");', 'value' => 'Send2SEAL'}).$q->end_li();
 						$raw_data .= $q->end_li().$q->end_ul();
 
 						$filter = $res_manifest->{'filter'}; #in case of bug of code l190 we rebuild $filter

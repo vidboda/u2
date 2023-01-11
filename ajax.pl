@@ -1369,10 +1369,12 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
 	my $proband = U2_modules::U2_subs_1::check_proband($q);
 	my $vcf_path = U2_modules::U2_subs_1::check_illumina_vcf_path($q);
+	my $bed = U2_modules::U2_subs_1::check_filter($q);
 	my $seal_ready = '';
-	open F, "$DATABASES_PATH/seal_json.token" or die $!;
-	my ($sample_field, $family_field, $run_field, $teams_field) = (0, 0, 0, 0);
+	open F, "$DATABASES_PATH/seal_json_2023.token" or die $!;
+	my ($sample_field, $family_field, $run_field, $teams_field, $bed_field) = (0, 0, 0, 0, 0);
 	my $seal_id = $id.$number.'_LRM';
+	my $bed_id = $U2_modules::U2_subs_1::SEAL_BED_IDS->{$bed};
 	# while(<F>) {
 	# 	if (/"sample"/o) {$sample_field = 1}
 	# 	elsif (/"family"/o) {$family_field = 1}
@@ -1395,9 +1397,11 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	while(<F>) {
 		if (/"samplename"/o) {s/"samplename": "",/"samplename": "$seal_id",/}
 		elsif (/"family"/o) {$family_field = 1}
+		elsif (/"bed"/o) {$bed_field = 1}
 		elsif (/"run"/o) {$run_field = 1}
 		if (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
 		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
+		elsif (/"id":/o && $bed_field == 1) {s/"id":/"id": $bed_id/; $bed_field = 0}
 		elsif (/"affected":/o) {
 			if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
 			else {s/"affected": ,/"affected": false,/}
