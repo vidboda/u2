@@ -501,7 +501,8 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 			$text .= $q->start_li().$q->strong('LOVD matches: ').$q->start_ul();
 			my $i = 1;
 			foreach (@matches) {
-				if ($_ =~ /https.+Usher_montpellier\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD USHbases') . $q->end_li()}
+				# if ($_ =~ /https.+Usher_montpellier\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD USHbases') . $q->end_li()}
+				if ($_ =~ /https.+Usher_montpellier\//g) {next;}
 				elsif ($_ =~ /http.+databases\.lovd\.nl\/shared\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 shared') . $q->end_li()}
 				elsif ($_ =~ /http.+databases\.lovd\.nl\/whole_genome\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 whole genome') . $q->end_li()}
 				else {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, "Link $i") . $q->end_li();$i++;}
