@@ -245,10 +245,19 @@ my $js = "
     \$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
-			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'}
+			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'},
+			beforeSend: function() {
+				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
+				\$(\".w3-button\").css(\"cursor\", \"progress\");
+				\$(\"html\").css(\"cursor\", \"progress\");
+				\$(\"#\" + html_tag).html(\"<span>Please wait while the VCF is being sent to SEAL.....</span>\");
+			}
 		})
 		.done(function() {
 			\$(\"#\" + html_tag).html('VCF file successfully queued on SEAL server. Connect to <a href=\"".$SEAL_URL."\" target=\"_blank\">SEAL</a> to check its status.');
+			\$(\".ui-dialog\").css(\"cursor\", \"default\");
+			\$(\".w3-button\").css(\"cursor\", \"default\");
+			\$(\"html\").css(\"cursor\", \"default\");
 		});
   }
 ";

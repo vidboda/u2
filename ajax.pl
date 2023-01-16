@@ -1,11 +1,11 @@
 BEGIN {delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV', 'PATH'};}
 
 use strict;
-#use CGI; #in startup.pl
-#use DBI();
-#use JSON;
-#use AppConfig qw(:expand :argcount);
-#use Bio::EnsEMBL::Registry;
+# use CGI; #in startup.pl
+# use DBI();
+# use JSON;
+# use AppConfig qw(:expand :argcount);
+# use Bio::EnsEMBL::Registry;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
@@ -14,8 +14,8 @@ use U2_modules::U2_users_1;
 use SOAP::Lite;
 use File::Temp qw/ :seekable /;
 use List::Util qw(min max);
-#use IPC::Open2;
-use Data::Dumper;
+# use IPC::Open2;
+# use Data::Dumper;
 use URI::Escape;
 use LWP::UserAgent;
 use Net::Ping;
@@ -1363,6 +1363,7 @@ if ($q->param('asked') && $q->param('asked') eq 'disease') {
 	print $q->span({'class' => 'pointer', 'onclick' => "window.open('patients.pl?phenotype=$new_disease', '_blank')"}, $new_disease);
 }
 if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
+	# print STDERR Dumper($q);
 	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	my $family_id = U2_modules::U2_subs_1::check_family_id($q);
@@ -1415,6 +1416,8 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		$seal_ready .= $_;
 	}
 	close F;
+	# print STDERR $seal_ready;
+	exit;
 	open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
 	print G $seal_ready;
 	close G;
