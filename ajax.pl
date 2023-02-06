@@ -1428,14 +1428,16 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	}
 	# print STDERR $mobidl_vcf_path."\n";
 	open F, "$DATABASES_PATH/seal_json.token" or die $!;
-	($sample_field, $family_field, $run_field, $teams_field) = (0, 0, 0, 0);
+	($sample_field, $family_field, $run_field, $teams_field, $bed_field) = (0, 0, 0, 0, 0);
 	$seal_id = $id.$number.'_MobiDL';
 	while(<F>) {
 		if (/"samplename"/o) {s/"samplename": "",/"samplename": "$seal_id",/}
 		elsif (/"family"/o) {$family_field = 1}
+		elsif (/"bed"/o) {$bed_field = 1}
 		elsif (/"run"/o) {$run_field = 1}
-		elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
+		if (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
 		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
+		elsif (/"id":/o && $bed_field == 1) {s/"id":/"id": $bed_id/; $bed_field = 0}
 		elsif (/"affected":/o) {
 			if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
 			else {s/"affected": ,/"affected": false,/}
