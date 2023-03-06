@@ -428,8 +428,8 @@ if ($step && $step == 2) {
 		my ($var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $var_vf, $var_dp, $var_filter, $null, $format);
 		my ($i, $j, $k) = (0, 0, 0);
 		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf") or die $!;
-    # prepare insert statement handle
-    my $isth = $dbh->prepare("INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		# prepare insert statement handle
+		my $isth = $dbh->prepare("INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 		VCF: while (<F>) {
 			#if ($_ !~ /#/o && $_ =~ /GI=/o) {#we remove non mappable variants on our design
 			if ($_ !~ /#/o) {
@@ -466,15 +466,13 @@ if ($step && $step == 2) {
 				#we check wether the variant is in our genes or not
 				#we just query ushvam2
 				if  ($var_chr =~ /^chr($U2_modules::U2_subs_1::CHR_REGEXP)$/o) {$var_chr = $1}
-        if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
-        # check if variant not reported in special table no to assess these variants each time
-        my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
-        my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
-        if ($res_variants_no_insert) {
-          $message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
-        }
-
-
+				if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
+				# check if variant not reported in special table no to assess these variants each time
+				my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+				my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
+				if ($res_variants_no_insert) {
+					$message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
+				}
 
 				my $interest = 0;
 				foreach my $key (keys %{$interval}) {
@@ -524,22 +522,22 @@ if ($step && $step == 2) {
 				if ($res_gs) {$known_bad_variant = 1;$genomic_var = $res_gs->{'u2_name'}}
 
 				# my $insert = &U2_modules::U2_subs_3::direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-        my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $number, $id, $analysis, $dbh);
+       			my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $number, $id, $analysis, $dbh);
 				# print STDERR "Direct submission 1: $genomic_var\n";
-        if ($nom_c_i ne '') {
-        # if ($insert ne '') {
-          # get gene from insert then check
-          if ($nom_gene_i ne '') {
-          # if ($insert =~ /'\{"([^"]+)",/o) {
-          # 	my $gene = $1;
-          # 	my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
-            my $query_verif = "SELECT gene_symbol FROM gene WHERE \"$analysis\" = 't' AND gene_symbol = '$nom_gene_i';";
-            my $res_verif = $dbh->selectrow_hashref($query_verif);
-            # print STDERR "Gene verif2: $res_verif->{'nom'}[0]-$gene";
-            if ($res_verif->{'gene_symbol'} eq $nom_gene_i) {
-              # print STDERR "execute: $nom_c_i-$nom_gene_i\n";
-              # need to get individual values from direct submission
-              $isth->execute($nom_c_i, $number, $id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
+       			if ($nom_c_i ne '') {
+					# if ($insert ne '') {
+					# get gene from insert then check
+					if ($nom_gene_i ne '') {
+						# if ($insert =~ /'\{"([^"]+)",/o) {
+						# 	my $gene = $1;
+						# 	my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
+						my $query_verif = "SELECT gene_symbol FROM gene WHERE \"$analysis\" = 't' AND gene_symbol = '$nom_gene_i';";
+						my $res_verif = $dbh->selectrow_hashref($query_verif);
+						# print STDERR "Gene verif2: $res_verif->{'nom'}[0]-$gene";
+						if ($res_verif->{'gene_symbol'} eq $nom_gene_i) {
+							# print STDERR "execute: $nom_c_i-$nom_gene_i\n";
+							# need to get individual values from direct submission
+							$isth->execute($nom_c_i, $number, $id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
 							# $dbh->do($insert);
 							$j++;
 							next VCF;
@@ -561,22 +559,22 @@ if ($step && $step == 2) {
 				if ($genomic_var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP:g\..+\d+)([ATGC])>([ATCG])/o) {
 					my $inv_genomic_var = $1.$3.">".$2;
 					# print STDERR "Inv genomic var (inside inv): $inv_genomic_var\n";
-          my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $number, $id, $analysis, $dbh);
+					my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $number, $id, $analysis, $dbh);
 					# $insert = U2_modules::U2_subs_3::direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "Direct submission 2: $inv_genomic_var\n";
-          if ($nom_c_i ne '') {
-					# if ($insert ne '') {
+					if ($nom_c_i ne '') {
+						# if ($insert ne '') {
 						# get gene from insert then check
-            if ($nom_gene_i ne '') {
-						# if ($insert =~ /'\{"([^"]+)",/o) {
-						# 	my $gene = $1;
-						# 	my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
-              my $query_verif = "SELECT gene_symbol FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$nom_gene_i';";
+						if ($nom_gene_i ne '') {
+							# if ($insert =~ /'\{"([^"]+)",/o) {
+							# 	my $gene = $1;
+							# 	my $query_verif = "SELECT nom FROM gene WHERE \"$analysis\" = 't' AND nom[1] = '$gene';";
+							my $query_verif = "SELECT gene_symbol FROM gene WHERE \"$analysis\" = 't' AND gene_symbol = '$nom_gene_i';";
 							my $res_verif = $dbh->selectrow_hashref($query_verif);
 							# print STDERR "Gene verif2: $res_verif->{'nom'}[0]-$gene";
 							if ($res_verif->{'gene_symbol'} eq $nom_gene_i) {
-                # print STDERR "execute: $nom_c_i-$nom_gene_i\n";
-                $isth->execute($nom_c_i, $number, $id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
+							# print STDERR "execute: $nom_c_i-$nom_gene_i\n";
+								$isth->execute($nom_c_i, $number, $id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
 								# $dbh->do($insert);
 								$j++;
 								next VCF;
@@ -594,26 +592,26 @@ if ($step && $step == 2) {
 				}
 
 				#we keep only the first variants if more than 1 e.g. alt = TAA, TA
-        # done earlier
+				# done earlier
 				#  if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				#ok let's deal with VV
-        # print STDERR "Run VV1: $var_chr-$var_pos-$var_ref-$var_alt\n";
-        # in case VV returns weird results
-        my $fail = 0;
+				# print STDERR "Run VV1: $var_chr-$var_pos-$var_ref-$var_alt\n";
+				# in case VV returns weird results
+				my $fail = 0;
 				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
-        if ($fail == 1) {
-          $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
-        }
-        # print STDERR "End Run VV1";
+				if ($fail == 1) {
+					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
+				}
+				# print STDERR "End Run VV1";
 				#run variantvalidator API
 				my ($type_segment, $classe, $var_final, $cdna);
 				if ($vv_results ne '0') {
 					#find vvkey and cdna
 					my ($hashvar, $tmp_message);
 					my ($vvkey, $nm_list, $tag) = ('', '', '');
-          # print STDERR "Run VV results\n";
+					# print STDERR "Run VV results\n";
 					($tmp_message, $insert, $hashvar, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-          # print STDERR "End Run VV results\n";
+					# print STDERR "End Run VV results\n";
 					if ($tmp_message ne '') {$message .= $tmp_message;next VCF}
 					elsif ($insert ne '') {
 						# print STDERR $k." - ".$insert."\n";
@@ -622,7 +620,7 @@ if ($step && $step == 2) {
 						next VCF;
 					}
 
-					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:$VVURL/VariantValidator/variantvalidator/$VVGENOME/$var_chr-$var_pos-$var_ref-$var_alt/all?content-type=application/json\n";next VCF}
+					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:$VVURL/VariantValidatorvariantvalidator/$VVGENOME/$var_chr-$var_pos-$var_ref-$var_alt/all?content-type=application/json\n";next VCF}
 					elsif ($nm_list eq '' && $tag ne '') {$message .= $tag;next VCF}
 					#query U2 to get NM
 					chop($nm_list);#remove last ,
@@ -637,51 +635,51 @@ if ($step && $step == 2) {
 							$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[1] = $result->{'main'};
 							$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
 							$cdna = $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
-              if ($cdna =~ /=$/) {
-                $message .= "$id$number: WARNING: ALT equals REF in ".$result->{'nm'}." for $var_chr-$var_pos-$var_ref-$var_alt ($cdna)\n";
-                next VCF
-              }
+							if ($cdna =~ /=$/) {
+								$message .= "$id$number: WARNING: ALT equals REF in ".$result->{'nm'}." for $var_chr-$var_pos-$var_ref-$var_alt ($cdna)\n";
+								next VCF
+							}
 							($acc_no, $acc_ver) = ($result->{'nm'}, $result->{'acc_version'});
 							last;
 							#print STDERR "VV 1\n";
 						}
 						if (exists $hashvar->{$result->{'nm'}} && !exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}) {
 							#bad acc not in U2 => retry with U2 acc_no
-              # print STDERR "Run VV2 Bad acc not in U2: $var_chr-$var_pos-$var_ref-$var_alt - ".$result->{'nm'}.".".$result->{'acc_version'}."\n";
-              my $fail = 0;
+							# print STDERR "Run VV2 Bad acc not in U2: $var_chr-$var_pos-$var_ref-$var_alt - ".$result->{'nm'}.".".$result->{'acc_version'}."\n";
+							my $fail = 0;
 							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
-              if ($fail == 1) {
-                $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
-              }
+							if ($fail == 1) {
+								$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
+							}
 							#get new cdna
 							my ($tmp_message, $hashvar_tmp);
-							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf,$var_filter, $dbh);
 							if ($tmp_message ne '') {$message .= $tmp_message;next VCF}#should not happen
 							elsif ($insert ne '') {#should not happen
 								$dbh->do($insert);
 								$j++;
 								next VCF;
 							}
-              # david 12/04/2022 added l 742 and 759-762
-              if ($hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}}[0] ne '') {
-  							if ($result->{'main'} == 1) {
-  								$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
-  								$cdna = $hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
-  								($acc_no, $acc_ver) = ($result->{'nm'}, $result->{'acc_version'});
-  								#main => last
-  								last
-  							} else {
-  								#replace acc_no in hashvar
-  								#https://stackoverflow.com/questions/1490356/how-to-replace-a-perl-hash-key
-  								delete $hashvar->{$result->{'nm'}};
-  								$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}} = $hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}};
-  							}
-              }
-              else {
-                $vvkey = '';
-                # print STDERR "No suitable NM (likely number version)\n"
-              }
-							#print STDERR "VV 2\n";
+							# david 12/04/2022 added l 742 and 759-762
+							if ($hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}}[0] ne '') {
+								if ($result->{'main'} == 1) {
+									$vvkey = $result->{'nm'}.".".$result->{'acc_version'}.":".$hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
+									$cdna = $hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}}[0];
+									($acc_no, $acc_ver) = ($result->{'nm'}, $result->{'acc_version'});
+									#main => last
+									last
+								} else {
+									#replace acc_no in hashvar
+									#https://stackoverflow.com/questions/1490356/how-to-replace-a-perl-hash-key
+									delete $hashvar->{$result->{'nm'}};
+									$hashvar->{$result->{'nm'}}->{$result->{'acc_version'}} = $hashvar_tmp->{$result->{'nm'}}->{$result->{'acc_version'}};
+								}
+							}
+							else {
+								$vvkey = '';
+								# print STDERR "No suitable NM (likely number version)\n"
+							}
+								#print STDERR "VV 2\n";
 						}
 					}
 					if ($vvkey ne '') {
@@ -721,15 +719,15 @@ if ($step && $step == 2) {
 							elsif (exists $candidates->{'UTR'}) {$candidate = $candidates->{'UTR'}}
 						}
 						if ($candidate =~ /(NM_\d+)\.(\d):c\..+/) {
-              # print STDERR "Candidate: $candidate\n";
+							# print STDERR "Candidate: $candidate\n";
 							($acc_no, $acc_ver) = ($1, $2);
 							#run vv again
-              # print STDERR "Run VV3: $var_chr-$var_pos-$var_ref-$var_alt-".$hashvar->{$acc_no}->{$acc_ver}[0]."-\n";
-              my $fail = 0;
-							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna')) or $fail = 1;
-              if ($fail == 1) {
-                $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna'))
-              }
+							# print STDERR "Run VV3: $var_chr-$var_pos-$var_ref-$var_alt-".$hashvar->{$acc_no}->{$acc_ver}[0]."-\n";
+							my $fail = 0;
+								$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna')) or $fail = 1;
+							if ($fail == 1) {
+								$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $acc_no.".".$acc_ver, $hashvar->{$acc_no}->{$acc_ver}[0], 'cdna'))
+							}
 							if ($vv_results->{'message'}) {$message .= "$id$number: ERROR: VariantValidator returned $vv_results $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF}
 							$vvkey = "$acc_no.$acc_ver:".$hashvar->{$acc_no}->{$acc_ver}[0];
 							$cdna = $hashvar->{$acc_no}->{$acc_ver}[0];
@@ -740,13 +738,13 @@ if ($step && $step == 2) {
 						}
 						else {
 							#ERROR
-              # special table no to assess these variants each time
-              my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
-              my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
-              if (!$res_variants_no_insert) {
-                my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found');";
-                $dbh->do($insert_variants_no_insert);
-              }
+							# special table no to assess these variants each time
+							my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+							my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
+							if (!$res_variants_no_insert) {
+								my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found');";
+								$dbh->do($insert_variants_no_insert);
+							}
 							$message .= "$id$number: ERROR: Impossible to run VariantValidator (no suitable NM found) for variant $var_chr-$var_pos-$var_ref-$var_alt-$candidate\n";
 						}
 					}
@@ -756,23 +754,23 @@ if ($step && $step == 2) {
 						my $res_verif = $dbh->selectrow_hashref($query_verif);
 						# print STDERR "Gene verif3: $res_verif->{'nom'}[0]-$gene";
 						if ($res_verif->{'gene_symbol'} eq $gene) {
-              # bug 210726 - 2 differents variants in LRM VCF give the very same HGVS hgvs_genomic_description
-              # SU7542 17-4439727-T-TG and 17-4439731-G-GG both give c.1607+13dupG, 7542, SU, {SPNS2,NM_001124758}
-              # then we should check whether the variant is not already inserted
-              my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$var_final' AND refseq = '$acc_no';";
-              my $res_last_check = $dbh->selectrow_hashref($last_check);
-              # print STDERR "Last check: $res_last_check\n";
-              if (!$res_last_check || $res_last_check eq '0E0') {
-                $insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '$acc_no', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
-  							# print STDERR $insert."\n";
-  							$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
-  							$i++;$j++;
-  							$new_var .= $message_tmp;
-              }
-							 else {
-                 $message .= "$id$number: Double definition for the same variant found: $var_final, $acc_no, $gene";
-                 next VCF;
-               }
+						# bug 210726 - 2 differents variants in LRM VCF give the very same HGVS hgvs_genomic_description
+						# SU7542 17-4439727-T-TG and 17-4439731-G-GG both give c.1607+13dupG, 7542, SU, {SPNS2,NM_001124758}
+						# then we should check whether the variant is not already inserted
+						my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$var_final' AND refseq = '$acc_no';";
+						my $res_last_check = $dbh->selectrow_hashref($last_check);
+						# print STDERR "Last check: $res_last_check\n";
+						if (!$res_last_check || $res_last_check eq '0E0') {
+							$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '$acc_no', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
+							# print STDERR $insert."\n";
+							$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
+							$i++;$j++;
+							$new_var .= $message_tmp;
+						}
+						else {
+							$message .= "$id$number: Double definition for the same variant found: $var_final, $acc_no, $gene";
+							next VCF;
+						}
 						}
 						else {
 							#variant in unwanted region
@@ -785,6 +783,7 @@ if ($step && $step == 2) {
 				}
 				else {
 					$message .= "$id$number: ERROR: Impossible to run VariantValidator (vv_results empty) for variant $var_chr-$var_pos-$var_ref-$var_alt\n";
+
 				}
 			}
 		}
@@ -793,7 +792,7 @@ if ($step && $step == 2) {
 		my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
 		$dbh->do($valid);
 		print STDERR "$id$number VCF imported.\n";
-    print $q->start_li(), $q->a({"href" => "patient_file.pl?sample=$id$number", "target" => "_blank"}, "$id$number"), $q->span(' import validated'), $q->end_li();
+		print $q->start_li(), $q->a({"href" => "patient_file.pl?sample=$id$number", "target" => "_blank"}, "$id$number"), $q->span(' import validated'), $q->end_li();
 		#print STDERR $valid."\n";
 	}
 
@@ -802,8 +801,7 @@ if ($step && $step == 2) {
 	close F;
 
 	U2_modules::U2_subs_2::send_manual_mail($user, '', '', $run, $general, '', $message);
-  print $q->end_ul(), $q->br(), $q->start_p(), $q->strong('  Import finished and validated. You should receive the confirmation email quickly.'), $q->end_p();
-
+  	print $q->end_ul(), $q->br(), $q->start_p(), $q->strong('  Import finished and validated. You should receive the confirmation email quickly.'), $q->end_p();
 }
 
 
