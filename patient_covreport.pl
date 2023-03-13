@@ -126,11 +126,13 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 	# print $filter;
 	if ($filter eq 'DFN') {$filter_subquery = "dfn = '$dfn' AND"}
 	# elsif ($filter eq 'DFN-USH') {$filter_subquery = "(dfn = '$dfn' OR usher = '$usher') AND rp = '$rp' AND"}
-  elsif ($filter eq 'DFN-USH') {$filter_subquery = "((dfn = '$dfn' AND rp = '$rp') OR usher = '$usher') AND"}
+	elsif ($filter eq 'DFN-USH') {$filter_subquery = "((dfn = '$dfn' AND rp = '$rp') OR usher = '$usher') AND"}
 	elsif ($filter eq 'USH') {$filter_subquery = " usher = '$usher' AND"}
-  elsif ($filter eq 'RP') {$filter_subquery = "rp = '$rp' AND gene_symbol <> 'CHM' AND"}
+	elsif ($filter eq 'RP') {$filter_subquery = "rp = '$rp' AND"}
+	# CHM should be selectable in RP list
+	# elsif ($filter eq 'RP') {$filter_subquery = "rp = '$rp' AND gene_symbol <> 'CHM' AND"}
 	# elsif ($filter eq 'RP-USH') {$filter_subquery = "(rp = '$rp' OR usher = '$usher') AND dfn = '$dfn' AND"}
-  elsif ($filter eq 'RP-USH') {$filter_subquery = "((rp = '$rp' AND dfn = '$dfn') OR usher = '$usher') AND"}
+	elsif ($filter eq 'RP-USH') {$filter_subquery = "((rp = '$rp' AND dfn = '$dfn') OR usher = '$usher') AND"}
 	elsif ($filter eq 'CHM') {$filter_subquery = "gene_symbol = 'CHM' AND "}
 
 	my $query = "SELECT gene_symbol, refseq, diag FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND gene_symbol <> 'CEVA' ORDER BY gene_symbol;";
