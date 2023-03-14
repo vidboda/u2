@@ -54,9 +54,9 @@ my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
 
 sub get_patient_name {
 	my ($id, $number, $dbh) = @_;
-	my $query = "SELECT first_name, last_name FROM patient WHERE numero = '$number' and identifiant = '$id';";
+	my $query = "SELECT first_name, last_name, date_of_birth FROM patient WHERE numero = '$number' and identifiant = '$id';";
 	my $res = $dbh->selectrow_hashref($query);
-	return ($res->{'first_name'}, $res->{'last_name'});
+	return ($res->{'first_name'}, $res->{'last_name'}, $res->{'date_of_birth'});
 }
 
 sub is_in_interval {
@@ -69,7 +69,7 @@ sub is_in_interval {
 }
 
 sub print_validation_table {
-	my ($first_name, $last_name, $gene, $q, $dbh, $user, $class) = @_;
+	my ($first_name, $last_name, $DoB, $gene, $q, $dbh, $user, $class) = @_;
 
 	my $div_class = 'patient_file_frame';
 	if ($class eq 'global') {$div_class = 'container'}
@@ -90,20 +90,22 @@ sub print_validation_table {
 	if ($user->isAnalyst() == 1) {print $q->th({'class' => 'print_hidden'},'access'), "\n";}
 	print $q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";
 
-
-	my $query = "SELECT *, c.gene_symbol as nom_gene FROM analyse_moleculaire a, patient b, gene c, valid_type_analyse d WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = c.refseq AND a.type_analyse = d.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND c.gene_symbol = '$gene' AND c.main = 't' ORDER BY c.gene_symbol, a.type_analyse;";
+	my $sql_DoB = "'$DoB'";
+	if ($DoB == '') { $sql_DoB = 'NULL'}
+	my $query = "SELECT *, c.gene_symbol as nom_gene FROM analyse_moleculaire a, patient b, gene c, valid_type_analyse d WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = c.refseq AND a.type_analyse = d.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND (b.date_of_birth = $sql_DoB OR b.date_of_birth IS NULL) AND c.gene_symbol = '$gene' AND c.main = 't' ORDER BY c.gene_symbol, a.type_analyse;";
 	if ($gene eq '') {
-		$query = "SELECT *, c.gene_symbol as nom_gene FROM analyse_moleculaire a, patient b, gene c, valid_type_analyse d  WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = c.refseq AND a.type_analyse = d.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND c.main = 't' ORDER BY c.gene_symbol, a.type_analyse;";
+		$query = "SELECT *, c.gene_symbol as nom_gene FROM analyse_moleculaire a, patient b, gene c, valid_type_analyse d  WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = c.refseq AND a.type_analyse = d.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND (b.date_of_birth = $sql_DoB OR b.date_of_birth IS NULL) AND c.main = 't' ORDER BY c.gene_symbol, a.type_analyse;";
 	}
+	print STDERR "$query\n";
 
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my ($id, $number);
 	while (my $result = $sth->fetchrow_hashref()) {
-		#filter for Illumina NGS
+		# filter for Illumina NGS
 		my $display = 1;
 		if ($result->{'filtering_possibility'}  == 1) {
-			#get filter
+			# get filter
 			$display = &gene_to_display($result, $dbh);
 		}
 

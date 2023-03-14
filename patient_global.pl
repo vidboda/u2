@@ -142,7 +142,7 @@ my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')),
 
 #get the name
 
-my ($first_name, $last_name) = U2_modules::U2_subs_2::get_patient_name($id, $number, $dbh);
+my ($first_name, $last_name, $DoB) = U2_modules::U2_subs_2::get_patient_name($id, $number, $dbh);
 my $type;
 if ($q->param('type') && $q->param('type') =~ /(genotype|analyses)/o) {$type = $1}
 else {U2_modules::U2_subs_1::standard_error('1', $q)}
@@ -317,7 +317,7 @@ if ($type eq 'analyses') {
 	print $q->script({'defer' => 'defer'}, $timeline), $q->start_div({'id' => 'patient-timeline'}), $q->end_div(), $q->br(), $q->br();
 
 	print $q->start_div({'align' => 'center'});
-	U2_modules::U2_subs_2::print_validation_table($first_name, $last_name, '', $q, $dbh, $user, 'global');
+	U2_modules::U2_subs_2::print_validation_table($first_name, $last_name, $DoB, '', $q, $dbh, $user, 'global');
 	print $q->end_div();
 	#print $q->end_td(), $q->end_Tr(), $q->end_table();
 }
@@ -345,7 +345,7 @@ else {#reports genotype table
 
 	#we can't get all vars at once, as they should be sorted depending on the strand. So we need to get all genes first, then check strand, get vars and print
 
-	my $query = "SELECT DISTINCT(d.gene_symbol) as gene, a.type_analyse FROM analyse_moleculaire a, patient b, variant2patient c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND c.type_analyse = a.type_analyse AND a.refseq = c.refseq AND c.refseq = d.refseq AND b.numero = c.num_pat AND b.identifiant = c.id_pat AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY d.gene_symbol;";
+	my $query = "SELECT DISTINCT(d.gene_symbol) as gene, a.type_analyse FROM analyse_moleculaire a, patient b, variant2patient c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND c.type_analyse = a.type_analyse AND a.refseq = c.refseq AND c.refseq = d.refseq AND b.numero = c.num_pat AND b.identifiant = c.id_pat AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND (b.date_of_birth = '$DoB' OR b.date_of_birth IS NULL) ORDER BY d.gene_symbol;";
 
 	#my $query = "SELECT DISTINCT(a.nom_gene[1]) as gene, a.num_pat, a.id_pat, a.type_analyse, c.filtering_possibility, d.rp, d.dfn FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND a.type_analyse = c.type_analyse AND a.nom_gene = d.nom AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY a.nom_gene[1];";
 	#print $query;

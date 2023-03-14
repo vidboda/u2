@@ -157,7 +157,7 @@ my ($gene, $second) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 
 #get the name
 
-my ($first_name, $last_name) = U2_modules::U2_subs_2::get_patient_name($id, $number, $dbh);
+my ($first_name, $last_name, $DoB) = U2_modules::U2_subs_2::get_patient_name($id, $number, $dbh);
 
 
 print $q->start_p({'class' => 'center'}), $q->start_big(), $q->span("Sample "), $q->strong({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(": Results for "), $q->strong("$first_name $last_name"), $q->span(" in "), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(" ($second)"), $q->end_strong(), $q->end_big(), $q->end_p(), "\n";
@@ -185,7 +185,7 @@ $first_name =~ s/'/''/og;
 
 #reports technical table
 print $q->start_td({'class' => 'zero_td right_general'});
-U2_modules::U2_subs_2::print_validation_table($first_name, $last_name, $gene, $q, $dbh, $user, '');
+U2_modules::U2_subs_2::print_validation_table($first_name, $last_name, $DoB, $gene, $q, $dbh, $user, '');
 print $q->end_td(), $q->end_Tr(), $q->end_table();
 
 #defines an interval for putative large deletions as genomic positions
