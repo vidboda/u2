@@ -159,7 +159,10 @@ if ($type eq 'analyses') {
 
 	#ok for the timeline we get the analyses, and the result multiple from valid_type_analyse to group e.g. NGS experiments
 	#1st query to get patient info
-	my $query = "SELECT numero, identifiant, famille, pathologie, proband, date_creation, trio_assigned FROM patient WHERE first_name = '$first_name' AND last_name = '$last_name' ORDER BY date_creation, numero;";
+	my $query = "SELECT numero, identifiant, famille, pathologie, proband, date_creation, trio_assigned FROM patient WHERE first_name = '$first_name' AND last_name = '$last_name' AND (date_of_birth = '$DoB' OR date_of_birth IS NULL) ORDER BY date_creation, numero;";
+	if ($DoB == '') {
+		$query = "SELECT numero, identifiant, famille, pathologie, proband, date_creation, trio_assigned FROM patient WHERE first_name = '$first_name' AND last_name = '$last_name' AND date_of_birth IS NULL ORDER BY date_creation, numero;";
+	}
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $i = 0;
@@ -216,7 +219,10 @@ if ($type eq 'analyses') {
 	print U2_modules::U2_subs_2::info_panel($text, $q);
 	#2nd query for non-groupable analyses
 
-	$query = "SELECT DISTINCT(d.gene_symbol), a.type_analyse, a.valide, a.result, a.date_analyse, a.date_valid, a.date_result, a.analyste, a.validateur, a.referee, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND a.refseq = d.refseq AND c.multiple = 'f' AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY date_analyse;";
+	$query = "SELECT DISTINCT(d.gene_symbol), a.type_analyse, a.valide, a.result, a.date_analyse, a.date_valid, a.date_result, a.analyste, a.validateur, a.referee, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND a.refseq = d.refseq AND c.multiple = 'f' AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND (b.date_of_birth = '$DoB' OR b.date_of_birth IS NULL) ORDER BY date_analyse;";
+	if ($DoB == '') {
+		$query = "SELECT DISTINCT(d.gene_symbol), a.type_analyse, a.valide, a.result, a.date_analyse, a.date_valid, a.date_result, a.analyste, a.validateur, a.referee, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND a.refseq = d.refseq AND c.multiple = 'f' AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND date_of_birth IS NULL ORDER BY date_analyse;";
+	}
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
 
@@ -243,7 +249,10 @@ if ($type eq 'analyses') {
 	}
 
 	#3rd groupable analysis (eg NGS, CGH)
-	$query = "SELECT DISTINCT(a.type_analyse), a.date_analyse, a.analyste, c.manifest_name, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND c.multiple = 't' AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY date_analyse;";
+	$query = "SELECT DISTINCT(a.type_analyse), a.date_analyse, a.analyste, c.manifest_name, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND c.multiple = 't' AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND (b.date_of_birth = '$DoB' OR b.date_of_birth IS NULL) ORDER BY date_analyse;";
+	if ($DoB == '') {
+		$query = "SELECT DISTINCT(a.type_analyse), a.date_analyse, a.analyste, c.manifest_name, b.numero, b.identifiant FROM analyse_moleculaire a, patient b, valid_type_analyse c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.type_analyse = c.type_analyse AND c.multiple = 't' AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND date_of_birth IS NULL ORDER BY date_analyse;";
+	}
 
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
@@ -346,7 +355,9 @@ else {#reports genotype table
 	#we can't get all vars at once, as they should be sorted depending on the strand. So we need to get all genes first, then check strand, get vars and print
 
 	my $query = "SELECT DISTINCT(d.gene_symbol) as gene, a.type_analyse FROM analyse_moleculaire a, patient b, variant2patient c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND c.type_analyse = a.type_analyse AND a.refseq = c.refseq AND c.refseq = d.refseq AND b.numero = c.num_pat AND b.identifiant = c.id_pat AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND (b.date_of_birth = '$DoB' OR b.date_of_birth IS NULL) ORDER BY d.gene_symbol;";
-
+	if ($DoB == '') {
+		$query = "SELECT DISTINCT(d.gene_symbol) as gene, a.type_analyse FROM analyse_moleculaire a, patient b, variant2patient c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND c.type_analyse = a.type_analyse AND a.refseq = c.refseq AND c.refseq = d.refseq AND b.numero = c.num_pat AND b.identifiant = c.id_pat AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND b.date_of_birth IS NULL ORDER BY d.gene_symbol;";
+	}
 	#my $query = "SELECT DISTINCT(a.nom_gene[1]) as gene, a.num_pat, a.id_pat, a.type_analyse, c.filtering_possibility, d.rp, d.dfn FROM analyse_moleculaire a, patient b, valid_type_analyse c, gene d WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND a.type_analyse = c.type_analyse AND a.nom_gene = d.nom AND b.first_name = '$first_name' AND b.last_name = '$last_name' ORDER BY a.nom_gene[1];";
 	#print $query;
 	my $sth = $dbh->prepare($query);

@@ -91,12 +91,12 @@ sub print_validation_table {
 	print $q->end_Tr(), $q->end_thead(), $q->start_tbody(), "\n";
 
 	my $sql_DoB = "'$DoB'";
-	if ($DoB == '') { $sql_DoB = 'NULL'}
+	if ($DoB eq '') { $sql_DoB = 'NULL'}
 	my $query = "SELECT *, c.gene_symbol as nom_gene FROM analyse_moleculaire a, patient b, gene c, valid_type_analyse d WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = c.refseq AND a.type_analyse = d.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND (b.date_of_birth = $sql_DoB OR b.date_of_birth IS NULL) AND c.gene_symbol = '$gene' AND c.main = 't' ORDER BY c.gene_symbol, a.type_analyse;";
 	if ($gene eq '') {
 		$query = "SELECT *, c.gene_symbol as nom_gene FROM analyse_moleculaire a, patient b, gene c, valid_type_analyse d  WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = c.refseq AND a.type_analyse = d.type_analyse AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND (b.date_of_birth = $sql_DoB OR b.date_of_birth IS NULL) AND c.main = 't' ORDER BY c.gene_symbol, a.type_analyse;";
 	}
-	print STDERR "$query\n";
+	# print STDERR "$query\n";
 
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -108,7 +108,7 @@ sub print_validation_table {
 			# get filter
 			$display = &gene_to_display($result, $dbh);
 		}
-
+		# print STDERR "$display\n";
 		if ($display == 1) {
 			my ($alignement_file_path, $file_type) = ('', '');
 			($id, $number) = ($result->{'id_pat'}, $result->{'num_pat'});
