@@ -513,7 +513,7 @@ if ($res->{'acc_g'} ne 'NG_000000.0') {
 
 print $q->start_Tr(),
 		$q->td('hg19 Genomic HGVS:'), "\n",
-		$q->start_td({'id' => 'nom_g'}), $q->span("$res->{'nom_g'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link, 'target' => '_blank'}, 'UCSC'), $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => "/perl/led/engine.pl?research=hg19:$evs_chr:$evs_pos_start", 'target' => '_blank'}, 'LED'), $q->end_td(),
+		$q->start_td({'id' => 'nom_g'}), $q->span("$res->{'nom_g'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link, 'target' => '_blank'}, 'UCSC'), $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/perl/led/engine.pl?research=hg19:$evs_chr:$evs_pos_start", 'target' => '_blank'}, 'LED'), $q->end_td(),
 		$q->td('Absolute genomic HGVS nomenclature (chr), hg19 assembly'),
 		$q->end_Tr(), "\n",
 		$q->start_Tr(),
