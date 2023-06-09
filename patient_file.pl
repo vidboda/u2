@@ -241,20 +241,20 @@ my $js = "
 			\$(\"html\").css(\"cursor\", \"default\");
 		});
 	}
-  function Send2SEAL(sample, vcf_path, html_tag, filter) {
+  function Send2SEAL(sample, vcf_path, analysis, filter) {
     \$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
-			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'},
+			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#\' + analysis + \'_run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'},
 			beforeSend: function() {
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
 				\$(\".w3-button\").css(\"cursor\", \"progress\");
 				\$(\"html\").css(\"cursor\", \"progress\");
-				\$(\"#\" + html_tag).html(\"<span>Please wait while the VCF is being sent to SEAL.....</span>\");
+				\$(\"#seal\" + analysis).html(\"<span>Please wait while the VCF is being sent to SEAL.....</span>\");
 			}
 		})
 		.done(function() {
-			\$(\"#\" + html_tag).html('VCF file successfully queued on SEAL server. Connect to <a href=\"".$SEAL_URL."\" target=\"_blank\">SEAL</a> to check its status.');
+			\$(\"#seal\" + analysis).html('VCF file successfully queued on SEAL server. Connect to <a href=\"".$SEAL_URL."\" target=\"_blank\">SEAL</a> to check its status.');
 			\$(\".ui-dialog\").css(\"cursor\", \"default\");
 			\$(\".w3-button\").css(\"cursor\", \"default\");
 			\$(\"html\").css(\"cursor\", \"default\");
@@ -601,7 +601,7 @@ if ($result) {
 						}
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-									$q->span('Run id: ').$q->a({'href' => "stats_ngs.pl?run=$res_manifest->{'run_id'}", 'target' => '_blank', 'id' => 'run_id'}, $res_manifest->{'run_id'}).
+									$q->span('Run id: ').$q->a({'href' => "stats_ngs.pl?run=$res_manifest->{'run_id'}", 'target' => '_blank', 'id' => $analysis.'_run_id'}, $res_manifest->{'run_id'}).
 								$q->end_li();
 						if ($user->isValidator != 1) {$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Filter: $res_manifest->{'filter'}")}
 						#if ($user->getName() ne 'david') {$raw_data .= $q->li("Filter: $res_manifest->{'filter'}")}
@@ -913,7 +913,7 @@ if ($result) {
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "search_controls.pl?step=3&iv=1&run=$res_manifest->{'run_id'}&sample=$id_tmp$num_tmp&analysis=$analysis", 'target' => '_blank'}, "Sample tracking: get private SNPs").$q->end_li();
             # ajax call to send the MobiDL VCF file to SEAL
             $raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
-                $q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "seal'.$analysis.'", "'.$res_manifest->{'filter'}.'");', 'value' => 'Send2SEAL'}).$q->end_li();
+                $q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "'.$analysis.'", "'.$res_manifest->{'filter'}.'");', 'value' => 'Send2SEAL'}).$q->end_li();
 						$raw_data .= $q->end_li().$q->end_ul();
 
 						$filter = $res_manifest->{'filter'}; #in case of bug of code l190 we rebuild $filter
