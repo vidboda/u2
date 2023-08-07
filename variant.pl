@@ -74,7 +74,7 @@ my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
 my $HOME_IP = $config->HOME_IP();
-my $MD_API_KEY = $config->MD_API_KEY();
+# my $MD_API_KEY = $config->MD_API_KEY();
 my $MD_BASE_URL = $config->MD_BASE_URL();
 my $MD_API_CREATE = $config->MD_API_CREATE();
 
@@ -696,6 +696,10 @@ print 	$q->end_td(),
 	$q->end_Tr(), "\n";
 
 # MobiDetails
+# get user API key
+my $query_user = "SELECT md_api_key FROM valid_analyste WHERE analyste = '".$user->getName()."';";
+my $res_api_key = $dbh->selectrow_hashref($query_user);
+
 my $mdjs = "
 function openMD(id) {
     \$.ajax({
@@ -704,7 +708,7 @@ function openMD(id) {
     data: {
         variant_chgvs: encodeURIComponent(id),
         caller: 'cli',
-        api_key: '$MD_API_KEY'
+        api_key: '".$res_api_key->{'md_api_key'}."'
     },
     beforeSend: function() {
       \$('#md_button').hide();
