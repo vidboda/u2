@@ -127,6 +127,7 @@ my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
 $SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
 $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
+my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
 # genome version for VV
 my $VVGENOME = $config->VARIANTVALIDATOR_GENOME();
 my $VVURL = $config->VARIANTVALIDATOR_GENUINE_API();
@@ -170,6 +171,7 @@ if ($step && $step == 2) {
 	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path='MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR}
 	my $alignment_dir;
+	my $additional_path = '';
 
 	if ($instrument eq 'miseq') {
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
@@ -191,20 +193,22 @@ if ($step && $step == 2) {
 		$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#old fashioned replaced with autofs 21/12/2016
+		my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
+		if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 		if ($access_method eq 'autofs') {
-			$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
+			$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
 			#print "1-$alignment_dir<br/>";
 			$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 			$alignment_dir = $1;
 			$alignment_dir =~ s/\\/\//og;
-			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/$alignment_dir";
+			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir";
 		}
 		else {
-			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run$additional_path/CompletedJobInfo.xml");
 			$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 			$alignment_dir = $1;
 			$alignment_dir =~ s/\\/\//og;
-			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$alignment_dir";
+			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/$alignment_dir";
 		}
 	}
 	my $report = 'aggregate.report.pdf';

@@ -48,6 +48,7 @@ my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
 my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 my $HOME_IP = $config->HOME_IP();
+my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -169,22 +170,34 @@ sub gene_to_display {
 	return 0;
 }
 
+sub get_miniseq_id {
+	my $run_id = shift;
+	if ($run_id =~ /^\d{6}_([A-Z]{2}\d{5})_\d{4}_[A-Z0-9]{10}$/o) {
+		return $1
+	}
+	return 'unknown instrument';
+}
+
 sub get_alignement_path {
 	my ($id, $number, $analysis, $dbh) = @_;
 	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 	my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
 	my $res_manifest = $dbh->selectrow_hashref($query_manifest);
+	
 	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq'}
 	elsif ($analysis =~ /NextSeq-.+/o) {$instrument = 'nextseq';$instrument_path = $CLINICAL_EXOME_BASE_DIR}
-	my ($alignment_dir);
+	my ($alignment_dir, $additional_path) = ('', '');
+	my $run = $res_manifest->{'run_id'};
 	if ($instrument eq 'miseq') {
-		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
+		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#print $alignment_dir;
 		$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = "/Data/Intensities/BaseCalls/$1";
 		#print $alignment_dir;
 	}
 	elsif($instrument eq 'miniseq') {
-		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
+		my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
+		if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
+		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/CompletedJobInfo.xml`;
 		$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 		$alignment_dir = $1;
 		$alignment_dir =~ s/\\/\//og;
@@ -198,10 +211,10 @@ sub get_alignement_path {
 
 	my ($file, $file_type);
 	if ($instrument ne 'nextseq') {
-		my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir`;
-		#print "ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$alignment_dir -- $bam_list";
-		#print $res_manifest->{'run_id'};
-		#create a hash which looks like {"illumina_run_id" => 0}
+		my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$alignment_dir`;
+		#print "ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$alignment_dir -- $bam_list";
+		#print $run;
+		# create a hash which looks like {"illumina_run_id" => 0}
 		my %files = map {$_ => '0'} split(/\s/, $file_list);
 		foreach my $file_name (keys(%files)) {
 			#print $file_name;
@@ -215,13 +228,13 @@ sub get_alignement_path {
 		}
 	}
 	else {
-		my ($ana, $ana_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}");
+		my ($ana, $ana_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run");
 		$file = "$id$number/$ana_id/$id$number";
-		if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$id$number/$ana_id/$id$number.bam") {$file_type = 'bam'}
-		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$id$number/$ana_id/$id$number.crumble.cram") {$file_type = 'crumble.cram'}
-		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
+		if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.bam") {$file_type = 'bam'}
+		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.crumble.cram") {$file_type = 'crumble.cram'}
+		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
 	}
-	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/$file", $file_type);
+	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$file", $file_type);
 }
 
 sub get_interval {

@@ -63,19 +63,19 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $PATIENT_IDS = $config->PATIENT_IDS();
 my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
-
-#specific args for remote login to RS
+my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
+# specific args for remote login to RS
 
 my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
-#use automount to replace ssh
+# use automount to replace ssh
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
 $SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
 $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
-#end
+# end
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'jquery.alerts.css');
 
@@ -484,13 +484,14 @@ if ($user->isAnalyst() == 1) {
 			#now create unknown runs in U2 AND seek for our patient
 			my ($semaph, $ok) = (0, 0);
 			while (my ($run, $value) = each %runs) {
-                                                               # print "$run<br/>";
+                # print STDERR "$run<br/>";
 				#if ($run eq '@eaDir') {next}   #specific synology dirs => ignore
 				if ($run !~ /^\d{6}_[A-Z]{1}\d{5}_\d{4}_0{9}-[A-Z0-9]{5}$/o && $run !~ /^\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10}$/o) {next}
 
 				###TO BE CHANGED 4 MINISEQ
 				### path to alignment dir under run root
 				my $alignment_dir;
+				my $additional_path = '';
 				if ($instrument eq 'miseq'){
 					#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 					#old fashioned replaced with autofs 21/12/2016
@@ -516,24 +517,30 @@ if ($user->isAnalyst() == 1) {
 					#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 					#old fashioned replaced with autofs 21/12/2016
 					#21/11/2018 reattempt with autofs
+					# depending on instrument, alignment_dir will vary
+					# MN_00265 => $run/$alignment_dir
+					# MN01379 => $run/$run/$alignment_dir
+					my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);					
+					if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 					if ($access_method eq 'autofs') {
-						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`}
+						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml") {$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`}
 					}
-					else {$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml")}
+					else {$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run$additional_path/CompletedJobInfo.xml")}
 					#$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
 					#print "$SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml-$alignment_dir-";
 					$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 					$alignment_dir = $1;
 					$alignment_dir =~ s/\\/\//og;
-					#print "$alignment_dir-";
-                                                                                if ($access_method eq 'autofs'){$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/$alignment_dir"}
-					else {$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$alignment_dir"}
-					#print "$alignment_dir-";
+					# print STDERR "$alignment_dir-";
+					
+                    if ($access_method eq 'autofs'){$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir"}
+					else {$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/$alignment_dir"}
+					# print STDERR "$alignment_dir-";
 				}
-				my ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Copying Remaining Files To Network', "$SSH_RACKSTATION_BASE_DIR/$run/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$SSH_RACKSTATION_BASE_DIR/$run/SampleSheet.csv", 'enrichment_summary.csv');
-                if ($access_method eq 'autofs') {$samplesheet = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/SampleSheet.csv"}
+				my ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Copying Remaining Files To Network', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/SampleSheet.csv", 'enrichment_summary.csv');
+                if ($access_method eq 'autofs') {$samplesheet = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/SampleSheet.csv"}
 				if ($instrument eq 'miniseq') {
-                    ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Saving Completed Job Information to', "$SSH_RACKSTATION_BASE_DIR/$run/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
+                    ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Saving Completed Job Information to', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
                     $samplesheet = "$alignment_dir/SampleSheetUsed.csv";
                 }
 
@@ -549,7 +556,7 @@ if ($user->isAnalyst() == 1) {
 					### and check for Metrics....
 					my $test_file = '';
 					if ($access_method eq 'autofs') {
-						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/AnalysisLog.txt"){$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run/AnalysisLog.txt`}
+						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`}
 					}
 					else {$test_file = $ssh->capture("grep -e '$sentence' $location")}
 					#print $ssh->capture("grep -e '$sentence' $location");exit;
@@ -584,8 +591,6 @@ if ($user->isAnalyst() == 1) {
 						#<NumberOfUnindexedClusters>1359663</NumberOfUnindexedClusters>
 						#<NumberOfUnindexedClustersPF>568151</NumberOfUnindexedClustersPF>
 						#
-
-
 						my $noc_pf = &getMetrics("NumberOfClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
 						my $noc_raw = &getMetrics("NumberOfClustersRaw>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
 						my $nodc = &getMetrics("NumberOfDuplicateClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
@@ -597,8 +602,6 @@ if ($user->isAnalyst() == 1) {
 						#$grep =~ />(\d+)<$/o;
 						#my $noc_pf = $1;
 						#
-
-
 						my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f', '$noc_pf', '$noc_raw', '$nodc', '$nouc', '$nouc_pf', '$nouic', '$nouic_pf', '$robot');";
 
 
@@ -654,24 +657,15 @@ if ($user->isAnalyst() == 1) {
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
-
-
-
 							#foreach my $keys (sort keys (%patients)) {print $keys.$patients{$keys}.$q->br();}
-
 							#build form
 							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, 'import_illumina_vv.pl', '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $access_method);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
-
-
 						}
 					}
-
 				}
 				#else {print $id.$number;U2_modules::U2_subs_1::standard_error('18', $q);}
 				#}
-
-
 			}
 			if ($semaph == 0) {print $link;U2_modules::U2_subs_1::standard_error('18', $q);}
 			if ($ok == 0) {print $link;U2_modules::U2_subs_1::standard_error('19', $q);}
