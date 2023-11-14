@@ -1423,10 +1423,13 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	undef $seal_ready;
 	# do the same for MobiDL
 	my $mobidl_vcf_path = '';
-	if ($vcf_path =~ /^(.+$run_id).+/) {
+	print STDERR $vcf_path."\n";
+	print STDERR $run_id."\n";
+	if ($vcf_path =~ /^(.+$run_id)\/($run_id)?.+/) {
 		$mobidl_vcf_path = $1."/MobiDL/$id$number/panelCapture/$id$number.vcf"
 	}
-	# print STDERR $mobidl_vcf_path."\n";
+	print STDERR $mobidl_vcf_path."\n";
+	exit 0;
 	open F, "$DATABASES_PATH/seal_json_2023.token" or die $!;
 	($sample_field, $family_field, $run_field, $teams_field, $bed_field) = (0, 0, 0, 0, 0);
 	$seal_id = $id.$number.'_MobiDL';
