@@ -1460,6 +1460,7 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	print G $seal_ready;
 	close G;
 	# print STDERR $seal_ready."\n";
+	# exit 0;
 	# send file to seal
 	my $ssh = U2_modules::U2_subs_1::seal_connexion('-', $q) or die $!;
 	$ssh->scp_put($TMP_DIR."LRM_seal_json.token", "$SEAL_VCF_PATH/".$id.$number."_LRM_json.token");
