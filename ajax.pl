@@ -1403,7 +1403,7 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		elsif (/"run"/o) {$run_field = 1}
 		if (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
 		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
-		elsif (/"id":/o && $bed_field == 1 && $bed_id) {s/"id": false/"id": $bed_id/; $bed_field = 0}
+		elsif (/"id":/o && $bed_field == 1 && $bed_id) {s/"id": 0/"id": $bed_id/; $bed_field = 0}
 		elsif (/"affected":/o) {
 			if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
 			else {s/"affected": ,/"affected": false,/}
@@ -1416,9 +1416,9 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		$seal_ready .= $_;
 	}
 	close F;
-	# print STDERR $seal_ready;
+	print STDERR $seal_ready;
 	open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
-	print G $seal_ready;
+	# print G $seal_ready;
 	close G;
 	undef $seal_ready;
 	# do the same for MobiDL
@@ -1443,7 +1443,7 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		elsif (/"run"/o) {$run_field = 1}
 		if (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
 		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
-		elsif (/"id":/o && $bed_field == 1 && $bed_id) {s/"id": false/"id": $bed_id/; $bed_field = 0}
+		elsif (/"id":/o && $bed_field == 1 && $bed_id) {s/"id": 0/"id": $bed_id/; $bed_field = 0}
 		elsif (/"affected":/o) {
 			if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
 			else {s/"affected": ,/"affected": false,/}
