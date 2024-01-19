@@ -1416,9 +1416,9 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		$seal_ready .= $_;
 	}
 	close F;
-	print STDERR $seal_ready;
+	# print STDERR $seal_ready;
 	open G, ">".$TMP_DIR."LRM_seal_json.token" or die $!;
-	# print G $seal_ready;
+	print G $seal_ready;
 	close G;
 	undef $seal_ready;
 	# do the same for MobiDL

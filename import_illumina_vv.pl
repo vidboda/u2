@@ -159,9 +159,9 @@ if ($step && $step == 2) {
 
 	#connect to NAS
 	my $ssh;
-	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR);#first attempt to wake up autofs in case of unmounted
+	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR); #first attempt to wake up autofs in case of unmounted
 	my $access_method = 'autofs';
-  opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
+  	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
 	if ($access_method eq 'ssh') {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q)}
 
 	###TO BE CHANGED 4 MINISEQ
@@ -235,7 +235,7 @@ if ($step && $step == 2) {
 		if ($instrument eq 'miseq') {
 			( $coverage, $enrichment, $gaps, $vcf, $sample_report) = ($sampleid.'_S*.coverage.csv', $sampleid.'_S*.enrichment_summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
 		}
-		elsif ($instrument eq 'miniseq') {###TO BE CHANGED 4 MINISEQ file names unknown at date 01/07/2016
+		elsif ($instrument eq 'miniseq') {
 			( $coverage, $enrichment, $gaps, $vcf, $sample_report) = ($sampleid.'_S*.coverage.csv', $sampleid.'_S*.summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
 		}
 
