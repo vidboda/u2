@@ -31,10 +31,10 @@ use U2_modules::U2_subs_3;
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-#		Import script for Illumina experiment
+#		Import script for Illumina experiment - MobiDL version
 
 
-##Basic init of USHVaM 2 perl scripts:
+## Basic init of USHVaM 2 perl scripts:
 #	env variables
 #	get config infos
 #	initialize DB connection
@@ -111,16 +111,15 @@ my $date = U2_modules::U2_subs_1::get_date();
 
 U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
-##end of Basic init
+## end of Basic init
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $ANALYSIS_NGS_DATA_PATH = $config->ANALYSIS_NGS_DATA_PATH();
 my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
 my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
-#specific args for remote login to RS
+# specific args for remote login to RS
 my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
-#my $SSH_RACKSTATION_IP = $config->SSH_RACKSTATION_IP();
-#use automount to replace ssh
+# use automount to replace ssh
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
@@ -132,8 +131,9 @@ my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
 my $VVGENOME = $config->VARIANTVALIDATOR_GENOME();
 my $VVURL = $config->VARIANTVALIDATOR_GENUINE_API();
 
-#hg38 transition variable for postgresql 'start_g' segment field
-my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
+# hg38 transition variable for postgresql 'start_g' segment field
+my ($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');  # hg38 style
+if ($VVGENOME == 'GRCh37') {$VVGENOME = 'GRCh38'} 
 
 
 my $step = U2_modules::U2_subs_1::check_step($q);
@@ -146,16 +146,17 @@ if ($step && $step == 2) {
 	my $query = "SELECT filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
 	my $res = $dbh->selectrow_hashref($query);
 	my $filtered = $res->{'filtering_possibility'};
-	#sample and filters do not arrive the same way
+	# sample and filters do not arrive the same way
 	my %sample_hash = U2_modules::U2_subs_2::build_sample_hash($q, $analysis, $filtered);
 
-	#we have the run id, the samples to import and the filter to record.... Let's go
-	#ssh again to the NAS, then scp files
-	#in Data/Intensities/BaseCalls/Alignement(\d)* (we take the last)
-	#sampleID_SXX.coverage.csv => copy and create link + transform into bed + add stddev/mean column in the end
-	#sampleID_SXX.enrichment_summary.csv => get run info per patient + stats
-	#sampleID_SXX.gaps.csv => link + stats
-	#sampleID_SXX.vcf the big one => annotate mutalyzer (beware of del ins) and keep DOC
+	# we have the run id, the samples to import and the filter to record.... Let's go
+	# ssh again to the NAS, then treat files from MobiDL
+	# in Data/Intensities/BaseCalls/Alignement(\d)* (we take the last)
+	# sampleID_SXX.coverage.csv => copy and create link + transform into bed + add stddev/mean column in the end
+	# 
+	# sampleID_SXX.enrichment_summary.csv => get run info per patient + stats
+	# sampleID_SXX.gaps.csv => link + stats
+	# sampleID_SXX.vcf the big one => annotate mutalyzer (beware of del ins) and keep DOC
 
 	#connect to NAS
 	my $ssh;
@@ -164,27 +165,25 @@ if ($step && $step == 2) {
   	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
 	if ($access_method eq 'ssh') {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q)}
 
-	###TO BE CHANGED 4 MINISEQ
-	###<AnalysisFolder>D:\Illumina\MiniSeq Sequencing Temp\160620_MN00265_0001_A000H02LJN\Alignment_8\20160621_155804</AnalysisFolder>
+	### TO BE CHANGED 4 MINISEQ
+	###< AnalysisFolder>D:\Illumina\MiniSeq Sequencing Temp\160620_MN00265_0001_A000H02LJN\Alignment_8\20160621_155804</AnalysisFolder>
 	### get alignemnt with _ AND subdir with date
-	#MINISEQ change get instrument type
+	# MINISEQ change get instrument type
 	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path='MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR}
 	my $alignment_dir;
 	my $additional_path = '';
 	# put "hg38" in the run description so that we can find it in the CompletedJobInfo.xml file, even for FASTQOnly analyses
-	my $genome_version = 'hg19'
+	# my $genome_version = 'hg38'
 
 	if ($instrument eq 'miseq') {
-		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
-		#old fashioned replaced with autofs 21/12/2016
 		if ($access_method eq 'autofs') {
 			$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
 			$alignment_dir =~ /\\(Alignment\d*)<$/o;
 			$alignment_dir = $1;
 			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 			# check genome version
-			$genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
+			# $genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
 		}
 		else {
 			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
@@ -192,24 +191,21 @@ if ($step && $step == 2) {
 			$alignment_dir = $1;
 			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 			# check genome version
-			$genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
+			# $genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
 		}
 	}
 	elsif ($instrument eq 'miniseq') {
 		$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
-		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
-		#old fashioned replaced with autofs 21/12/2016
 		my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
 		if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 		if ($access_method eq 'autofs') {
 			$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
-			#print "1-$alignment_dir<br/>";
 			$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 			$alignment_dir = $1;
 			$alignment_dir =~ s/\\/\//og;
 			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir";
 			# check genome version
-			$genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
+			# $genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
 		}
 		else {
 			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run$additional_path/CompletedJobInfo.xml");
@@ -218,50 +214,46 @@ if ($step && $step == 2) {
 			$alignment_dir =~ s/\\/\//og;
 			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/$alignment_dir";
 			# check genome version
-			$genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
+			# $genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
 		}
 	}
 	my $report = 'aggregate.report.pdf';
-	if ($genome_version == 'hg38') {
-		($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');
-		$VVGENOME='GRCh38'
-	}
+	# if ($genome_version == 'hg38') {
+	# 	($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');
+	# 	$VVGENOME='GRCh38'
+	# }
 
-	#print "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";exit;
 	mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";
 
-	if ($access_method eq 'autofs') {system("cp -f '$alignment_dir/$report' '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf'")}
-	else {
-		my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
-		if ($success != 1) {if ($! !~ /File exists/o) {U2_modules::U2_subs_1::standard_error('22', $q)}}
-	}
+	# no aggregate report in FASTQ ONLY mode
+	# if ($access_method eq 'autofs') {system("cp -f '$alignment_dir/$report' '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf'")}
+	# else {
+	# 	my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run/aggregate.report.pdf");
+	# 	if ($success != 1) {if ($! !~ /File exists/o) {U2_modules::U2_subs_1::standard_error('22', $q)}}
+	# }
 
-	#create roi hash
+	# create roi hash
 	my $new_var  = '';
 	my $interval = U2_modules::U2_subs_3::build_roi($dbh, $postgre_start_g, $postgre_end_g);
-	# my ($general, $sample_end, $message) = ('', '', '');#$general global data for final email, $sample_end last treated patient for redirection
   	my ($general, $message) = ('', '');
   	print $q->p('  Samples imported:'), $q->start_ul();
 	while (my ($sampleid, $filter) = each(%sample_hash)) {
-		#print "$key-$value<br/>";
 
-		my ($report, $coverage, $enrichment, $gaps, $vcf, $sample_report);
-		if ($instrument eq 'miseq') {
-			( $coverage, $enrichment, $gaps, $vcf, $sample_report) = ($sampleid.'_S*.coverage.csv', $sampleid.'_S*.enrichment_summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
-		}
-		elsif ($instrument eq 'miniseq') {
-			( $coverage, $enrichment, $gaps, $vcf, $sample_report) = ($sampleid.'_S*.coverage.csv', $sampleid.'_S*.summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
-		}
-
+		# my ($report, $coverage, $enrichment, $gaps, $vcf, $sample_report);
+		# if ($instrument eq 'miseq') {
+		# 	( $coverage, $enrichment, $gaps, $vcf, $sample_report) = ($sampleid.'_S*.coverage.csv', $sampleid.'_S*.enrichment_summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
+		# }
+		# elsif ($instrument eq 'miniseq') {
+		# 	( $coverage, $enrichment, $gaps, $vcf, $sample_report) = ($sampleid.'_S*.coverage.csv', $sampleid.'_S*.summary.csv', $sampleid.'_S*.gaps.csv', $sampleid.'_S*.vcf', $sampleid.'_S*.report.pdf');
+		# }
+		my $vcf = $sampleid.'_S*.vcf';
 
 
 
 		my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
-		# $sample_end = $sampleid;
 		my $insert;
-    # print $q->li("Initiating $id$number...");
 		print STDERR "\nInitiating $id$number with transfer method: $access_method";
-		#loop 28-112-121 genes
+		# loop on genes
 		$query = "SELECT refseq FROM gene WHERE \"$analysis\" = 't' ORDER BY gene_symbol;";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
@@ -269,7 +261,6 @@ if ($step && $step == 2) {
 		while (my $result = $sth->fetchrow_hashref()) {
 			$insert .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '$result->{'refseq'}', '$analysis', '$date', '".$user->getName()."','t');";
 		}
-    # print STDERR "$insert\n";
 		#######UNCOMMENT WHEN DONE!!!!!!!
 		$dbh->do($insert);
 
@@ -277,98 +268,120 @@ if ($step && $step == 2) {
 		mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid";
 		#my $success;
 		if ($access_method eq 'autofs') {
-			system("cp -f $alignment_dir/$coverage '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv'");
-			#print STDERR "1-$success--\n";
-			system("cp -f $alignment_dir/$enrichment '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv'");
-			system("cp -f $alignment_dir/$gaps '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv'");
+			# system("cp -f $alignment_dir/$coverage '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv'");
+			# #print STDERR "1-$success--\n";
+			# system("cp -f $alignment_dir/$enrichment '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv'");
+			# system("cp -f $alignment_dir/$gaps '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv'");
 			system("cp -f $alignment_dir/$vcf '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf'");
-			system("cp -f $alignment_dir/$sample_report '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf'");
-			#if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$enrichment '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv'")}
-			#else {print STDERR "2-$success--\n";U2_modules::U2_subs_1::standard_error('22', $q)}
-			#if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$gaps '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv'")}
-			#else {print STDERR "3-$success--\n";U2_modules::U2_subs_1::standard_error('22', $q)}
-			#if ($success == 1 || $! =~ /File exists/o) {$success = system("cp -f $alignment_dir/$vcf '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf'")}
-			#else {print STDERR "4-$success--\n";U2_modules::U2_subs_1::standard_error('22', $q)}
-			#if ($success == 1 || $! =~ /File exists/o) {system("cp -f $alignment_dir/$sample_report '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf'")}
-			#else {print STDERR "5-$success--\n";U2_modules::U2_subs_1::standard_error('22', $q)}
+			# system("cp -f $alignment_dir/$sample_report '$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf'");
 		}
 		else {
-			my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$coverage, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv");
-			if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$enrichment, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv")}
-			else {U2_modules::U2_subs_1::standard_error('22', $q)}
-			if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$gaps, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv")}
-			else {U2_modules::U2_subs_1::standard_error('22', $q)}
-			if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$vcf, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf")}
-			else {U2_modules::U2_subs_1::standard_error('22', $q)}
-			if ($success == 1) {$ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$sample_report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf")}
-			else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			# my $success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$coverage, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv");
+			# if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$enrichment, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.enrichment_summary.csv")}
+			# else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			# if ($success == 1) {$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$gaps, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.gaps.tsv")}
+			# else {U2_modules::U2_subs_1::standard_error('22', $q)}
+			$success = $ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$vcf, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.vcf")
+			if ($success != 1) {U2_modules::U2_subs_1::standard_error('22', $q)}
+			# if ($success == 1) {$ssh->scp_get({glob => 1, copy_attrs => 1}, $alignment_dir.'/'.$sample_report, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.report.pdf")}
+			# else {U2_modules::U2_subs_1::standard_error('22', $q)}
 		}
 
 		system("chmod 750 $ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.*");
 
 
 
-		print STDERR "Done file import...";
+		print STDERR "Done VCF import...";
 
-		#now we work locally
-		#coverage from csv to bedgraph
-		my $bedgraph = "track type=\"bedGraph\" name=\"$analysis-$sampleid\" description=\"$analysis run for $sampleid\" visibility=full autoScale=on yLineOnOff=on\n";
-		my $new_tsv;
-		open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv") or die $!;
-		while (<F>) {
-			if ($_ =~ /^#(Enrichment|Reads)/o) {next}
-			$new_tsv .= $_;
-			$new_tsv =~ s/\r\n$//o;
-			if ($_ =~ /^#Chromosome/o) {$new_tsv =~ s/MeanCoverage/$id$number/;$new_tsv .= "\tStdDev/Mean";}
-			elsif ($_ !~ /#/o) {
-				my @line = split(/,/);
-				my ($sigma, $doc, $chr, $begin, $end) = (pop(@line), pop(@line), shift(@line), shift(@line), shift(@line));
-				$bedgraph .= "$chr\t$begin\t$end\t".sprintf('%.0f', $doc)."\n";
-				if ($doc != 0) {$new_tsv .= "\t".(sprintf('%.2f', ($sigma/$doc)))}
-				else {$new_tsv .= "\t0.00"}
-			}
-			$new_tsv .= "\n";
-		}
-		close F;
+		# now we work locally
+		# coverage from csv to bedgraph
+		# my $bedgraph = "track type=\"bedGraph\" name=\"$analysis-$sampleid\" description=\"$analysis run for $sampleid\" visibility=full autoScale=on yLineOnOff=on\n";
+		# my $new_tsv;
+		# open(F, "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv") or die $!;
+		# while (<F>) {
+		# 	if ($_ =~ /^#(Enrichment|Reads)/o) {next}
+		# 	$new_tsv .= $_;
+		# 	$new_tsv =~ s/\r\n$//o;
+		# 	if ($_ =~ /^#Chromosome/o) {$new_tsv =~ s/MeanCoverage/$id$number/;$new_tsv .= "\tStdDev/Mean";}
+		# 	elsif ($_ !~ /#/o) {
+		# 		my @line = split(/,/);
+		# 		my ($sigma, $doc, $chr, $begin, $end) = (pop(@line), pop(@line), shift(@line), shift(@line), shift(@line));
+		# 		$bedgraph .= "$chr\t$begin\t$end\t".sprintf('%.0f', $doc)."\n";
+		# 		if ($doc != 0) {$new_tsv .= "\t".(sprintf('%.2f', ($sigma/$doc)))}
+		# 		else {$new_tsv .= "\t0.00"}
+		# 	}
+		# 	$new_tsv .= "\n";
+		# }
+		# close F;
 
-		$new_tsv =~ s/,/\t/og;
-		$new_tsv =~ s/\./,/og;
+		# $new_tsv =~ s/,/\t/og;
+		# $new_tsv =~ s/\./,/og;
 
-		open(G, ">$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv") or die $!;
-		print G $new_tsv;
-		close G;
-		open(G, ">$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.$analysis.bedgraph") or die $!;
-		print G $bedgraph;
-		close G;
+		# open(G, ">$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.coverage.tsv") or die $!;
+		# print G $new_tsv;
+		# close G;
+		# open(G, ">$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$sampleid/$sampleid.$analysis.bedgraph") or die $!;
+		# print G $bedgraph;
+		# close G;
+
+		# print STDERR "Done coverage file...";
+
+		# enrichment_summary
+
+		# dans fastpdir/SAMPLEID_fastp.json on peut trouver "q30_rate":0.873219, afetr filtering et aussi "insert_size": {	"peak": 121,
+
+		# all in SAMPLEID_multiqc_data/multiqc_data.json
+
+		# "report_general_stats_data": [
+        # {
+        #     "SAMPLEID.dv": {
+        #         "number_of_SNPs": 1122.0, <----- 11
+        #         "number_of_indels": 160.0,<----- 13
+        #         "tstv": 2.36,<----- 12
+		# 	... the same for hc
+		# 	}
+		# }
+		# {
+        #     "SAMPLEID": {
+        #         "PF_READS_ALIGNED": 4208928.0, <------ 4
+        #         "PF_ALIGNED_BASES": 514413948.0, <------ 1
+        #         "MEAN_BAIT_COVERAGE": 394.926463, <----- 6
+        #         "ON_TARGET_BASES": 229097211.0, <----- 2
+        #         "MEAN_TARGET_COVERAGE": 194.503582, <----- 6bis
+        #         "PCT_EXC_DUPE": 0.0561, <----- 3
+        #         "PCT_TARGET_BASES_20X": 0.983386, <----- 7
+        #         "PCT_TARGET_BASES_50X": 0.971945, <----- 8
+		# 		...
+        #     }
+        # },
+		# "report_saved_raw_data": {
+		# 	"multiqc_picard_insertSize": {
+		# 		"SU3541_FR": {
+		# 			"MEDIAN_INSERT_SIZE": 136.0, <----- 9
+		# 			"STANDARD_DEVIATION": 62.479337, <----- 10
+		# 			...
+		# 		}
+		# 	}
+		# }
 
 
-		print STDERR "Done coverage file...";
+		# my $enrichment = {
+		# 	"Total aligned bases"			=>	["aligned_bases", 0],
+		# 	"Targeted aligned bases"		=>	["ontarget_bases", 0],
+		# 	"Percent duplicate paired reads"	=>	["duplicates", 0],
+		# 	"Total aligned reads"			=>	["aligned_reads", 0],
+		# 	"Targeted aligned reads"		=>	["ontarget_reads", 0], # non
+		# 	"Mean region coverage depth"		=>	["mean_doc", 0],
+		# 	"Target coverage at 20X"		=>	["twentyx_doc", 0],
+		# 	"Target coverage at 50X"		=>	["fiftyx_doc", 0],
+		# 	"Fragment length median"		=>	["insert_size_median", 0],
+		# 	"Fragment length SD"			=>	["insert_size_sd", 0],
+		# 	"SNVs"					=>	["snp_num", 0],
+		# 	"SNV Ts/Tv ratio"			=>	["snp_tstv", 0],
+		# 	"Indels"				=>	["indel_num", 0],
+		# };
 
-		###TO BE CHANGED 4 MINISEQ
-		###finally labels are the same between MSR2.6 and LRM1.2
-
-		#enrichment_summary
-		my $enrichment = {
-			#"Total aligned bases read 1"		=>	["bases_read1", 0], #miniseq
-			#"Total aligned bases read 2"		=>	["bases_read2", 0], #miniseq
-			#"Total aligned read 1"			=>	["aligned_read1", 0], #miniseq
-			#"Total aligned read 2"			=>	["aligned_read2", 0], #miniseq
-			"Total aligned bases"			=>	["aligned_bases", 0], #miseq
-			"Targeted aligned bases"		=>	["ontarget_bases", 0], #to check 4 miniseq
-			"Percent duplicate paired reads"	=>	["duplicates", 0],
-			"Total aligned reads"			=>	["aligned_reads", 0], #miseq
-			"Targeted aligned reads"		=>	["ontarget_reads", 0], #to check 4 miniseq
-			"Mean region coverage depth"		=>	["mean_doc", 0], #miseq
-			#"Mean coverage"				=>	["mean_doc", 0], #miniseq
-			"Target coverage at 20X"		=>	["twentyx_doc", 0], #to check 4 miniseq
-			"Target coverage at 50X"		=>	["fiftyx_doc", 0], #to check 4 miniseq
-			"Fragment length median"		=>	["insert_size_median", 0],
-			"Fragment length SD"			=>	["insert_size_sd", 0],
-			"SNVs"					=>	["snp_num", 0],
-			"SNV Ts/Tv ratio"			=>	["snp_tstv", 0],
-			"Indels"				=>	["indel_num", 0],
-		};
-
+		# then load astpdir/SAMPLEID_fastp.json as json file and get values
 
 		###TO BE CHANGED 4 MINISEQ
 		### check if file name changed / ok file renamed on copy and regex changed and does not include ':'

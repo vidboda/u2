@@ -1089,12 +1089,12 @@ sub cnil_disclaimer {
 	return info_panel('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement.'.$q->br().'Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites "sensibles" au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.', $q);
 }
 
-#in add_analysis.pl, add_clinical_exome.pl
+# in add_analysis.pl, add_clinical_exome.pl
 
 sub check_ngs_samples {
 	my ($patients, $analysis, $dbh) = @_;
-	#select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
-	my $query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; #num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
+	# select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
+	my $query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; # num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 	my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
 	my $count_hash = 0;
 	foreach my $totest (keys(%{$patients})) {
@@ -1106,19 +1106,18 @@ sub check_ngs_samples {
 	}
 	$query .= ") GROUP BY num_pat, id_pat;";
 	$query2 .= ";";
-	#print $query2;exit;
 	my $sth = $dbh->prepare($query2);
 	my $res = $sth->execute();
-	#modify hash
+	# modify hash
 
 	while (my $result = $sth->fetchrow_hashref()) {
 		$patients->{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
 	}
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
-	#cleanup hash
+	# cleanup hash
 	while (my $result = $sth->fetchrow_hashref()) {
-		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}} = 2} #remove patients with that type of analysis already recorded
+		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}} = 2} # remove patients with that type of analysis already recorded
 	}
 	return $patients;
 }
@@ -1169,14 +1168,11 @@ sub build_ngs_form {
 	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
 	$info .= ".";
 	my $form = &info_panel($info, $q);
-
-	#.$q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-ripple w3-display-topright w3-large'}, 'X').$q->start_p({'class' => 'w3-margin'}).$q->strong().$q->end_p().$q->end_div().$q->br()."\n";
 	$info = 'You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet.'.$q->br().'In this case, please insert them via the Excel file and reload the page.';
 
 	$form .= &danger_panel($info, $q).$q->br();
 
-
-	#Filtering or not?
+	# Filtering or not?
 	my $filter = '';
 	if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
 
@@ -1192,19 +1188,9 @@ sub build_ngs_form {
 			$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"})."\n";
 	if ($filter ne '') {$form .=  $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"})."\n"}
 
-	#		$q->start_ol(), "\n";
-
-	#new implementation to get an idea of the sequencing quality per patient
-	#get last alignment dir
-	#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-	#$alignment_dir =~ /\\(Alignment\d*)<$/o;
-	#$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
-
-
 	my $i = 2;
 	foreach my $sample (sort keys(%{$patients})) {
-		#$sample =~ s/\n//og;
-		if (($sample ne $id.$number) && ($patients->{$sample} == 1)) {#other eligible patients
+		if (($sample ne $id.$number) && ($patients->{$sample} == 1)) {# other eligible patients
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-quarter w3-large w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample");
@@ -1222,7 +1208,7 @@ sub build_ngs_form {
 			else {$form .=  &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
-		elsif (($sample ne $id.$number) && ($patients->{$sample} == 0)) {#unknown patient
+		elsif (($sample ne $id.$number) && ($patients->{$sample} == 0)) {# unknown patient
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
@@ -1230,14 +1216,14 @@ sub build_ngs_form {
 					$q->div({'class' => 'w3-rest w3-medium'}, " not yet recorded in U2. Please proceed if you want to import Illumina data.")."\n".
 				$q->end_div();
 		}
-		elsif (($sample ne $id.$number) && ($patients->{$sample} == 2)) {#patient with a run already recorded
+		elsif (($sample ne $id.$number) && ($patients->{$sample} == 2)) {# patient with a run already recorded
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
 					$q->end_div().
 					$q->div({'class' => 'w3-rets w3-medium'}, " has already a run recorded as $analysis.")."\n".$q->end_div();
 		}
-		else {#original patient
+		else {# original patient
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, $sample)."\n";
 			if ($filtered == '1') {
@@ -1248,7 +1234,6 @@ sub build_ngs_form {
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
-		#print	$q->end_li(), "\n";
 		$i++;
 	}
 	$form .= $q->submit({'value' => 'Import', 'class' => 'w3-button w3-ripple w3-blue w3-hover-white', form => "illumina_form_$run"}).
