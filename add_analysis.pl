@@ -10,6 +10,7 @@ use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
+use U2_modules::QMetricsOut;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -456,8 +457,9 @@ if ($user->isAnalyst() == 1) {
 				my ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Copying Remaining Files To Network', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/SampleSheet.csv", 'enrichment_summary.csv');
                 if ($access_method eq 'autofs') {$samplesheet = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/SampleSheet.csv"}
 				if ($instrument eq 'miniseq') {
+					# DNA Enrichment workflow
                     ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Saving Completed Job Information to', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
-                    $samplesheet = "$alignment_dir/SampleSheetUsed.csv";
+                    # $samplesheet = "$alignment_dir/SampleSheetUsed.csv";
                 }
 
 				# unknown in U2
@@ -472,7 +474,9 @@ if ($user->isAnalyst() == 1) {
 					### and check for Metrics....
 					my $test_file = '';
 					if ($access_method eq 'autofs') {
-						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`}
+						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
+							$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`
+						}
 					}
 					else {$test_file = $ssh->capture("grep -e '$sentence' $location")}
                     if ($test_file ne ''){
@@ -482,42 +486,60 @@ if ($user->isAnalyst() == 1) {
 						else {$robot = $ssh->capture("grep -i -E 'Experiment Name,.+ROBOT' $samplesheet")}
 						if ($robot ne '') {$robot = 't'}
 						else {$robot = 'f'}
-						# DONE import cluster stats from enrichment_stats.xml and put it into illumina_run
-						# modify database before -done added:
-						# noc_pf   | usmallint             | default NULL::smallint	NumberOfClustersPF
-						# noc_raw  | usmallint             | default NULL::smallint	NumberOfClustersRaw
-						# nodc     | usmallint             | default NULL::smallint	NumberOfDuplicateClusters
-						# nouc     | usmallint             | default NULL::smallint	NumberOfUnalignedClusters
-						# nouc_pf  | usmallint             | default NULL::smallint	NumberOfUnalignedClustersPF
-						# nouic    | usmallint             | default NULL::smallint	NumberOfUnindexedClusters
-						# nouic_pf | usmallint             | default NULL::smallint	NumberOfUnindexedClustersPF
-						# in illumina_run
-						# with a grep -Eo ex:
-						# my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-						# $alignment_dir =~ /\\(Alignment\d*)<$/o;
-						# <NumberOfClustersPF>18329931</NumberOfClustersPF>
-						# <NumberOfClustersRaw>21256323</NumberOfClustersRaw>
-						# <NumberOfDuplicateClusters>2351136</NumberOfDuplicateClusters>
-						# <NumberOfUnalignedClusters>2295956</NumberOfUnalignedClusters>
-						# <NumberOfUnalignedClustersPF>161076</NumberOfUnalignedClustersPF>
-						# <NumberOfUnindexedClusters>1359663</NumberOfUnindexedClusters>
-						# <NumberOfUnindexedClustersPF>568151</NumberOfUnindexedClustersPF>
-						#
-						my $noc_pf = &getMetrics("NumberOfClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-						my $noc_raw = &getMetrics("NumberOfClustersRaw>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-						my $nodc = &getMetrics("NumberOfDuplicateClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-						my $nouc = &getMetrics("NumberOfUnalignedClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-						my $nouc_pf = &getMetrics("NumberOfUnalignedClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-						my $nouic = &getMetrics("NumberOfUnindexedClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-						my $nouic_pf = &getMetrics("NumberOfUnindexedClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-						#my $grep = $ssh->capture("grep -Eo \"NumberOfClustersPF>[0-9]+<\" $SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir/EnrichmentStatistics.xml");
-						#$grep =~ />(\d+)<$/o;
-						#my $noc_pf = $1;
-						#
-						my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f', '$noc_pf', '$noc_raw', '$nodc', '$nouc', '$nouc_pf', '$nouic', '$nouic_pf', '$robot');";
 
+						# get genome version as
+						# hg19 => DNA Enrichment
+						# hg38 => GenerateFASTQ
+						# hg38 => build new function to validate the samples based only on Ts/Tv, mean DOC, %50X from multiQC
 
-						#my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
+						my $genome_version = '';
+						if ($access_method eq 'autofs') {$genome_version = `grep -o 'hg38' $samplesheet | head -1`}
+						else {$genome_version = $ssh->capture("grep -o 'hg38' $samplesheet | head -1")}
+						if ($genome_version == '') {$genome_version = 'hg19'}
+						print STDERR "\n$genome_version\n";
+
+						if ($genome_version == 'hg19') {
+							# DONE import cluster stats from enrichment_stats.xml and put it into illumina_run
+							# modify database before -done added:
+							# noc_pf   | usmallint             | default NULL::smallint	NumberOfClustersPF
+							# noc_raw  | usmallint             | default NULL::smallint	NumberOfClustersRaw
+							# nodc     | usmallint             | default NULL::smallint	NumberOfDuplicateClusters
+							# nouc     | usmallint             | default NULL::smallint	NumberOfUnalignedClusters
+							# nouc_pf  | usmallint             | default NULL::smallint	NumberOfUnalignedClustersPF
+							# nouic    | usmallint             | default NULL::smallint	NumberOfUnindexedClusters
+							# nouic_pf | usmallint             | default NULL::smallint	NumberOfUnindexedClustersPF
+							# in illumina_run
+							# with a grep -Eo ex:
+							# my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+							# $alignment_dir =~ /\\(Alignment\d*)<$/o;
+							# <NumberOfClustersPF>18329931</NumberOfClustersPF>
+							# <NumberOfClustersRaw>21256323</NumberOfClustersRaw>
+							# <NumberOfDuplicateClusters>2351136</NumberOfDuplicateClusters>
+							# <NumberOfUnalignedClusters>2295956</NumberOfUnalignedClusters>
+							# <NumberOfUnalignedClustersPF>161076</NumberOfUnalignedClustersPF>
+							# <NumberOfUnindexedClusters>1359663</NumberOfUnindexedClusters>
+							# <NumberOfUnindexedClustersPF>568151</NumberOfUnindexedClustersPF>
+							#
+							my $noc_pf = &getMetrics("NumberOfClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
+							my $noc_raw = &getMetrics("NumberOfClustersRaw>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
+							my $nodc = &getMetrics("NumberOfDuplicateClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
+							my $nouc = &getMetrics("NumberOfUnalignedClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
+							my $nouc_pf = &getMetrics("NumberOfUnalignedClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
+							my $nouic = &getMetrics("NumberOfUnindexedClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
+							my $nouic_pf = &getMetrics("NumberOfUnindexedClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
+
+							my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f', '$noc_pf', '$noc_raw', '$nodc', '$nouc', '$nouc_pf', '$nouic', '$nouic_pf', '$robot');";
+						}
+						else {
+							my $q = U2_modules::QMetricsOut->new(file => "$SSH_RACKSTATION_BASE_DIR/$run/InterOp/QMetricsOut.bin");
+
+							print STDERR Dumper $q->file_data;
+							
+							my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
+
+							print STDERR "\n$insert\n";
+							exit
+						}
 						$dbh->do($insert);
 					}
 					else {next}
