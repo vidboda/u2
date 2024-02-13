@@ -1162,7 +1162,7 @@ sub print_panel_criteria {
 }
 
 sub build_ngs_form {
-	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $access_method) = @_;
+	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument) = @_;
 
 	my $info =  "In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).".$q->br()."Please select those you are interested in";
 	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
@@ -1204,7 +1204,7 @@ sub build_ngs_form {
 				$form .=   $q->end_div();
 			}
 			else {$form .=   $q->end_div();}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $access_method)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis)}
 			else {$form .=  &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
@@ -1230,7 +1230,7 @@ sub build_ngs_form {
 				$form .=   $q->div({'class' => 'w3-quarter w3-large'}, "Filter:").
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, "$filter")."\n";
 			}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $access_method)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis)}
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
@@ -1319,7 +1319,7 @@ sub get_raw_detail_ce_qualimap {
 
 #subs for panel, add_analysis.pl
 sub get_raw_data {
-	my ($dir, $sample, $ssh, $file, $instrument, $q, $analysis, $access_method) = @_;
+	my ($dir, $sample, $ssh, $file, $instrument, $q, $analysis) = @_;
 	#we want - miseq
 	#Percent Q30:,
 	#Target coverage at 50X:,
@@ -1334,11 +1334,11 @@ sub get_raw_data {
 		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Targeted aligned reads,');
 	}
 
-	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file, $access_method);
-	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file, $access_method);
-	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file, $access_method);
-	my $doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file, $access_method);
-	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file, $access_method);
+	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file);
+	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file);
+	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file);
+	my $doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file);
+	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
 	#return ($q30, $x50, $tstv, $doc);
 	my $criteria = '';
 	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}
@@ -1358,14 +1358,14 @@ sub get_raw_data {
 }
 
 sub get_raw_detail {
-	my ($dir, $sample, $ssh, $expr, $file, $access_method) = @_;
+	my ($dir, $sample, $ssh, $expr, $file) = @_;
 	#print "grep -e \"$expr\" $dir/".$sample."_S*.$file";
 	my $data;
-	if ($access_method eq 'autofs') {
-		my $path = "$dir/".$sample."_S*.$file";
-		$data = `grep -e "$expr" $path`
-	}
-	else {$data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file")}
+	# if ($access_method eq 'autofs') {
+	my $path = "$dir/".$sample."_S*.$file";
+	$data = `grep -e "$expr" $path`;
+	# }
+	# else {$data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file")}
 	#my $data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file"
 	#print "-$data-<br/>";
 	if ($data =~ /$expr([\d\.]+)[%\s]{0,2}$/) {$data = $1}

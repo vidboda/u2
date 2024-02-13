@@ -10,7 +10,6 @@ use U2_modules::U2_users_1;
 use U2_modules::U2_init_1;
 use U2_modules::U2_subs_1;
 use U2_modules::U2_subs_2;
-use U2_modules::QMetricsOut;
 
 #    This program is part of ushvam2, USHer VAriant Manager version 2
 #    Copyright (C) 2012-2016  David Baux
@@ -388,18 +387,10 @@ if ($user->isAnalyst() == 1) {
 			my $ssh;
 
 			# we're in!!!
-			opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR); # first attempt to wake up autofs in case of unmounted
 			my $run_list;
-			my $access_method = 'autofs';
-			opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
-			if ($access_method eq 'autofs') {
-				while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
-				closedir(DIR)
-			}
-			else {
-				$ssh = U2_modules::U2_subs_1::nas_connexion($link, $q);
-				$run_list = $ssh->capture("cd $SSH_RACKSTATION_BASE_DIR && ls") or die "remote command failed: " . $ssh->error()
-			}
+			opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or die $!;
+			while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
+			closedir(DIR);
 
 			# create a hash which looks like {"illumina_run_id" => 0}
 			my %runs = map {$_ => '0'} split(/\s/, $run_list);
@@ -418,72 +409,54 @@ if ($user->isAnalyst() == 1) {
 			my ($semaph, $ok) = (0, 0);
 			while (my ($run, $value) = each %runs) {
 				if ($run !~ /^\d{6}_[A-Z]{1}\d{5}_\d{4}_0{9}-[A-Z0-9]{5}$/o && $run !~ /^\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10}$/o) {next}
-
 				### TO BE CHANGED 4 MINISEQ
 				### path to alignment dir under run root
-				my $alignment_dir;
+				my $alignment_dir = '';
 				my $additional_path = '';
 				if ($instrument eq 'miseq'){
-					if ($access_method eq 'autofs') {
-						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {
-							$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
-							$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-							$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
-						}
-					}
-					else {
-						$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
+					if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {
+						$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
 						$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-						$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+						$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 					}
+					else {next}
 				}
 				elsif($instrument eq 'miniseq'){
 					# depending on instrument, alignment_dir will vary
 					# MN_00265 => $run/$alignment_dir
 					# MN01379 => $run/$run/$alignment_dir
-					my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);					
-					if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
-					if ($access_method eq 'autofs') {
-						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml") {$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`}
+					my $miniseq = U2_modules::U2_subs_2::get_miniseq_id($run);					
+					if ($miniseq eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
+					if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml") {
+						$alignment_dir = `grep -Eo "A(lignment|nalysis)Folder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
+						$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
+						$alignment_dir = $1;
+						$alignment_dir =~ s/\\/\//og;
+						$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir"
 					}
-					else {$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run$additional_path/CompletedJobInfo.xml")}
-					$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
-					$alignment_dir = $1;
-					$alignment_dir =~ s/\\/\//og;
-					
-                    if ($access_method eq 'autofs'){$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir"}
-					else {$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/$alignment_dir"}
+					else {next}
 				}
-				my ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Copying Remaining Files To Network', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/SampleSheet.csv", 'enrichment_summary.csv');
-                if ($access_method eq 'autofs') {$samplesheet = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/SampleSheet.csv"}
+				my ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Copying Remaining Files To Network', "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/SampleSheet.csv", 'enrichment_summary.csv');
 				if ($instrument eq 'miniseq') {
 					# DNA Enrichment workflow
-                    ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Saving Completed Job Information to', "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
-                    # $samplesheet = "$alignment_dir/SampleSheetUsed.csv";
+					# 2024 check to CopyComplete.txt
+					($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
                 }
-
 				# unknown in U2
 				if ($value == 0) {
-
 					# run does not need to be NS run - if classified, will not be considered next time
 					# 1st check MSR analysis is finished:
 					# look for 'Copying Remaining Files To Network' in AnalysisLog.txt
-
-					### TO BE CHANGED 4 MINISEQ
-					### path to analysis log file under alignment folder - and sentence to look for changed
-					### and check for Metrics....
 					my $test_file = '';
-					if ($access_method eq 'autofs') {
-						if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
+					# if ($instrument eq 'miniseq' && -f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CopyComplete.txt") {$test_file = 'ok'}
+					if ($instrument eq 'miniseq' && -f "$location") {$test_file = 'ok'}
+					elsif (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
 							$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`
-						}
 					}
-					else {$test_file = $ssh->capture("grep -e '$sentence' $location")}
-                    if ($test_file ne ''){
+                    if ($test_file ne '') {
 						# automatic library preparation?
-						my $robot = 'f';
-						if ($access_method eq 'autofs') {$robot = `grep -i -E 'Experiment Name,.+ROBOT' $samplesheet`}
-						else {$robot = $ssh->capture("grep -i -E 'Experiment Name,.+ROBOT' $samplesheet")}
+						# my $robot = 'f';
+						my $robot = `grep -i -E 'Experiment Name,.+ROBOT' $samplesheet`;
 						if ($robot ne '') {$robot = 't'}
 						else {$robot = 'f'}
 
@@ -492,13 +465,14 @@ if ($user->isAnalyst() == 1) {
 						# hg38 => GenerateFASTQ
 						# hg38 => build new function to validate the samples based only on Ts/Tv, mean DOC, %50X from multiQC
 
-						my $genome_version = '';
-						if ($access_method eq 'autofs') {$genome_version = `grep -o 'hg38' $samplesheet | head -1`}
-						else {$genome_version = $ssh->capture("grep -o 'hg38' $samplesheet | head -1")}
-						if ($genome_version == '') {$genome_version = 'hg19'}
-						print STDERR "\n$genome_version\n";
-
-						if ($genome_version == 'hg19') {
+						# my $genome_version = '';
+						# if ($run =~ /^84/) {print STDERR "$samplesheet\n"}
+						# if ($run =~ /^84/) {print STDERR `grep -o 'hg38' $samplesheet | head -1`}
+						my $genome_version = `grep -o 'hg38' $samplesheet | head -1`;
+						chomp($genome_version);
+						if ($genome_version eq '') {print STDERR "$genome_version\n";$genome_version = 'hg19'}
+						my $insert;
+						if ($genome_version eq 'hg19') {
 							# DONE import cluster stats from enrichment_stats.xml and put it into illumina_run
 							# modify database before -done added:
 							# noc_pf   | usmallint             | default NULL::smallint	NumberOfClustersPF
@@ -520,25 +494,34 @@ if ($user->isAnalyst() == 1) {
 							# <NumberOfUnindexedClusters>1359663</NumberOfUnindexedClusters>
 							# <NumberOfUnindexedClustersPF>568151</NumberOfUnindexedClustersPF>
 							#
-							my $noc_pf = &getMetrics("NumberOfClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-							my $noc_raw = &getMetrics("NumberOfClustersRaw>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-							my $nodc = &getMetrics("NumberOfDuplicateClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-							my $nouc = &getMetrics("NumberOfUnalignedClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-							my $nouc_pf = &getMetrics("NumberOfUnalignedClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-							my $nouic = &getMetrics("NumberOfUnindexedClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
-							my $nouic_pf = &getMetrics("NumberOfUnindexedClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file, $access_method);
+							my $noc_pf = &getMetrics("NumberOfClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file);
+							my $noc_raw = &getMetrics("NumberOfClustersRaw>[0-9]+<", $alignment_dir, $ssh, $stat_file);
+							my $nodc = &getMetrics("NumberOfDuplicateClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file);
+							my $nouc = &getMetrics("NumberOfUnalignedClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file);
+							my $nouc_pf = &getMetrics("NumberOfUnalignedClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file);
+							my $nouic = &getMetrics("NumberOfUnindexedClusters>[0-9]+<", $alignment_dir, $ssh, $stat_file);
+							my $nouic_pf = &getMetrics("NumberOfUnindexedClustersPF>[0-9]+<", $alignment_dir, $ssh, $stat_file);
 
-							my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f', '$noc_pf', '$noc_raw', '$nodc', '$nouc', '$nouc_pf', '$nouic', '$nouic_pf', '$robot');";
+							$insert = "INSERT INTO illumina_run VALUES ('$run', 'f', '$noc_pf', '$noc_raw', '$nodc', '$nouc', '$nouc_pf', '$nouic', '$nouic_pf', '$robot');";
 						}
 						else {
-							my $q = U2_modules::QMetricsOut->new(file => "$SSH_RACKSTATION_BASE_DIR/$run/InterOp/QMetricsOut.bin");
+							# hg38 fastq only
+							# import cluster stats from Illumina InterOp for rune treated with MobiDL
+							# modify database before:
+							# from summary.csv file
+							# cluster_density   | usmallint             | default NULL::smallint	alter table illumina_run add cluster_density usmallint default NULL;
+							# cluster_pf  		| usmallint             | default NULL::smallint	alter table illumina_run add cluster_pf usmallint default NULL;
+							# q30pc			    | float           		| default NULL::smallint	%Q30 (mean read1-read4)	alter table illumina_run add q30pc float default NULL;
+							# from index-summary.csv
+							# reads     | integer             | default NULL::smallint	reads(M)	alter table illumina_run add reads integer default NULL;
+							# reads_pf  | integer             | default NULL::smallint	reads PF (M)	alter table illumina_run add reads_pf integer default NULL;
+							# check mutliqc json to find these values
+							# make a sub to parse multiqc json, as it will be useful for sample import
 
-							print STDERR Dumper $q->file_data;
-							
-							my $insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
 
-							print STDERR "\n$insert\n";
-							exit
+							$insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
+							# print STDERR "\n$insert\n";
+							# exit
 						}
 						$dbh->do($insert);
 					}
@@ -550,10 +533,11 @@ if ($user->isAnalyst() == 1) {
 				# if succeeded, we must check whether this run is already recorded for the patient
 				# print "grep -e '$id$number' $SSH_RACKSTATION_BASE_DIR/$run/SampleSheet.csv", $q->br();
 				# print "grep -e '$id$number' $samplesheet";
-				my $test_samplesheet = '';
-				if ($access_method eq 'autofs') {if (-f $samplesheet) {$test_samplesheet = `grep -e '$id$number' $samplesheet`}}
-				else {$test_samplesheet = $ssh->capture("grep -e '$id$number' $samplesheet")}
-				if ($test_samplesheet ne '') {
+				# my $test_samplesheet = `grep -e '$id$number' $samplesheet`;
+				# if ($access_method eq 'autofs') {if (-f $samplesheet) {$test_samplesheet = `grep -e '$id$number' $samplesheet`}}
+				# else {$test_samplesheet = $ssh->capture("grep -e '$id$number' $samplesheet")}
+				# if ($test_samplesheet ne '') {
+				if (`grep -e '$id$number' $samplesheet` ne '') {
 					$semaph = 1;
 					$query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 					$res = $dbh->selectrow_hashref($query);
@@ -561,28 +545,28 @@ if ($user->isAnalyst() == 1) {
 					else {
 						# we can proceed
 						# validate analysis type
-						$test_samplesheet = '';
-						if ($access_method eq 'autofs') {$test_samplesheet = `grep -e '$manifest' $samplesheet`}
-						else {$test_samplesheet = $ssh->capture("grep -e '$manifest' $samplesheet")}
+						my $test_samplesheet = `grep -e '$manifest' $samplesheet`;
+						# if ($access_method eq 'autofs') {$test_samplesheet = `grep -e '$manifest' $samplesheet`}
+						# else {$test_samplesheet = $ssh->capture("grep -e '$manifest' $samplesheet")}
 						# print "2-$run-$manifest-$samplesheet-$test_samplesheet<br/>";
 						if ($test_samplesheet ne '') {
 							$ok = 1;
 							# determine whether the run is hg19 w/ DNA enrichment, hg19 fastq only or hg38 fastq only from the samplesheet
-							my $import_script = 'import_illumina_vv.pl'
+							my $import_script = 'import_illumina_vv.pl';
 							if ($samplesheet =~ /hg38/o) {$import_script = 'import_illumin_2024.pl'}
 							# search for other patients in the samplesheet
 							my $char = ',';
 							my $patient_list;
-							if ($access_method eq 'autofs') {
-								my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
-								$patient_list = `grep -Eo "$regexp" $samplesheet`;
-							}
-							else {$patient_list = $ssh->capture("grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet")}
+							# if ($access_method eq 'autofs') {
+							my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
+							$patient_list = `grep -Eo "$regexp" $samplesheet`;
+							# }
+							# else {$patient_list = $ssh->capture("grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet")}
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
 							# build form
-							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $access_method);
+							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, $alignment_dir, $ssh, $summary_file, $instrument);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
 						}
 					}
@@ -806,10 +790,17 @@ sub insert_analysis {
 }
 
 sub getMetrics {
-	my ($reg, $alignment_dir, $ssh, $file, $access_method) = @_;
-    my $grep;
-    if ($access_method eq 'autofs') {$grep = `grep -Eo -m 1 \"$reg\" $alignment_dir/$file`}
-	else {$grep = $ssh->capture("grep -Eo -m 1 \"$reg\" $alignment_dir/$file")}
-	$grep =~ />(\d+)<$/o;
-	return $1;
+	my ($reg, $alignment_dir, $ssh, $file) = @_;
+	if (-f "$alignment_dir/$file") {
+		my $grep = `grep -Eo -m 1 \"$reg\" $alignment_dir/$file`;
+		# if ($access_method eq 'autofs') {$grep = `grep -Eo -m 1 \"$reg\" $alignment_dir/$file`}
+		# else {$grep = $ssh->capture("grep -Eo -m 1 \"$reg\" $alignment_dir/$file")}
+		$grep =~ />(\d+)<$/o;
+		return $1;
+	}
+	return 0
+}
+
+sub getInterOpMetrics {
+	
 }
