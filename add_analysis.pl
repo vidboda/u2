@@ -506,7 +506,7 @@ if ($user->isAnalyst() == 1) {
 						}
 						else {
 							# hg38 fastq only
-							# import cluster stats from Illumina InterOp for rune treated with MobiDL
+							# import cluster stats from Illumina InterOp for runs treated with MobiDL
 							# modify database before:
 							# from summary.csv file
 							# cluster_density   | usmallint             | default NULL::smallint	alter table illumina_run add cluster_density usmallint default NULL;
