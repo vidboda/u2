@@ -454,6 +454,13 @@ if ($user->isAnalyst() == 1) {
 							$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`
 					}
                     if ($test_file ne '') {
+
+
+						my $cluster_density = U2_modules::U2_subs_2::getMultiqcValue($run, 'interop_runsummary', 'Density');
+						if ($cluster_density eq 'no multiqc') {next}
+						exit();
+
+
 						# automatic library preparation?
 						# my $robot = 'f';
 						my $robot = `grep -i -E 'Experiment Name,.+ROBOT' $samplesheet`;
@@ -485,8 +492,7 @@ if ($user->isAnalyst() == 1) {
 							# in illumina_run
 							# with a grep -Eo ex:
 							# my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-							# $alignment_dir =~ /\\(Alignment\d*)<$/o;
-							# <NumberOfClustersPF>18329931</NumberOfClustersPF>
+							# $alignment_dir =~ /\\(Alignment\d*)<$/o;							# <NumberOfClustersPF>18329931</NumberOfClustersPF>
 							# <NumberOfClustersRaw>21256323</NumberOfClustersRaw>
 							# <NumberOfDuplicateClusters>2351136</NumberOfDuplicateClusters>
 							# <NumberOfUnalignedClusters>2295956</NumberOfUnalignedClusters>
@@ -509,15 +515,15 @@ if ($user->isAnalyst() == 1) {
 							# import cluster stats from Illumina InterOp for runs treated with MobiDL
 							# modify database before:
 							# from summary.csv file
-							# cluster_density   | usmallint             | default NULL::smallint	alter table illumina_run add cluster_density usmallint default NULL;
-							# cluster_pf  		| usmallint             | default NULL::smallint	alter table illumina_run add cluster_pf usmallint default NULL;
-							# q30pc			    | float           		| default NULL::smallint	%Q30 (mean read1-read4)	alter table illumina_run add q30pc float default NULL;
+							# cluster_density   | usmallint             | default NULL::smallint	ALTER TABLE illumina_run ADD cluster_density usmallint DEFAULT NULL;
+							# cluster_pf  		| usmallint             | default NULL::smallint	ALTER TABLE illumina_run ADD cluster_pf usmallint DEFAULT NULL;
+							# q30pc			    | float           		| default NULL::smallint	%Q30 (mean read1-read4)	ALTER TABLE illumina_run ADD q30pc float DEFAULT NULL;
 							# from index-summary.csv
-							# reads     | integer             | default NULL::smallint	reads(M)	alter table illumina_run add reads integer default NULL;
-							# reads_pf  | integer             | default NULL::smallint	reads PF (M)	alter table illumina_run add reads_pf integer default NULL;
+							# reads     | integer             | default NULL::smallint	reads(M)	ALTER TABLE illumina_run ADD reads integer DEFAULT NULL;
+							# reads_pf  | integer             | default NULL::smallint	reads PF (M)	ALTER TABLE illumina_run ADD reads_pf integer DEFAULT NULL;
 							# check mutliqc json to find these values
 							# make a sub to parse multiqc json, as it will be useful for sample import
-
+							my $cluster_density = U2_modules::U2_subs_3::getMultiqcValue($run, 'interop_runsummary', 'Density');
 
 							$insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
 							# print STDERR "\n$insert\n";

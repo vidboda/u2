@@ -12,8 +12,10 @@ use URI::Encode qw(uri_encode uri_decode);
 use Net::SSLGlue::SMTP;
 use Authen::SASL;
 #use Net::SMTP;
+use JSON;
 use strict;
 use warnings;
+use Data::Dumper;
 
 
 #   This program is part of ushvam2, USHer VAriant Manager version 2
@@ -49,6 +51,8 @@ my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 my $HOME_IP = $config->HOME_IP();
 my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
+my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
@@ -1373,6 +1377,49 @@ sub get_raw_detail {
 	#print "_".$data."_<br/>";
 	return $data,;
 }
+
+# in add_analysis.pl
+
+sub getMultiqcValue{
+	my ($run, $section, $label) = @_;
+	my $json_text = do {
+		# from https://stackoverflow.com/questions/15653419/parsing-json-file-using-perl
+		my $multiqc_file = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json";
+		if (-e $multiqc_file) {
+			open(my $json_fh, "<:encoding(UTF-8)", "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json")
+				or die("Can't open \"$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json\": $!\n");
+			local $/;
+			<$json_fh>
+		}
+		else {
+			return 'no multiqc'
+		}
+	};
+	print STDERR "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json\n";
+	# my $json = JSON->new;
+	my $content = decode_json($json_text);
+	# print ref($content);
+	foreach my $key (keys %{$content}) {
+		print STDERR "$key\n";
+		if ($key eq 'report_saved_raw_data') {
+			print STDERR "$key\n";
+			# print STDERR "$content->{$_}\n";
+			foreach my $subkey (@{$content->{$key}}) {
+				print STDERR "$subkey\n" if $subkey eq $section
+			}
+		}
+		
+	}
+	# if ($content->{'report_saved_raw_data'}->{section}) {
+	# 	print STDERR "in!!\n"
+	# }
+	# else {
+	# 	print Dumper($content)
+	# }
+	
+}
+
+
 
 #in add_clinical_exome.pl, import_illumina.pl
 
