@@ -456,9 +456,9 @@ if ($user->isAnalyst() == 1) {
                     if ($test_file ne '') {
 
 
-						my $cluster_density = U2_modules::U2_subs_2::getMultiqcValue($run, 'interop_runsummary', 'Density');
-						if ($cluster_density eq 'no multiqc') {next}
-						exit();
+						# my $cluster_density = U2_modules::U2_subs_2::getMultiqcValue($run, 'interop_runsummary', 'Density');
+						# if ($cluster_density eq 'no multiqc') {next}
+						# exit();
 
 
 						# automatic library preparation?
@@ -516,16 +516,22 @@ if ($user->isAnalyst() == 1) {
 							# modify database before:
 							# from summary.csv file
 							# cluster_density   | usmallint             | default NULL::smallint	ALTER TABLE illumina_run ADD cluster_density usmallint DEFAULT NULL;
-							# cluster_pf  		| usmallint             | default NULL::smallint	ALTER TABLE illumina_run ADD cluster_pf usmallint DEFAULT NULL;
-							# q30pc			    | float           		| default NULL::smallint	%Q30 (mean read1-read4)	ALTER TABLE illumina_run ADD q30pc float DEFAULT NULL;
+							# cluster_pf  		| float             | default NULL::float	ALTER TABLE illumina_run ADD cluster_pf float DEFAULT NULL;
+							# q30pc			    | float           		| default NULL::float	%Q30 (mean read1-read4)	ALTER TABLE illumina_run ADD q30pc float DEFAULT NULL;
 							# from index-summary.csv
-							# reads     | integer             | default NULL::smallint	reads(M)	ALTER TABLE illumina_run ADD reads integer DEFAULT NULL;
-							# reads_pf  | integer             | default NULL::smallint	reads PF (M)	ALTER TABLE illumina_run ADD reads_pf integer DEFAULT NULL;
+							# reads     | float             | default NULL::float	reads(M)	ALTER TABLE illumina_run ADD reads float DEFAULT NULL;
+							# reads_pf  | float             | default NULL::float	reads PF (M)	ALTER TABLE illumina_run ADD reads_pf float DEFAULT NULL;
 							# check mutliqc json to find these values
 							# make a sub to parse multiqc json, as it will be useful for sample import
-							my $cluster_density = U2_modules::U2_subs_3::getMultiqcValue($run, 'interop_runsummary', 'Density');
+							my $interop_metrics = U2_modules::U2_subs_2::getMultiqcValue($run, 'interop_runsummary');
 
-							$insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
+							if ($interop_metrics->{'Density'} ne '') {
+								$insert = "INSERT INTO illumina_run (id, complete, cluster_density, cluster_pf, q30pc, reads, reads_pf) VALUES ('$run', 'f', $interop_metrics->{'Density'}, $interop_metrics->{'Cluster PF'}, $interop_metrics->{'%>=Q30'}, $interop_metrics->{'Reads'}, $interop_metrics->{'Reads PF'});";
+								print STDERR "$insert\n";
+							}
+							else {					
+								$insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
+							}
 							# print STDERR "\n$insert\n";
 							# exit
 						}
@@ -534,16 +540,10 @@ if ($user->isAnalyst() == 1) {
 					else {next}
 				}
 				# seek for patient
-				# if ($value != 2) {
 				# we grep for patient ID in the samplesheets
 				# if succeeded, we must check whether this run is already recorded for the patient
-				# print "grep -e '$id$number' $SSH_RACKSTATION_BASE_DIR/$run/SampleSheet.csv", $q->br();
-				# print "grep -e '$id$number' $samplesheet";
-				# my $test_samplesheet = `grep -e '$id$number' $samplesheet`;
-				# if ($access_method eq 'autofs') {if (-f $samplesheet) {$test_samplesheet = `grep -e '$id$number' $samplesheet`}}
-				# else {$test_samplesheet = $ssh->capture("grep -e '$id$number' $samplesheet")}
-				# if ($test_samplesheet ne '') {
 				if (`grep -e '$id$number' $samplesheet` ne '') {
+					exit();
 					$semaph = 1;
 					$query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 					$res = $dbh->selectrow_hashref($query);
@@ -552,9 +552,6 @@ if ($user->isAnalyst() == 1) {
 						# we can proceed
 						# validate analysis type
 						my $test_samplesheet = `grep -e '$manifest' $samplesheet`;
-						# if ($access_method eq 'autofs') {$test_samplesheet = `grep -e '$manifest' $samplesheet`}
-						# else {$test_samplesheet = $ssh->capture("grep -e '$manifest' $samplesheet")}
-						# print "2-$run-$manifest-$samplesheet-$test_samplesheet<br/>";
 						if ($test_samplesheet ne '') {
 							$ok = 1;
 							# determine whether the run is hg19 w/ DNA enrichment, hg19 fastq only or hg38 fastq only from the samplesheet
@@ -563,11 +560,8 @@ if ($user->isAnalyst() == 1) {
 							# search for other patients in the samplesheet
 							my $char = ',';
 							my $patient_list;
-							# if ($access_method eq 'autofs') {
 							my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
 							$patient_list = `grep -Eo "$regexp" $samplesheet`;
-							# }
-							# else {$patient_list = $ssh->capture("grep -Eo \"^".$PATIENT_IDS."[0-9]+$char\" $samplesheet")}
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
