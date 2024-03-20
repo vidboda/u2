@@ -543,7 +543,6 @@ if ($user->isAnalyst() == 1) {
 				# we grep for patient ID in the samplesheets
 				# if succeeded, we must check whether this run is already recorded for the patient
 				if (`grep -e '$id$number' $samplesheet` ne '') {
-					exit();
 					$semaph = 1;
 					$query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 					$res = $dbh->selectrow_hashref($query);
