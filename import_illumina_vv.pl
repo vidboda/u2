@@ -851,15 +851,15 @@ sub run_vv_results {
 	foreach my $var (keys %{$vv_results_to_treat}) {
 		#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
 		if ($var eq 'flag' && $vv_results_to_treat->{$var} eq 'intergenic') {
-      # special table no to assess these variants each time
-      my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
-      my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
-      if (!$res_variants_no_insert) {
-        my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant');";
-        $dbh->do($insert_variants_no_insert);
-      }
-      return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
-    }
+			# special table no to assess these variants each time
+			my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+			my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
+			if (!$res_variants_no_insert) {
+				my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant');";
+				$dbh->do($insert_variants_no_insert);
+			}
+			return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
+		}
 		my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
 		#print STDERR $nm."\n";
 		if ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] !~ /=/o) {
