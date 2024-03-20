@@ -1381,7 +1381,7 @@ sub get_raw_detail {
 # in add_analysis.pl
 
 sub getMultiqcValue{
-	my ($run, $section, $label) = @_;
+	my ($run, $section) = @_;
 	my $json_text = do {
 		# from https://stackoverflow.com/questions/15653419/parsing-json-file-using-perl
 		my $multiqc_file = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json";
@@ -1399,17 +1399,48 @@ sub getMultiqcValue{
 	# my $json = JSON->new;
 	my $content = decode_json($json_text);
 	# print ref($content);
-	foreach my $key (keys %{$content}) {
-		print STDERR "$key\n";
-		if ($key eq 'report_saved_raw_data') {
-			print STDERR "$key\n";
-			# print STDERR "$content->{$_}\n";
-			foreach my $subkey (@{$content->{$key}}) {
-				print STDERR "$subkey\n" if $subkey eq $section
+	if ($section eq 'interop_runsummary' && exists $content->{'report_saved_raw_data'}->{$section}) {
+		my $interop = {
+			'Density' => '',
+			'Cluster PF' => '',
+			'%>=Q30' => '',
+			'Reads' => '',
+			'Reads PF' => ''
+		};
+		foreach my $label (keys %{$interop}) {
+			if ($label eq '%>=Q30') {
+				$interop->{$label} = sprintf('%.2f', ($content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} + $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 4'}->{$label}) / 2)
+			}
+			else {
+				$content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} =~ s/\s//og;
+				$interop->{$label} = $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label}
 			}
 		}
+		return $interop;
 		
+		
+		# if ($label eq '%>=Q30') {
+		# 	return sprintf('%.2f', ($content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} + $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 4'}->{$label}) / 2);
+		# }
+		# $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} =~ s/\s//og;
+		# return $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label}
 	}
+
+	# if ($run eq '240312_MN00265_0655_A000H5YWHN') {
+	# 	foreach my $key (keys %{$content}) {
+	# 		print STDERR "$key\n";
+	# 		if ($key eq 'report_saved_raw_data') {
+	# 			print STDERR "$key\n";
+	# 			print STDERR "ref $content->{$key}\n";
+	# 			foreach my $subkey (keys %{$content->{$key}}) {
+	# 				print STDERR "$subkey:$section\n";
+	# 				print STDERR "$content->{$key}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label}\n";
+	# 			}
+	# 		}
+			
+	# 	}
+	# }
+	return "no $section"
 	# if ($content->{'report_saved_raw_data'}->{section}) {
 	# 	print STDERR "in!!\n"
 	# }
