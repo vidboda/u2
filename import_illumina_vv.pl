@@ -222,11 +222,11 @@ if ($step && $step == 2) {
 		}
 	}
 	my $report = 'aggregate.report.pdf';
-	if ($genome_version == 'hg38') {
+	if ($genome_version eq 'hg38') {
+		print STDERR "genome0.5: $VVGENOME\n";
 		($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');
 		$VVGENOME='GRCh38'
 	}
-
 	#print "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";exit;
 	mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";
 
@@ -623,7 +623,8 @@ if ($step && $step == 2) {
 				# print STDERR "End Run VV1";
 				#run variantvalidator API
 				my ($type_segment, $classe, $var_final, $cdna);
-				print STDERR "$var_chr-$var_pos-$var_ref-$var_alt\n";
+				print STDERR "genome: $VVGENOME\n";
+				print STDERR "variatn: $var_chr-$var_pos-$var_ref-$var_alt\n";
 				print STDERR "vv_results: $vv_results\n";				
 				if ($vv_results ne '0') {
 					#find vvkey and cdna
