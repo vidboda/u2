@@ -623,14 +623,15 @@ if ($step && $step == 2) {
 				# print STDERR "End Run VV1";
 				#run variantvalidator API
 				my ($type_segment, $classe, $var_final, $cdna);
-				print STDERR "genome: $VVGENOME\n";
-				print STDERR "variatn: $var_chr-$var_pos-$var_ref-$var_alt\n";
-				print STDERR "vv_results: $vv_results\n";				
+				# print STDERR "genome: $VVGENOME\n";
+				# print STDERR "variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
+				# print STDERR "vv_results1: $vv_results\n";
 				if ($vv_results ne '0') {
 					#find vvkey and cdna
 					my ($hashvar, $tmp_message);
 					my ($vvkey, $nm_list, $tag) = ('', '', '');
 					# print STDERR "Run VV results\n";
+					# print STDERR "vv_results2: $vv_results\n";
 					($tmp_message, $insert, $hashvar, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "End Run VV results\n";
 					if ($tmp_message ne '') {$message .= $tmp_message;next VCF}
@@ -668,12 +669,19 @@ if ($step && $step == 2) {
 							# bad acc not in U2 => retry with U2 acc_no
 							# print STDERR "Run VV2 Bad acc not in U2: $var_chr-$var_pos-$var_ref-$var_alt - ".$result->{'nm'}.".".$result->{'acc_version'}."\n";
 							my $fail = 0;
+
 							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
 							if ($fail == 1) {
-								$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
+								$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 2;
+							}
+							if ($fail == 2) {
+								# likely VV error
+								$message .= "$id$number: WARNING: VV fails with ".$result->{'nm'}." for $var_chr-$var_pos-$var_ref-$var_alt\n";
+								next VCF
 							}
 							#get new cdna
 							my ($tmp_message, $hashvar_tmp);
+							print STDERR "vv_results3: $vv_results\n";
 							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf,$var_filter, $dbh);
 							if ($tmp_message ne '') {$message .= $tmp_message;next VCF}#should not happen
 							elsif ($insert ne '') {#should not happen
@@ -865,6 +873,7 @@ sub run_vv_results {
 	#expected return ($tmp_message, $insert, $hashvar, $nm_list, $tag)
 	my ($hashvar, $nm_list, $tag);
 	($nm_list, $tag) = ('', '');
+	# print STDERR "vv_results_to_treat: ".Dumper($vv_results_to_treat)."\n";
 	foreach my $var (keys %{$vv_results_to_treat}) {
 		#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
 		if ($var eq 'flag' && $vv_results_to_treat->{$var} eq 'intergenic') {
