@@ -172,6 +172,8 @@ if ($step && $step == 2) {
 	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path='MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR}
 	my $alignment_dir;
 	my $additional_path = '';
+	# put "hg38" in the run description so that we can find it in the CompletedJobInfo.xml file, even for FASTQOnly analyses
+	my $genome_version = 'hg19';
 
 	if ($instrument eq 'miseq') {
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
@@ -181,12 +183,16 @@ if ($step && $step == 2) {
 			$alignment_dir =~ /\\(Alignment\d*)<$/o;
 			$alignment_dir = $1;
 			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+			# check genome version
+			$genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
 		}
 		else {
 			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
 			$alignment_dir =~ /\\(Alignment\d*)<$/o;
 			$alignment_dir = $1;
 			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+			# check genome version
+			$genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
 		}
 	}
 	elsif ($instrument eq 'miniseq') {
@@ -202,6 +208,8 @@ if ($step && $step == 2) {
 			$alignment_dir = $1;
 			$alignment_dir =~ s/\\/\//og;
 			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir";
+			# check genome version
+			$genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
 		}
 		else {
 			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run$additional_path/CompletedJobInfo.xml");
@@ -209,9 +217,15 @@ if ($step && $step == 2) {
 			$alignment_dir = $1;
 			$alignment_dir =~ s/\\/\//og;
 			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/$alignment_dir";
+			# check genome version
+			$genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
 		}
 	}
 	my $report = 'aggregate.report.pdf';
+	if ($genome_version == 'hg38') {
+		($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');
+		$VVGENOME='GRCh38'
+	}
 
 	#print "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";exit;
 	mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";
@@ -224,10 +238,10 @@ if ($step && $step == 2) {
 
 	#create roi hash
 	my $new_var  = '';
-	my $interval = U2_modules::U2_subs_3::build_roi($dbh);
+	my $interval = U2_modules::U2_subs_3::build_roi($dbh, $postgre_start_g, $postgre_end_g);
 	# my ($general, $sample_end, $message) = ('', '', '');#$general global data for final email, $sample_end last treated patient for redirection
-  my ($general, $message) = ('', '');
-  print $q->p('  Samples imported:'), $q->start_ul();
+  	my ($general, $message) = ('', '');
+  	print $q->p('  Samples imported:'), $q->start_ul();
 	while (my ($sampleid, $filter) = each(%sample_hash)) {
 		#print "$key-$value<br/>";
 
@@ -602,13 +616,15 @@ if ($step && $step == 2) {
 				# print STDERR "Run VV1: $var_chr-$var_pos-$var_ref-$var_alt\n";
 				# in case VV returns weird results
 				my $fail = 0;
-				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "auth_all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
+				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
 				if ($fail == 1) {
-					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "auth_all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
+					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
 				}
 				# print STDERR "End Run VV1";
 				#run variantvalidator API
 				my ($type_segment, $classe, $var_final, $cdna);
+				print STDERR "$var_chr-$var_pos-$var_ref-$var_alt\n";
+				print STDERR "vv_results: $vv_results\n";				
 				if ($vv_results ne '0') {
 					#find vvkey and cdna
 					my ($hashvar, $tmp_message);
@@ -624,7 +640,7 @@ if ($step && $step == 2) {
 						next VCF;
 					}
 
-					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:$VVURL/VariantValidator/variantvalidator/$VVGENOME/$var_chr-$var_pos-$var_ref-$var_alt/auth_all?content-type=application/json\n";next VCF}
+					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:$VVURL/VariantValidator/variantvalidator/$VVGENOME/$var_chr-$var_pos-$var_ref-$var_alt/all?content-type=application/json\n";next VCF}
 					elsif ($nm_list eq '' && $tag ne '') {$message .= $tag;next VCF}
 					#query U2 to get NM
 					chop($nm_list);#remove last ,
@@ -648,7 +664,7 @@ if ($step && $step == 2) {
 							#print STDERR "VV 1\n";
 						}
 						if (exists $hashvar->{$result->{'nm'}} && !exists $hashvar->{$result->{'nm'}}->{$result->{'acc_version'}}) {
-							#bad acc not in U2 => retry with U2 acc_no
+							# bad acc not in U2 => retry with U2 acc_no
 							# print STDERR "Run VV2 Bad acc not in U2: $var_chr-$var_pos-$var_ref-$var_alt - ".$result->{'nm'}.".".$result->{'acc_version'}."\n";
 							my $fail = 0;
 							$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, $result->{'nm'}.".".$result->{'acc_version'}, "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
@@ -851,15 +867,15 @@ sub run_vv_results {
 	foreach my $var (keys %{$vv_results_to_treat}) {
 		#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
 		if ($var eq 'flag' && $vv_results_to_treat->{$var} eq 'intergenic') {
-			# special table no to assess these variants each time
-			my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
-			my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
-			if (!$res_variants_no_insert) {
-				my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant');";
-				$dbh->do($insert_variants_no_insert);
-			}
-			return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
-		}
+      # special table no to assess these variants each time
+      my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+      my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
+      if (!$res_variants_no_insert) {
+        my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant');";
+        $dbh->do($insert_variants_no_insert);
+      }
+      return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
+    }
 		my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
 		#print STDERR $nm."\n";
 		if ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] !~ /=/o) {
