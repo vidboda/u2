@@ -681,7 +681,7 @@ if ($step && $step == 2) {
 							}
 							#get new cdna
 							my ($tmp_message, $hashvar_tmp);
-							print STDERR "vv_results3: $vv_results\n";
+							# print STDERR "vv_results3: $vv_results\n";
 							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf,$var_filter, $dbh);
 							if ($tmp_message ne '') {$message .= $tmp_message;next VCF}#should not happen
 							elsif ($insert ne '') {#should not happen
