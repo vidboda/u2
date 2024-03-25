@@ -199,8 +199,9 @@ if ($step && $step == 2) {
 		$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#old fashioned replaced with autofs 21/12/2016
-		my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
-		if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
+		# not needed anymore since LRMv4?
+		# my $miniseq = U2_modules::U2_subs_2::get_miniseq_id($run);					
+		# if ($miniseq eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 		if ($access_method eq 'autofs') {
 			$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
 			#print "1-$alignment_dir<br/>";

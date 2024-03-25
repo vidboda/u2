@@ -425,8 +425,9 @@ if ($user->isAnalyst() == 1) {
 					# depending on instrument, alignment_dir will vary
 					# MN_00265 => $run/$alignment_dir
 					# MN01379 => $run/$run/$alignment_dir
-					my $miniseq = U2_modules::U2_subs_2::get_miniseq_id($run);					
-					if ($miniseq eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
+					# not needed anymore since LRMv4?
+					# my $miniseq = U2_modules::U2_subs_2::get_miniseq_id($run);					
+					# if ($miniseq eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 					if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml") {
 						$alignment_dir = `grep -Eo "A(lignment|nalysis)Folder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
 						$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
