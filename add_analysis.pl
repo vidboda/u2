@@ -443,6 +443,18 @@ if ($user->isAnalyst() == 1) {
 					($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
                 }
 				# unknown in U2
+				my $genome_version = `grep -o 'hg38' $samplesheet | head -1`;
+				chomp($genome_version);
+				if ($genome_version eq '') {$genome_version = 'hg19'}
+
+				# for dev purpose
+				$genome_version = 'hg38';
+
+				if ($genome_version eq 'hg38') {
+					# redirect $alignment_dir to MobiDL
+					$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL";
+				}
+
 				if ($value == 0) {
 					# run does not need to be NS run - if classified, will not be considered next time
 					# 1st check MSR analysis is finished:
@@ -475,9 +487,7 @@ if ($user->isAnalyst() == 1) {
 						# my $genome_version = '';
 						# if ($run =~ /^84/) {print STDERR "$samplesheet\n"}
 						# if ($run =~ /^84/) {print STDERR `grep -o 'hg38' $samplesheet | head -1`}
-						my $genome_version = `grep -o 'hg38' $samplesheet | head -1`;
-						chomp($genome_version);
-						if ($genome_version eq '') {print STDERR "$genome_version\n";$genome_version = 'hg19'}
+						
 						my $insert;
 						if ($genome_version eq 'hg19') {
 							# DONE import cluster stats from enrichment_stats.xml and put it into illumina_run
@@ -523,9 +533,9 @@ if ($user->isAnalyst() == 1) {
 							# reads_pf  | float             | default NULL::float	reads PF (M)	ALTER TABLE illumina_run ADD reads_pf float DEFAULT NULL;
 							# check mutliqc json to find these values
 							# make a sub to parse multiqc json, as it will be useful for sample import
-							my $interop_metrics = U2_modules::U2_subs_2::getMultiqcValue($run, 'interop_runsummary');
+							my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
 
-							if ($interop_metrics->{'Density'} ne '') {
+							if (ref $interop_metrics eq ref {} && $interop_metrics->{'Density'} ne '') {
 								$insert = "INSERT INTO illumina_run (id, complete, cluster_density, cluster_pf, q30pc, reads, reads_pf) VALUES ('$run', 'f', $interop_metrics->{'Density'}, $interop_metrics->{'Cluster PF'}, $interop_metrics->{'%>=Q30'}, $interop_metrics->{'Reads'}, $interop_metrics->{'Reads PF'});";
 								print STDERR "$insert\n";
 							}
@@ -555,7 +565,7 @@ if ($user->isAnalyst() == 1) {
 							$ok = 1;
 							# determine whether the run is hg19 w/ DNA enrichment, hg19 fastq only or hg38 fastq only from the samplesheet
 							my $import_script = 'import_illumina_vv.pl';
-							if ($samplesheet =~ /hg38/o) {$import_script = 'import_illumin_2024.pl'}
+							if ($genome_version eq 'hg38') {$import_script = 'import_illumin_2024.pl'}
 							# search for other patients in the samplesheet
 							my $char = ',';
 							my $patient_list;
@@ -565,7 +575,7 @@ if ($user->isAnalyst() == 1) {
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
 							# build form
-							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, $alignment_dir, $ssh, $summary_file, $instrument);
+							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $genome_version);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
 						}
 					}

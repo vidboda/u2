@@ -1166,7 +1166,7 @@ sub print_panel_criteria {
 }
 
 sub build_ngs_form {
-	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument) = @_;
+	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $genome_version) = @_;
 
 	my $info =  "In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).".$q->br()."Please select those you are interested in";
 	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
@@ -1208,7 +1208,7 @@ sub build_ngs_form {
 				$form .=   $q->end_div();
 			}
 			else {$form .=   $q->end_div();}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
 			else {$form .=  &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
@@ -1234,7 +1234,7 @@ sub build_ngs_form {
 				$form .=   $q->div({'class' => 'w3-quarter w3-large'}, "Filter:").
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, "$filter")."\n";
 			}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
@@ -1323,29 +1323,41 @@ sub get_raw_detail_ce_qualimap {
 
 #subs for panel, add_analysis.pl
 sub get_raw_data {
-	my ($dir, $sample, $ssh, $file, $instrument, $q, $analysis) = @_;
+	my ($dir, $sample, $ssh, $file, $instrument, $q, $analysis, $genome_version) = @_;
 	#we want - miseq
 	#Percent Q30:,
 	#Target coverage at 50X:,
 	#SNV Ts/Tv ratio:,
 	#Mean region coverage depth:,
-	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads);
+	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads, $pass_metrics, $q30, $x50, $tstv, $doc, $ontarget_reads);
 
 	if ($instrument eq 'miseq') {
 		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
 	}
-	elsif ($instrument eq 'miniseq') {
+	elsif ($instrument eq 'miniseq' && $genome_version eq 'hg19') {
 		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Targeted aligned reads,');
 	}
-
-	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file);
-	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file);
-	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file);
-	my $doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file);
-	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
+	if ($genome_version eq 'hg19') {
+		$q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file);
+		$x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file);
+		$tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file);
+		$doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file);
+		$ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
+	}
+	else {
+		$pass_metrics = get_multiqc_value("$dir/$sample/panelCapture/".$sample."_multiqc_data/multiqc_data.json", 'report_general_stats_data', $sample, 'reduced');
+		print STDERR "RUN: $dir - SAMPLE: $sample\n";
+		print STDERR Dumper($pass_metrics)."\n";
+		if (ref $pass_metrics eq ref {}) {
+			$x50 = $pass_metrics->{'PCT_TARGET_BASES_50X'};
+			$tstv = $pass_metrics->{'tstv'};
+			$doc = $pass_metrics->{'MEAN_BAIT_COVERAGE'};
+		}
+		else {return $q->div({'class' => 'w3-red w3-quarter'}, 'NO METRICS FOUND!!!!!')}
+	}
 	#return ($q30, $x50, $tstv, $doc);
 	my $criteria = '';
-	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}
+	if ($genome_version eq 'hg19' && $q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}
 	if ($analysis =~ /$ANALYSIS_ILLUMINA_WG_REGEXP/o) {
 		#Whole genes
 		if ($x50 < $U2_modules::U2_subs_1::PC50X_WG) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X_WG.') '}
@@ -1356,7 +1368,7 @@ sub get_raw_data {
 		if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
 	}
 	if ($doc < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
-	if ($ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
+	if ($genome_version eq 'hg19' && $ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
 	if ($criteria ne '') {return $q->div({'class' => 'w3-red w3-quarter'}, "FAILED $criteria")}
 	else {return $q->div({'class' => 'w3-green w3-quarter'}, 'PASS')}
 }
@@ -1380,25 +1392,24 @@ sub get_raw_detail {
 
 # in add_analysis.pl
 
-sub getMultiqcValue{
-	my ($run, $section) = @_;
+sub get_multiqc_value {
+	my ($multiqc_file, $section, $sample, $call) = @_;
 	my $json_text = do {
 		# from https://stackoverflow.com/questions/15653419/parsing-json-file-using-perl
-		my $multiqc_file = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json";
+		# my $multiqc_file = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json";
 		if (-e $multiqc_file) {
-			open(my $json_fh, "<:encoding(UTF-8)", "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json")
-				or die("Can't open \"$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json\": $!\n");
+			open(my $json_fh, "<:encoding(UTF-8)", $multiqc_file)
+				or die("Can't open \"$multiqc_file\": $!\n");
 			local $/;
 			<$json_fh>
 		}
 		else {
-			return 'no multiqc'
+			print STDERR "$multiqc_file\n";
+			return 'no multiqc';
 		}
 	};
-	print STDERR "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json\n";
-	# my $json = JSON->new;
+	print STDERR "$multiqc_file\n";
 	my $content = decode_json($json_text);
-	# print ref($content);
 	if ($section eq 'interop_runsummary' && exists $content->{'report_saved_raw_data'}->{$section}) {
 		my $interop = {
 			'Density' => '',
@@ -1417,37 +1428,125 @@ sub getMultiqcValue{
 			}
 		}
 		return $interop;
-		
-		
-		# if ($label eq '%>=Q30') {
-		# 	return sprintf('%.2f', ($content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} + $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 4'}->{$label}) / 2);
-		# }
-		# $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} =~ s/\s//og;
-		# return $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label}
 	}
-
-	# if ($run eq '240312_MN00265_0655_A000H5YWHN') {
-	# 	foreach my $key (keys %{$content}) {
-	# 		print STDERR "$key\n";
-	# 		if ($key eq 'report_saved_raw_data') {
-	# 			print STDERR "$key\n";
-	# 			print STDERR "ref $content->{$key}\n";
-	# 			foreach my $subkey (keys %{$content->{$key}}) {
-	# 				print STDERR "$subkey:$section\n";
-	# 				print STDERR "$content->{$key}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label}\n";
-	# 			}
-	# 		}
-			
-	# 	}
-	# }
-	return "no $section"
-	# if ($content->{'report_saved_raw_data'}->{section}) {
-	# 	print STDERR "in!!\n"
-	# }
-	# else {
-	# 	print Dumper($content)
-	# }
-	
+	elsif ($section eq 'report_general_stats_data' && exists $content->{$section} && $call eq 'reduced') {
+		my $pass_metrics = {
+			'PCT_TARGET_BASES_50X' => '',
+			'tstv' => '',
+			'MEAN_BAIT_COVERAGE' => '',
+			'after_filtering_q30_rate' => ''
+		};
+		my $sample_regexp = $sample."_S";
+		LABEL: foreach my $label (keys %{$pass_metrics}) {
+			foreach my $cell (@{$content->{$section}}) {
+				foreach my $key (keys %{$cell}) {
+					if ($pass_metrics->{$label} eq '') {
+						if ($key eq "$sample.hc" && $label eq 'tstv') {
+							$pass_metrics->{$label} = $cell->{$key}->{$label};
+							next LABEL;
+						}
+						elsif (($key eq $sample && $label ne 'after_filtering_q30_rate') || ($key =~ /^$sample_regexp\d+/ && $label eq 'after_filtering_q30_rate')) {
+							$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label});
+							next LABEL;
+						}
+					}
+				}
+			}
+		}
+		return $pass_metrics;
+	}
+	elsif ($section eq 'report_general_stats_data' && exists $content->{$section} && $call eq 'full') {
+		# "report_general_stats_data": [
+        # {
+        #     "SAMPLEID.hc": {
+        #         "number_of_SNPs": 1122.0, <----- 11
+        #         "number_of_indels": 160.0,<----- 13
+        #         "tstv": 2.36,<----- 12
+		# 	... the same for hc
+		# 	}
+		# }
+		# {
+        #     "SAMPLEID": {
+        #         "PF_READS_ALIGNED": 4208928.0, <------ 4
+        #         "PF_ALIGNED_BASES": 514413948.0, <------ 1
+        #         "MEAN_BAIT_COVERAGE": 394.926463, <----- 6
+        #         "ON_TARGET_BASES": 229097211.0, <----- 2 -> passer le critère on target reads à on target bases (x150)
+        #         "MEAN_TARGET_COVERAGE": 194.503582, <----- 6bis
+        #         "PCT_EXC_DUPE": 0.0561, <----- 3
+        #         "PCT_TARGET_BASES_20X": 0.983386, <----- 7
+        #         "PCT_TARGET_BASES_50X": 0.971945, <----- 8
+		# 		...
+        #     }
+        # },
+		my $pass_metrics = {
+			'number_of_SNPs' => '',
+			'number_of_indels' => '',
+			'tstv' => '',
+			'PF_READS_ALIGNED' => '',
+			'PF_ALIGNED_BASES' => '',
+			'MEAN_BAIT_COVERAGE' => '',
+			'ON_TARGET_BASES' => '',
+			'MEAN_TARGET_COVERAGE' => '',
+			'PCT_EXC_DUPE' => '',
+			'PCT_TARGET_BASES_20X' => '',
+			'PCT_TARGET_BASES_50X' => '',
+		};
+		my $sample_regexp = $sample."_S";
+		LABEL: foreach my $label (keys %{$pass_metrics}) {
+			foreach my $cell (@{$content->{$section}}) {
+				foreach my $key (keys %{$cell}) {
+					if ($pass_metrics->{$label} eq '') {
+						if ($key eq "$sample.hc" && ($label eq 'tstv' || $label eq 'number_of_SNPs' || $label eq 'number_of_indels')) {
+							if ($label eq 'tstv') {$pass_metrics->{$label} = sprintf('%.0f', $cell->{$key}->{$label})}
+							else {$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label})}
+							next LABEL;
+						}
+						elsif ($key eq $sample) {
+							$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label});
+							next LABEL;
+						}
+					}
+				}
+			}
+		}
+		return $pass_metrics;
+	}
+	elsif ($section eq 'report_saved_raw_data' && exists $content->{$section} && $call eq 'full') {
+		# "report_saved_raw_data": {
+		# 	"multiqc_picard_insertSize": {
+		# 		"SU3541_FR": {
+		# 			"MEDIAN_INSERT_SIZE": 136.0, <----- 9
+		# 			"STANDARD_DEVIATION": 62.479337, <----- 10
+		# 			...
+		# 		}
+		# 	}
+		# }
+		my $pass_metrics = {
+			'MEDIAN_INSERT_SIZE' => '',
+			'STANDARD_DEVIATION' => '',
+		};
+		my $sample_regexp = $sample."_S";
+		foreach my $label (keys %{$pass_metrics}) {
+			$pass_metrics->{$label} = sprintf('%.2f', $content->{'report_saved_raw_data'}->{'multiqc_picard_insertSize'}->{$sample.'_FR'}->{$label} );
+			# foreach my $cell (@{$content->{$section}}) {
+			# 	foreach my $key (keys %{$cell}) {
+			# 		if ($pass_metrics->{$label} eq '') {
+			# 			if ($key eq "$sample.hc" && ($label eq 'tstv' || $label eq 'number_of_SNPs' || $label eq 'number_of_indels') {
+			# 				if ($label eq 'tstv') {$pass_metrics->{$label} = sprintf('%.0f', $cell->{$key}->{$label})}
+			# 				else {$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label})}
+			# 				next LABEL;
+			# 			}
+			# 			elsif ($key eq $sample) {
+			# 				$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label});
+			# 				next LABEL;
+			# 			}
+			# 		}
+			# 	}
+			# }
+		}
+		return $pass_metrics;
+	}
+	return "no $section";	
 }
 
 
