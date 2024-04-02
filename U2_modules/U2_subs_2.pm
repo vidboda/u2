@@ -1446,7 +1446,8 @@ sub get_multiqc_value {
 							next LABEL;
 						}
 						elsif (($key eq $sample && $label ne 'after_filtering_q30_rate') || ($key =~ /^$sample_regexp\d+/ && $label eq 'after_filtering_q30_rate')) {
-							$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label});
+							if ($label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label} = sprintf('%.4f', $cell->{$key}->{$label})*100}
+							else {$pass_metrics->{$label} = sprintf('%.0f', $cell->{$key}->{$label})}
 							next LABEL;
 						}
 					}
@@ -1471,7 +1472,7 @@ sub get_multiqc_value {
         #         "PF_ALIGNED_BASES": 514413948.0, <------ 1
         #         "MEAN_BAIT_COVERAGE": 394.926463, <----- 6
         #         "ON_TARGET_BASES": 229097211.0, <----- 2 -> passer le critère on target reads à on target bases (x150)
-        #         "MEAN_TARGET_COVERAGE": 194.503582, <----- 6bis
+        #         "MEAN_TARGET_COVERAGE": 194.503582, <----- 6bis ALTER TABLE miseq_analysis ADD COLUMN mean_target_doc NUMERIC(5,1) DEFAULT NULL;
         #         "PCT_EXC_DUPE": 0.0561, <----- 3
         #         "PCT_TARGET_BASES_20X": 0.983386, <----- 7
         #         "PCT_TARGET_BASES_50X": 0.971945, <----- 8
@@ -1479,30 +1480,31 @@ sub get_multiqc_value {
         #     }
         # },
 		my $pass_metrics = {
-			'number_of_SNPs' => '',
-			'number_of_indels' => '',
-			'tstv' => '',
-			'PF_READS_ALIGNED' => '',
-			'PF_ALIGNED_BASES' => '',
-			'MEAN_BAIT_COVERAGE' => '',
-			'ON_TARGET_BASES' => '',
-			'MEAN_TARGET_COVERAGE' => '',
-			'PCT_EXC_DUPE' => '',
-			'PCT_TARGET_BASES_20X' => '',
-			'PCT_TARGET_BASES_50X' => '',
+			'number_of_SNPs' => ['snp_num', ''],
+			'number_of_indels' => ['indel_num', ''],
+			'tstv' => ['snp_tstv', ''],
+			'PF_READS_ALIGNED' => ['aligned_reads', ''],
+			'PF_ALIGNED_BASES' => ['aligned_bases', ''],
+			'MEAN_BAIT_COVERAGE' => ['mean_doc', ''],
+			'ON_TARGET_BASES' => ['ontarget_bases', ''],
+			'MEAN_TARGET_COVERAGE' => ['mean_target_doc', ''],
+			'PCT_EXC_DUPE' => ['duplicates', ''],
+			'PCT_TARGET_BASES_20X' => ['twentyx_doc', ''],
+			'PCT_TARGET_BASES_50X' => ['fiftyx_doc', ''],
 		};
 		my $sample_regexp = $sample."_S";
 		LABEL: foreach my $label (keys %{$pass_metrics}) {
 			foreach my $cell (@{$content->{$section}}) {
 				foreach my $key (keys %{$cell}) {
-					if ($pass_metrics->{$label} eq '') {
+					if ($pass_metrics->{$label}[1] eq '') {
 						if ($key eq "$sample.hc" && ($label eq 'tstv' || $label eq 'number_of_SNPs' || $label eq 'number_of_indels')) {
-							if ($label eq 'tstv') {$pass_metrics->{$label} = sprintf('%.0f', $cell->{$key}->{$label})}
-							else {$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label})}
+							if ($label eq 'tstv') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label})}
+							else {$pass_metrics->{$label}[1] = sprintf('%.0f', $cell->{$key}->{$label})}
 							next LABEL;
 						}
 						elsif ($key eq $sample) {
-							$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label});
+							if ($label eq 'PCT_EXC_DUPE' || $label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label}[1] = sprintf('%.4f', $cell->{$key}->{$label})}
+							else {$pass_metrics->{$label}[1] = sprintf('%.0f', $cell->{$key}->{$label})}
 							next LABEL;
 						}
 					}
@@ -1522,27 +1524,12 @@ sub get_multiqc_value {
 		# 	}
 		# }
 		my $pass_metrics = {
-			'MEDIAN_INSERT_SIZE' => '',
-			'STANDARD_DEVIATION' => '',
+			'MEDIAN_INSERT_SIZE' => ['insert_size_median', ''],
+			'STANDARD_DEVIATION' => ['insert_size_sd', ''],
 		};
 		my $sample_regexp = $sample."_S";
 		foreach my $label (keys %{$pass_metrics}) {
-			$pass_metrics->{$label} = sprintf('%.2f', $content->{'report_saved_raw_data'}->{'multiqc_picard_insertSize'}->{$sample.'_FR'}->{$label} );
-			# foreach my $cell (@{$content->{$section}}) {
-			# 	foreach my $key (keys %{$cell}) {
-			# 		if ($pass_metrics->{$label} eq '') {
-			# 			if ($key eq "$sample.hc" && ($label eq 'tstv' || $label eq 'number_of_SNPs' || $label eq 'number_of_indels') {
-			# 				if ($label eq 'tstv') {$pass_metrics->{$label} = sprintf('%.0f', $cell->{$key}->{$label})}
-			# 				else {$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label})}
-			# 				next LABEL;
-			# 			}
-			# 			elsif ($key eq $sample) {
-			# 				$pass_metrics->{$label} = sprintf('%.2f', $cell->{$key}->{$label});
-			# 				next LABEL;
-			# 			}
-			# 		}
-			# 	}
-			# }
+			$pass_metrics->{$label}[1] = sprintf('%.0f', $content->{'report_saved_raw_data'}->{'multiqc_picard_insertSize'}->{$sample.'_FR'}->{$label} );
 		}
 		return $pass_metrics;
 	}

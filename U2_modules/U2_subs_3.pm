@@ -798,9 +798,10 @@ sub direct_submission {
 
 sub direct_submission_prepare {
 	# https://docstore.mik.ua/orelly/linux/dbi/ch05_05.htm
-	my ($value, $number, $id, $analysis, $dbh) = @_;
-	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} #we remove what is deleted or duplicated
-	my $query = "SELECT a.nom, b.refseq, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g = '$value';";
+	my ($value, $genome_version, $number, $id, $analysis, $dbh) = @_;
+	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} # we remove what is deleted or duplicated
+	my $nom_g = $genome_version eq 'hg19' ? 'nom_g' : 'nom_g38';
+	my $query = "SELECT a.nom, b.refseq, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.$nom_g = '$value';";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {
 		my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$res->{'nom'}' AND refseq = '".$res->{'refseq'}."';";

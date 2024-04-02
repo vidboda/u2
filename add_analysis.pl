@@ -448,8 +448,9 @@ if ($user->isAnalyst() == 1) {
 				chomp($genome_version);
 				if ($genome_version eq '') {$genome_version = 'hg19'}
 
-				# for dev purpose
+				############ for dev purpose COMMENT WHEN READY
 				$genome_version = 'hg38';
+				############
 
 				if ($genome_version eq 'hg38') {
 					# redirect $alignment_dir to MobiDL
@@ -566,7 +567,7 @@ if ($user->isAnalyst() == 1) {
 							$ok = 1;
 							# determine whether the run is hg19 w/ DNA enrichment, hg19 fastq only or hg38 fastq only from the samplesheet
 							my $import_script = 'import_illumina_vv.pl';
-							if ($genome_version eq 'hg38') {$import_script = 'import_illumin_2024.pl'}
+							if ($genome_version eq 'hg38') {$import_script = 'import_illumina_hg38.pl'}
 							# search for other patients in the samplesheet
 							my $char = ',';
 							my $patient_list;
