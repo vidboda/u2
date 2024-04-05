@@ -411,7 +411,7 @@ if ($result) {
 #				$q->td($last_analysis), "\n",
 				$q->start_td();
 
-	#looks for other sample
+	# looks for other sample
 	my ($first_name, $last_name, $dob) = ($result->{'first_name'}, $result->{'last_name'}, $result->{'date_of_birth'});
 	# print $q->span("--$dob--");
 	$first_name =~ s/'/''/og;
@@ -429,7 +429,7 @@ if ($result) {
 			my ($ident, $number, $context) = ($sublist[0], $sublist[1], $sublist[2]);
 			$ident =~ s/['\(\)\s]//og;
 			$number =~ s/['\(\)\s]//og;
-                                                $context =~ s/['\(\)\s]//og;
+            $context =~ s/['\(\)\s]//og;
 			if ($ident ne $result->{'identifiant'} || $number != $result->{'numero'}) {
 				print $q->span('&nbsp;'), $q->a({'href' => "patient_file.pl?sample=$ident$number"}, $ident.$number), $q->span("&nbsp;-&nbsp;$context"), $q->br();
 			}
@@ -564,7 +564,7 @@ if ($result) {
 			if ($NENUFAAR_ANALYSIS =~ /$analysis/) {$nenufaar = 1}
 			if (grep(/$analysis/, @eligible) || $manifest ne 'no_manifest') {
 				my $run_id;
-        # print STDERR $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp."\n";
+        		# print STDERR $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp."\n";
 				if (-d $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp || $nenufaar == 1) {
 					#reinitialize in case of changed because of MiniSeq analysis
 					$SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
@@ -574,7 +574,7 @@ if ($result) {
 					my $width = '500';
 					my $raw_filter = '';
 					my $library = '';
-					if ($manifest eq 'no_manifest') {#454
+					if ($manifest eq 'no_manifest') { # 454
 						$width = '1250';
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).$q->a({'href' => $partial_path.'_AliInfo.txt', 'target' => '_blank'}, 'Get AliInfo file').$q->end_li().
@@ -590,7 +590,7 @@ if ($result) {
 					}
 					else {
 						#my $bam_file;
-						$analysis_count ++; #only for analysis which can be filtered
+						$analysis_count ++; # only for analysis which can be filtered
 						my $query_manifest = "SELECT * FROM miseq_analysis WHERE num_pat = '$num_tmp' AND id_pat = '$id_tmp' AND type_analyse = '$analysis';";
 						my $res_manifest = $dbh->selectrow_hashref($query_manifest);
 						$run_id = $res_manifest->{'run_id'};
@@ -606,7 +606,7 @@ if ($result) {
 								$q->end_li();
 						if ($user->isValidator != 1) {$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Filter: $res_manifest->{'filter'}")}
 						#if ($user->getName() ne 'david') {$raw_data .= $q->li("Filter: $res_manifest->{'filter'}")}
-						elsif ($user->isValidator == 1) {#we build a form to change filter for validators
+						elsif ($user->isValidator == 1) { # we build a form to change filter for validators
 							#not ajax
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small'}).$q->start_form({'action' => 'ajax.pl', 'method' => 'post', 'id' => "run_filter_form$analysis_count", 'enctype' => &CGI::URL_ENCODED});
 							chomp($raw_data);
