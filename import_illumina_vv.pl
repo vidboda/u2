@@ -616,9 +616,9 @@ if ($step && $step == 2) {
 				# print STDERR "Run VV1: $var_chr-$var_pos-$var_ref-$var_alt\n";
 				# in case VV returns weird results
 				my $fail = 0;
-				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
+				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "raw", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
 				if ($fail == 1) {
-					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
+					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "raw", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
 				}
 				# print STDERR "End Run VV1";
 				#run variantvalidator API
