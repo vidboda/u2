@@ -172,7 +172,7 @@ if ($step && $step == 2) {
 	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path='MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR}
 	my $alignment_dir;
 	my $additional_path = '';
-	my $genome_version = 'hg19'
+	my $genome_version = 'hg19';
 
 	if ($instrument eq 'miseq') {
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
@@ -269,7 +269,7 @@ if ($step && $step == 2) {
 		while (my $result = $sth->fetchrow_hashref()) {
 			$insert .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '$result->{'refseq'}', '$analysis', '$date', '".$user->getName()."','t');";
 		}
-    # print STDERR "$insert\n";
+    	# print STDERR "$insert\n";
 		#######UNCOMMENT WHEN DONE!!!!!!!
 		$dbh->do($insert);
 
@@ -616,9 +616,9 @@ if ($step && $step == 2) {
 				# print STDERR "Run VV1: $var_chr-$var_pos-$var_ref-$var_alt\n";
 				# in case VV returns weird results
 				my $fail = 0;
-				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
+				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "raw", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
 				if ($fail == 1) {
-					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
+					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "raw", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
 				}
 				# print STDERR "End Run VV1";
 				#run variantvalidator API
@@ -929,7 +929,7 @@ sub run_vv_results {
 				my $res_last = $dbh->selectrow_hashref($last_query);
 				if ($res_last->{'nom_g'}) {
 					# print STDERR $res_last->{'nom_g'}."\n";
-					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $genome_version, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "Direct submission4 $insert";
 					# if ($insert ne '') {return ('', $insert)}
 					if ($insert ne '') {

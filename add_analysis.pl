@@ -449,7 +449,7 @@ if ($user->isAnalyst() == 1) {
 				if ($genome_version eq '') {$genome_version = 'hg19'}
 
 				############ for dev purpose COMMENT WHEN READY
-				$genome_version = 'hg38';
+				# $genome_version = 'hg38';
 				############
 
 				if ($genome_version eq 'hg38') {

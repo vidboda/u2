@@ -430,9 +430,9 @@ if ($step && $step == 2) {
 				print STDERR "Run VV1: $var_chr-$var_pos-$var_ref-$var_alt\n";
 				# in case VV returns weird results
 				my $fail = 0;
-				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
+				my $vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "raw", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF')) or $fail = 1;
 				if ($fail == 1) {
-					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "all", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
+					$vv_results = decode_json(U2_modules::U2_subs_1::run_vv($VVGENOME, "raw", "$var_chr-$var_pos-$var_ref-$var_alt", 'VCF'))
 				}
 				print STDERR "End Run VV1";
 				# run variantvalidator API
@@ -745,7 +745,7 @@ sub run_vv_results {
 				my $res_last = $dbh->selectrow_hashref($last_query);
 				if ($res_last->{'nom_g'}) {
 					# print STDERR $res_last->{'nom_g'}."\n";
-					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $genome_version, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "Direct submission4 $insert";
 					# if ($insert ne '') {return ('', $insert)}
 					if ($insert ne '') {

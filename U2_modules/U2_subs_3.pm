@@ -777,11 +777,12 @@ sub build_hgvs_from_illumina {
 sub direct_submission {
 	#my ($toquery, $value, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
 
-	my ($value, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
+	my ($value, $genome_version, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
 	#print STDERR $value."\n";
-	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} #we remove what is deleted or duplicated
-	my $query = "SELECT nom, refseq FROM variant WHERE nom_g = '$value';";
-	# print STDERR "Query for direct submission (inside): $query\n";
+	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} # we remove what is deleted or duplicated
+	my $nom_g = $genome_version eq 'hg19' ? 'nom_g' : 'nom_g38';
+	my $query = "SELECT nom, refseq FROM variant WHERE $nom_g = '$value';";
+	print STDERR "Query for direct submission (inside): $query\n";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {
 		# print STDERR "Direct submission res (inside): $res->{'nom'}\n";
