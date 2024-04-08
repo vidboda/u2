@@ -782,7 +782,7 @@ sub direct_submission {
 	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} # we remove what is deleted or duplicated
 	my $nom_g = $genome_version eq 'hg19' ? 'nom_g' : 'nom_g38';
 	my $query = "SELECT nom, refseq FROM variant WHERE $nom_g = '$value';";
-	print STDERR "Query for direct submission (inside): $query\n";
+	# print STDERR "Query for direct submission (inside): $query\n";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {
 		# print STDERR "Direct submission res (inside): $res->{'nom'}\n";

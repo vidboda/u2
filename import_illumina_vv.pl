@@ -758,6 +758,7 @@ if ($step && $step == 2) {
 							#ERROR
 							# special table no to assess these variants each time
 							my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+							# print STDERR "$query_variants_no_insert\n";
 							my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
 							if (!$res_variants_no_insert) {
 								my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found', '$genome_version');";
