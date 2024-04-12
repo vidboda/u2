@@ -426,7 +426,7 @@ sub get_data_mean {
 	if ($run eq 'global' && $not_null eq $type) {$query = "SELECT AVG($type) AS a FROM $table;"}
 	elsif ($run eq 'global' && $not_null ne $type) {$query = "SELECT AVG($type) AS a FROM $table WHERE $not_null > 0;"}
 	else {$query = "SELECT AVG($type) AS a FROM $table WHERE run_id = '$run';"}
-	print STDERR "$query\n";
+	# print STDERR "$query\n";
 	my $res = $dbh->selectrow_hashref($query);
 	return sprintf('%.'.$num.'f', $res->{'a'});
 }
@@ -445,7 +445,7 @@ sub get_data {
 		if ($cluster eq 'cluster') {$query = "SELECT $type FROM illumina_run WHERE id = '$run';"}
 		else {$query = "SELECT $type AS a FROM miseq_analysis WHERE run_id = '$run' ORDER BY id_pat, num_pat;"}
 	}
-	print STDERR "$query\n";
+	# print STDERR "$query\n";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
