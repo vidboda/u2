@@ -457,7 +457,7 @@ if ($step && $step == 2) {
 					if ($nm_list eq '' && $tag eq '') {$message .= "$id$number: WARNING: No suitable NM found for $var_chr-$var_pos-$var_ref-$var_alt-\nVVjson: ".Dumper($vv_results)."- \nRequest URL:$VVURL/VariantValidator/variantvalidator/$VVGENOME/$var_chr-$var_pos-$var_ref-$var_alt/all?content-type=application/json\n";next VCF}
 					elsif ($nm_list eq '' && $tag ne '') {$message .= $tag;next VCF}
 					# query U2 to get NM
-					chop($nm_list);#remove last ,
+					chop($nm_list);# remove last ,
 					# print STDERR $nm_list."\n";
 					my ($acc_no, $acc_ver, $gene, $ng_accno, @possible);
 					my $query = "SELECT gene_symbol as gene, refseq as nm, acc_version, acc_g, main FROM gene WHERE refseq IN ($nm_list) ORDER BY main DESC;";

@@ -1156,14 +1156,14 @@ if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
 		}
 	";
 	#print $js;
-        my $content =   $q->script({'type' => 'text/javascript'}, $js).
-                        $q->start_div({'class' => 'w3-container w3-center w3-card', 'id' => $pg_row})."\n".$q->br().
-                                $q->big($metric_type).$q->br().$q->br().$q->span("$math_type: ").
-                                $q->span(U2_modules::U2_subs_3::get_data_mean($analysis, $pg_row, $floating_depth, $table, $dbh).$percent).$q->br().$q->br()."\n<canvas class=\"ambitious\" width = \"$width\" height = \"500\" id=\"graph\">Change web browser for a more recent please!</canvas>".
-				$q->p('X-axis legend: date_reagent_genes with date being yymmdd.').
-				$q->br().$q->br().
-				$q->p({'class' => 'w3-left-align'}, 'Get stats for a particular run:').
-				$q->start_ul({'class' => 'w3-left-align'}, )."\n";
+    my $content =   $q->script({'type' => 'text/javascript'}, $js).
+                    $q->start_div({'class' => 'w3-container w3-center w3-card', 'id' => $pg_row})."\n".$q->br().
+                            $q->big($metric_type).$q->br().$q->br().$q->span("$math_type: ").
+                            $q->span(U2_modules::U2_subs_3::get_data_mean($analysis, $pg_row, $floating_depth, $table, $dbh).$percent).$q->br().$q->br()."\n<canvas class=\"ambitious\" width = \"$width\" height = \"500\" id=\"graph\">Change web browser for a more recent please!</canvas>".
+			$q->p('X-axis legend: date_reagent_genes with date being yymmdd.').
+			$q->br().$q->br().
+			$q->p({'class' => 'w3-left-align'}, 'Get stats for a particular run:').
+			$q->start_ul({'class' => 'w3-left-align'}, )."\n";
 	foreach (@tags) {
 		my $run = $_;
 		$run =~ s/"//og;
@@ -1183,6 +1183,9 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 	my $analysis;
 	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 	else {$analysis = 'all'}
+	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
+	my $extension = '';
+	if ($genome eq 'hg38') {$extension = '_38'}
 	my $round = $q->param('round');
 	my $content;
 	if ($round == 1) {
@@ -1191,13 +1194,13 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 	}
 	my ($total_runs, $total_samples) = (U2_modules::U2_subs_3::get_total_runs($analysis, $dbh), U2_modules::U2_subs_3::get_total_samples($analysis, $dbh));
 	my $query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) AS f FROM miseq_analysis WHERE type_analyse = '$analysis';";
-	my $query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.refseq = b.refseq AND b.\"$analysis\" = 't' AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
+	my $query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g$extension, a.start_g$extension), a.end_g$extension, a.start_g$extension FROM segment a, gene b WHERE a.refseq = b.refseq AND b.\"$analysis\" = 't' AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g$extension - a.start_g$extension)+100) AS size FROM tmp a;";
 	if ($analysis eq 'all') {
 		$query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) AS f FROM miseq_analysis;";
-		$query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.refseq = b.refseq AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
+		$query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g$extension, a.start_g$extension), a.end_g$extension, a.start_g$extension FROM segment a, gene b WHERE a.refseq = b.refseq AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g$extension - a.start_g$extension)+100) AS size FROM tmp a;";
 	}
 	elsif ($analysis =~ /Min?i?Seq-[32]$/o) {
-		$query_size = "WITH tmp AS (SELECT MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment b WHERE a.refseq = b.refseq AND type LIKE '%UTR' AND a.\"$analysis\" = 't' GROUP BY a.refseq, a.chr ORDER BY a.chr, min ASC)\nSELECT SUM(max - min) AS size FROM tmp";
+		$query_size = "WITH tmp AS (SELECT MIN(LEAST(b.start_g$extension, b.end_g$extension)) as min, MAX(GREATEST(b.start_g$extension, b.end_g$extension)) as max FROM gene a, segment b WHERE a.refseq = b.refseq AND type LIKE '%UTR' AND a.\"$analysis\" = 't' GROUP BY a.refseq, a.chr ORDER BY a.chr, min ASC)\nSELECT SUM(max - min) AS size FROM tmp";
 	}
 	my $res = $dbh->selectrow_hashref($query);
 
@@ -1322,8 +1325,9 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	my $filter = U2_modules::U2_subs_1::check_filter($q);
 	my $user = U2_modules::U2_users_1->new();
-  my $experiment_tag = '';
-  if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
+	my $experiment_tag = '';
+	if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
+	if ($analysis =~ /-157$/o) {$experiment_tag = '_157'}
 	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
 		my $align_file = $q->param('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
@@ -1377,24 +1381,6 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	my ($sample_field, $family_field, $run_field, $teams_field, $bed_field) = (0, 0, 0, 0, 0);
 	my $seal_id = $id.$number.'_LRM';
 	my $bed_id = $U2_modules::U2_subs_1::SEAL_BED_IDS->{$bed};
-	# while(<F>) {
-	# 	if (/"sample"/o) {$sample_field = 1}
-	# 	elsif (/"family"/o) {$family_field = 1}
-	# 	elsif (/"run"/o) {$run_field = 1}
-	# 	if (/"name":/o && $sample_field == 1) {s/"name": "",/"name": "$seal_id",/; $sample_field = 0}
-	# 	elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
-	# 	elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
-	# 	elsif (/"affected":/o) {
-	# 	if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
-	# 	else {s/"affected": ,/"affected": false,/}
-	# 	}
-	# 	elsif (/"index":/o) {
-	# 	if ($proband eq 'yes') {s/"index":/"index": true/}
-	# 	else {s/"index":/"index": false/}
-	# 	}
-	# 	if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$vcf_path"/}
-	# 	$seal_ready .= $_;
-	# }
 	# new format 20221124
 	while(<F>) {
 		if (/"samplename"/o) {s/"samplename": "",/"samplename": "$seal_id",/}

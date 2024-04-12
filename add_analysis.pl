@@ -448,7 +448,7 @@ if ($user->isAnalyst() == 1) {
 				chomp($genome_version);
 				if ($genome_version eq '') {$genome_version = 'hg19'}
 
-				############ for dev purpose COMMENT WHEN READY
+				############ for dev purpose REMOVE WHEN READY
 				# $genome_version = 'hg38';
 				############
 

@@ -667,6 +667,14 @@ sub check_analysis {
 	}
 	else {&standard_error('12', $q)}
 }
+# in ajax.pl
+sub get_genome_from_analysis {
+	my ($analysis, $dbh) = @_;
+	my $res =  $dbh->selectrow_hashref("SELECT manifest_name FROM valid_type_analyse WHERE type_analyse = '$analysis';");
+	if ($res->{'manifest_name'} =~ /hg38/o) {return 'hg38'}
+	else {return ''}
+}
+
 #used in add_analysis.pl, ajax.pl
 sub check_filter {
 	my ($q) = shift;
