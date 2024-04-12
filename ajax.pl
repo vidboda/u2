@@ -1052,6 +1052,7 @@ if ($q->param('run_graphs') && $q->param('run_graphs') == 1) {
 	my $analysis;
 	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 	else {$analysis = 'all'}
+	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
 	my ($total_runs, $total_samples) = (U2_modules::U2_subs_3::get_total_runs($analysis, $dbh), U2_modules::U2_subs_3::get_total_samples($analysis, $dbh));
 
 	my $intro = $q->strong({'class' => 'w3-large'}, ucfirst($analysis)." runs graphs details: ($total_runs - $total_samples)");
@@ -1081,32 +1082,39 @@ if ($q->param('run_graphs') && $q->param('run_graphs') == 1) {
 			}
 		";
 		$content .= $q->script({'type' => 'text/javascript'}, $js);
-		my %metrics = (#label => cgi param, run type => {1,2} : 1: MSR or LRM; 2: nenufaar, cluster {y,n}, math, float
+		my %metrics = (#label => cgi param, run type => {1,2} : 1: MSR or LRM; 2: nenufaar; 3: MobiDL, cluster {y,n}, math, float
 			'On target %' => ['(cast(ontarget_reads as float)/cast(aligned_reads as float))*100', '1', 'n', 'AVG', '2'],
 			'On target reads' => ['ontarget_reads', '1', 'n', 'SUM', '0'],
 			'Duplicate reads %' => ['duplicates', '2', 'n', 'AVG', '2'],
 			'Mean DoC' => ['mean_doc', '2', 'n', 'AVG', '0'],
+			'Mean Target DoC' => ['mean_target_doc', '3', 'n', 'AVG', '0'],
 			'50X %' => ['fiftyx_doc', '2', 'n', 'AVG', '2'],
 			'SNVs' => ['snp_num', '2', 'n', 'AVG', '0'],
 			'SNVs Ts/Tv' => ['snp_tstv', '2', 'n', 'AVG', '2'],
-			'Indels' => ['indel_num', '1', 'n', 'AVG', '0'],
+			'Indels' => ['indel_num', '3', 'n', 'AVG', '0'],
 			'Insert size' => ['insert_size_median', '2', 'n', 'AVG', '0'],
-			'Insert size SD' => ['insert_size_sd', '1', 'n', 'AVG', '0'],
+			'Insert size SD' => ['insert_size_sd', '3', 'n', 'AVG', '0'],
 			'Raw Clusters' => ['noc_raw', '1', 'y', '', '0'],
 			'Usable Clusters %' => ['((noc_pf-(nodc+nouc_pf+nouic_pf))::FLOAT/noc_raw)*100', '1', 'y', '', '0'],
 			'Duplicate Clusters %' => ['(nodc::FLOAT/noc_raw)*100', '1', 'y', '', '0'],
 			'Unaligned Clusters %' => ['(nouc::FLOAT/noc_raw)*100', '1', 'y', '', '0'],
-			'Unindexed Clusters %' => ['(nouic::FLOAT/noc_raw)*100', '1', 'y', '', '0']
+			'Unindexed Clusters %' => ['(nouic::FLOAT/noc_raw)*100', '1', 'y', '', '0'],
+			'Density'  => ['cluster_density', '3', 'y', 'AVG', '0'],
+			'Cluster PF'  => ['cluster_pf', '3', 'y', 'AVG', '0'],
+			'%>=Q30'  => ['q30pc', '3', 'y', 'AVG', '2'],
+			'Reads'  => ['reads', '3', 'y', 'AVG', '0'],
+			'Reads PF'  => ['reads_pf', '3', 'y', 'AVG', '0']
 		);
 
 		my $metric_tag = 1;
 		if ($analysis =~ /$NENUFAAR_ANALYSIS/) {$metric_tag = 2}
-
+		elsif ($genome eq 'hg38') {$metric_tag = 3}
 		my @colors = ('sand', 'khaki', 'yellow', 'amber', 'orange', 'deep-orange', 'red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue', 'cyan', 'teal', 'green', 'lime');
 
 		foreach my $key (sort keys(%metrics)) {
 			#print "$key - $metrics{$m_label}[0]</br>";
-			if ($metric_tag == 2 && $metrics{$key}[1] == 1) {next}
+			if ($metric_tag == 2 && ($metrics{$key}[1] == 1 || $metrics{$key}[1] == 3)) {next}
+			elsif ($metric_tag == 3 && $metrics{$key}[1] == 1) {next}
 			else {
 				$content .= $q->span({'class' => 'w3-button w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-16 w3-margin w3-round', 'onclick' => 'show_ngs_graph(\''.$analysis.'\', \''.$key.'\', \''.$metrics{$key}[0].'\', \''.$metrics{$key}[2].'\', \''.$metrics{$key}[3].'\', \''.$metrics{$key}[4].'\');'}, $key), "\n"
 			}
