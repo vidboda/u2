@@ -251,35 +251,46 @@ print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(), $q->st
 my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 if ($chr ne 'M') {
 	my $igv_script = '
-	$(document).ready(function () {
+	function load_igv(genome, url, indexurl, label) {
+	/// $(document).ready(function () {
 		// var igv_div = $(\'#igv_div\');
-		var igv_div = document.getElementById(\'igv_div\');
-		options = {
-			showNavigation: true,
-			showRuler: true,
-			// genome: \'hg19\',
-			reference: {
-            	id: \'hg19\',
-            	name: \'Human (GRCh37/hg19)\',
-            	fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz\',
-				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.fai\',
-				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.gzi\'
-            },
-			locus: "'.$gene.'",
-			tracks: [			
-				{
-					name: \'Refseq Genes\',
-					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/refGene.txt.gz\',
-					order: 1000000,
-					indexed: false
-				}
-	    	]
-		};
-		igv.createBrowser(igv_div, options).then(function (browser) {
-      		console.log("Created IGV browser");
-      		igv.browser = browser;
-		});
-	});
+		// check if igv broser already exists and do nothing if so
+		// alert(typeof \'browser_\' + genome);
+		// if (typeof \'browser_\' + genome == "undefined") {
+			var igv_div = document.getElementById(\'igv_div_\' + genome);
+			options = {
+				showNavigation: true,
+				showRuler: true,
+				reference: {
+					id: genome,
+					name: \'Human (\' + genome + \')\',
+					fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
+					indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
+					compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
+				},
+				locus: "'.$gene.'",
+				tracks: [			
+					{
+						name: \'Refseq Genes\',
+						url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
+						order: 1000000,
+						indexed: false
+					},
+					{
+						url: url,
+						indexURL: indexurl,
+						label: label
+					}
+				]
+			};
+			igv.createBrowser(igv_div, options).then(function (browser) {
+				console.log("Created IGV browser");
+				return window[\'browser_\' + genome] = browser;
+				/// igv.browser = browser;
+			});
+		// }
+	}
+	// });
 	';
   # my $igv_script = '
 	# // function load_igv() {
@@ -302,7 +313,10 @@ if ($chr ne 'M') {
   #   });
 	# // }
 	# ';
-	print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;'},), $q->script({'type' => 'text/javascript'}, $igv_script);
+	## print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;'},), $q->script({'type' => 'text/javascript'}, $igv_script);
+	print $q->start_div({'id' => 'igv_div_hg19', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;display: none;'}), $q->end_div(),
+		$q->script({'type' => 'text/javascript'}, $igv_script),
+		$q->div({'id' => 'igv_div_hg38', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;display: none;'});
 }
 #tracks: [
 #		{

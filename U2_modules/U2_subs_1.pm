@@ -462,12 +462,22 @@ sub select_filter { #insert a list of filter types in a pop up menu
 #in add_analysis.pl
 sub select_analysis {
 	my ($q, $dbh, $form) = @_;
-	my @analysis_list;
-	my $sth = $dbh->prepare("SELECT type_analyse FROM valid_type_analyse WHERE form = 't';");
+	my (@analysis_list, %analysis_labels);
+	my $sth = $dbh->prepare("SELECT type_analyse, manifest_name FROM valid_type_analyse WHERE form = 't';");
 	my $res = $sth->execute();
-	while (my $result = $sth->fetchrow_hashref()) {push @analysis_list, $result->{'type_analyse'}}
+	while (my $result = $sth->fetchrow_hashref()) {
+		push @analysis_list, $result->{'type_analyse'};
+		if ($result->{'manifest_name'} ne 'no_manifest') {
+			my $genome_version = U2_modules::U2_subs_1::get_genome_from_analysis( $result->{'type_analyse'}, $dbh) eq 'hg38' ? 'hg38' : 'hg19' ;
+			$analysis_labels{$result->{'type_analyse'}} = "$result->{'type_analyse'} - $genome_version";
+		}
+		else {
+			$analysis_labels{$result->{'type_analyse'}} = "$result->{'type_analyse'}";
+		}
+	}
 	@analysis_list = sort(@analysis_list);
-	return $q->popup_menu(-name => 'analysis', -id => 'analysis', -form => $form, -values => \@analysis_list, -onchange => 'associate_gene();', -class => 'w3-select w3-border');
+	# print STDERR Dumper(%analysis_labels);
+	return $q->popup_menu(-name => 'analysis', -id => 'analysis', -form => $form, -values => \@analysis_list, -labels => \%analysis_labels, -onchange => 'associate_gene();', -class => 'w3-select w3-border');
 }
 
 sub valid {
@@ -667,7 +677,7 @@ sub check_analysis {
 	}
 	else {&standard_error('12', $q)}
 }
-# in ajax.pl
+# in ajax.pl, U2_subs2
 sub get_genome_from_analysis {
 	my ($analysis, $dbh) = @_;
 	my $res =  $dbh->selectrow_hashref("SELECT manifest_name FROM valid_type_analyse WHERE type_analyse = '$analysis';");

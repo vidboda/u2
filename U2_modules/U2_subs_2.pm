@@ -115,13 +115,13 @@ sub print_validation_table {
 		}
 		# print STDERR "$display\n";
 		if ($display == 1) {
-			my ($alignement_file_path, $file_type) = ('', '');
+			my ($alignement_file_path, $file_type, $genome) = ('', '', '');
 			($id, $number) = ($result->{'id_pat'}, $result->{'num_pat'});
 			#illumina
 			my ($addin, $index_ext) = ('', 'bai');
 			if ($result->{'manifest_name'} ne 'no_manifest' && $class ne 'global') {
 				#get bam path
-				($alignement_file_path, $file_type) = &get_alignement_path($result->{'identifiant'}, $result->{'numero'}, $result->{'type_analyse'}, $dbh);
+				($alignement_file_path, $file_type, $genome) = &get_alignment_path($result->{'identifiant'}, $result->{'numero'}, $result->{'type_analyse'}, $dbh);
 				if ($result->{'type_analyse'} =~ /Mi/o) {$addin = '.bam'}
 				#print $bam_path;
 			}
@@ -133,8 +133,16 @@ sub print_validation_table {
 			my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 			if ($result->{'manifest_name'} eq 'no_manifest') {print $q->td($result->{'type_analyse'}), "\n"}
 			elsif ($class ne 'global' && $chr ne 'M') {
+				# print $q->script({'type' => 'text/javascript'}, '
+				# 	async function load_track_igv(genome) {
+				# 		await load_igv(genome);
+				# 		console.log("Trying to load track");
+				# 		browser_'.$genome.'.loadTrack({url:\''.$alignement_file_path.'.'.$file_type.'\', indexURL:\''.$alignement_file_path.$addin.'.'.$index_ext.'\', label:\''.$id.$number.'-'.$result->{'type_analyse'}.'-'.$gene.'\'});
+				# 	};
+				# ');
+				print $q->start_td(), $q->span({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "\$('#igv_div_$genome').show();load_igv('$genome', '$alignement_file_path.$file_type', '$alignement_file_path$addin.$index_ext', '$id$number-$result->{'type_analyse'}-$gene');\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');\$('#$result->{'type_analyse'}').removeClass('w3-blue');\$('#$result->{'type_analyse'}').removeClass('w3-button');\$('#$result->{'type_analyse'}').addClass('w3-light-grey');", 'class' => 'w3-button w3-ripple w3-blue'}, $result->{'type_analyse'}), $q->end_td(), "\n";
 
-				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$alignement_file_path.$file_type', indexURL:'$alignement_file_path$addin.$index_ext', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
+				# print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$alignement_file_path.$file_type', indexURL:'$alignement_file_path$addin.$index_ext', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 			}
 			else {print $q->td($result->{'type_analyse'}), "\n"}
 
@@ -182,7 +190,7 @@ sub get_miniseq_id {
 	return 'unknown instrument';
 }
 
-sub get_alignement_path {
+sub get_alignment_path {
 	my ($id, $number, $analysis, $dbh) = @_;
 	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 	my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
@@ -192,15 +200,22 @@ sub get_alignement_path {
 	elsif ($analysis =~ /NextSeq-.+/o) {$instrument = 'nextseq';$instrument_path = $CLINICAL_EXOME_BASE_DIR}
 	my ($alignment_dir, $additional_path) = ('', '');
 	my $run = $res_manifest->{'run_id'};
-	if ($instrument eq 'miseq') {
+
+	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
+	if ($genome eq 'hg38') {
+		my $alignment_file = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/mobiDL/$id$number/panelCapture/$id$number.cram";
+		my $file_type = 'cram';
+		return ($alignment_file, $file_type, 'hg38');
+	}
+	elsif ($instrument eq 'miseq') {
 		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#print $alignment_dir;
 		$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = "/Data/Intensities/BaseCalls/$1";
 		#print $alignment_dir;
 	}
 	elsif($instrument eq 'miniseq') {
-		my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
-		if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
+		# my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
+		# if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/CompletedJobInfo.xml`;
 		$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 		$alignment_dir = $1;
@@ -238,7 +253,7 @@ sub get_alignement_path {
 		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.crumble.cram") {$file_type = 'crumble.cram'}
 		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
 	}
-	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$file", $file_type);
+	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$file", $file_type), 'hg19';
 }
 
 sub get_interval {
@@ -1346,8 +1361,8 @@ sub get_raw_data {
 	}
 	else {
 		$pass_metrics = get_multiqc_value("$dir/$sample/panelCapture/".$sample."_multiqc_data/multiqc_data.json", 'report_general_stats_data', $sample, 'reduced');
-		print STDERR "RUN: $dir - SAMPLE: $sample\n";
-		print STDERR Dumper($pass_metrics)."\n";
+		# print STDERR "RUN: $dir - SAMPLE: $sample\n";
+		# print STDERR Dumper($pass_metrics)."\n";
 		if (ref $pass_metrics eq ref {}) {
 			$x50 = $pass_metrics->{'PCT_TARGET_BASES_50X'};
 			$tstv = $pass_metrics->{'tstv'};
@@ -1404,11 +1419,11 @@ sub get_multiqc_value {
 			<$json_fh>
 		}
 		else {
-			print STDERR "$multiqc_file\n";
+			# print STDERR "$multiqc_file\n";
 			return 'no multiqc';
 		}
 	};
-	print STDERR "$multiqc_file\n";
+	# print STDERR "$multiqc_file\n";
 	my $content = decode_json($json_text);
 	if ($section eq 'interop_runsummary' && exists $content->{'report_saved_raw_data'}->{$section}) {
 		my $interop = {
@@ -1426,6 +1441,7 @@ sub get_multiqc_value {
 				$content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} =~ s/\s//og;
 				$interop->{$label} = $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label}
 			}
+			if ($interop->{$label} eq 'nan') {$interop->{$label} = 0}
 		}
 		return $interop;
 	}
@@ -1443,11 +1459,13 @@ sub get_multiqc_value {
 					if ($pass_metrics->{$label} eq '') {
 						if ($key eq "$sample.hc" && $label eq 'tstv') {
 							$pass_metrics->{$label} = $cell->{$key}->{$label};
+							if ($pass_metrics->{$label} eq 'nan') {$pass_metrics->{$label} = 0}
 							next LABEL;
 						}
 						elsif (($key eq $sample && $label ne 'after_filtering_q30_rate') || ($key =~ /^$sample_regexp\d+/ && $label eq 'after_filtering_q30_rate')) {
 							if ($label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label} = sprintf('%.4f', $cell->{$key}->{$label})*100}
 							else {$pass_metrics->{$label} = sprintf('%.0f', $cell->{$key}->{$label})}
+							if ($pass_metrics->{$label} eq 'nan') {$pass_metrics->{$label} = 0}
 							next LABEL;
 						}
 					}
@@ -1500,11 +1518,13 @@ sub get_multiqc_value {
 						if ($key eq "$sample.hc" && ($label eq 'tstv' || $label eq 'number_of_SNPs' || $label eq 'number_of_indels')) {
 							if ($label eq 'tstv') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label})}
 							else {$pass_metrics->{$label}[1] = sprintf('%.0f', $cell->{$key}->{$label})}
+							if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
 							next LABEL;
 						}
 						elsif ($key eq $sample) {
 							if ($label eq 'PCT_EXC_DUPE' || $label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label}[1] = sprintf('%.4f', $cell->{$key}->{$label})}
 							else {$pass_metrics->{$label}[1] = sprintf('%.0f', $cell->{$key}->{$label})}
+							if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
 							next LABEL;
 						}
 					}
@@ -1530,6 +1550,7 @@ sub get_multiqc_value {
 		my $sample_regexp = $sample."_S";
 		foreach my $label (keys %{$pass_metrics}) {
 			$pass_metrics->{$label}[1] = sprintf('%.0f', $content->{'report_saved_raw_data'}->{'multiqc_picard_insertSize'}->{$sample.'_FR'}->{$label} );
+			if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
 		}
 		return $pass_metrics;
 	}

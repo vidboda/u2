@@ -539,7 +539,7 @@ if ($user->isAnalyst() == 1) {
 
 							if (ref $interop_metrics eq ref {} && $interop_metrics->{'Density'} ne '') {
 								$insert = "INSERT INTO illumina_run (id, complete, cluster_density, cluster_pf, q30pc, reads, reads_pf) VALUES ('$run', 'f', $interop_metrics->{'Density'}, $interop_metrics->{'Cluster PF'}, $interop_metrics->{'%>=Q30'}, $interop_metrics->{'Reads'}, $interop_metrics->{'Reads PF'});";
-								print STDERR "$insert\n";
+								# print STDERR "$insert\n";
 							}
 							else {					
 								$insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
