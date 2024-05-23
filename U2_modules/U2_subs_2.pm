@@ -203,7 +203,7 @@ sub get_alignment_path {
 
 	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
 	if ($genome eq 'hg38') {
-		my $alignment_file = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/mobiDL/$id$number/panelCapture/$id$number.cram";
+		my $alignment_file = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
 		my $file_type = 'cram';
 		return ($alignment_file, $file_type, 'hg38');
 	}
@@ -413,10 +413,12 @@ sub genotype_line_optimised { #prints a line in the genotype table
 
 		if ($global ne 't' && ($type_analyse =~ /Mi/o || $type_analyse =~ /Next/o) && $var->{'nom_g'} !~ /chrM:.+/o) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
+			my ($chr_38, $pos1_38, $pos2_38) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g_38'}, 'evs');
 			my $igv_padding = 40;
 			#my $igv_search = "chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding);
 			print $q->start_td(),
-				"<input type='button' onclick=\"igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')\" title='Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table' value='$nom_seg' class='pointer w3-button w3-ripple w3-blue w3-padding-small w3-tiny'/>",
+				# "<input type='button' onclick=\"igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')\" title='Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table' value='$nom_seg' class='pointer w3-button w3-ripple w3-blue w3-padding-small w3-tiny'/>",
+				"<input type='button' onclick=\"if (typeof browser_hg19 != 'undefined') {browser_hg19.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')};if (typeof browser_hg38 != 'undefined') {browser_hg38.search('chr$chr_38:".($pos1_38-$igv_padding)."-".($pos2_38+$igv_padding)."')};\" title='Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table' value='$nom_seg' class='pointer w3-button w3-ripple w3-blue w3-padding-small w3-tiny'/>",
 			$q->end_td(), "\n";
 		}
 		else {print $q->td($nom_seg), "\n";}
@@ -1522,7 +1524,7 @@ sub get_multiqc_value {
 							next LABEL;
 						}
 						elsif ($key eq $sample) {
-							if ($label eq 'PCT_EXC_DUPE' || $label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label}[1] = sprintf('%.4f', $cell->{$key}->{$label})}
+							if ($label eq 'PCT_EXC_DUPE' || $label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label}*100)}
 							else {$pass_metrics->{$label}[1] = sprintf('%.0f', $cell->{$key}->{$label})}
 							if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
 							next LABEL;
