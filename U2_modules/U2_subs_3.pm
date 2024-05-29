@@ -516,6 +516,7 @@ sub create_variant_vv {
 	#my @full_nom_ng = split(/:/, $vv_results->{"$acc_no.$acc_ver:$cdna"}->{'hgvs_refseqgene_variant'});
 	#$nom_ng = pop(@full_nom_ng);
 	if ($vv_results->{$vvkey}->{'hgvs_refseqgene_variant'} ne '') {$nom_ng = (split(/:/, $vv_results->{$vvkey}->{'hgvs_refseqgene_variant'}))[1]};
+	if (!defined($nom_g)) {$nom_ng = 'NULL'}
 	#print $nom_ng."<br/>";
 
 	$nom_prot = (split(/:/, $vv_results->{$vvkey}->{'hgvs_predicted_protein_consequence'}->{'tlr'}))[1];
@@ -640,7 +641,14 @@ sub create_variant_vv {
 		if ($nom_ng =~ /d[eu][lp]/o) {$snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var like '$ng_accno:$nom_ng%';"}
 		my $res_snp = $dbh->selectrow_hashref($snp_query);
 		if ($res_snp) {$snp_id  = $res_snp->{rsid};$snp_common = $res_snp->{common};}
-		elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
+		# elsif (U2_modules::U2_subs_1::test_myvariant() == 1) {
+		# 	# myvariant runs hg19 (https://myvariant.info/v1/api#/variant/get_variant__id_)
+		# 	my $myvariant = U2_modules::U2_subs_1::run_myvariant($nom_g, 'dbsnp.rsid', $user->getEmail());
+		# 	if ($myvariant && exists $myvariant->{'dbsnp'}->{'rsid'} && $myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}
+		# }
+	}
+	if ($snp_id eq 'NULL' && $nom_ng eq 'NULL') {
+		if (U2_modules::U2_subs_1::test_myvariant() == 1) {
 			# myvariant runs hg19 (https://myvariant.info/v1/api#/variant/get_variant__id_)
 			my $myvariant = U2_modules::U2_subs_1::run_myvariant($nom_g, 'dbsnp.rsid', $user->getEmail());
 			if ($myvariant && exists $myvariant->{'dbsnp'}->{'rsid'} && $myvariant->{'dbsnp'}->{'rsid'} ne '') {$snp_id = $myvariant->{'dbsnp'}->{'rsid'}}

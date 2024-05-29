@@ -125,14 +125,19 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 ##end of Basic init
 
+my $genome_version = U2_modules::U2_subs_1::get_genome_from_analysis( $q->param('type'), $dbh);
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
+if ($genome_version eq 'hg38') {
+	($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38')
+}
 
 #we get a sample as param
 my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 
 my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
 my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id, $ali_path, $index_ext, $file_type, $file_ext);
+
 if ($q->param('type') && $q->param('type') eq 'ce') {
 	#1st get poor coverage file
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
@@ -240,7 +245,7 @@ while (<F>) {
 			}
 			if ($interest == 0) {next}
 		}
-		my $query = "SELECT b.gene_symbol, b.refseq, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.refseq = b.refseq AND b.chr = '$u2_chr' AND b.main = 't' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
+		my $query = "SELECT b.gene_symbol, b.refseq, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.refseq = b.refseq AND b.chr = '$u2_chr' AND b.main = 't' AND (($line[1] BETWEEN SYMMETRIC a.$postgre_start_g AND a.$postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC a.$postgre_start_g AND a.$postgre_end_g));";
 		my $sth = $dbh->prepare($query);
 		my $res = $sth->execute();
 		my ($gene, $nm, @type, @nom);
@@ -255,7 +260,7 @@ while (<F>) {
 			}
 		}
 		else {
-			$query = "SELECT b.gene_symbol, b.refseq, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.refseq = b.refseq AND b.refseq = '$u2_chr' AND b.main = 'f' AND (($line[1] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
+			$query = "SELECT b.gene_symbol, b.refseq, a.type, a.numero, a.nom FROM segment a, gene b WHERE a.refseq = b.refseq AND b.refseq = '$u2_chr' AND b.main = 'f' AND (($line[1] BETWEEN SYMMETRIC a.$postgre_start_g AND a.$postgre_end_g) OR ($line[2] BETWEEN SYMMETRIC $postgre_start_g AND $postgre_end_g));";
 			$sth = $dbh->prepare($query);
 			$res = $sth->execute();
 			while (my $result = $sth->fetchrow_hashref()) {
@@ -288,6 +293,8 @@ while (<F>) {
 close F;
 print $q->end_tbody(), $q->end_table(), $q->end_div(), $q->br(), $q->br();
 
+my $cytoband_file = $genome_version eq 'hg38' ? 'cytoBandIdeo.txt.gz' : 'cytoBand.txt';
+
 my $igv_script = '
 $(document).ready(function () {
 	// var div = $("#igv_div")
@@ -295,14 +302,14 @@ $(document).ready(function () {
 	options = {
 	    showNavigation: true,
 	    showRuler: true,
-	    // genome: "hg19",
+	    // genome: "'.$genome_version.'",
 		reference: {
-            	id: \'hg19\',
-            	name: \'Human (GRCh37/hg19)\',
-            	fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz\',
-				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.fai\',
-				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.gzi\',
-				cytobandURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/cytoBand.txt\'
+            	id: \''.$genome_version.'\',
+            	name: \'Human ('.$genome_version.')\',
+            	fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz\',
+				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz.fai\',
+				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz.gzi\',
+				cytobandURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/'.$cytoband_file.'\'
             },
 	    tracks: [
 			{
@@ -315,7 +322,7 @@ $(document).ready(function () {
 			},
 			{
                 name: \'Refseq Genes\',
-                url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/refGene.txt.gz\',
+                url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/refGene.txt.gz\',
                 order: 1000000,
                 indexed: false
             }
