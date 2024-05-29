@@ -1107,6 +1107,7 @@ if ($result) {
 					my $gene_tag = '158';
 					if ($ngs == 5) {$gene_tag = '152'}
           			elsif ($ngs == 7) {$gene_tag = '149'}
+					elsif ($ngs == 8) {$gene_tag = '157'}
 					elsif ($ngs == 4) {$gene_tag = 'whole genes'}
 					elsif ($ngs == 1) {$gene_tag = '<= 132'}
 					print $q->span("*Gene panel $gene_tag raw data must fulfill the following criteria to pass:"), "\n",

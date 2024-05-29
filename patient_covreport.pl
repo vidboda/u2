@@ -135,7 +135,7 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 	elsif ($filter eq 'RP-USH') {$filter_subquery = "((rp = '$rp' AND dfn = '$dfn') OR usher = '$usher') AND"}
 	elsif ($filter eq 'CHM') {$filter_subquery = "gene_symbol = 'CHM' AND "}
 
-	my $query = "SELECT gene_symbol, refseq, diag FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND gene_symbol <> 'CEVA' ORDER BY gene_symbol;";
+	my $query = "SELECT gene_symbol, refseq, diag FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND gene_symbol <> 'CEVA' AND ns_gene = 't' ORDER BY gene_symbol;";
 	# print STDERR $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -196,7 +196,6 @@ elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) 
 		print F "$_\n";
 	}
 	close F;
-
 	print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter\n";
 	`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter`;
 
