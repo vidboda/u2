@@ -296,7 +296,7 @@ if ($step && $step == 2) {
 					$label_count ++;
 				}
 				$var_dp = $format_list[$dp_index];
-				if ($vf_index ne '') {$var_vf = $vf_index}
+				if ($vf_index ne '') {$var_vf = $format_list[$vf_index]}
 				# ($var_dp, $var_vf) = ($format_list[$dp_index], $format_list[$vf_index]);
 				if (!$var_vf) {
 					# HC only, need to compute vaf 
@@ -307,8 +307,8 @@ if ($step && $step == 2) {
 
 				# if ($var_chr eq 'chr4' && $var_pos > 15997568) {exit 0}
 
-				#we check wether the variant is in our genes or not
-				#we just query ushvam2
+				# we check wether the variant is in our genes or not
+				# we just query ushvam2
 				if  ($var_chr =~ /^chr($U2_modules::U2_subs_1::CHR_REGEXP)$/o) {$var_chr = $1}
 				if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				# check if variant not reported in special table no to assess these variants each time
