@@ -150,7 +150,7 @@ my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 
 if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o){
 	my $run_id = $1;
-	my $current_tab = 'ontarget_percent_';
+	my $current_tab = 'mean_doc_';
 	if ($q->param('current') && $q->param('current') =~ /(\w+)/o) {$current_tab = $1}
 	#current tab for clusters
 	if ($current_tab =~ /clusters/o) {$current_tab = 'clusters_'}
@@ -203,11 +203,11 @@ if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o){
 	print $q->span('('.($#tags+1).$label_txt), $q->end_big(), $q->end_p(), "\n",
 		$q->start_div(), "\n",
 			$q->start_div(), "\n", #tabs for graphs: spans are tab, divs under are tab-content, a js function shows/hides elements, adapted from http://www.supportduweb.com/scripts_tutoriaux-code-source-48-systeme-d-039-onglets-en-javascript-x-html-et-css-dans-la-meme-page.html
+				$q->span({'class' => 'tab tab_other', 'id' => 'mean_doc_tab', 'onclick' => 'change_tab(\'mean_doc_\');'}, 'Mean DOC'), "\n",
+				$q->span({'class' => 'tab tab_other', 'id' => 'fiftyx_doc_tab', 'onclick' => 'change_tab(\'fiftyx_doc_\');'}, '50X %'), "\n",
 				$q->span({'class' => 'tab tab_other', 'id' => 'ontarget_percent_tab', 'onclick' => 'change_tab(\'ontarget_percent_\');'}, 'On target %'), "\n",
 				$q->span({'class' => 'tab tab_other', 'id' => 'ontarget_reads_tab', 'onclick' => 'change_tab(\'ontarget_reads_\');'}, 'On target reads'), "\n",
 				$q->span({'class' => 'tab tab_other', 'id' => 'duplicate_reads_tab', 'onclick' => 'change_tab(\'duplicate_reads_\');'}, 'Duplicate reads'), "\n",
-				$q->span({'class' => 'tab tab_other', 'id' => 'mean_doc_tab', 'onclick' => 'change_tab(\'mean_doc_\');'}, 'Mean DOC'), "\n",
-				$q->span({'class' => 'tab tab_other', 'id' => 'fiftyx_doc_tab', 'onclick' => 'change_tab(\'fiftyx_doc_\');'}, '50X %'), "\n",
 				$q->span({'class' => 'tab tab_other', 'id' => 'snv_number_tab', 'onclick' => 'change_tab(\'snv_number_\');'}, 'SNVs'), "\n",
 				$q->span({'class' => 'tab tab_other', 'id' => 'snv_tstv_tab', 'onclick' => 'change_tab(\'snv_tstv_\');'}, 'SNVs Ts/Tv'), "\n",
 				$q->span({'class' => 'tab tab_other', 'id' => 'indel_number_tab', 'onclick' => 'change_tab(\'indel_number_\');'}, 'Indels'), "\n",
@@ -372,8 +372,8 @@ if ($q->param('run') && $q->param('run') =~ /([\w-]+)/o){
 		chop $files;
 		$files .= ']';
 		print $q->start_li(), $q->a({'href' => "stats_ngs.pl?run=global&current=$current_tab", 'title' => 'Get stats for all runs'}, 'global analysis'), $q->end_li(), "\n",
-			$q->start_li(), $q->a({'href' => "search_controls.pl?iv=1&step=3&run=$run_id&analysis=$analysis_type", 'title' => 'Get private SNPs for each sample'}, 'Sample tracking'), $q->end_li(), "\n",
-			$q->start_li(), $q->a({'href' => '#', 'onclick' => "download_files($files);"},'Download all coverage files of the run'), $q->end_li(), "\n";
+			$q->start_li(), $q->a({'href' => "search_controls.pl?iv=1&step=3&run=$run_id&analysis=$analysis_type", 'title' => 'Get private SNPs for each sample'}, 'Sample tracking'), $q->end_li(), "\n";
+			# $q->start_li(), $q->a({'href' => '#', 'onclick' => "download_files($files);"},'Download all coverage files of the run'), $q->end_li(), "\n";
 			#$q->start_li(), $q->a({'href' => "https://194.167.35.158/ushvam2/data/ngs/MiSeq-121/R582/R582.coverage.tsv.download"}, 'test2'), $q->end_li(), "\n";
 	}
 	print $q->end_ul(), "\n";	

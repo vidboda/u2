@@ -212,7 +212,7 @@ else {U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh)}
 ##end of init
 
 #hg38 transition variable for postgresql 'start_g' segment field
-my ($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');  #hg19 style
+my ($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');  #hg38 style
 my $genome = 'hg38';
 
 my $ncbi_url = 'http://www.ncbi.nlm.nih.gov/nuccore/';
@@ -379,6 +379,20 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 						compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
 					},
 					tracks: [			
+						{
+						    name: "MiniSeq-157 capture regions",
+						    type: "annotation",
+						    format: "bed",
+						    sourceType: "file",
+						    url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/panelCapture/conf/intervals/NS_157_hg38.bed\',
+							indexed: false
+						},
+						{
+							name: "MANE transcripts",
+							url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/MANE.GRCh38.v1.0.refseq.bb\',
+							indexed: false,
+							label: "MANE transcripts",
+						},
 						{
 							name: \'Refseq Genes\',
 							url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',

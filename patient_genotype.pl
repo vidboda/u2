@@ -257,37 +257,55 @@ if ($chr ne 'M') {
 		// check if igv broser already exists and do nothing if so
 		// alert(typeof \'browser_\' + genome);
 		// if (typeof \'browser_\' + genome == "undefined") {
-			var igv_div = document.getElementById(\'igv_div_\' + genome);
-			options = {
-				showNavigation: true,
-				showRuler: true,
-				reference: {
-					id: genome,
-					name: \'Human (\' + genome + \')\',
-					fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
-					indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
-					compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
+		var igv_div = document.getElementById(\'igv_div_\' + genome);
+		options = {
+			showNavigation: true,
+			showRuler: true,
+			reference: {
+				id: genome,
+				name: \'Human (\' + genome + \')\',
+				fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
+				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
+				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
+			},
+			locus: "'.$gene.'",
+			tracks: [			
+				{
+					name: \'Refseq Genes\',
+					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
+					order: 1000000,
+					indexed: false
 				},
-				locus: "'.$gene.'",
-				tracks: [			
-					{
-						name: \'Refseq Genes\',
-						url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
-						order: 1000000,
-						indexed: false
-					},
-					{
-						url: url,
-						indexURL: indexurl,
-						label: label
-					}
-				]
-			};
-			igv.createBrowser(igv_div, options).then(function (browser) {
-				console.log("Created IGV browser");
-				return window[\'browser_\' + genome] = browser;
-				/// igv.browser = browser;
-			});
+				{
+					url: url,
+					indexURL: indexurl,
+					label: label
+				}
+			]
+		};
+		if (genome === "hg38") {
+			options.tracks.push(
+				{
+				    name: "MiniSeq-157 capture regions",
+				    type: "annotation",
+				    format: "bed",
+				    sourceType: "file",
+				    url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/panelCapture/conf/intervals/NS_157_hg38.bed\',
+					indexed: false
+				},
+				{
+					name: "MANE transcripts",
+					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/MANE.GRCh38.v1.0.refseq.bb\',
+					indexed: false,
+					label: "MANE transcripts",
+				},
+			);
+		}
+		igv.createBrowser(igv_div, options).then(function (browser) {
+			console.log("Created IGV browser");
+			return window[\'browser_\' + genome] = browser;
+			/// igv.browser = browser;
+		});
 		// }
 	}
 	// });
