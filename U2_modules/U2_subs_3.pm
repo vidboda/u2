@@ -98,7 +98,8 @@ sub direct_submission {
 	#print STDERR $value."\n";
 	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} # we remove what is deleted or duplicated
 	my $nom_g = $genome_version eq 'hg19' ? 'nom_g' : 'nom_g_38';
-	my $query = "SELECT nom, refseq FROM variant WHERE $nom_g = '$value';";
+	my $query = "SELECT a.nom, b.refseq FROM variant a, gene b WHERE a.refseq = b.refseq AND a.$nom_g = '$value' AND b.\"$analysis\" = 't';";
+	# my $query = "SELECT nom, refseq FROM variant WHERE $nom_g = '$value';";
 	# print STDERR "Query for direct submission (inside): $query\n";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {
@@ -127,7 +128,7 @@ sub direct_submission_prepare {
 	my ($value, $genome_version, $number, $id, $analysis, $dbh) = @_;
 	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} # we remove what is deleted or duplicated
 	my $nom_g = $genome_version eq 'hg19' ? 'nom_g' : 'nom_g_38';
-	my $query = "SELECT a.nom, b.refseq, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.$nom_g = '$value';";
+	my $query = "SELECT a.nom, b.refseq, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.$nom_g = '$value' AND b.\"$analysis\" = 't';";
 	# print STDERR "Query for direct submission (inside): $query-l806\n";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {

@@ -55,7 +55,7 @@ my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_
 $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 
 #hg38 transition variable for postgresql 'start_g' segment field
-my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
+my ($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');  #hg38 style
 
 sub get_patient_name {
 	my ($id, $number, $dbh) = @_;

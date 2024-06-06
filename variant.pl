@@ -72,7 +72,7 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
-my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
+# my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
 my $HOME_IP = $config->HOME_IP();
 # my $MD_API_KEY = $config->MD_API_KEY();
 my $MD_BASE_URL = $config->MD_BASE_URL();
@@ -499,7 +499,7 @@ if ($res->{'protein'} ne '') {
 }
 
 #mutalyzer position converter for hg38
-my $mutalyzer_hg38_pos_conv = $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;").$q->a({'href' => "https://mutalyzer.nl/position-converter?assembly_name_or_alias=GRCh38&description=$res->{'nom_g_38'}", 'target' => '_blank'}, 'Mutalyzer hg38');
+# my $mutalyzer_hg38_pos_conv = $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;").$q->a({'href' => "https://mutalyzer.nl/position-converter?assembly_name_or_alias=GRCh38&description=$res->{'nom_g_38'}", 'target' => '_blank'}, 'Mutalyzer hg38');
 
 if ($res->{'acc_g'} ne 'NG_000000.0') {
 	print $q->start_Tr(),
@@ -518,7 +518,8 @@ print $q->start_Tr(),
 		$q->end_Tr(), "\n",
 		$q->start_Tr(),
 			$q->td('hg38 Genomic HGVS:'), "\n",
-			$q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $mutalyzer_hg38_pos_conv, $q->end_td(),
+			# $q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $mutalyzer_hg38_pos_conv, $q->end_td(),
+			$q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $q->end_td(),
 			$q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'),
 		$q->end_Tr(), "\n";
 
@@ -538,11 +539,11 @@ my $js = "
 		});
 	};";
 
-print $q->start_Tr(),
-		$q->td('Alternatives:'), "\n",
-		$q->start_td({'id' => 'mutalyzer_place'}), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'all_nomenclature', 'value' => 'Other nomenclatures', 'onclick' => 'getAllNom();$(\'#mutalyzer_place\').html("Please wait while mutalyzer is checking...");', 'class' => 'w3-button w3-blue'}), $q->end_td(),
-		$q->td('Click to retrieve alternative notations for the variant'),
-	$q->end_Tr(), "\n";
+# print $q->start_Tr(),
+# 		$q->td('Alternatives:'), "\n",
+# 		$q->start_td({'id' => 'mutalyzer_place'}), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'all_nomenclature', 'value' => 'Other nomenclatures', 'onclick' => 'getAllNom();$(\'#mutalyzer_place\').html("Please wait while mutalyzer is checking...");', 'class' => 'w3-button w3-blue'}), $q->end_td(),
+# 		$q->td('Click to retrieve alternative notations for the variant'),
+# 	$q->end_Tr(), "\n";
 
 if ($user->isPublic != 1) {
 	$js = "

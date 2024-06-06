@@ -62,6 +62,7 @@ $HOME_IP =~ /(https*:\/\/[\w\.-]+)\/.+/o;
 $HOME_IP = $1;
 my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
 #my $REF_GENE_URI = $config->REF_GENE_URI();
+my $CURRENT_BED = $config->CURRENT_BED();
 
 #my @styles = ($CSS_DEFAULT, $CSS_PATH.'igv.css');
 
@@ -290,7 +291,7 @@ if ($chr ne 'M') {
 				    type: "annotation",
 				    format: "bed",
 				    sourceType: "file",
-				    url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/panelCapture/conf/intervals/NS_157_hg38.bed\',
+				    url: \''.$HTDOCS_PATH.$CURRENT_BED.'\',
 					indexed: false
 				},
 				{

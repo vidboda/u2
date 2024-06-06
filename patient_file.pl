@@ -713,16 +713,16 @@ if ($result) {
 									#$bam_file = "/Data/Intensities/BaseCalls/$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
 									$alignment_file = "$alignment_dir/$id_tmp$num_tmp$alignment_file_suffix";
 									$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp$alignment_file_suffix";
-									print STDERR "$alignment_file\n";
-									print STDERR "$alignment_ftp\n";
+									# print STDERR "$alignment_file\n";
+									# print STDERR "$alignment_ftp\n";
 								}
 								elsif ($file_name =~ /$id_tmp$num_tmp\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
 									$alignment_ext = $1;
 									$alignment_ext =~ s/^\.//o;
 									$alignment_file = "$alignment_dir/$id_tmp$num_tmp";
 									$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp";
-									print STDERR "$alignment_file\n";
-									print STDERR "$alignment_ftp\n";
+									# print STDERR "$alignment_file\n";
+									# print STDERR "$alignment_ftp\n";
 								}
 							}
 						}
@@ -739,7 +739,7 @@ if ($result) {
 						$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Aligned bases: $res_manifest->{'aligned_bases'}").
 								$q->li({'class' => 'w3-padding-small'}, "Ontarget bases: $res_manifest->{'ontarget_bases'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_bases'}/$res_manifest->{'aligned_bases'})*100))."%)").
 								$q->li({'class' => 'w3-padding-small'}, "Aligned reads: $res_manifest->{'aligned_reads'}");
-						print STDERR "$genome_version\n";
+						# print STDERR "$genome_version\n";
 						if ($nenufaar == 0 && $genome_version eq 'hg19') {
 								$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Ontarget reads: $res_manifest->{'ontarget_reads'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_reads'}/$res_manifest->{'aligned_reads'})*100))."%) ")
 						}

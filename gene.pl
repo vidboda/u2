@@ -57,7 +57,9 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $DATABASES_PATH = $config->DATABASES_PATH();
-my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
+my $CURRENT_BED = $config->CURRENT_BED();
+# my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
+
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'form.css', $CSS_PATH.'jquery.alerts.css');
 
@@ -384,7 +386,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 						    type: "annotation",
 						    format: "bed",
 						    sourceType: "file",
-						    url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/panelCapture/conf/intervals/NS_157_hg38.bed\',
+						    url: \''.$HTDOCS_PATH.$CURRENT_BED.'\',
 							indexed: false
 						},
 						{

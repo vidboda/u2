@@ -380,7 +380,7 @@ if ($step && $step == 2) {
 						}
 						else {
 							#variant in unwanted region
-							$message .= "$id$number: ERROR: Impossible to record variant (unwanted region) $var_chr-$var_pos-$var_ref-$var_alt-$nom_gene_i-$insert\n";
+							$message .= "$id$number: ERROR: Impossible to record variant (unwanted region) $var_chr-$var_pos-$var_ref-$var_alt-$nom_gene_i\n";
 						}
 					}
 					else {
@@ -448,6 +448,7 @@ if ($step && $step == 2) {
 					if ($tmp_message ne '') {$message .= $tmp_message;next VCF}
 					elsif ($insert ne '') {
 						# print STDERR $k." - ".$insert."\n";
+						# print STDERR "$insert - l451\n";
 						######## UNCOMMENT WHEN READY
 						$dbh->do($insert);
 						########
@@ -703,6 +704,11 @@ sub run_vv_results {
 			##$hashvar is BAD if vv returns several times the same transcript with different acc no => bug
 			## Faire un deuxième niveau de clé avec acc_no
 			########
+			# $nm must be from a gene where the analysis is included for the gene to avoid HARS1/HARS2 issue
+			my $query_nm_is_suitable = "SELECT \"$analysis\" as analysis FROM gene WHERE refseq = '$nm';";
+			my $res_nm_is_suitable = $dbh->selectrow_hashref($query_nm_is_suitable);
+			if ($res_nm_is_suitable->{'analysis'} ne '0E0' && $res_nm_is_suitable->{'analysis'} == 1) {$nm_list .= " '$nm',";}
+			else {next;}
 			$nm_list .= " '$nm',";
 			# get genomic hgvs and check direct submission again
 			my $tmp_nom_g = '';
