@@ -462,7 +462,7 @@ if ($step && $step == 2) {
 					chop($nm_list);# remove last ,
 					# print STDERR $nm_list."\n";
 					my ($acc_no, $acc_ver, $gene, $ng_accno, @possible);
-					my $query = "SELECT gene_symbol as gene, refseq as nm, acc_version, acc_g, main FROM gene WHERE refseq IN ($nm_list) ORDER BY main DESC;";
+					my $query = "SELECT gene_symbol as gene, refseq as nm, acc_version, acc_g, main FROM gene WHERE \"$analysis\" = 't' AND refseq IN ($nm_list) ORDER BY main DESC;";
 					my $sth = $dbh->prepare($query);
 					my $res = $sth->execute();
 					while (my $result = $sth->fetchrow_hashref()) {
@@ -697,7 +697,7 @@ sub run_vv_results {
 		}
 		my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
 		if ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] !~ /=/o) {
-			# print STDERR "----NM: $nm - l702\n";
+			# print STDERR "----NM: $nm - l700\n";
 			#$hashvar->{$nm} = [(split(/:/, $var))[1], $acc_ver, ''];#NM => [c., acc_ver, main]
 			$hashvar->{$nm}->{$acc_ver} = [(split(/:/, $var))[1], ''];#NM => acc_ver => [c., main]
 			########
@@ -705,11 +705,13 @@ sub run_vv_results {
 			## Faire un deuxième niveau de clé avec acc_no
 			########
 			# $nm must be from a gene where the analysis is included for the gene to avoid HARS1/HARS2 issue
-			my $query_nm_is_suitable = "SELECT \"$analysis\" as analysis FROM gene WHERE refseq = '$nm';";
-			my $res_nm_is_suitable = $dbh->selectrow_hashref($query_nm_is_suitable);
-			if ($res_nm_is_suitable->{'analysis'} ne '0E0' && $res_nm_is_suitable->{'analysis'} == 1) {$nm_list .= " '$nm',";}
-			else {next;}
+			# my $query_nm_is_suitable = "SELECT \"$analysis\" as analysis FROM gene WHERE refseq = '$nm';";
+			# my $res_nm_is_suitable = $dbh->selectrow_hashref($query_nm_is_suitable);
+			# print STDERR $res_nm_is_suitable->{'analysis'}." - l710\n";
+			# if ($res_nm_is_suitable->{'analysis'} ne '0E0' && $res_nm_is_suitable->{'analysis'} == 1) {$nm_list .= " '$nm',";}
+			# else {next;}
 			$nm_list .= " '$nm',";
+			# print STDERR "$nm_list - l714\n";
 			# get genomic hgvs and check direct submission again
 			my $tmp_nom_g = '';
 			my @full_nom_g_38 = split(/:/, $vv_results_to_treat->{$var}->{'primary_assembly_loci'}->{'hg38'}->{'hgvs_genomic_description'});
@@ -720,14 +722,14 @@ sub run_vv_results {
 				$tmp_nom_g = "chr$chr:".pop(@full_nom_g_38);
 			}
 			if ($tmp_nom_g ne '') {
-				# print STDERR "$tmp_nom_g-l719\n";
+				# print STDERR "$tmp_nom_g-l725\n";
 				my $insert = U2_modules::U2_subs_3::direct_submission($tmp_nom_g, $genome_version, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 				# print STDERR "$insert-l721\n";
 				if ($insert ne '') {
 					my $query_verif = "SELECT refseq, \"$analysis\" as analysis FROM gene WHERE refseq = '$nm';";
 					# print STDERR "$query_verif\n";
 					my $res_verif = $dbh->selectrow_hashref($query_verif);
-					# print STDERR "Gene verif 4: $res_verif->{'refseq'}-$nm\n";
+					# print STDERR "Gene verif 4: $res_verif->{'refseq'}-$res_verif->{'analysis'}-$nm\n";
 					if ($res_verif->{'refseq'} eq $nm && $insert eq 'WARNING: variant already recorded') {
 						# print STDERR $insert."-l728\n";
 						return "$id$number: $insert for $var_chr-$var_pos-$var_ref-$var_alt\n";
@@ -770,6 +772,15 @@ sub run_vv_results {
 						}
 					}
 				}
+			}
+			# if we're here the variant cannot be inserted directly with this NM
+			# BUT if the NM == main we want out now only with this nm
+			my $query_main = "SELECT refseq FROM gene WHERE main = 't' AND gene_symbol IN (SELECT gene_symbol FROM gene WHERE refseq = '$nm');";
+			my $res_main = $dbh->selectrow_hashref($query_main);
+			if ($res_main && $res_main->{'refseq'} eq $nm) {
+				print STDERR "Main NM, returning l781\n";
+				$nm_list = " '$nm',";
+				return ('', '', $hashvar, $nm_list, $tag)
 			}
 		}
 		elsif ($nm =~ /^N[RM]_\d+$/o && (split(/:/, $var))[1] =~ /=/o) {
