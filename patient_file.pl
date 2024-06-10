@@ -1066,7 +1066,7 @@ if ($result) {
 							}
 							# TEMP WARNING
 							if ($genome_version eq 'hg38') {
-								print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp; CONTAMINATION THRESHOLDS FOR MiniSeq-157 NOT YET ESTABLISHED');
+								print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp; CONTAMINATION THRESHOLDS FOR MiniSeq-157 MAY EVOLVE');
 							}
 							if ($watchdog_homo == 1 && $watchdog_mab == 0) {
 								print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') NOT REACHED');

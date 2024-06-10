@@ -86,7 +86,7 @@ our $TITV_CE = 2.8;
 our $NB_HOMOZYGOUS_VARS_149 = 300;
 our $MEAN_AB_149 = 0.58;
 # Values to estimate contamination - NS157
-our $NB_HOMOZYGOUS_VARS_157 = 300;
+our $NB_HOMOZYGOUS_VARS_157 = 400;
 our $MEAN_AB_157 = 0.58;
 
 #threshold values for POMPS
@@ -1322,12 +1322,23 @@ sub run_litvar {
 
 # Other
 
-sub get_date { #returns a date in a specific format
+sub get_date { # returns a date in a specific format
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 	my $month = ($mon+1);
 	if ($month < 10) {$month = "0$month"}
 	if ($mday < 10) {$mday = "0$mday"}
 	return (1900+$year)."-$month-".$mday;
+}
+
+sub get_log_date {
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	my $month = ($mon+1);
+	if ($month < 10) {$month = "0$month"}
+	if ($mday < 10) {$mday = "0$mday"}
+	if ($hour < 10) {$hour = "0$mday"}
+	if ($min < 10) {$min = "0$mday"}
+	if ($sec < 10) {$min = "0$sec"}
+	return "[".(1900+$year)."/$month/$mday:$hour:$min-$sec]";
 }
 
 sub get_run_date {#get date from illumina run_id (pg format)

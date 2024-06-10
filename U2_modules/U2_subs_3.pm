@@ -129,7 +129,7 @@ sub direct_submission_prepare {
 	if ($value =~ /(.+d[eu][lp])[ATCG]+$/) {$value = $1} # we remove what is deleted or duplicated
 	my $nom_g = $genome_version eq 'hg19' ? 'nom_g' : 'nom_g_38';
 	my $query = "SELECT a.nom, b.refseq, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.$nom_g = '$value' AND b.\"$analysis\" = 't';";
-	# print STDERR "Query for direct submission (inside): $query-l806\n";
+	# print STDERR "Query for direct submission (inside): $query-l132\n";
 	my $res = $dbh->selectrow_hashref($query);
 	if ($res) {
 		my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$res->{'nom'}' AND refseq = '".$res->{'refseq'}."';";
@@ -489,7 +489,7 @@ sub create_variant_vv {
 		#print $nom_g_38."<br/>";
 	}
 	else {#SLOW
-		# print STDERR "Liftovering variant $nom_g\n";
+		print STDERR "Liftovering variant $nom_g\n";
 		my $chr_tmp = "chr$chr";
 		if ($nom_g_38 =~ /g\.(\d+)_(\d+)([^\d]+)$/o) {
 			my ($s38, $e38, $rest) = ($1, $2, $3);
@@ -637,6 +637,7 @@ sub create_variant_vv {
 	if ($taille > 50) {$nom_prot = 'p.?'}
 	#print $q->td({'colspan' => '7'}, "$nom_prot-$type_prot-$gene-$true_version-");exit;
 	#snp
+	if (!defined($nom_ng)) {$nom_ng = 'NULL'}
 	if ($nom_ng ne 'NULL') {
 		my $snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var = '$ng_accno:$nom_ng';";
 		if ($nom_ng =~ /d[eu][lp]/o) {$snp_query = "SELECT rsid, common FROM restricted_snp WHERE ng_var like '$ng_accno:$nom_ng%';"}
@@ -787,7 +788,7 @@ sub create_variant_vv {
 	my $insert = "INSERT INTO variant(nom, refseq, nom_g, nom_ng, nom_ivs, nom_prot, type_adn, type_arn, type_prot, classe, type_segment, num_segment, num_segment_end, taille, snp_id, snp_common, commentaire, seq_wt, seq_mt, type_segment_end, creation_date, referee, nom_g_38, defgen_export) VALUES ('$cdna', '$acc_no', '$nom_g', '$nom_ng', '$nom_ivs', '$nom_prot', '$type_adn', '$type_arn', '$type_prot', '$classe', '$type_segment', '$num_segment', '$num_segment_end', '$taille', '$snp_id', '$snp_common', 'NULL', '$seq_wt', '$seq_mt', '$type_segment_end', '$date', '".$user->getName()."', '$nom_g_38', '$defgen_export');";
 	$insert =~ s/'NULL'/NULL/og;
 	#die $insert;
-	print STDERR "$insert\n";
+	# print STDERR "$insert\n";
 	$error .= "NEWVAR: $insert\n";
 	#print $q->td({'colspan' => '7'}, $insert);exit;
 	$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";

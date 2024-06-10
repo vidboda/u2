@@ -160,11 +160,8 @@ if ($step && $step == 2) {
 
 	#connect to NAS
 	my $ssh;
-	# opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR); #first attempt to wake up autofs in case of unmounted
-	# my $access_method = 'autofs';
   	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR);# or $access_method = 'ssh';
 	my $genome_version = 'hg38';
-	# if ($access_method eq 'ssh') {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q)}
 
 	### TO BE CHANGED 4 MINISEQ
 	###< AnalysisFolder>D:\Illumina\MiniSeq Sequencing Temp\160620_MN00265_0001_A000H02LJN\Alignment_8\20160621_155804</AnalysisFolder>
@@ -192,7 +189,7 @@ if ($step && $step == 2) {
 
 		my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
 		my $insert;
-		print STDERR "\nInitiating $id$number\n";
+		print STDERR "\n".U2_modules::U2_subs_1::get_log_date()." [INFO] Initiating $id$number\n";
 		# loop on genes
 		$query = "SELECT refseq FROM gene WHERE \"$analysis\" = 't' ORDER BY gene_symbol;";
 		my $sth = $dbh->prepare($query);
@@ -261,6 +258,7 @@ if ($step && $step == 2) {
 
 		$dbh->do($insert);
 		#print "$insert\n";
+		print STDERR U2_modules::U2_subs_1::get_log_date()." [INFO] Metrics and database analyses tables done, initiating VCF import\n";
 
 		# VCF
 		$insert = '';
@@ -274,6 +272,8 @@ if ($step && $step == 2) {
 			if ($_ !~ /#/o) {
 				chomp;
 				$k++;
+				print STDERR '.';
+				if ($k%500 == 0) {print STDERR "\n".U2_modules::U2_subs_1::get_log_date()." [INFO] $k VCF lines treated\n";}
 				my @list = split(/\t/);
 				my $message_tmp;
 
@@ -297,7 +297,6 @@ if ($step && $step == 2) {
 				}
 				$var_dp = $format_list[$dp_index];
 				if ($vf_index ne '') {$var_vf = $format_list[$vf_index]}
-				# ($var_dp, $var_vf) = ($format_list[$dp_index], $format_list[$vf_index]);
 				if (!$var_vf) {
 					# HC only, need to compute vaf 
 					my @ad_values = split(/,/, $format_list[$ad_index]);
@@ -312,10 +311,10 @@ if ($step && $step == 2) {
 				if  ($var_chr =~ /^chr($U2_modules::U2_subs_1::CHR_REGEXP)$/o) {$var_chr = $1}
 				if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				# check if variant not reported in special table no to assess these variants each time
-				my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+				my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt' AND type_analyse = '$analysis';";
 				my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
 				if ($res_variants_no_insert) {
-					$message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
+					$message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt l316\n";next VCF;
 				}
 
 				my $interest = 0;
@@ -379,7 +378,7 @@ if ($step && $step == 2) {
 							next VCF;
 						}
 						else {
-							#variant in unwanted region
+							# variant in unwanted region
 							$message .= "$id$number: ERROR: Impossible to record variant (unwanted region) $var_chr-$var_pos-$var_ref-$var_alt-$nom_gene_i\n";
 						}
 					}
@@ -412,13 +411,13 @@ if ($step && $step == 2) {
 								next VCF;
 							}
 							else {
-								#variant in unwanted region
-								$message .= "$id$number: ERROR: Impossible to record variant (unwanted region) $var_chr-$var_pos-$var_ref-$var_alt-$nom_gene_i-$insert\n";
+								# variant in unwanted region (should not ahppen)
+								$message .= "$id$number: ERROR: Impossible to record variant (TRACKED unwanted region l414 should not be happening) $var_chr-$var_pos-$var_ref-$var_alt-$nom_gene_i-$insert\n";
 							}
 						}
 						else {
-							#variant in unwanted region
-							$message .= "$id$number: ERROR: Impossible to record variant (BAD REGEXP) $var_chr-$var_pos-$var_ref-$var_alt-$insert\n";
+							# variant in unwanted region
+							$message .= "$id$number: ERROR: Impossible to record variant (TRACKED empty gene returned l419) $var_chr-$var_pos-$var_ref-$var_alt-$insert\n";
 						}
 					}
 				}
@@ -577,13 +576,13 @@ if ($step && $step == 2) {
 						else {
 							# ERROR
 							# special table no to assess these variants each time
-							# my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
-							# my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
-							# if (!$res_variants_no_insert) {
-							# 	my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found', '$genome_version');";
-							# 	$dbh->do($insert_variants_no_insert);
-							# }
-							$message .= "$id$number: ERROR: Impossible to run VariantValidator (no suitable NM found) for variant $var_chr-$var_pos-$var_ref-$var_alt-$candidate\n";
+							my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt' AND type_analyse = '$analysis';";
+							my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
+							if (!$res_variants_no_insert) {
+								my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found', '$genome_version', '$analysis');";
+								$dbh->do($insert_variants_no_insert);
+							}
+							$message .= "$id$number: ERROR: Impossible to run VariantValidator (TRACKED l584 no suitable NM found) for variant $var_chr-$var_pos-$var_ref-$var_alt-$candidate\n";
 						}
 					}
 
@@ -626,6 +625,7 @@ if ($step && $step == 2) {
 			}
 		}
 		close F;
+		print STDERR U2_modules::U2_subs_1::get_log_date()." [INFO] VCF treated\n";
 		$general .= "Insertion for $id$number:\n\n- $j/$k variants (".(sprintf('%.2f', ($j/$k)*100))."%) have been automatically inserted,\nincluding $i new variants that have been successfully created\n\n";
 		my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
 		$dbh->do($valid);
@@ -687,10 +687,10 @@ sub run_vv_results {
 		#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
 		if ($var eq 'flag' && $vv_results_to_treat->{$var} eq 'intergenic') {
 			# special table no to assess these variants each time
-			my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+			my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt' AND type_analyse = '$analysis';";
 			my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
 			if (!$res_variants_no_insert) {
-				my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant', 'hg38');";
+				my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant', '$genome_version', '$analysis');";
 				$dbh->do($insert_variants_no_insert);
 			}
 			return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
@@ -740,7 +740,7 @@ sub run_vv_results {
 					}
 					elsif ($res_verif->{'refseq'} eq $nm && $res_verif->{'analysis'} != 1) {
 						# print STDERR "$id$number: ERROR a: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
-						return  "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+						return  "$id$number: ERROR: Impossible to record variant (unwanted region in $analysis in run_vv_results()) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 					}
 				}
 			}
@@ -768,7 +768,7 @@ sub run_vv_results {
 						}
 						elsif ($res_verif->{'refseq'} eq $nm && $res_verif->{'analysis'} != 1) {
 							# print STDERR "$id$number: ERROR b: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
-							return  "$id$number: ERROR: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+							return  "$id$number: ERROR: Impossible to record variant (unwanted region in $analysis in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 						}
 					}
 				}
@@ -778,7 +778,7 @@ sub run_vv_results {
 			my $query_main = "SELECT refseq FROM gene WHERE main = 't' AND gene_symbol IN (SELECT gene_symbol FROM gene WHERE refseq = '$nm');";
 			my $res_main = $dbh->selectrow_hashref($query_main);
 			if ($res_main && $res_main->{'refseq'} eq $nm) {
-				print STDERR "Main NM, returning l781\n";
+				# print STDERR "Main NM, returning l781\n";
 				$nm_list = " '$nm',";
 				return ('', '', $hashvar, $nm_list, $tag)
 			}
