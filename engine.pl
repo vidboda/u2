@@ -95,7 +95,7 @@ sub main {
 
 	$keyword->{'c\.'} = 'DNA-a.nom';
 	$keyword->{'g\.'} = 'DNA-a.nom_ng';
-	$keyword->{'[Cc][Hh][Rr]'} = 'DNA-a.nom_g';
+	$keyword->{'[Cc][Hh][Rr]'} = 'DNA-a.nom_g_38';
 	$keyword->{'[Ii][Vv][Ss]'} = 'DNA-a.nom_ivs';
 	$keyword->{'p\.'} = 'a.nom_prot';
 	$keyword->{'[rR][sS]number'} = 'DNA-a.snp_id';
@@ -171,17 +171,17 @@ sub main {
 			$recherche =~ s/[Ii][Vv][Ss]/IVS/;
 			$recherche =~ s/[rR][sS]/rs/;
 			if ($recherche =~ /(.+[delup]{3})/o) {$recherche = $1}
-			if ($motif eq 'DNA-a.nom_ivs' && $recherche =~ /X/o) {$recherche =~ s/\+/\\\+/o;$recherche =~ s/X/\\d+/o;$query = "SELECT  a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_ivs ~ '".$recherche."[^\\d]+.+' ORDER BY b.gene_symbol, a.nom_g;";$motif = '';}
+			if ($motif eq 'DNA-a.nom_ivs' && $recherche =~ /X/o) {$recherche =~ s/\+/\\\+/o;$recherche =~ s/X/\\d+/o;$query = "SELECT  a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_ivs ~ '".$recherche."[^\\d]+.+' ORDER BY b.gene_symbol, a.nom_g_38;";$motif = '';}
 		}
 		if ($motif =~ /DNA-(.+)/o) {
-			if ($1 eq 'nom_g') {$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g LIKE '$recherche%' OR a.nom_g_38 LIKE '$recherche%' ORDER BY b.gene_symbol, a.nom_g;";}
-			else {$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND $1 LIKE '$recherche%' ORDER BY b.gene_symbol, a.nom_g;"};
+			if ($1 eq 'a.nom_g_38') {$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND (a.nom_g LIKE '$recherche%' OR a.nom_g_38 LIKE '$recherche%') ORDER BY b.gene_symbol, a.nom_g_38;";}
+			else {$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND $1 LIKE '$recherche%' ORDER BY b.gene_symbol, a.nom_g_38;"};
 		}
 		elsif ($motif eq 'DNA') {
-			$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND (a.nom LIKE '%$recherche%' OR a.nom_g LIKE '%$recherche%' OR a.nom_g_38 LIKE '%$recherche%' OR a.nom_ng LIKE '%$recherche%' OR a.nom_ivs LIKE '%$recherche%') ORDER BY b.gene_symbol, a.nom_g;";
+			$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND (a.nom LIKE '%$recherche%' OR a.nom_g LIKE '%$recherche%' OR a.nom_g_38 LIKE '%$recherche%' OR a.nom_ng LIKE '%$recherche%' OR a.nom_ivs LIKE '%$recherche%') ORDER BY b.gene_symbol, a.nom_g_38;";
 		}
 		elsif ($motif eq 'RNA') {
-			$query = "SELECT a.*, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.type_arn = 'altered' AND a.taille < '100' ORDER BY b.gene_symbol, a.nom_g;"; # we keep false variants identified by 454 AND classe NOT IN ('pathogenic', 'VUCS class IV', 'VUCS class III');";
+			$query = "SELECT a.*, b.gene_symbol FROM variant a, gene b WHERE a.refseq = b.refseq AND a.type_arn = 'altered' AND a.taille < '100' ORDER BY b.gene_symbol, a.nom_g_38;"; # we keep false variants identified by 454 AND classe NOT IN ('pathogenic', 'VUCS class IV', 'VUCS class III');";
 		}
 		elsif ($motif eq 'a.nom_prot') {
 			if ($recherche !~ /\(.+\)/o) {
@@ -194,7 +194,7 @@ sub main {
 				#elsif ($3 eq '*') {$recherche = "p.(".U2_modules::U2_subs_1::one2three(uc($1)).$2.U2_modules::U2_subs_1::one2three(uc($3)))"}
 				else {$recherche = "p.(".U2_modules::U2_subs_1::one2three(uc($1)).$2.U2_modules::U2_subs_1::one2three(uc($3)).")"}
 			}
-			$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND $motif LIKE '$recherche%' ORDER BY b.gene_symbol, a.nom_g;";
+			$query = "SELECT a.nom, b.gene_symbol, b.refseq, a.nom_prot FROM variant a, gene b WHERE a.refseq = b.refseq AND $motif LIKE '$recherche%' ORDER BY b.gene_symbol, a.nom_g_38;";
 		}
 		elsif ($motif eq 'patient_name') {
 			$recherche =~ s/'/''/og;
@@ -261,6 +261,7 @@ sub print_results {
 	my ($query, $motif, $call, $recherche, $q, $dbh, $url, $style, $user, $original) = @_;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
+	# print STDERR "$query\n";
 	if ($res ne '0E0') {
 		if ($res == 1 && $call == 1) {#only one result => redirect
 			my $result = $dbh->selectrow_hashref($query);

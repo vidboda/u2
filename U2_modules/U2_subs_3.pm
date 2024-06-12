@@ -160,7 +160,9 @@ sub build_roi {
 	my ($dbh, $start, $end) = @_;
 	##we built a hash with 'start, stop' => chr for each gene
 	# SELECT a.chr, MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment b WHERE a.nom[1] = b.nom_gene[1] AND a.ns_gene = 't' AND (b.type LIKE '%UTR' OR b.type = 'intergenic') GROUP BY a.nom[1], a.chr ORDER BY a.chr, min ASC;";
-	my $query = "SELECT a.chr, MIN(LEAST(b.$start, b.$end)) as min, MAX(GREATEST(b.$start, b.$end)) as max FROM gene a, segment b WHERE a.refseq = b.refseq AND a.ns_gene = 't' AND (b.type LIKE '%UTR' OR b.type = 'intergenic') GROUP BY a.gene_symbol, a.chr ORDER BY a.chr, min ASC;";
+	# my $query = "SELECT a.chr, MIN(LEAST(b.$start, b.$end)) as min, MAX(GREATEST(b.$start, b.$end)) as max FROM gene a, segment b WHERE a.refseq = b.refseq AND a.ns_gene = 't' AND (b.type LIKE '%UTR' OR b.type = 'intergenic') GROUP BY a.gene_symbol, a.chr ORDER BY a.chr, min ASC;";
+	# exclude outside gene regions
+	my $query = "SELECT a.chr, MIN(LEAST(b.$start, b.$end)) as min, MAX(GREATEST(b.$start, b.$end)) as max FROM gene a, segment b WHERE a.refseq = b.refseq AND a.ns_gene = 't' AND (b.type NOT LIKE '%UTR' OR b.type = 'intergenic') GROUP BY a.gene_symbol, a.chr ORDER BY a.chr, min ASC;";
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 

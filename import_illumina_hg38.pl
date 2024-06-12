@@ -314,7 +314,7 @@ if ($step && $step == 2) {
 				my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt' AND type_analyse = '$analysis';";
 				my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
 				if ($res_variants_no_insert) {
-					$message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt l316\n";next VCF;
+					$message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt from variants_no_insert\n";next VCF;
 				}
 
 				my $interest = 0;
@@ -328,7 +328,9 @@ if ($step && $step == 2) {
 				if ($interest == 0) {
 					if ($analysis =~ /Min?i?Seq-\d+/o) {
 						# print STDERR "Out of U2 ROI for $var_chr-$var_pos-$var_ref-$var_alt\n";
-						$message .= "$id$number: ERROR: Out of U2 ROI for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
+						my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'out_of_u2_roi', '$genome_version', '$analysis');";
+						$dbh->do($insert_variants_no_insert);
+						$message .= "$id$number: WARNING: Out of U2 ROI for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
 					}
 					else {
 						next VCF; # variant in unknown region
@@ -582,7 +584,8 @@ if ($step && $step == 2) {
 								my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found', '$genome_version', '$analysis');";
 								$dbh->do($insert_variants_no_insert);
 							}
-							$message .= "$id$number: ERROR: Impossible to run VariantValidator (TRACKED l584 no suitable NM found) for variant $var_chr-$var_pos-$var_ref-$var_alt-$candidate\n";
+							$message .= "$id$number: WARNING: no suitable NM found for variant $var_chr-$var_pos-$var_ref-$var_alt-$candidate - added to variants_no_insert\n";
+							next VCF;
 						}
 					}
 
@@ -625,7 +628,7 @@ if ($step && $step == 2) {
 			}
 		}
 		close F;
-		print STDERR U2_modules::U2_subs_1::get_log_date()." [INFO] VCF treated\n";
+		print STDERR "\n".U2_modules::U2_subs_1::get_log_date()." [INFO] VCF treated\n";
 		$general .= "Insertion for $id$number:\n\n- $j/$k variants (".(sprintf('%.2f', ($j/$k)*100))."%) have been automatically inserted,\nincluding $i new variants that have been successfully created\n\n";
 		my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
 		$dbh->do($valid);
@@ -705,12 +708,12 @@ sub run_vv_results {
 			## Faire un deuxième niveau de clé avec acc_no
 			########
 			# $nm must be from a gene where the analysis is included for the gene to avoid HARS1/HARS2 issue
-			# my $query_nm_is_suitable = "SELECT \"$analysis\" as analysis FROM gene WHERE refseq = '$nm';";
-			# my $res_nm_is_suitable = $dbh->selectrow_hashref($query_nm_is_suitable);
+			my $query_nm_is_suitable = "SELECT \"$analysis\" as analysis FROM gene WHERE refseq = '$nm';";
+			my $res_nm_is_suitable = $dbh->selectrow_hashref($query_nm_is_suitable);
 			# print STDERR $res_nm_is_suitable->{'analysis'}." - l710\n";
-			# if ($res_nm_is_suitable->{'analysis'} ne '0E0' && $res_nm_is_suitable->{'analysis'} == 1) {$nm_list .= " '$nm',";}
-			# else {next;}
-			$nm_list .= " '$nm',";
+			if ($res_nm_is_suitable->{'analysis'} ne '0E0' && $res_nm_is_suitable->{'analysis'} == 1) {$nm_list .= " '$nm',";}
+			else {next;}
+			# $nm_list .= " '$nm',";
 			# print STDERR "$nm_list - l714\n";
 			# get genomic hgvs and check direct submission again
 			my $tmp_nom_g = '';
@@ -768,7 +771,7 @@ sub run_vv_results {
 						}
 						elsif ($res_verif->{'refseq'} eq $nm && $res_verif->{'analysis'} != 1) {
 							# print STDERR "$id$number: ERROR b: Impossible to record variant (unwanted region in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
-							return  "$id$number: ERROR: Impossible to record variant (unwanted region in $analysis in run_vv_results) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
+							return  "$id$number: ERROR: Impossible to record variant (unwanted region in $analysis in run_vv_results() for del/ins) $var_chr-$var_pos-$var_ref-$var_alt-$nm-$tmp_nom_g\n";
 						}
 					}
 				}

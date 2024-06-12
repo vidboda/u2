@@ -1335,10 +1335,10 @@ sub get_log_date {
 	my $month = ($mon+1);
 	if ($month < 10) {$month = "0$month"}
 	if ($mday < 10) {$mday = "0$mday"}
-	if ($hour < 10) {$hour = "0$mday"}
-	if ($min < 10) {$min = "0$mday"}
-	if ($sec < 10) {$min = "0$sec"}
-	return "[".(1900+$year)."/$month/$mday:$hour:$min-$sec]";
+	if ($hour < 10) {$hour = "0$hour"}
+	if ($min < 10) {$min = "0$min"}
+	if ($sec < 10) {$sec = "0$sec"}
+	return "[".(1900+$year)."/$month/$mday $hour:$min:$sec]";
 }
 
 sub get_run_date {#get date from illumina run_id (pg format)
