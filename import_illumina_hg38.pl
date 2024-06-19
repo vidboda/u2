@@ -307,7 +307,7 @@ if ($step && $step == 2) {
 				# if ($var_chr eq 'chr4' && $var_pos > 15997568) {exit 0}
 
 				# filter out var_vf > 0.15
-				if ($var_vf > 0.15) {$message .= "$id$number: WARNING $var_chr-$var_pos-$var_ref-$var_alt filtered out with VAF: $var_vf\n";next VCF;}
+				if ($var_vf < 0.15) {$message .= "$id$number: WARNING $var_chr-$var_pos-$var_ref-$var_alt filtered out with VAF: $var_vf\n";next VCF;}
 
 				# we check wether the variant is in our genes or not
 				# we just query ushvam2
