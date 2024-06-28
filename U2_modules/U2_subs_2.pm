@@ -12,8 +12,10 @@ use URI::Encode qw(uri_encode uri_decode);
 use Net::SSLGlue::SMTP;
 use Authen::SASL;
 #use Net::SMTP;
+use JSON;
 use strict;
 use warnings;
+use Data::Dumper;
 
 
 #   This program is part of ushvam2, USHer VAriant Manager version 2
@@ -49,9 +51,11 @@ my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 my $HOME_IP = $config->HOME_IP();
 my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
+my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 
 #hg38 transition variable for postgresql 'start_g' segment field
-my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
+my ($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');  #hg38 style
 
 sub get_patient_name {
 	my ($id, $number, $dbh) = @_;
@@ -111,13 +115,13 @@ sub print_validation_table {
 		}
 		# print STDERR "$display\n";
 		if ($display == 1) {
-			my ($alignement_file_path, $file_type) = ('', '');
+			my ($alignement_file_path, $file_type, $genome) = ('', '', '');
 			($id, $number) = ($result->{'id_pat'}, $result->{'num_pat'});
 			#illumina
 			my ($addin, $index_ext) = ('', 'bai');
 			if ($result->{'manifest_name'} ne 'no_manifest' && $class ne 'global') {
 				#get bam path
-				($alignement_file_path, $file_type) = &get_alignement_path($result->{'identifiant'}, $result->{'numero'}, $result->{'type_analyse'}, $dbh);
+				($alignement_file_path, $file_type, $genome) = &get_alignment_path($result->{'identifiant'}, $result->{'numero'}, $result->{'type_analyse'}, $dbh);
 				if ($result->{'type_analyse'} =~ /Mi/o) {$addin = '.bam'}
 				#print $bam_path;
 			}
@@ -129,8 +133,16 @@ sub print_validation_table {
 			my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 			if ($result->{'manifest_name'} eq 'no_manifest') {print $q->td($result->{'type_analyse'}), "\n"}
 			elsif ($class ne 'global' && $chr ne 'M') {
+				# print $q->script({'type' => 'text/javascript'}, '
+				# 	async function load_track_igv(genome) {
+				# 		await load_igv(genome);
+				# 		console.log("Trying to load track");
+				# 		browser_'.$genome.'.loadTrack({url:\''.$alignement_file_path.'.'.$file_type.'\', indexURL:\''.$alignement_file_path.$addin.'.'.$index_ext.'\', label:\''.$id.$number.'-'.$result->{'type_analyse'}.'-'.$gene.'\'});
+				# 	};
+				# ');
+				print $q->start_td(), $q->span({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "\$('#igv_div_$genome').show();load_igv('$genome', '$alignement_file_path.$file_type', '$alignement_file_path$addin.$index_ext', '$id$number-$result->{'type_analyse'}-$gene');\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');\$('#$result->{'type_analyse'}').removeClass('w3-blue');\$('#$result->{'type_analyse'}').removeClass('w3-button');\$('#$result->{'type_analyse'}').addClass('w3-light-grey');", 'class' => 'w3-button w3-ripple w3-blue'}, $result->{'type_analyse'}), $q->end_td(), "\n";
 
-				print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$alignement_file_path.$file_type', indexURL:'$alignement_file_path$addin.$index_ext', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
+				# print $q->start_td(), $q->button({'id' => $result->{'type_analyse'}, 'title' => 'click to load BAM/CRAM file in IGV', 'onclick' => "igv.browser.loadTrack({url:'$alignement_file_path.$file_type', indexURL:'$alignement_file_path$addin.$index_ext', label:'$id$number-$result->{'type_analyse'}-$gene'});\$('#$result->{'type_analyse'}').removeClass('pointer');\$('#$result->{'type_analyse'}').removeAttr('onclick');\$('#$result->{'type_analyse'}').removeAttr('title');", 'class' => 'w3-button w3-ripple w3-blue', 'value' => $result->{'type_analyse'}}), $q->end_td(), "\n"
 			}
 			else {print $q->td($result->{'type_analyse'}), "\n"}
 
@@ -178,7 +190,7 @@ sub get_miniseq_id {
 	return 'unknown instrument';
 }
 
-sub get_alignement_path {
+sub get_alignment_path {
 	my ($id, $number, $analysis, $dbh) = @_;
 	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 	my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
@@ -188,15 +200,22 @@ sub get_alignement_path {
 	elsif ($analysis =~ /NextSeq-.+/o) {$instrument = 'nextseq';$instrument_path = $CLINICAL_EXOME_BASE_DIR}
 	my ($alignment_dir, $additional_path) = ('', '');
 	my $run = $res_manifest->{'run_id'};
-	if ($instrument eq 'miseq') {
+
+	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
+	if ($genome eq 'hg38') {
+		my $alignment_file = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
+		my $file_type = 'cram';
+		return ($alignment_file, $file_type, 'hg38');
+	}
+	elsif ($instrument eq 'miseq') {
 		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#print $alignment_dir;
 		$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = "/Data/Intensities/BaseCalls/$1";
 		#print $alignment_dir;
 	}
 	elsif($instrument eq 'miniseq') {
-		my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
-		if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
+		# my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
+		# if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/CompletedJobInfo.xml`;
 		$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 		$alignment_dir = $1;
@@ -234,7 +253,7 @@ sub get_alignement_path {
 		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.crumble.cram") {$file_type = 'crumble.cram'}
 		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
 	}
-	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$file", $file_type);
+	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$file", $file_type), 'hg19';
 }
 
 sub get_interval {
@@ -394,10 +413,12 @@ sub genotype_line_optimised { #prints a line in the genotype table
 
 		if ($global ne 't' && ($type_analyse =~ /Mi/o || $type_analyse =~ /Next/o) && $var->{'nom_g'} !~ /chrM:.+/o) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
+			my ($chr_38, $pos1_38, $pos2_38) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g_38'}, 'evs');
 			my $igv_padding = 40;
 			#my $igv_search = "chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding);
 			print $q->start_td(),
-				"<input type='button' onclick=\"igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')\" title='Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table' value='$nom_seg' class='pointer w3-button w3-ripple w3-blue w3-padding-small w3-tiny'/>",
+				# "<input type='button' onclick=\"igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')\" title='Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table' value='$nom_seg' class='pointer w3-button w3-ripple w3-blue w3-padding-small w3-tiny'/>",
+				"<input type='button' onclick=\"if (typeof browser_hg19 != 'undefined') {browser_hg19.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')};if (typeof browser_hg38 != 'undefined') {browser_hg38.search('chr$chr_38:".($pos1_38-$igv_padding)."-".($pos2_38+$igv_padding)."')};\" title='Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table' value='$nom_seg' class='pointer w3-button w3-ripple w3-blue w3-padding-small w3-tiny'/>",
 			$q->end_td(), "\n";
 		}
 		else {print $q->td($nom_seg), "\n";}
@@ -1089,12 +1110,12 @@ sub cnil_disclaimer {
 	return info_panel('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement.'.$q->br().'Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites "sensibles" au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.', $q);
 }
 
-#in add_analysis.pl, add_clinical_exome.pl
+# in add_analysis.pl, add_clinical_exome.pl
 
 sub check_ngs_samples {
 	my ($patients, $analysis, $dbh) = @_;
-	#select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
-	my $query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; #num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
+	# select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
+	my $query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; # num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 	my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
 	my $count_hash = 0;
 	foreach my $totest (keys(%{$patients})) {
@@ -1106,19 +1127,18 @@ sub check_ngs_samples {
 	}
 	$query .= ") GROUP BY num_pat, id_pat;";
 	$query2 .= ";";
-	#print $query2;exit;
 	my $sth = $dbh->prepare($query2);
 	my $res = $sth->execute();
-	#modify hash
+	# modify hash
 
 	while (my $result = $sth->fetchrow_hashref()) {
 		$patients->{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
 	}
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
-	#cleanup hash
+	# cleanup hash
 	while (my $result = $sth->fetchrow_hashref()) {
-		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}} = 2} #remove patients with that type of analysis already recorded
+		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}} = 2} # remove patients with that type of analysis already recorded
 	}
 	return $patients;
 }
@@ -1163,20 +1183,17 @@ sub print_panel_criteria {
 }
 
 sub build_ngs_form {
-	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $access_method) = @_;
+	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $genome_version) = @_;
 
 	my $info =  "In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).".$q->br()."Please select those you are interested in";
 	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
 	$info .= ".";
 	my $form = &info_panel($info, $q);
-
-	#.$q->start_div({'class' => 'w3-margin w3-panel w3-pale-red w3-leftbar w3-display-container'}).$q->span({'onclick' => 'this.parentElement.style.display=\'none\'', 'class' => 'w3-button w3-ripple w3-display-topright w3-large'}, 'X').$q->start_p({'class' => 'w3-margin'}).$q->strong().$q->end_p().$q->end_div().$q->br()."\n";
 	$info = 'You may not be able to select some patients. This means either that they are already recorded for that type of analysis or that they are not recorded in U2 yet.'.$q->br().'In this case, please insert them via the Excel file and reload the page.';
 
 	$form .= &danger_panel($info, $q).$q->br();
 
-
-	#Filtering or not?
+	# Filtering or not?
 	my $filter = '';
 	if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
 
@@ -1192,19 +1209,9 @@ sub build_ngs_form {
 			$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"})."\n";
 	if ($filter ne '') {$form .=  $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"})."\n"}
 
-	#		$q->start_ol(), "\n";
-
-	#new implementation to get an idea of the sequencing quality per patient
-	#get last alignment dir
-	#my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
-	#$alignment_dir =~ /\\(Alignment\d*)<$/o;
-	#$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/$1";
-
-
 	my $i = 2;
 	foreach my $sample (sort keys(%{$patients})) {
-		#$sample =~ s/\n//og;
-		if (($sample ne $id.$number) && ($patients->{$sample} == 1)) {#other eligible patients
+		if (($sample ne $id.$number) && ($patients->{$sample} == 1)) {# other eligible patients
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-quarter w3-large w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample");
@@ -1218,11 +1225,11 @@ sub build_ngs_form {
 				$form .=   $q->end_div();
 			}
 			else {$form .=   $q->end_div();}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $access_method)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
 			else {$form .=  &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
-		elsif (($sample ne $id.$number) && ($patients->{$sample} == 0)) {#unknown patient
+		elsif (($sample ne $id.$number) && ($patients->{$sample} == 0)) {# unknown patient
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
@@ -1230,25 +1237,24 @@ sub build_ngs_form {
 					$q->div({'class' => 'w3-rest w3-medium'}, " not yet recorded in U2. Please proceed if you want to import Illumina data.")."\n".
 				$q->end_div();
 		}
-		elsif (($sample ne $id.$number) && ($patients->{$sample} == 2)) {#patient with a run already recorded
+		elsif (($sample ne $id.$number) && ($patients->{$sample} == 2)) {# patient with a run already recorded
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
 					$q->end_div().
 					$q->div({'class' => 'w3-rets w3-medium'}, " has already a run recorded as $analysis.")."\n".$q->end_div();
 		}
-		else {#original patient
+		else {# original patient
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, $sample)."\n";
 			if ($filtered == '1') {
 				$form .=   $q->div({'class' => 'w3-quarter w3-large'}, "Filter:").
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, "$filter")."\n";
 			}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $access_method)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
-		#print	$q->end_li(), "\n";
 		$i++;
 	}
 	$form .= $q->submit({'value' => 'Import', 'class' => 'w3-button w3-ripple w3-blue w3-hover-white', form => "illumina_form_$run"}).
@@ -1334,29 +1340,41 @@ sub get_raw_detail_ce_qualimap {
 
 #subs for panel, add_analysis.pl
 sub get_raw_data {
-	my ($dir, $sample, $ssh, $file, $instrument, $q, $analysis, $access_method) = @_;
+	my ($dir, $sample, $ssh, $file, $instrument, $q, $analysis, $genome_version) = @_;
 	#we want - miseq
 	#Percent Q30:,
 	#Target coverage at 50X:,
 	#SNV Ts/Tv ratio:,
 	#Mean region coverage depth:,
-	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads);
+	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads, $pass_metrics, $q30, $x50, $tstv, $doc, $ontarget_reads);
 
 	if ($instrument eq 'miseq') {
 		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
 	}
-	elsif ($instrument eq 'miniseq') {
+	elsif ($instrument eq 'miniseq' && $genome_version eq 'hg19') {
 		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Targeted aligned reads,');
 	}
-
-	my $q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file, $access_method);
-	my $x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file, $access_method);
-	my $tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file, $access_method);
-	my $doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file, $access_method);
-	my $ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file, $access_method);
+	if ($genome_version eq 'hg19') {
+		$q30 = &get_raw_detail($dir, $sample, $ssh, $q30_expr, $file);
+		$x50 = &get_raw_detail($dir, $sample, $ssh, $x50_expr, $file);
+		$tstv = &get_raw_detail($dir, $sample, $ssh, $tstv_expr, $file);
+		$doc = &get_raw_detail($dir, $sample, $ssh, $doc_expr, $file);
+		$ontarget_reads = &get_raw_detail($dir, $sample, $ssh, $num_reads, $file);
+	}
+	else {
+		$pass_metrics = get_multiqc_value("$dir/$sample/panelCapture/".$sample."_multiqc_data/multiqc_data.json", 'report_general_stats_data', $sample, 'reduced');
+		# print STDERR "RUN: $dir - SAMPLE: $sample\n";
+		# print STDERR Dumper($pass_metrics)."\n";
+		if (ref $pass_metrics eq ref {}) {
+			$x50 = $pass_metrics->{'PCT_TARGET_BASES_50X'};
+			$tstv = $pass_metrics->{'tstv'};
+			$doc = $pass_metrics->{'MEAN_BAIT_COVERAGE'};
+		}
+		else {return $q->div({'class' => 'w3-red w3-quarter'}, 'NO METRICS FOUND!!!!!')}
+	}
 	#return ($q30, $x50, $tstv, $doc);
 	my $criteria = '';
-	if ($q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}
+	if ($genome_version eq 'hg19' && $q30 < $U2_modules::U2_subs_1::Q30) {$criteria .= ' (Q30 &le; '.$U2_modules::U2_subs_1::Q30.') '}
 	if ($analysis =~ /$ANALYSIS_ILLUMINA_WG_REGEXP/o) {
 		#Whole genes
 		if ($x50 < $U2_modules::U2_subs_1::PC50X_WG) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X_WG.') '}
@@ -1367,20 +1385,20 @@ sub get_raw_data {
 		if ($tstv < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
 	}
 	if ($doc < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
-	if ($ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
+	if ($genome_version eq 'hg19' && $ontarget_reads < $U2_modules::U2_subs_1::NUM_ONTARGET_READS) {$criteria .= ' (on target reads &lt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS.') '}
 	if ($criteria ne '') {return $q->div({'class' => 'w3-red w3-quarter'}, "FAILED $criteria")}
 	else {return $q->div({'class' => 'w3-green w3-quarter'}, 'PASS')}
 }
 
 sub get_raw_detail {
-	my ($dir, $sample, $ssh, $expr, $file, $access_method) = @_;
+	my ($dir, $sample, $ssh, $expr, $file) = @_;
 	#print "grep -e \"$expr\" $dir/".$sample."_S*.$file";
 	my $data;
-	if ($access_method eq 'autofs') {
-		my $path = "$dir/".$sample."_S*.$file";
-		$data = `grep -e "$expr" $path`
-	}
-	else {$data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file")}
+	# if ($access_method eq 'autofs') {
+	my $path = "$dir/".$sample."_S*.$file";
+	$data = `grep -e "$expr" $path`;
+	# }
+	# else {$data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file")}
 	#my $data = $ssh->capture("grep -e \"$expr\" $dir/".$sample."_S*.$file"
 	#print "-$data-<br/>";
 	if ($data =~ /$expr([\d\.]+)[%\s]{0,2}$/) {$data = $1}
@@ -1388,6 +1406,160 @@ sub get_raw_detail {
 	#print "_".$data."_<br/>";
 	return $data,;
 }
+
+# in add_analysis.pl
+
+sub get_multiqc_value {
+	my ($multiqc_file, $section, $sample, $call) = @_;
+	my $json_text = do {
+		# from https://stackoverflow.com/questions/15653419/parsing-json-file-using-perl
+		# my $multiqc_file = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json";
+		if (-e $multiqc_file) {
+			open(my $json_fh, "<:encoding(UTF-8)", $multiqc_file)
+				or die("Can't open \"$multiqc_file\": $!\n");
+			local $/;
+			<$json_fh>
+		}
+		else {
+			# print STDERR "$multiqc_file\n";
+			return 'no multiqc';
+		}
+	};
+	# print STDERR "$multiqc_file\n";
+	my $content = decode_json($json_text);
+	if ($section eq 'interop_runsummary' && exists $content->{'report_saved_raw_data'}->{$section}) {
+		my $interop = {
+			'Density' => '',
+			'Cluster PF' => '',
+			'%>=Q30' => '',
+			'Reads' => '',
+			'Reads PF' => ''
+		};
+		foreach my $label (keys %{$interop}) {
+			if ($label eq '%>=Q30') {
+				$interop->{$label} = sprintf('%.2f', ($content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} + $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 4'}->{$label}) / 2)
+			}
+			else {
+				$content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label} =~ s/\s//og;
+				$interop->{$label} = $content->{'report_saved_raw_data'}->{$section}->{'summary'}->{'details'}->{'Lane 1 - Read 1'}->{$label}
+			}
+			if ($interop->{$label} eq 'nan') {$interop->{$label} = 0}
+		}
+		return $interop;
+	}
+	elsif ($section eq 'report_general_stats_data' && exists $content->{$section} && $call eq 'reduced') {
+		my $pass_metrics = {
+			'PCT_TARGET_BASES_50X' => '',
+			'tstv' => '',
+			'MEAN_BAIT_COVERAGE' => '',
+			'after_filtering_q30_rate' => ''
+		};
+		my $sample_regexp = $sample."_S";
+		LABEL: foreach my $label (keys %{$pass_metrics}) {
+			foreach my $cell (@{$content->{$section}}) {
+				foreach my $key (keys %{$cell}) {
+					if ($pass_metrics->{$label} eq '') {
+						if ($key eq "$sample.hc" && $label eq 'tstv') {
+							$pass_metrics->{$label} = $cell->{$key}->{$label};
+							if ($pass_metrics->{$label} eq 'nan') {$pass_metrics->{$label} = 0}
+							next LABEL;
+						}
+						elsif (($key eq $sample && $label ne 'after_filtering_q30_rate') || ($key =~ /^$sample_regexp\d+/ && $label eq 'after_filtering_q30_rate')) {
+							if ($label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label} = sprintf('%.4f', $cell->{$key}->{$label})*100}
+							else {$pass_metrics->{$label} = sprintf('%.0f', $cell->{$key}->{$label})}
+							if ($pass_metrics->{$label} eq 'nan') {$pass_metrics->{$label} = 0}
+							next LABEL;
+						}
+					}
+				}
+			}
+		}
+		return $pass_metrics;
+	}
+	elsif ($section eq 'report_general_stats_data' && exists $content->{$section} && $call eq 'full') {
+		# "report_general_stats_data": [
+        # {
+        #     "SAMPLEID.hc": {
+        #         "number_of_SNPs": 1122.0, <----- 11
+        #         "number_of_indels": 160.0,<----- 13
+        #         "tstv": 2.36,<----- 12
+		# 	... the same for hc
+		# 	}
+		# }
+		# {
+        #     "SAMPLEID": {
+        #         "PF_READS_ALIGNED": 4208928.0, <------ 4
+        #         "PF_ALIGNED_BASES": 514413948.0, <------ 1
+        #         "MEAN_BAIT_COVERAGE": 394.926463, <----- 6
+        #         "ON_TARGET_BASES": 229097211.0, <----- 2 -> passer le critère on target reads à on target bases (x150)
+        #         "MEAN_TARGET_COVERAGE": 194.503582, <----- 6bis ALTER TABLE miseq_analysis ADD COLUMN mean_target_doc NUMERIC(5,1) DEFAULT NULL;
+        #         "PCT_EXC_DUPE": 0.0561, <----- 3
+        #         "PCT_TARGET_BASES_20X": 0.983386, <----- 7
+        #         "PCT_TARGET_BASES_50X": 0.971945, <----- 8
+		# 		...
+        #     }
+        # },
+		my $pass_metrics = {
+			'number_of_SNPs' => ['snp_num', ''],
+			'number_of_indels' => ['indel_num', ''],
+			'tstv' => ['snp_tstv', ''],
+			'PF_READS_ALIGNED' => ['aligned_reads', ''],
+			'PF_ALIGNED_BASES' => ['aligned_bases', ''],
+			'MEAN_BAIT_COVERAGE' => ['mean_doc', ''],
+			'ON_TARGET_BASES' => ['ontarget_bases', ''],
+			'MEAN_TARGET_COVERAGE' => ['mean_target_doc', ''],
+			'PCT_EXC_DUPE' => ['duplicates', ''],
+			'PCT_TARGET_BASES_20X' => ['twentyx_doc', ''],
+			'PCT_TARGET_BASES_50X' => ['fiftyx_doc', ''],
+		};
+		my $sample_regexp = $sample."_S";
+		LABEL: foreach my $label (keys %{$pass_metrics}) {
+			foreach my $cell (@{$content->{$section}}) {
+				foreach my $key (keys %{$cell}) {
+					if ($pass_metrics->{$label}[1] eq '') {
+						if ($key eq "$sample.hc" && ($label eq 'tstv' || $label eq 'number_of_SNPs' || $label eq 'number_of_indels')) {
+							if ($label eq 'tstv') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label})}
+							else {$pass_metrics->{$label}[1] = sprintf('%.0f', $cell->{$key}->{$label})}
+							if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
+							next LABEL;
+						}
+						elsif ($key eq $sample) {
+							if ($label eq 'PCT_EXC_DUPE' || $label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label}*100)}
+							else {$pass_metrics->{$label}[1] = sprintf('%.0f', $cell->{$key}->{$label})}
+							if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
+							next LABEL;
+						}
+					}
+				}
+			}
+		}
+		return $pass_metrics;
+	}
+	elsif ($section eq 'report_saved_raw_data' && exists $content->{$section} && $call eq 'full') {
+		# "report_saved_raw_data": {
+		# 	"multiqc_picard_insertSize": {
+		# 		"SU3541_FR": {
+		# 			"MEDIAN_INSERT_SIZE": 136.0, <----- 9
+		# 			"STANDARD_DEVIATION": 62.479337, <----- 10
+		# 			...
+		# 		}
+		# 	}
+		# }
+		my $pass_metrics = {
+			'MEDIAN_INSERT_SIZE' => ['insert_size_median', ''],
+			'STANDARD_DEVIATION' => ['insert_size_sd', ''],
+		};
+		my $sample_regexp = $sample."_S";
+		foreach my $label (keys %{$pass_metrics}) {
+			$pass_metrics->{$label}[1] = sprintf('%.0f', $content->{'report_saved_raw_data'}->{'multiqc_picard_insertSize'}->{$sample.'_FR'}->{$label} );
+			if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
+		}
+		return $pass_metrics;
+	}
+	return "no $section";	
+}
+
+
 
 #in add_clinical_exome.pl, import_illumina.pl
 

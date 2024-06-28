@@ -57,7 +57,9 @@ my $JS_PATH = $config->JS_PATH();
 my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $DATABASES_PATH = $config->DATABASES_PATH();
-my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
+my $CURRENT_BED = $config->CURRENT_BED();
+# my $DALLIANCE_DATA_DIR_URI = $config->DALLIANCE_DATA_DIR_URI();
+
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'form.css', $CSS_PATH.'jquery.alerts.css');
 
@@ -189,17 +191,19 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
                                 -src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
+								-src => $JS_PATH.'jquery-ui-1.12.1.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'jquery.alerts.js', 'defer' => 'defer'},
+								-src => $JS_PATH.'jquery.alerts.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_PATH.'dalliance_v0.13/build/dalliance-compiled.js', 'defer' => 'defer'},
-                                {-language => 'javascript',
+								-src => 'https://cdn.jsdelivr.net/npm/igv@2.13.4/dist/igv.min.js', 'defer' => 'defer'},
+				# {-language => 'javascript',
+				# 				-src => $JS_PATH.'dalliance_v0.13/build/dalliance-compiled.js', 'defer' => 'defer'},
+                {-language => 'javascript',
                                 -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 				$js,
-                                {-language => 'javascript',
+                {-language => 'javascript',
                                 -src => $JS_DEFAULT, 'defer' => 'defer'}],
-                        -encoding => 'ISO-8859-1');
+                        		-encoding => 'ISO-8859-1');
 
 
 
@@ -210,8 +214,8 @@ else {U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh)}
 ##end of init
 
 #hg38 transition variable for postgresql 'start_g' segment field
-my ($postgre_start_g, $postgre_end_g) = ('start_g', 'end_g');  #hg19 style
-
+my ($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');  #hg38 style
+my $genome = 'hg38';
 
 my $ncbi_url = 'http://www.ncbi.nlm.nih.gov/nuccore/';
 
@@ -314,9 +318,10 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					if ($result->{'MiSeq-121'} == 1) {print $q->li("included in 121 genes design"), "\n"}
 					if ($result->{'MiSeq-3'} == 1) {print $q->li("included in 3 genes design"), "\n"}
 					if ($result->{'MiniSeq-132'} == 1) {print $q->li("included in 132 genes design"), "\n"}
-          if ($result->{'MiniSeq-149'} == 1) {print $q->li("included in 149 genes design"), "\n"}
+          			if ($result->{'MiniSeq-149'} == 1) {print $q->li("included in 149 genes design"), "\n"}
 					if ($result->{'MiniSeq-152'} == 1) {print $q->li("included in 152 genes design"), "\n"}
 					if ($result->{'MiniSeq-158'} == 1) {print $q->li("included in 158 genes design"), "\n"}
+					if ($result->{'MiniSeq-157'} == 1) {print $q->li("included in 157 genes design (hg38)"), "\n"}
 					if ($result->{'diag'} == 1) {print $q->li("diagnostic gene"), "\n"}
 					else {print $q->li("non-diagnostic gene"), "\n"}
 
@@ -358,79 +363,133 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
 
 
-		##genome browser
-		#http://www.biodalliance.org/
-		#my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
-		my $query_dalliance = "SELECT MIN(a.$postgre_start_g), MAX(a.$postgre_end_g) FROM segment a, gene b where a.refseq = b.refseq and b.gene_symbol = '$gene';";
-		my $res_dalliance = $dbh->selectrow_hashref($query_dalliance);
-		my ($dal_start, $dal_stop) = (($res_dalliance->{'min'}-5000), ($res_dalliance->{'max'}+5000));
-		#if ($highlight_start == $highlight_end) {$highlight_end++}
-					#	{name: '132 genes Design',
-					#desc: 'Nimblegen SeqCap on 132 genes',
-					#tier_type: 'tabix',
-					#payload: 'bed',
-					#uri: '".$DALLIANCE_DATA_DIR_URI."designs/seqcap_targets_sorted.132.bed.gz'},
-		my $browser = "
-			console.log(\"creating browser with coords: chr$chr:$dal_start-$dal_stop\" );
-			var sources = [
-				{name: 'Genome',
-					desc: 'hg19/Grch37',
-					twoBitURI: '".$DALLIANCE_DATA_DIR_URI."genome/hg19.2bit',
-					tier_type: 'sequence',
-					provides_entrypoints: true,
-					pinned: true},
-				{name: 'Genes',
-					desc: 'GENCODE v19',
-					bwgURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.bb',
-					stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode-expanded.xml',
-					collapseSuperGroups: true,
-					trixURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.ix'},
-				{name: 'Conservation',
-					desc: 'PhastCons 100 way',
-					bwgURI: '".$DALLIANCE_DATA_DIR_URI."cons/hg19.100way.phastCons.bw',
-					noDownsample: true},
-				{name: 'Repeats',
-					desc: 'Repeat annotation from RepeatMasker',
-					bwgURI: '".$DALLIANCE_DATA_DIR_URI."repeats/repeats.bb',
-					stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."repeats/bb-repeats2.xml',
-					forceReduction: -1}
-					];
-			var browser = new Browser({
-				chr:		'$chr',
-				viewStart:	$dal_start,
-				viewEnd:	$dal_stop,
-				cookieKey:	'human-grc_h37',
-				prefix:		'".$JS_PATH."dalliance_v0.13/',
-				fullScreen:	false,
-				noPersist:	true,
-				noPersistView:	true,
-				maxHeight:	600,
-				cookieKey:	'test',
+		my $igv_script = '
+		// function load_igv() {
+		// https://www.delftstack.com/howto/javascript/javascript-wait-for-function-to-finish/
+		var genome = "'.$genome.'";
+		var igv_promise = new Promise((resolve,reject)=>{
+				var div = $("#igv_div"),
+				options = {
+					showNavigation: true,
+					showRuler: true,
+					genome: genome,
+					locus: "'.$gene.'",
+					reference: {
+						id: genome,
+						name: \'Human (\' + genome + \')\',
+						fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
+						indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
+						compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
+					},
+					tracks: [			
+						{
+						    name: "MiniSeq-157 capture regions",
+						    type: "annotation",
+						    format: "bed",
+						    sourceType: "file",
+						    url: \''.$HTDOCS_PATH.$CURRENT_BED.'\',
+							indexed: false
+						},
+						{
+							name: "MANE transcripts",
+							url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/MANE.GRCh38.v1.0.refseq.bb\',
+							indexed: false,
+							label: "MANE transcripts",
+						},
+						{
+							name: \'Refseq Genes\',
+							url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
+							order: 1000000,
+							indexed: false
+						},
+					]
+				};
+		
+				igv.createBrowser(igv_div, options).then(function (browser) {
+					console.log("Created IGV browser");
+					// return window[\'browser_\' + genome] = browser;
+					igv.browser = browser;
+				});
+		    // console.log("igv.browser created");
+		    // resolve(igv.browser);
+		});
+		// }
+		';
+		print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;'},), $q->script({'type' => 'text/javascript'}, $igv_script);
 
-				coordSystem:	{
-					speciesName: 'Human',
-					taxon: 9606,
-					auth: 'GRCh',
-					version: '37',
-					ucscName: 'hg19'
-				},
-				sources:	sources,
-				hubs:	['http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/hub.txt']
-			});
+		# ##genome browser
+		# #http://www.biodalliance.org/
+		# #my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
+		# my $query_dalliance = "SELECT MIN(a.$postgre_start_g), MAX(a.$postgre_end_g) FROM segment a, gene b where a.refseq = b.refseq and b.gene_symbol = '$gene';";
+		# my $res_dalliance = $dbh->selectrow_hashref($query_dalliance);
+		# my ($dal_start, $dal_stop) = (($res_dalliance->{'min'}-5000), ($res_dalliance->{'max'}+5000));
+		# #if ($highlight_start == $highlight_end) {$highlight_end++}
+		# 			#	{name: '132 genes Design',
+		# 			#desc: 'Nimblegen SeqCap on 132 genes',
+		# 			#tier_type: 'tabix',
+		# 			#payload: 'bed',
+		# 			#uri: '".$DALLIANCE_DATA_DIR_URI."designs/seqcap_targets_sorted.132.bed.gz'},
+		# my $browser = "
+		# 	console.log(\"creating browser with coords: chr$chr:$dal_start-$dal_stop\" );
+		# 	var sources = [
+		# 		{name: 'Genome',
+		# 			desc: 'hg19/Grch37',
+		# 			twoBitURI: '".$DALLIANCE_DATA_DIR_URI."genome/hg19.2bit',
+		# 			tier_type: 'sequence',
+		# 			provides_entrypoints: true,
+		# 			pinned: true},
+		# 		{name: 'Genes',
+		# 			desc: 'GENCODE v19',
+		# 			bwgURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.bb',
+		# 			stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode-expanded.xml',
+		# 			collapseSuperGroups: true,
+		# 			trixURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.ix'},
+		# 		{name: 'Conservation',
+		# 			desc: 'PhastCons 100 way',
+		# 			bwgURI: '".$DALLIANCE_DATA_DIR_URI."cons/hg19.100way.phastCons.bw',
+		# 			noDownsample: true},
+		# 		{name: 'Repeats',
+		# 			desc: 'Repeat annotation from RepeatMasker',
+		# 			bwgURI: '".$DALLIANCE_DATA_DIR_URI."repeats/repeats.bb',
+		# 			stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."repeats/bb-repeats2.xml',
+		# 			forceReduction: -1}
+		# 			];
+		# 	var browser = new Browser({
+		# 		chr:		'$chr',
+		# 		viewStart:	$dal_start,
+		# 		viewEnd:	$dal_stop,
+		# 		cookieKey:	'human-grc_h37',
+		# 		prefix:		'".$JS_PATH."dalliance_v0.13/',
+		# 		fullScreen:	false,
+		# 		noPersist:	true,
+		# 		noPersistView:	true,
+		# 		maxHeight:	600,
+		# 		cookieKey:	'test',
 
-			function highlightRegion(){
-				console.log(\" xx highlight region chr$chr,$dal_start,$dal_stop\");
-				browser.setLocation(\"$chr\",$dal_start,$dal_stop);
-			}
+		# 		coordSystem:	{
+		# 			speciesName: 'Human',
+		# 			taxon: 9606,
+		# 			auth: 'GRCh',
+		# 			version: '37',
+		# 			ucscName: 'hg19'
+		# 		},
+		# 		sources:	sources,
+		# 		hubs:	['http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/hub.txt']
+		# 	});
 
-			browser.addInitListener( function(){
-				console.log(\"dalliance initiated\");
-				setTimeout(highlightRegion(),5000);
-				//highlightRegion();
-			});
-		";
+		# 	function highlightRegion(){
+		# 		console.log(\" xx highlight region chr$chr,$dal_start,$dal_stop\");
+		# 		browser.setLocation(\"$chr\",$dal_start,$dal_stop);
+		# 	}
 
-		print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'container'}, 'Dalliance Browser here'), $q->br(), $q->br();
+		# 	browser.addInitListener( function(){
+		# 		console.log(\"dalliance initiated\");
+		# 		setTimeout(highlightRegion(),5000);
+		# 		//highlightRegion();
+		# 	});
+		# ";
+
+		# print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'container'}, 'Dalliance Browser here'), $q->br(), $q->br();
 	}
 	else {print $q->p("Sorry I cannot recognize that gene name ($gene).")}
 }

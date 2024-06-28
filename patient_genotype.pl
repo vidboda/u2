@@ -62,6 +62,7 @@ $HOME_IP =~ /(https*:\/\/[\w\.-]+)\/.+/o;
 $HOME_IP = $1;
 my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
 #my $REF_GENE_URI = $config->REF_GENE_URI();
+my $CURRENT_BED = $config->CURRENT_BED();
 
 #my @styles = ($CSS_DEFAULT, $CSS_PATH.'igv.css');
 
@@ -214,7 +215,7 @@ my ($list, $list_context, $first_name, $last_name) = U2_modules::U2_subs_3::get_
 #get vars for specific gene/sample
 
 # my $query = "SELECT b.nom, b.nom_gene, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.nom_gene = d.nom_gene AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND (a.id_pat, a.num_pat) IN ($list) AND a.nom_gene[1] = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
-my $query = "SELECT b.nom, e.gene_symbol, e.refseq , b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND a.refseq = e.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.refseq = d.refseq AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND (a.id_pat, a.num_pat) IN ($list) AND e.gene_symbol = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
+my $query = "SELECT b.nom, e.gene_symbol, e.refseq , b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, b.nom_g_38, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND a.refseq = e.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.refseq = d.refseq AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND (a.id_pat, a.num_pat) IN ($list) AND e.gene_symbol = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
 # print "$query\n";
 
 
@@ -251,35 +252,64 @@ print $q->end_table(), $q->end_div(), "\n", $q->br(), $q->br(), $q->br(), $q->st
 my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 if ($chr ne 'M') {
 	my $igv_script = '
-	$(document).ready(function () {
+	function load_igv(genome, url, indexurl, label) {
+	/// $(document).ready(function () {
 		// var igv_div = $(\'#igv_div\');
-		var igv_div = document.getElementById(\'igv_div\');
+		// check if igv broser already exists and do nothing if so
+		// alert(typeof \'browser_\' + genome);
+		// if (typeof \'browser_\' + genome == "undefined") {
+		var igv_div = document.getElementById(\'igv_div_\' + genome);
 		options = {
 			showNavigation: true,
 			showRuler: true,
-			// genome: \'hg19\',
 			reference: {
-            	id: \'hg19\',
-            	name: \'Human (GRCh37/hg19)\',
-            	fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz\',
-				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.fai\',
-				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/hg19.fa.gz.gzi\'
-            },
+				id: genome,
+				name: \'Human (\' + genome + \')\',
+				fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
+				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
+				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
+			},
 			locus: "'.$gene.'",
 			tracks: [			
 				{
 					name: \'Refseq Genes\',
-					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/hg19/refGene.txt.gz\',
+					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
 					order: 1000000,
 					indexed: false
+				},
+				{
+					url: url,
+					indexURL: indexurl,
+					label: label
 				}
-	    	]
+			]
 		};
+		if (genome === "hg38") {
+			options.tracks.push(
+				{
+				    name: "MiniSeq-157 capture regions",
+				    type: "annotation",
+				    format: "bed",
+				    sourceType: "file",
+				    url: \''.$HTDOCS_PATH.$CURRENT_BED.'\',
+					indexed: false
+				},
+				{
+					name: "MANE transcripts",
+					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/MANE.GRCh38.v1.0.refseq.bb\',
+					indexed: false,
+					label: "MANE transcripts",
+				},
+			);
+		}
 		igv.createBrowser(igv_div, options).then(function (browser) {
-      		console.log("Created IGV browser");
-      		igv.browser = browser;
+			console.log("Created IGV browser");
+			return window[\'browser_\' + genome] = browser;
+			/// igv.browser = browser;
 		});
-	});
+		// }
+	}
+	// });
 	';
   # my $igv_script = '
 	# // function load_igv() {
@@ -302,7 +332,10 @@ if ($chr ne 'M') {
   #   });
 	# // }
 	# ';
-	print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;'},), $q->script({'type' => 'text/javascript'}, $igv_script);
+	## print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;'},), $q->script({'type' => 'text/javascript'}, $igv_script);
+	print $q->start_div({'id' => 'igv_div_hg19', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;display: none;'}), $q->end_div(),
+		$q->script({'type' => 'text/javascript'}, $igv_script),
+		$q->div({'id' => 'igv_div_hg38', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;display: none;'});
 }
 #tracks: [
 #		{

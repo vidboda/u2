@@ -61,7 +61,7 @@ my $DB_PASSWORD = $config->DB_PASSWORD();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $DATABASES_PATH = $config->DATABASES_PATH();
-my $DALLIANCE_DATA_DIR_PATH = $config->DALLIANCE_DATA_DIR_PATH();
+# my $DALLIANCE_DATA_DIR_PATH = $config->DALLIANCE_DATA_DIR_PATH();
 my $EXE_PATH = $config->EXE_PATH();
 my $ANALYSIS_ILLUMINA_REGEXP = $config->ANALYSIS_ILLUMINA_REGEXP();
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
@@ -988,7 +988,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 	else {$query = "SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.type_analyse = '$analysis' ORDER BY a.type_analyse DESC, a.run_id;"}
 	#my $dates = "\"date\": [
 	#";
-	my $i = my $j = my $k = my $l = my $m = my $n = my $o = my $p = my $r = my $s = my $t = my $u = my $v = my $w = 0;
+	my $i = my $j = my $k = my $l = my $m = my $n = my $o = my $p = my $r = my $s = my $t = my $u = my $v = my $w = my $z = 0;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	if ($res ne '0E0') {
@@ -997,7 +997,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			my $query_samples = 'SELECT COUNT(id_pat || num_pat) as a FROM miseq_analysis WHERE run_id = \''.$result->{'run_id'}.'\';';
 			my $num_samples = $dbh->selectrow_hashref($query_samples);
 
-					if ($result->{'type_analyse'} eq 'MiSeq-28') {$i++;}
+			if ($result->{'type_analyse'} eq 'MiSeq-28') {$i++;}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$j++;}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-121') {$k++;}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-152') {$u++;}
@@ -1007,16 +1007,17 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$n++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-152') {$t++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-158') {$v++;}
-      elsif ($result->{'type_analyse'} eq 'MiniSeq-149') {$w++;}
+			elsif ($result->{'type_analyse'} eq 'MiniSeq-149') {$w++;}
+			elsif ($result->{'type_analyse'} eq 'MiniSeq-157') {$z++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$p++;}
 			elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$r++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-2') {$s++;}
 
-						$content .= $q->start_Tr().
-					$q->start_td().
-						$q->a({'href' => "stats_ngs.pl?run=$result->{'run_id'}"}, $result->{'run_id'}).
-					$q->end_td().
-					$q->td($result->{'type_analyse'}." genes");
+			$content .= $q->start_Tr().
+			$q->start_td().
+				$q->a({'href' => "stats_ngs.pl?run=$result->{'run_id'}"}, $result->{'run_id'}).
+			$q->end_td().
+			$q->td($result->{'type_analyse'}." genes");
 
 			if ($result->{'type_analyse'} eq 'MiSeq-28') {$content .= $q->td("Run $i")}
 			elsif ($result->{'type_analyse'} eq 'MiSeq-112') {$content .= $q->td("Run $j")}
@@ -1028,7 +1029,8 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-132') {$content .= $q->td("Run $n")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-152') {$content .= $q->td("Run $t")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-158') {$content .= $q->td("Run $v")}
-      elsif ($result->{'type_analyse'} eq 'MiniSeq-149') {$content .= $q->td("Run $w")}
+      		elsif ($result->{'type_analyse'} eq 'MiniSeq-149') {$content .= $q->td("Run $w")}
+			elsif ($result->{'type_analyse'} eq 'MiniSeq-157') {$content .= $q->td("Run $z")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$content .= $q->td("Run $p")}
 			elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$content .= $q->td("Run $r")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-2') {$content .= $q->td("Run $s")}
@@ -1052,6 +1054,7 @@ if ($q->param('run_graphs') && $q->param('run_graphs') == 1) {
 	my $analysis;
 	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 	else {$analysis = 'all'}
+	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
 	my ($total_runs, $total_samples) = (U2_modules::U2_subs_3::get_total_runs($analysis, $dbh), U2_modules::U2_subs_3::get_total_samples($analysis, $dbh));
 
 	my $intro = $q->strong({'class' => 'w3-large'}, ucfirst($analysis)." runs graphs details: ($total_runs - $total_samples)");
@@ -1081,32 +1084,39 @@ if ($q->param('run_graphs') && $q->param('run_graphs') == 1) {
 			}
 		";
 		$content .= $q->script({'type' => 'text/javascript'}, $js);
-		my %metrics = (#label => cgi param, run type => {1,2} : 1: MSR or LRM; 2: nenufaar, cluster {y,n}, math, float
+		my %metrics = (#label => cgi param, run type => {1,2} : 1: MSR or LRM; 2: nenufaar; 3: MobiDL, cluster {y,n}, math, float
 			'On target %' => ['(cast(ontarget_reads as float)/cast(aligned_reads as float))*100', '1', 'n', 'AVG', '2'],
 			'On target reads' => ['ontarget_reads', '1', 'n', 'SUM', '0'],
 			'Duplicate reads %' => ['duplicates', '2', 'n', 'AVG', '2'],
 			'Mean DoC' => ['mean_doc', '2', 'n', 'AVG', '0'],
+			'Mean Target DoC' => ['mean_target_doc', '3', 'n', 'AVG', '0'],
 			'50X %' => ['fiftyx_doc', '2', 'n', 'AVG', '2'],
 			'SNVs' => ['snp_num', '2', 'n', 'AVG', '0'],
 			'SNVs Ts/Tv' => ['snp_tstv', '2', 'n', 'AVG', '2'],
-			'Indels' => ['indel_num', '1', 'n', 'AVG', '0'],
+			'Indels' => ['indel_num', '3', 'n', 'AVG', '0'],
 			'Insert size' => ['insert_size_median', '2', 'n', 'AVG', '0'],
-			'Insert size SD' => ['insert_size_sd', '1', 'n', 'AVG', '0'],
+			'Insert size SD' => ['insert_size_sd', '3', 'n', 'AVG', '0'],
 			'Raw Clusters' => ['noc_raw', '1', 'y', '', '0'],
 			'Usable Clusters %' => ['((noc_pf-(nodc+nouc_pf+nouic_pf))::FLOAT/noc_raw)*100', '1', 'y', '', '0'],
 			'Duplicate Clusters %' => ['(nodc::FLOAT/noc_raw)*100', '1', 'y', '', '0'],
 			'Unaligned Clusters %' => ['(nouc::FLOAT/noc_raw)*100', '1', 'y', '', '0'],
-			'Unindexed Clusters %' => ['(nouic::FLOAT/noc_raw)*100', '1', 'y', '', '0']
+			'Unindexed Clusters %' => ['(nouic::FLOAT/noc_raw)*100', '1', 'y', '', '0'],
+			'Density'  => ['cluster_density', '3', 'y', 'AVG', '0'],
+			'Cluster PF'  => ['cluster_pf', '3', 'y', 'AVG', '0'],
+			'%>=Q30'  => ['q30pc', '3', 'y', 'AVG', '2'],
+			'Reads'  => ['reads', '3', 'y', 'AVG', '0'],
+			'Reads PF'  => ['reads_pf', '3', 'y', 'AVG', '0']
 		);
 
 		my $metric_tag = 1;
 		if ($analysis =~ /$NENUFAAR_ANALYSIS/) {$metric_tag = 2}
-
+		elsif ($genome eq 'hg38') {$metric_tag = 3}
 		my @colors = ('sand', 'khaki', 'yellow', 'amber', 'orange', 'deep-orange', 'red', 'pink', 'purple', 'deep-purple', 'indigo', 'blue', 'light-blue', 'cyan', 'teal', 'green', 'lime');
 
 		foreach my $key (sort keys(%metrics)) {
 			#print "$key - $metrics{$m_label}[0]</br>";
-			if ($metric_tag == 2 && $metrics{$key}[1] == 1) {next}
+			if ($metric_tag == 2 && ($metrics{$key}[1] == 1 || $metrics{$key}[1] == 3)) {next}
+			elsif ($metric_tag == 3 && $metrics{$key}[1] == 1) {next}
 			else {
 				$content .= $q->span({'class' => 'w3-button w3-'.(shift(@colors)).' w3-hover-light-grey w3-hover-shadow w3-padding-16 w3-margin w3-round', 'onclick' => 'show_ngs_graph(\''.$analysis.'\', \''.$key.'\', \''.$metrics{$key}[0].'\', \''.$metrics{$key}[2].'\', \''.$metrics{$key}[3].'\', \''.$metrics{$key}[4].'\');'}, $key), "\n"
 			}
@@ -1156,14 +1166,14 @@ if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
 		}
 	";
 	#print $js;
-        my $content =   $q->script({'type' => 'text/javascript'}, $js).
-                        $q->start_div({'class' => 'w3-container w3-center w3-card', 'id' => $pg_row})."\n".$q->br().
-                                $q->big($metric_type).$q->br().$q->br().$q->span("$math_type: ").
-                                $q->span(U2_modules::U2_subs_3::get_data_mean($analysis, $pg_row, $floating_depth, $table, $dbh).$percent).$q->br().$q->br()."\n<canvas class=\"ambitious\" width = \"$width\" height = \"500\" id=\"graph\">Change web browser for a more recent please!</canvas>".
-				$q->p('X-axis legend: date_reagent_genes with date being yymmdd.').
-				$q->br().$q->br().
-				$q->p({'class' => 'w3-left-align'}, 'Get stats for a particular run:').
-				$q->start_ul({'class' => 'w3-left-align'}, )."\n";
+    my $content =   $q->script({'type' => 'text/javascript'}, $js).
+                    $q->start_div({'class' => 'w3-container w3-center w3-card', 'id' => $pg_row})."\n".$q->br().
+                            $q->big($metric_type).$q->br().$q->br().$q->span("$math_type: ").
+                            $q->span(U2_modules::U2_subs_3::get_data_mean($analysis, $pg_row, $floating_depth, $table, $dbh).$percent).$q->br().$q->br()."\n<canvas class=\"ambitious\" width = \"$width\" height = \"500\" id=\"graph\">Change web browser for a more recent please!</canvas>".
+			$q->p('X-axis legend: date_reagent_genes with date being yymmdd.').
+			$q->br().$q->br().
+			$q->p({'class' => 'w3-left-align'}, 'Get stats for a particular run:').
+			$q->start_ul({'class' => 'w3-left-align'}, )."\n";
 	foreach (@tags) {
 		my $run = $_;
 		$run =~ s/"//og;
@@ -1183,6 +1193,9 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 	my $analysis;
 	if ($q->param('analysis') ne 'all') {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form')}
 	else {$analysis = 'all'}
+	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
+	my $extension = '';
+	if ($genome eq 'hg38') {$extension = '_38'}
 	my $round = $q->param('round');
 	my $content;
 	if ($round == 1) {
@@ -1191,13 +1204,13 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 	}
 	my ($total_runs, $total_samples) = (U2_modules::U2_subs_3::get_total_runs($analysis, $dbh), U2_modules::U2_subs_3::get_total_samples($analysis, $dbh));
 	my $query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) AS f FROM miseq_analysis WHERE type_analyse = '$analysis';";
-	my $query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.refseq = b.refseq AND b.\"$analysis\" = 't' AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
+	my $query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g$extension, a.start_g$extension), a.end_g$extension, a.start_g$extension FROM segment a, gene b WHERE a.refseq = b.refseq AND b.\"$analysis\" = 't' AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g$extension - a.start_g$extension)+100) AS size FROM tmp a;";
 	if ($analysis eq 'all') {
 		$query  = "SELECT AVG(fiftyx_doc) as a, AVG(duplicates) as b, AVG(insert_size_median) as c, AVG(mean_doc) as d, AVG(snp_num) as e, AVG(snp_tstv) AS f FROM miseq_analysis;";
-		$query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g, a.start_g), a.end_g, a.start_g FROM segment a, gene b WHERE a.refseq = b.refseq AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g - a.start_g)+100) AS size FROM tmp a;";
+		$query_size = "WITH tmp AS (SELECT DISTINCT(a.end_g$extension, a.start_g$extension), a.end_g$extension, a.start_g$extension FROM segment a, gene b WHERE a.refseq = b.refseq AND a.type = 'exon')\nSELECT SUM(ABS(a.end_g$extension - a.start_g$extension)+100) AS size FROM tmp a;";
 	}
 	elsif ($analysis =~ /Min?i?Seq-[32]$/o) {
-		$query_size = "WITH tmp AS (SELECT MIN(LEAST(b.start_g, b.end_g)) as min, MAX(GREATEST(b.start_g, b.end_g)) as max FROM gene a, segment b WHERE a.refseq = b.refseq AND type LIKE '%UTR' AND a.\"$analysis\" = 't' GROUP BY a.refseq, a.chr ORDER BY a.chr, min ASC)\nSELECT SUM(max - min) AS size FROM tmp";
+		$query_size = "WITH tmp AS (SELECT MIN(LEAST(b.start_g$extension, b.end_g$extension)) as min, MAX(GREATEST(b.start_g$extension, b.end_g$extension)) as max FROM gene a, segment b WHERE a.refseq = b.refseq AND type LIKE '%UTR' AND a.\"$analysis\" = 't' GROUP BY a.refseq, a.chr ORDER BY a.chr, min ASC)\nSELECT SUM(max - min) AS size FROM tmp";
 	}
 	my $res = $dbh->selectrow_hashref($query);
 
@@ -1322,8 +1335,9 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	my $filter = U2_modules::U2_subs_1::check_filter($q);
 	my $user = U2_modules::U2_users_1->new();
-  my $experiment_tag = '';
-  if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
+	my $experiment_tag = '';
+	if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
+	if ($analysis =~ /-157$/o) {$experiment_tag = '_157'}
 	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
 		my $align_file = $q->param('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
@@ -1377,24 +1391,6 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	my ($sample_field, $family_field, $run_field, $teams_field, $bed_field) = (0, 0, 0, 0, 0);
 	my $seal_id = $id.$number.'_LRM';
 	my $bed_id = $U2_modules::U2_subs_1::SEAL_BED_IDS->{$bed};
-	# while(<F>) {
-	# 	if (/"sample"/o) {$sample_field = 1}
-	# 	elsif (/"family"/o) {$family_field = 1}
-	# 	elsif (/"run"/o) {$run_field = 1}
-	# 	if (/"name":/o && $sample_field == 1) {s/"name": "",/"name": "$seal_id",/; $sample_field = 0}
-	# 	elsif (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
-	# 	elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
-	# 	elsif (/"affected":/o) {
-	# 	if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
-	# 	else {s/"affected": ,/"affected": false,/}
-	# 	}
-	# 	elsif (/"index":/o) {
-	# 	if ($proband eq 'yes') {s/"index":/"index": true/}
-	# 	else {s/"index":/"index": false/}
-	# 	}
-	# 	if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$vcf_path"/}
-	# 	$seal_ready .= $_;
-	# }
 	# new format 20221124
 	while(<F>) {
 		if (/"samplename"/o) {s/"samplename": "",/"samplename": "$seal_id",/}

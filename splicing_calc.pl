@@ -481,7 +481,7 @@ sub get_natural {
 	}
 	# UCSC is 0-based
 	$x = $x-1;
-	my @seq = `$PYTHON2 $ABSOLUTE_HTDOCS_PATH/getTwoBitSeq.py $chr $x $y`;
+	my @seq = `$PYTHON2 $ABSOLUTE_HTDOCS_PATH/getTwoBitSeq.py $chr $x $y hg19`;
 	#$client->GET("https://genome-euro.ucsc.edu/cgi-bin/hubApi/getData/sequence?genome=hg19;chrom=$chr;start=$x;end=$y");
 	#my $ucsc_response = decode_json($client->responseContent());
 	#my $intermediary_seq = uc($ucsc_response->{'dna'});

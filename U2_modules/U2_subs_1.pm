@@ -85,6 +85,9 @@ our $TITV_CE = 2.8;
 # Values to estimate contamination - NS149
 our $NB_HOMOZYGOUS_VARS_149 = 300;
 our $MEAN_AB_149 = 0.58;
+# Values to estimate contamination - NS157
+our $NB_HOMOZYGOUS_VARS_157 = 400;
+our $MEAN_AB_157 = 0.58;
 
 #threshold values for POMPS
 our $SIFT_THRESHOLD = 0.05;
@@ -462,12 +465,22 @@ sub select_filter { #insert a list of filter types in a pop up menu
 #in add_analysis.pl
 sub select_analysis {
 	my ($q, $dbh, $form) = @_;
-	my @analysis_list;
-	my $sth = $dbh->prepare("SELECT type_analyse FROM valid_type_analyse WHERE form = 't';");
+	my (@analysis_list, %analysis_labels);
+	my $sth = $dbh->prepare("SELECT type_analyse, manifest_name FROM valid_type_analyse WHERE form = 't';");
 	my $res = $sth->execute();
-	while (my $result = $sth->fetchrow_hashref()) {push @analysis_list, $result->{'type_analyse'}}
+	while (my $result = $sth->fetchrow_hashref()) {
+		push @analysis_list, $result->{'type_analyse'};
+		if ($result->{'manifest_name'} ne 'no_manifest') {
+			my $genome_version = U2_modules::U2_subs_1::get_genome_from_analysis( $result->{'type_analyse'}, $dbh) eq 'hg38' ? 'hg38' : 'hg19' ;
+			$analysis_labels{$result->{'type_analyse'}} = "$result->{'type_analyse'} - $genome_version";
+		}
+		else {
+			$analysis_labels{$result->{'type_analyse'}} = "$result->{'type_analyse'}";
+		}
+	}
 	@analysis_list = sort(@analysis_list);
-	return $q->popup_menu(-name => 'analysis', -id => 'analysis', -form => $form, -values => \@analysis_list, -onchange => 'associate_gene();', -class => 'w3-select w3-border');
+	# print STDERR Dumper(%analysis_labels);
+	return $q->popup_menu(-name => 'analysis', -id => 'analysis', -form => $form, -values => \@analysis_list, -labels => \%analysis_labels, -onchange => 'associate_gene();', -class => 'w3-select w3-border');
 }
 
 sub valid {
@@ -667,6 +680,14 @@ sub check_analysis {
 	}
 	else {&standard_error('12', $q)}
 }
+# in ajax.pl, U2_subs2
+sub get_genome_from_analysis {
+	my ($analysis, $dbh) = @_;
+	my $res =  $dbh->selectrow_hashref("SELECT manifest_name FROM valid_type_analyse WHERE type_analyse = '$analysis';");
+	if ($res->{'manifest_name'} =~ /hg38/o) {return 'hg38'}
+	else {return ''}
+}
+
 #used in add_analysis.pl, ajax.pl
 sub check_filter {
 	my ($q) = shift;
@@ -1301,12 +1322,23 @@ sub run_litvar {
 
 # Other
 
-sub get_date { #returns a date in a specific format
+sub get_date { # returns a date in a specific format
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
 	my $month = ($mon+1);
 	if ($month < 10) {$month = "0$month"}
 	if ($mday < 10) {$mday = "0$mday"}
 	return (1900+$year)."-$month-".$mday;
+}
+
+sub get_log_date {
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	my $month = ($mon+1);
+	if ($month < 10) {$month = "0$month"}
+	if ($mday < 10) {$mday = "0$mday"}
+	if ($hour < 10) {$hour = "0$hour"}
+	if ($min < 10) {$min = "0$min"}
+	if ($sec < 10) {$sec = "0$sec"}
+	return "[".(1900+$year)."/$month/$mday $hour:$min:$sec]";
 }
 
 sub get_run_date {#get date from illumina run_id (pg format)

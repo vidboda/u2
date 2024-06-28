@@ -27,7 +27,10 @@ use File::Basename;
 ## ushvam2.config MUST BE IN THE SAME DIRECTORY THAN THE CALLING FILE
 
 sub getConfFile {
-	return dirname($ENV{SCRIPT_FILENAME}).'/ushvam2.config';
+	my $current = $ENV{SCRIPT_FILENAME};
+	if ($current) {
+		return dirname($current).'/ushvam2.config';
+	}
 }
 
 ##Loads each variable
@@ -41,6 +44,7 @@ sub initConfig {
 		'HTDOCS_PATH' => {ARGCOUNT => 1},
 		'ABSOLUTE_HTDOCS_PATH' => {ARGCOUNT => 1},
 		'TMP_DIR' => {ARGCOUNT => 1},
+		'CURRENT_BED' => {ARGCOUNT => 1},
 		'DALLIANCE_DATA_DIR_URI' => {ARGCOUNT => 1},
 		'DALLIANCE_DATA_DIR_PATH' => {ARGCOUNT => 1},
 		'REF_GENE_URI' => {ARGCOUNT => 1},

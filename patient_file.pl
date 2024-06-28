@@ -411,7 +411,7 @@ if ($result) {
 #				$q->td($last_analysis), "\n",
 				$q->start_td();
 
-	#looks for other sample
+	# looks for other sample
 	my ($first_name, $last_name, $dob) = ($result->{'first_name'}, $result->{'last_name'}, $result->{'date_of_birth'});
 	# print $q->span("--$dob--");
 	$first_name =~ s/'/''/og;
@@ -429,7 +429,7 @@ if ($result) {
 			my ($ident, $number, $context) = ($sublist[0], $sublist[1], $sublist[2]);
 			$ident =~ s/['\(\)\s]//og;
 			$number =~ s/['\(\)\s]//og;
-                                                $context =~ s/['\(\)\s]//og;
+            $context =~ s/['\(\)\s]//og;
 			if ($ident ne $result->{'identifiant'} || $number != $result->{'numero'}) {
 				print $q->span('&nbsp;'), $q->a({'href' => "patient_file.pl?sample=$ident$number"}, $ident.$number), $q->span("&nbsp;-&nbsp;$context"), $q->br();
 			}
@@ -559,13 +559,14 @@ if ($result) {
 		print $q->start_li({'class' => 'w3-padding-8 w3-hover-light-grey'}), $q->strong("Analyses: "), $q->start_ul(), "\n";
 		my $analysis_count = 0;
 		while (my $result_done = $sth4->fetchrow_hashref()) {
+			my $genome_version = $result_done->{'manifest_name'} =~ /hg38/ ? 'hg38' : 'hg19';
 			my ($analysis, $id_tmp, $num_tmp, $manifest) = ($result_done->{'type_analyse'}, $result_done->{'id_pat'}, $result_done->{'num_pat'}, $result_done->{'manifest_name'});
 			my $nenufaar = 0;
 			if ($NENUFAAR_ANALYSIS =~ /$analysis/) {$nenufaar = 1}
 			if (grep(/$analysis/, @eligible) || $manifest ne 'no_manifest') {
 				my $run_id;
-        # print STDERR $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp."\n";
-				if (-d $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp || $nenufaar == 1) {
+        		# print $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp."\n";
+				if (-d $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp || $nenufaar == 1 || $result_done->{'manifest_name'} =~ /hg38/o) {
 					#reinitialize in case of changed because of MiniSeq analysis
 					$SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 					$SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
@@ -574,7 +575,7 @@ if ($result) {
 					my $width = '500';
 					my $raw_filter = '';
 					my $library = '';
-					if ($manifest eq 'no_manifest') {#454
+					if ($manifest eq 'no_manifest') { # 454
 						$width = '1250';
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).$q->a({'href' => $partial_path.'_AliInfo.txt', 'target' => '_blank'}, 'Get AliInfo file').$q->end_li().
@@ -590,23 +591,23 @@ if ($result) {
 					}
 					else {
 						#my $bam_file;
-						$analysis_count ++; #only for analysis which can be filtered
+						$analysis_count ++; # only for analysis which can be filtered
 						my $query_manifest = "SELECT * FROM miseq_analysis WHERE num_pat = '$num_tmp' AND id_pat = '$id_tmp' AND type_analyse = '$analysis';";
 						my $res_manifest = $dbh->selectrow_hashref($query_manifest);
 						$run_id = $res_manifest->{'run_id'};
 						my ($nenufaar_ana, $nenufaar_id);
 						if ($nenufaar == 1) {
-							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}");
+							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
 							if ($nenufaar_ana =~ /$CLINICAL_EXOME_ANALYSES/) {$library = $nenufaar_ana}
-							$partial_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp.final";
+							$partial_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp.final";
 						}
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-									$q->span('Run id: ').$q->a({'href' => "stats_ngs.pl?run=$res_manifest->{'run_id'}", 'target' => '_blank', 'id' => $analysis.'_run_id'}, $res_manifest->{'run_id'}).
+									$q->span('Run id: ').$q->a({'href' => "stats_ngs.pl?run=$run_id", 'target' => '_blank', 'id' => $analysis.'_run_id'}, $run_id).
 								$q->end_li();
 						if ($user->isValidator != 1) {$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Filter: $res_manifest->{'filter'}")}
 						#if ($user->getName() ne 'david') {$raw_data .= $q->li("Filter: $res_manifest->{'filter'}")}
-						elsif ($user->isValidator == 1) {#we build a form to change filter for validators
+						elsif ($user->isValidator == 1) { # we build a form to change filter for validators
 							#not ajax
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small'}).$q->start_form({'action' => 'ajax.pl', 'method' => 'post', 'id' => "run_filter_form$analysis_count", 'enctype' => &CGI::URL_ENCODED});
 							chomp($raw_data);
@@ -624,10 +625,10 @@ if ($result) {
 						}
 						#we need to get bam file name on rackstation - does not work was intended to download bam from igv
 						#connect to NAS
-						my $ssh ;
+						# my $ssh ;
 						opendir (DIR, $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR);#first attempt to wake up autofs in case of unmounted
-						my $access_method = 'autofs';
-						opendir (DIR, $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
+						# my $access_method = 'autofs';
+						# opendir (DIR, $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR) or $access_method = 'ssh';
 						#print $access_method;
 						#my $ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);
 
@@ -643,55 +644,68 @@ if ($result) {
 						my ($alignment_dir, $ftp_dir);
 						my $additional_path = '';
 						if ($instrument eq 'miseq'){
-							#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
+							#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run_id/CompletedJobInfo.xml`;
 							#old fashioned replaced with autofs 21/12/2016
-							if ($access_method eq 'autofs') {
-								$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
-								$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-								$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
-								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
-							}
-							else {
-								$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);
-								$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/CompletedJobInfo.xml");
-								$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-								$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
-								$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}/Data/Intensities/BaseCalls/$alignment_dir";
-							}
+							# if ($access_method eq 'autofs') {
+							$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/CompletedJobInfo.xml`;
+							$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
+							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
+							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
+							# }
+							# else {
+							# 	$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);
+							# 	$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run_id/CompletedJobInfo.xml");
+							# 	$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
+							# 	$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
+							# 	$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
+							# }
 						}
 						elsif($instrument eq 'miniseq'){
-							#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/CompletedJobInfo.xml`;
-							my $instrument = U2_modules::U2_subs_2::get_miniseq_id($res_manifest->{'run_id'});
-							if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$res_manifest->{'run_id'}"}
-							if ($access_method eq 'autofs') {
-								$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}$additional_path/CompletedJobInfo.xml`
+							#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run_id/CompletedJobInfo.xml`;
+							my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run_id);
+							if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run_id"}
+							# if ($access_method eq 'autofs') {
+							if ($genome_version eq 'hg19') {
+								$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id$additional_path/CompletedJobInfo.xml`;
+								# }
+								# else {
+								# 	$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run_id$additional_path/CompletedJobInfo.xml")
+								# }
+								$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
+								$alignment_dir = $1;
+								$alignment_dir =~ s/\\/\//og;
+								$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run_id$additional_path/$alignment_dir";
+								# if ($access_method eq 'autofs') {
+								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id$additional_path/$alignment_dir";
+								# }
+								# else {$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run_id$additional_path/$alignment_dir"}
 							}
 							else {
-								$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}$additional_path/CompletedJobInfo.xml")
+								# redirect $alignment_dir to MobiDL
+								$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id_tmp$num_tmp/panelCapture";
+								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id_tmp$num_tmp/panelCapture";
 							}
-							$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
-							$alignment_dir = $1;
-							$alignment_dir =~ s/\\/\//og;
-							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}$additional_path/$alignment_dir";
-							if ($access_method eq 'autofs') {$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$res_manifest->{'run_id'}$additional_path/$alignment_dir"}
-							else {$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$res_manifest->{'run_id'}$additional_path/$alignment_dir"}
 						}
 						elsif($instrument eq 'nextseq'){
-							#($ce_run_id, $ce_id, $ce_num) = ($res_manifest->{'run_id'}, $id_tmp, $num_tmp);
-							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}";
-							if ($access_method eq 'autofs') {$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}"}
-							else {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$res_manifest->{'run_id'}"}
+							#($ce_run_id, $ce_id, $ce_num) = ($run_id, $id_tmp, $num_tmp);
+							$ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
+							# if ($access_method eq 'autofs') {
+							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
+							# }
+							# else {$ssh = U2_modules::U2_subs_1::nas_connexion('-', $q);$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id"}
 						}
 						my $alignment_list;
-						if ($access_method eq 'autofs') {$alignment_list = `ls $alignment_dir`}
-						else {$alignment_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error()}
+						# if ($access_method eq 'autofs') {
+						$alignment_list = `ls $alignment_dir`;
+						# }
+						# else {$alignment_list = $ssh->capture("cd $alignment_dir && ls") or die "remote command failed: " . $ssh->error()}
 
 						my ($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.bam', 'bam', '.bai');
 						if ($nenufaar == 0) {
 							#create a hash which looks like {"illumina_run_id" => 0}
 							my %files = map {$_ => '0'} split(/\s/, $alignment_list);
 							foreach my $file_name (keys(%files)) {
-								#print $file_name.$q->br();
+								# print $file_name.$q->br();
 								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
 									($alignment_file_suffix, $alignment_ext) = ($1, $2);
 									$alignment_ext =~ s/^\.//o;
@@ -699,6 +713,16 @@ if ($result) {
 									#$bam_file = "/Data/Intensities/BaseCalls/$alignment_dir/$id_tmp$num_tmp$bam_file_suffix";
 									$alignment_file = "$alignment_dir/$id_tmp$num_tmp$alignment_file_suffix";
 									$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp$alignment_file_suffix";
+									# print STDERR "$alignment_file\n";
+									# print STDERR "$alignment_ftp\n";
+								}
+								elsif ($file_name =~ /$id_tmp$num_tmp\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
+									$alignment_ext = $1;
+									$alignment_ext =~ s/^\.//o;
+									$alignment_file = "$alignment_dir/$id_tmp$num_tmp";
+									$alignment_ftp = "$ftp_dir/$id_tmp$num_tmp";
+									# print STDERR "$alignment_file\n";
+									# print STDERR "$alignment_ftp\n";
 								}
 							}
 						}
@@ -715,7 +739,8 @@ if ($result) {
 						$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Aligned bases: $res_manifest->{'aligned_bases'}").
 								$q->li({'class' => 'w3-padding-small'}, "Ontarget bases: $res_manifest->{'ontarget_bases'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_bases'}/$res_manifest->{'aligned_bases'})*100))."%)").
 								$q->li({'class' => 'w3-padding-small'}, "Aligned reads: $res_manifest->{'aligned_reads'}");
-						if ($nenufaar == 0) {
+						# print STDERR "$genome_version\n";
+						if ($nenufaar == 0 && $genome_version eq 'hg19') {
 								$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Ontarget reads: $res_manifest->{'ontarget_reads'} (".(sprintf('%.2f', ($res_manifest->{'ontarget_reads'}/$res_manifest->{'aligned_reads'})*100))."%) ")
 						}
 						$raw_data .= 		$q->li({'class' => 'w3-padding-small'}, "Duplicate reads: $res_manifest->{'duplicates'}%").
@@ -737,35 +762,47 @@ if ($result) {
 												$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$res_manifest->{'run_id'}.'/aggregate.report.pdf', 'target' => '_blank'}, 'Get Illumina run summary').
 											$q->end_li()
 							}
-							$raw_data .=
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => $partial_path.'.coverage.tsv', 'target' => '_blank'}, 'Get coverage file').
-								$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => $partial_path.'.enrichment_summary.csv', 'target' => '_blank'}, 'Get enrichment summary file').
-								$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => $partial_path.'.gaps.tsv', 'target' => '_blank'}, 'Get gaps file').
-								$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => $partial_path.'.'.$analysis.'.bedgraph', 'target' => '_blank'}, 'Get coverage bedgraph file (use as UCSC track)').
-								$q->end_li();
+							if ($genome_version eq 'hg19') {
+								$raw_data .=
+									$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+										$q->a({'href' => $partial_path.'.coverage.tsv', 'target' => '_blank'}, 'Get coverage file').
+									$q->end_li().
+									$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+										$q->a({'href' => $partial_path.'.enrichment_summary.csv', 'target' => '_blank'}, 'Get enrichment summary file').
+									$q->end_li().
+									$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+										$q->a({'href' => $partial_path.'.gaps.tsv', 'target' => '_blank'}, 'Get gaps file').
+									$q->end_li().
+									$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+										$q->a({'href' => $partial_path.'.'.$analysis.'.bedgraph', 'target' => '_blank'}, 'Get coverage bedgraph file (use as UCSC track)').
+									$q->end_li();
+							}
 						}
-						$raw_data .= 	$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+						if ($genome_version eq 'hg19') {
+							$raw_data .= 	$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
 									$q->a({'href' => $partial_path.'.vcf', 'target' => '_blank'}, 'Get original vcf file').
 								$q->end_li().
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$partial_path.'.vcf&genome=hg19'}, 'Open VCF in IGV (on configurated computers only)').
-								$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'&genome=hg19'}, 'Open '.uc($alignment_ext).' in IGV (on configurated computers only)').
-								$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp.$alignment_ext", 'target' => '_blank'}, 'Download '.uc($alignment_ext).' file')
-								.$q->end_li().
-								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-									$q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp$alignment_suffix$alignment_index_ext", 'target' => '_blank'}, 'Download indexed '.uc($alignment_ext).' file').
+									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$partial_path.'.vcf&genome='.$genome_version}, 'Open VCF in IGV (on configurated computers only)').
 								$q->end_li();
+						}
+						else {
+							$raw_data .= 	$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp.vcf", 'target' => '_blank'}, 'Get original vcf file').
+								$q->end_li().
+								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf&genome='.$genome_version}, 'Open VCF in IGV (on configurated computers only)').
+								$q->end_li();
+						}
+						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+								$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'&genome='.$genome_version}, 'Open '.uc($alignment_ext).' in IGV (on configurated computers only)').
+							$q->end_li().
+							$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+								$q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp.$alignment_ext", 'target' => '_blank'}, 'Download '.uc($alignment_ext).' file')
+							.$q->end_li().
+							$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
+								$q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp$alignment_suffix$alignment_index_ext", 'target' => '_blank'}, 'Download indexed '.uc($alignment_ext).' file').
+							$q->end_li();
 
 						if (-e $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.'reanalysis/'.$id_tmp.$num_tmp.'.pdf') {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
@@ -817,7 +854,6 @@ if ($result) {
 									$q->end_li();
 						}
 						else {
-
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 									$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'", "'.$user.'");', 'value' => 'Launch CovReport auto'}).
 									$q->span("&nbsp;&nbsp;").
@@ -843,17 +879,11 @@ if ($result) {
 												$q->a({'href' => "ngs_poor_coverage.pl?type=$analysis&sample=$id_tmp$num_tmp&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, "Display $analysis poor coverage table").
 											$q->end_li();
 							}
-							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp.dv/CaptainAchab/achab_excel/$id_tmp$num_tmp.dv_achab_catch_newHope.xlsx") {
+							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp/CaptainAchab/achab_excel/".$id_tmp.$num_tmp."_newHope_achab.html") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp.dv/CaptainAchab/achab_excel/$id_tmp$num_tmp.dv_achab_catch_newHope.xlsx", 'target' => '_blank'}, 'Download MobiDL DV variant file (Excel)').
+												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp/CaptainAchab/achab_excel/".$id_tmp.$num_tmp."_newHope_achab.html", 'target' => '_blank'}, 'Open Achab new hope').
 											$q->end_li();
 							}
-							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp.hc/CaptainAchab/achab_excel/$id_tmp$num_tmp.hc_achab_catch_newHope.xlsx") {
-								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp.hc/CaptainAchab/achab_excel/$id_tmp$num_tmp.hc_achab_catch_newHope.xlsx", 'target' => '_blank'}, 'Download MobiDL HC variant file (Excel)').
-											$q->end_li();
-							}
-
 						}
 						elsif (-e "$panel_nenufaar_path/$res_manifest->{'run_id'}_multiqc.html") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
@@ -920,14 +950,16 @@ if ($result) {
 
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "search_controls.pl?step=3&iv=1&run=$res_manifest->{'run_id'}&sample=$id_tmp$num_tmp&analysis=$analysis", 'target' => '_blank'}, "Sample tracking: get private SNPs").$q->end_li();
 						# ajax call to send the MobiDL VCF file to SEAL
-						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
-							$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "'.$analysis.'", "'.$res_manifest->{'filter'}.'");', 'value' => 'Send2SEAL'}).$q->end_li();
-						$raw_data .= $q->end_li().$q->end_ul();
+						if ($genome_version eq 'hg19') {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
+								$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "'.$analysis.'", "'.$res_manifest->{'filter'}.'");', 'value' => 'Send2SEAL'}).$q->end_li();
+							$raw_data .= $q->end_li().$q->end_ul();
+						}
 
 						$filter = $res_manifest->{'filter'}; #in case of bug of code l190 we rebuild $filter
 						$raw_filter = $q->span({'class' => 'green'}, 'PASS');
 						my $criteria = '';
-						#@illumina_analysis code: 1 => gene panel < 152 genes; 2 clinical exome; 3 ?; 4 whole genes; 5 gene panel 152; 6 panel 158
+						#@illumina_analysis code: 1 => gene panel < 152 genes; 2 clinical exome; 3 ?; 4 whole genes; 5 gene panel 152; 6 panel 158; 7 panel 149; 8 panel 157
 						if ($nenufaar == 0) {
 							$illumina_semaph = 1;
 							if ($res_manifest->{'mean_doc'} < $U2_modules::U2_subs_1::MDOC) {$criteria .= ' (mean DOC &le; '.$U2_modules::U2_subs_1::MDOC.') '}
@@ -942,13 +974,16 @@ if ($result) {
 								if ($res_manifest->{'fiftyx_doc'} < $U2_modules::U2_subs_1::PC50X) {$criteria .= ' (50X % &le; '.$U2_modules::U2_subs_1::PC50X.') '}
 								if ($res_manifest->{'snp_tstv'} < $U2_modules::U2_subs_1::TITV) {$criteria .= ' (Ts/Tv &le; '.$U2_modules::U2_subs_1::TITV.') '}
 							}
-							#$illumina_semaph = 1;#gene panel < 152
-							my $num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS;
-							if ($analysis =~ /-152/o) {push @illumina_analysis, 5;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_152}#152 genes panel $illumina_semaph = 5;
-							elsif ($analysis =~ /-158/o) {push @illumina_analysis, 6;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_158}#152 genes panel $illumina_semaph = 6;
-							elsif ($analysis =~ /-149/o) {push @illumina_analysis, 7;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_149}#149 genes panel
-							else {push @illumina_analysis, 1}
-							if ($res_manifest->{'ontarget_reads'} < $num_ontarget_reads) {$criteria .= ' (on target reads &lt; '.$num_ontarget_reads.') '}
+							if ($genome_version eq 'hg19') {
+								#$illumina_semaph = 1;#gene panel < 152
+								my $num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS;
+								if ($analysis =~ /-152/o) {push @illumina_analysis, 5;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_152}#152 genes panel $illumina_semaph = 5;
+								elsif ($analysis =~ /-158/o) {push @illumina_analysis, 6;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_158}#152 genes panel $illumina_semaph = 6;
+								elsif ($analysis =~ /-149/o) {push @illumina_analysis, 7;$num_ontarget_reads = $U2_modules::U2_subs_1::NUM_ONTARGET_READS_149}#149 genes panel
+								else {push @illumina_analysis, 1}
+								if ($res_manifest->{'ontarget_reads'} < $num_ontarget_reads) {$criteria .= ' (on target reads &lt; '.$num_ontarget_reads.') '}
+							}
+							else {push @illumina_analysis, 8}
 
 						}
 						else {
@@ -1005,37 +1040,45 @@ if ($result) {
 						my $query_robot = "SELECT robot FROM illumina_run WHERE id = '$run_id';";
 						my $res_robot = $dbh->selectrow_hashref($query_robot);
 						if ($res_robot->{'robot'} == 1) {print $q->span({'class' => 'blue'}, '&nbsp;&nbsp;&nbsp;&nbsp;ROBOT')}
-            # contaminations
-            my $homo_thresh = my $mean_ab_thresh = my $watchdog_homo = my $watchdog_mab = 0;
-            if ($analysis =~ /-149/o)  {
-              $homo_thresh = $U2_modules::U2_subs_1::NB_HOMOZYGOUS_VARS_149;
-              $mean_ab_thresh = $U2_modules::U2_subs_1::MEAN_AB_149;
-            }
-            if ($homo_thresh > 0 && $mean_ab_thresh > 0) {
-              my $query_homo = "SELECT COUNT(nom_c) AS homoz FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis' AND frequency > 0.8;"; # statut = 'homozygous'
-              my $res_homo = $dbh->selectrow_hashref($query_homo);
-            #   print STDERR $res_homo->{'homoz'}."\n";
-              # print STDERR $list."\n";
-              if ($res_homo->{'homoz'} < $homo_thresh) {$watchdog_homo = 1}
-              # 2nd step
-              my $query_avg_freq = "SELECT AVG(frequency) as freq FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis';";
-              my $res_avg_freq = $dbh->selectrow_hashref($query_avg_freq);
-            #   print STDERR $res_avg_freq->{'freq'}."\n";
-              if ($res_avg_freq->{'freq'} < $mean_ab_thresh) {$watchdog_mab = 1}
-              if ($watchdog_homo == 0 && $watchdog_mab == 0) {
-                print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION WATCHDOG OK');
-              }
-              elsif ($watchdog_homo == 1 && $watchdog_mab == 0) {
-                print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') NOT REACHED');
-              }
-              elsif ($watchdog_mab == 1 && $watchdog_homo == 0) {
-                print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR MEAN AB '.sprintf('%.2f',$res_avg_freq->{'freq'}).' < '.sprintf('%.2f', $mean_ab_thresh).') NOT REACHED');
-              }
-              else {
-                # CONTAMINATION ALERT
-                print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') AND MEAN AB ('.sprintf('%.2f', $res_avg_freq->{'freq'}).' < '.$mean_ab_thresh.') NOT REACHED');
-              }
-            }
+						# contaminations
+						my $homo_thresh = my $mean_ab_thresh = my $watchdog_homo = my $watchdog_mab = 0;
+						if ($analysis =~ /-149/o)  {
+							$homo_thresh = $U2_modules::U2_subs_1::NB_HOMOZYGOUS_VARS_149;
+							$mean_ab_thresh = $U2_modules::U2_subs_1::MEAN_AB_149;
+						}
+						elsif ($analysis =~ /-157/o)  {
+							$homo_thresh = $U2_modules::U2_subs_1::NB_HOMOZYGOUS_VARS_157;
+							$mean_ab_thresh = $U2_modules::U2_subs_1::MEAN_AB_157;
+						}
+						if ($homo_thresh > 0 && $mean_ab_thresh > 0) {
+							my $query_homo = "SELECT COUNT(nom_c) AS homoz FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis' AND frequency > 0.8;"; # statut = 'homozygous'
+							my $res_homo = $dbh->selectrow_hashref($query_homo);
+							#   print STDERR $res_homo->{'homoz'}."\n";
+							# print STDERR $list."\n";
+							if ($res_homo->{'homoz'} < $homo_thresh) {$watchdog_homo = 1}
+							# 2nd step
+							my $query_avg_freq = "SELECT AVG(frequency) as freq FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis';";
+							my $res_avg_freq = $dbh->selectrow_hashref($query_avg_freq);
+							#   print STDERR $res_avg_freq->{'freq'}."\n";
+							if ($res_avg_freq->{'freq'} < $mean_ab_thresh) {$watchdog_mab = 1}
+							if ($watchdog_homo == 0 && $watchdog_mab == 0) {
+								print $q->span({'class' => 'green'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION WATCHDOG OK');
+							}
+							# TEMP WARNING
+							if ($genome_version eq 'hg38') {
+								print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp; CONTAMINATION THRESHOLDS FOR MiniSeq-157 MAY EVOLVE');
+							}
+							if ($watchdog_homo == 1 && $watchdog_mab == 0) {
+								print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') NOT REACHED');
+							}
+							elsif ($watchdog_mab == 1 && $watchdog_homo == 0) {
+								print $q->span({'class' => 'orange'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR MEAN AB '.sprintf('%.2f',$res_avg_freq->{'freq'}).' < '.sprintf('%.2f', $mean_ab_thresh).') NOT REACHED');
+							}
+							elsif ($watchdog_mab == 1 && $watchdog_homo == 1) {
+								# CONTAMINATION ALERT
+								print $q->span({'class' => 'red'}, '&nbsp;&nbsp;&nbsp;&nbsp;CONTAMINATION THRESHOLDS FOR NUMBER OF HOMOZYGOUS VARIANTS '.$res_homo->{'homoz'}.' < '.$homo_thresh.') AND MEAN AB ('.sprintf('%.2f', $res_avg_freq->{'freq'}).' < '.$mean_ab_thresh.') NOT REACHED');
+							}
+						}
 					}
 					print  $q->end_li(), "\n";#$q->span('&nbsp;&nbsp;,&nbsp;&nbsp;');
 				}
@@ -1065,7 +1108,8 @@ if ($result) {
 				if ($ngs != 2) {
 					my $gene_tag = '158';
 					if ($ngs == 5) {$gene_tag = '152'}
-          elsif ($ngs == 7) {$gene_tag = '149'}
+          			elsif ($ngs == 7) {$gene_tag = '149'}
+					elsif ($ngs == 8) {$gene_tag = '157'}
 					elsif ($ngs == 4) {$gene_tag = 'whole genes'}
 					elsif ($ngs == 1) {$gene_tag = '<= 132'}
 					print $q->span("*Gene panel $gene_tag raw data must fulfill the following criteria to pass:"), "\n",
@@ -1088,11 +1132,11 @@ if ($result) {
 						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_158), "\n",
 					$q->end_ul();
 					}
-          elsif ($ngs == 7) {
+          			elsif ($ngs == 7) {
 						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS_149), "\n",
 					$q->end_ul();
 					}
-					else {
+					elsif ($ngs != 8) {# 8 is MiniSeq-157 hg38
 						print	$q->li('and the number of on target reads is &gt; '.$U2_modules::U2_subs_1::NUM_ONTARGET_READS), "\n",
 					$q->end_ul();
 					}

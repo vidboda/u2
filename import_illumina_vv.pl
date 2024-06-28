@@ -184,7 +184,7 @@ if ($step && $step == 2) {
 			$alignment_dir = $1;
 			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 			# check genome version
-			$genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
+			# $genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
 		}
 		else {
 			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
@@ -192,15 +192,16 @@ if ($step && $step == 2) {
 			$alignment_dir = $1;
 			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 			# check genome version
-			$genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
+			# $genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
 		}
 	}
 	elsif ($instrument eq 'miniseq') {
 		$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 		#$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		#old fashioned replaced with autofs 21/12/2016
-		my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
-		if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
+		# not needed anymore since LRMv4?
+		# my $miniseq = U2_modules::U2_subs_2::get_miniseq_id($run);					
+		# if ($miniseq eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 		if ($access_method eq 'autofs') {
 			$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
 			#print "1-$alignment_dir<br/>";
@@ -209,7 +210,7 @@ if ($step && $step == 2) {
 			$alignment_dir =~ s/\\/\//og;
 			$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir";
 			# check genome version
-			$genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
+			# $genome_version = `grep -Eo "hg38" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml | head -1`;
 		}
 		else {
 			$alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $SSH_RACKSTATION_BASE_DIR/$run$additional_path/CompletedJobInfo.xml");
@@ -218,15 +219,15 @@ if ($step && $step == 2) {
 			$alignment_dir =~ s/\\/\//og;
 			$alignment_dir = "$SSH_RACKSTATION_BASE_DIR/$run$additional_path/$alignment_dir";
 			# check genome version
-			$genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
+			# $genome_version = $ssh->capture("grep -Eo \"hg38\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml | head -1");
 		}
 	}
 	my $report = 'aggregate.report.pdf';
-	if ($genome_version eq 'hg38') {
-		print STDERR "genome0.5: $VVGENOME\n";
-		($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');
-		$VVGENOME='GRCh38'
-	}
+	# if ($genome_version == 'hg38') {
+	# 	($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');
+	# 	$VVGENOME='GRCh38'
+	# }
+
 	#print "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";exit;
 	mkdir "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/$run";
 
@@ -259,7 +260,7 @@ if ($step && $step == 2) {
 		my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
 		# $sample_end = $sampleid;
 		my $insert;
-    # print $q->li("Initiating $id$number...");
+    	# print $q->li("Initiating $id$number...");
 		print STDERR "\nInitiating $id$number with transfer method: $access_method";
 		#loop 28-112-121 genes
 		$query = "SELECT refseq FROM gene WHERE \"$analysis\" = 't' ORDER BY gene_symbol;";
@@ -269,7 +270,7 @@ if ($step && $step == 2) {
 		while (my $result = $sth->fetchrow_hashref()) {
 			$insert .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '$result->{'refseq'}', '$analysis', '$date', '".$user->getName()."','t');";
 		}
-    # print STDERR "$insert\n";
+    	# print STDERR "$insert\n";
 		#######UNCOMMENT WHEN DONE!!!!!!!
 		$dbh->do($insert);
 
@@ -486,7 +487,7 @@ if ($step && $step == 2) {
 				if  ($var_chr =~ /^chr($U2_modules::U2_subs_1::CHR_REGEXP)$/o) {$var_chr = $1}
 				if ($var_alt =~ /^([ATCG]+),/) {$var_alt = $1}
 				# check if variant not reported in special table no to assess these variants each time
-				my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+				my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt' and type_analyse = '$analysis';";
 				my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
 				if ($res_variants_no_insert) {
 					$message .= "$id$number: WARNING ".$res_variants_no_insert->{'reason'}." for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
@@ -540,7 +541,7 @@ if ($step && $step == 2) {
 				if ($res_gs) {$known_bad_variant = 1;$genomic_var = $res_gs->{'u2_name'}}
 
 				# my $insert = &U2_modules::U2_subs_3::direct_submission($genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
-       			my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $number, $id, $analysis, $dbh);
+       			my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $genome_version, $number, $id, $analysis, $dbh);
 				# print STDERR "Direct submission 1: $genomic_var\n";
        			if ($nom_c_i ne '') {
 					# if ($insert ne '') {
@@ -577,7 +578,7 @@ if ($step && $step == 2) {
 				if ($genomic_var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP:g\..+\d+)([ATGC])>([ATCG])/o) {
 					my $inv_genomic_var = $1.$3.">".$2;
 					# print STDERR "Inv genomic var (inside inv): $inv_genomic_var\n";
-					my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $number, $id, $analysis, $dbh);
+					my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $genome_version, $number, $id, $analysis, $dbh);
 					# $insert = U2_modules::U2_subs_3::direct_submission($inv_genomic_var, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "Direct submission 2: $inv_genomic_var\n";
 					if ($nom_c_i ne '') {
@@ -631,8 +632,7 @@ if ($step && $step == 2) {
 					my ($hashvar, $tmp_message);
 					my ($vvkey, $nm_list, $tag) = ('', '', '');
 					# print STDERR "Run VV results\n";
-					# print STDERR "vv_results2: $vv_results\n";
-					($tmp_message, $insert, $hashvar, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					($tmp_message, $insert, $hashvar, $nm_list, $tag) = &run_vv_results($vv_results, $genome_version, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "End Run VV results\n";
 					if ($tmp_message ne '') {$message .= $tmp_message;next VCF}
 					elsif ($insert ne '') {
@@ -681,8 +681,7 @@ if ($step && $step == 2) {
 							}
 							#get new cdna
 							my ($tmp_message, $hashvar_tmp);
-							# print STDERR "vv_results3: $vv_results\n";
-							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf,$var_filter, $dbh);
+							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $genome_version, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf,$var_filter, $dbh);
 							if ($tmp_message ne '') {$message .= $tmp_message;next VCF}#should not happen
 							elsif ($insert ne '') {#should not happen
 								$dbh->do($insert);
@@ -768,10 +767,11 @@ if ($step && $step == 2) {
 						else {
 							#ERROR
 							# special table no to assess these variants each time
-							my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
+							my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt' AND type_analyse = '$analysis';";
+							# print STDERR "$query_variants_no_insert\n";
 							my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
 							if (!$res_variants_no_insert) {
-								my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found');";
+								my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'no_suitable_nm_found', '$genome_version', '$analysis');";
 								$dbh->do($insert_variants_no_insert);
 							}
 							$message .= "$id$number: ERROR: Impossible to run VariantValidator (no suitable NM found) for variant $var_chr-$var_pos-$var_ref-$var_alt-$candidate\n";
@@ -869,7 +869,7 @@ sub get_start_end_pos {
 }
 
 sub run_vv_results {
-	my ($vv_results_to_treat, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
+	my ($vv_results_to_treat, $genome_version, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh) = @_;
 	#expected return ($tmp_message, $insert, $hashvar, $nm_list, $tag)
 	my ($hashvar, $nm_list, $tag);
 	($nm_list, $tag) = ('', '');
@@ -877,14 +877,14 @@ sub run_vv_results {
 	foreach my $var (keys %{$vv_results_to_treat}) {
 		#my ($nm, $cdna) = split(/:/, $var)[0], split(/:/, $var)[1]);
 		if ($var eq 'flag' && $vv_results_to_treat->{$var} eq 'intergenic') {
-      # special table no to assess these variants each time
-      my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE VCFstr = '$var_chr-$var_pos-$var_ref-$var_alt';";
-      my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
-      if (!$res_variants_no_insert) {
-        my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant');";
-        $dbh->do($insert_variants_no_insert);
-      }
-      return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
+		# special table no to assess these variants each time
+		my $query_variants_no_insert = "SELECT reason FROM variants_no_insert WHERE genome_version = '$genome_version' AND vcfstr = '$var_chr-$var_pos-$var_ref-$var_alt' AND type_analyse = '$analysis';";
+		my $res_variants_no_insert = $dbh->selectrow_hashref($query_variants_no_insert);
+		if (!$res_variants_no_insert) {
+			my $insert_variants_no_insert = "INSERT INTO variants_no_insert VALUES ('$var_chr-$var_pos-$var_ref-$var_alt', 'intergenic_variant', '$genome_version', '$analysis');";
+			$dbh->do($insert_variants_no_insert);
+		}
+		return "$id$number: WARNING: Intergenic variant: $var_chr-$var_pos-$var_ref-$var_alt\n";
     }
 		my ($nm, $acc_ver) = ((split(/[:\.]/, $var))[0], (split(/[:\.]/, $var))[1]);
 		#print STDERR $nm."\n";
@@ -898,7 +898,7 @@ sub run_vv_results {
 			$nm_list .= " '$nm',";
 			#get genomic hgvs and check direct submission again
 			my $tmp_nom_g = '';
-			my @full_nom_g_19 = split(/:/, $vv_results_to_treat->{$var}->{'primary_assembly_loci'}->{'hg19'}->{'hgvs_genomic_description'});
+			my @full_nom_g_19 = split(/:/, $vv_results_to_treat->{$var}->{'primary_assembly_loci'}->{$genome_version}->{'hgvs_genomic_description'});
 			if ($full_nom_g_19[0] =~ /NC_0+([^0]{1,2}0?)\.\d{1,2}$/o) {
 				#print STDERR $full_nom_g_19[0]."\n";
 				my $chr = $1;
@@ -908,7 +908,7 @@ sub run_vv_results {
 			}
 			if ($tmp_nom_g ne '') {
 				# print STDERR $tmp_nom_g."-\n";
-				my $insert = U2_modules::U2_subs_3::direct_submission($tmp_nom_g, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+				my $insert = U2_modules::U2_subs_3::direct_submission($tmp_nom_g, $genome_version, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
         # my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($tmp_nom_g, $number, $id, $analysis, $dbh);
 				# print STDERR "Direct submission3: $insert";
 				# if ($insert ne '') {return ('', $insert)}
@@ -941,7 +941,7 @@ sub run_vv_results {
 				my $res_last = $dbh->selectrow_hashref($last_query);
 				if ($res_last->{'nom_g'}) {
 					# print STDERR $res_last->{'nom_g'}."\n";
-					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					my $insert = U2_modules::U2_subs_3::direct_submission($res_last->{'nom_g'}, $genome_version, $number, $id, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "Direct submission4 $insert";
 					# if ($insert ne '') {return ('', $insert)}
 					if ($insert ne '') {
