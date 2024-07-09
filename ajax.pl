@@ -1347,7 +1347,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
 			# print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
-      print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
+      		print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
 			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\n".$HOME_IP."ushvam2/DS_data/covreport/$id$number/$id$number-$analysis-".$filter."_coverage.pdf\n");
 			# attempt to trigger autoFS
 			open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
@@ -1355,7 +1355,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 			close HANDLE;
 			mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
 			copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
-      unlink $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf";
+      		unlink $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf";
 		}
 		else {
 			U2_modules::U2_subs_2::send_general_mail($user, "CovReport failed for $id$number-$analysis-$filter\n\n", "Hi ".$user->getName().",\nUnfortunately, your CovReport generation failed. You can forward this message to David for debugging.\n");

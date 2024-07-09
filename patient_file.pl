@@ -223,11 +223,11 @@ my $js = "
 		}
 		//\$(\'.ui-dialog\').zIndex(\'1002\');
 	}
-	function launchCovReport(sample, analysis, align_file, filter, html_tag, user) {
+	function launchCovReport(sample, analysis, align_file, filter, html_tag) {
 		\$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
-			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, user: user, asked: 'covreport'},
+			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, asked: 'covreport'},
 			beforeSend: function() {
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
 				\$(\".w3-button\").css(\"cursor\", \"progress\");
@@ -855,7 +855,7 @@ if ($result) {
 						}
 						else {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
-									$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'", "'.$user.'");', 'value' => 'Launch CovReport auto'}).
+									$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'launchCovReport("'.$id_tmp.$num_tmp.'", "'.$analysis.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'", "'.$res_manifest->{'filter'}.'", "covreport_link'.$analysis.'");', 'value' => 'Launch CovReport auto'}).
 									$q->span("&nbsp;&nbsp;").
 									$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$alignment_ftp.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
 								$q->end_li();
@@ -1269,7 +1269,7 @@ if ($result) {
 
 	my ($list);
 
-	my $query2 = "SELECT DISTINCT(c.gene_symbol), c.second_name, c.diag, a.num_pat, a.id_pat FROM analyse_moleculaire a, patient b, gene c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = c.refseq AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.technical_valid = 't' AND c.main = 't' ORDER BY c.gene_symbol;";
+	my $query2 = "SELECT DISTINCT(c.gene_symbol), c.second_name, c.diag, a.num_pat, a.id_pat FROM analyse_moleculaire a, patient b, gene c WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = c.refseq AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.technical_valid = 't' AND main = 't' ORDER BY c.gene_symbol;";
 	my $sth2 = $dbh->prepare($query2);
 	my $res2 = $sth2->execute();
 	if ($res2 ne '0E0') {
