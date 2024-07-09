@@ -361,8 +361,8 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 		my $gnomad_text = '*In gnomAD, the previous pLi, pRec and pNull scores have been replaced by the more accurate observed/expected scores.<br/> Synonymous variants, nsSNVs (missense) and Loss of functions variants are reported for each gene, and compared with the expected numbers based on size and compositon of the gene. A Confidence Interval is given to better appreciate the value and if needed a threshold is defined: a class of variants is considered under constraint if the upper bound of the CI is &lt; 0.35. See "Gene constraint" explanations in gnomAD browser for more details (e.g. <a href="https://gnomad.broadinstitute.org/gene/ENSG00000042781" target="_blank" title="go to USH2A gene page and click the question mark near Gene Constraint">here</a>).';
 		print U2_modules::U2_subs_2::info_panel($gnomad_text, $q);
 		print $q->start_div({'id' => 'created_variant'}), $q->end_div(), "\n";
-
-
+		# for C8orf37
+		my $igv_gene = $gene eq 'CFAP418' ? 'C8orf37' : $gene;
 		my $igv_script = '
 		// function load_igv() {
 		// https://www.delftstack.com/howto/javascript/javascript-wait-for-function-to-finish/
@@ -373,7 +373,7 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					showNavigation: true,
 					showRuler: true,
 					genome: genome,
-					locus: "'.$gene.'",
+					locus: "'.$igv_gene.'",
 					reference: {
 						id: genome,
 						name: \'Human (\' + genome + \')\',
