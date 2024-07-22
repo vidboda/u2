@@ -167,10 +167,11 @@ if ($step && $step == 2) {
 	###< AnalysisFolder>D:\Illumina\MiniSeq Sequencing Temp\160620_MN00265_0001_A000H02LJN\Alignment_8\20160621_155804</AnalysisFolder>
 	### get alignemnt with _ AND subdir with date
 	# MINISEQ change get instrument type
-	my ($instrument, $instrument_path, $alignment_dir) = ('miseq', 'MiSeqDx/USHER', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
+	# my ($instrument, $instrument_path, $alignment_dir) = ('miseq', 'MiSeqDx/USHER', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
+	my ($instrument, $alignment_dir) = ('miseq', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
 	if ($analysis =~ /MiniSeq-\d+/o) {
 		$instrument = 'miniseq';
-		$instrument_path='MiniSeq';
+		# $instrument_path='MiniSeq';
 		$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;
 		$alignment_dir = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL";
 	}

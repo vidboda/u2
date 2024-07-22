@@ -75,6 +75,12 @@ my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
 $SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
 $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
+# NAS_CHU
+my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
+my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+my $SSH_RAW_DATA_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.$NAS_CHU_MISEQ_BASE_DIR;
+my $SSH_RAW_DATA_MINISEQ_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.$NAS_CHU_MINISEQ_BASE_DIR;
 # end
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'jquery.alerts.css');
@@ -380,17 +386,25 @@ if ($user->isAnalyst() == 1) {
 			# go to step 4
 
 			# MINISEQ change get instrument type
-			my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
-			if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
+			# my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
+			my $instrument = 'miseq';
+			# if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
+			if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$SSH_RAW_DATA_BASE_DIR = $SSH_RAW_DATA_MINISEQ_BASE_DIR;$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
 			# but first get manifets name for validation purpose
 			my ($manifest, $filtered) = U2_modules::U2_subs_2::get_filtering_and_manifest($analysis, $dbh);
 			my $ssh;
 
+			# print STDERR "$SSH_RAW_DATA_BASE_DIR\n";
+
 			# we're in!!!
 			my $run_list;
-			opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or die $!;
+			# opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or die $!;
+			# while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
+			# closedir(DIR);
+			opendir (DIR, $SSH_RAW_DATA_BASE_DIR) or die $!;
 			while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
 			closedir(DIR);
+			# print STDERR "$run_list\n";
 
 			# create a hash which looks like {"illumina_run_id" => 0}
 			my %runs = map {$_ => '0'} split(/\s/, $run_list);
@@ -414,26 +428,35 @@ if ($user->isAnalyst() == 1) {
 				my $alignment_dir = '';
 				my $additional_path = '';
 				if ($instrument eq 'miseq'){
-					if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {
-						$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
+					if (-f "$SSH_RAW_DATA_BASE_DIR/$run/CompletedJobInfo.xml") {
+					# if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {
+						$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RAW_DATA_BASE_DIR/$run/CompletedJobInfo.xml`;
+						# $alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
 						$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
-						$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+						$alignment_dir = "$SSH_RAW_DATA_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
+						# $alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 					}
 					else {next}
 				}
 				elsif($instrument eq 'miniseq'){
+					# print STDERR "$run\n";
+					# print STDERR "$SSH_RAW_DATA_BASE_DIR$run$additional_path/CompletedJobInfo.xml\n";
 					# depending on instrument, alignment_dir will vary
 					# MN_00265 => $run/$alignment_dir
 					# MN01379 => $run/$run/$alignment_dir
 					# not needed anymore since LRMv4?
 					# my $miniseq = U2_modules::U2_subs_2::get_miniseq_id($run);					
 					# if ($miniseq eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
-					if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml") {
-						$alignment_dir = `grep -Eo "A(lignment|nalysis)Folder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
+					if (-f "$SSH_RAW_DATA_BASE_DIR$run$additional_path/CompletedJobInfo.xml") {
+					# if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml") {
+						$alignment_dir = `grep -Eo "A(lignment|nalysis)Folder>.+\\Alignment_?[0-9]*.+<" $SSH_RAW_DATA_BASE_DIR$run$additional_path/CompletedJobInfo.xml`;
+						# $alignment_dir = `grep -Eo "A(lignment|nalysis)Folder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
 						$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 						$alignment_dir = $1;
 						$alignment_dir =~ s/\\/\//og;
-						$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir"
+						# $alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir"
+						$alignment_dir = "$SSH_RAW_DATA_BASE_DIR$run$additional_path/$alignment_dir";
+						# print STDERR "$alignment_dir;\n";
 					}
 					else {next}
 				}
@@ -441,7 +464,7 @@ if ($user->isAnalyst() == 1) {
 				if ($instrument eq 'miniseq') {
 					# DNA Enrichment workflow
 					# 2024 check to CopyComplete.txt
-					($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
+					($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RAW_DATA_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
                 }
 				# unknown in U2
 				my $genome_version = `grep -o 'hg38' $samplesheet | head -1`;
@@ -464,8 +487,11 @@ if ($user->isAnalyst() == 1) {
 					my $test_file = '';
 					# if ($instrument eq 'miniseq' && -f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CopyComplete.txt") {$test_file = 'ok'}
 					if ($instrument eq 'miniseq' && -f "$location") {$test_file = 'ok'}
-					elsif (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
-							$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`
+					# elsif (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
+					# 		$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`
+					# }
+					elsif (-f "$SSH_RAW_DATA_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
+							$test_file = `grep -e '$sentence' $SSH_RAW_DATA_BASE_DIR/$run$additional_path/AnalysisLog.txt`
 					}
                     if ($test_file ne '') {
 
@@ -535,7 +561,8 @@ if ($user->isAnalyst() == 1) {
 							# reads_pf  | float             | default NULL::float	reads PF (M)	ALTER TABLE illumina_run ADD reads_pf float DEFAULT NULL;
 							# check mutliqc json to find these values
 							# make a sub to parse multiqc json, as it will be useful for sample import
-							my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
+							# my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
+							my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
 
 							if (ref $interop_metrics eq ref {} && $interop_metrics->{'Density'} ne '') {
 								$insert = "INSERT INTO illumina_run (id, complete, cluster_density, cluster_pf, q30pc, reads, reads_pf) VALUES ('$run', 'f', $interop_metrics->{'Density'}, $interop_metrics->{'Cluster PF'}, $interop_metrics->{'%>=Q30'}, $interop_metrics->{'Reads'}, $interop_metrics->{'Reads PF'});";
