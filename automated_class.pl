@@ -167,7 +167,7 @@ if ($user->isValidator() == 1) {
 		$res = $sth->execute();
 		if ($res ne '0E0') {
 			while (my $result = $sth->fetchrow_hashref()) {
-				&update($result->{'var'}, $result->{'gene'}[0], $result->{'gene'}[1], 'pathogenic');$i++;$j++;
+				&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'pathogenic');$i++;$j++;
 				&update_type_arn($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'});
 			}
 		}
@@ -183,7 +183,8 @@ if ($user->isValidator() == 1) {
 		}
 
 		#classify VUCS Class F Exac < 0,5% and present 7 times in probands
-		$query = "SELECT a.nom as var, d.gene_symbol, d.refseq, a.nom_g, a.type_adn FROM variant a, variant2patient b, patient c, gene d WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = d.refseq AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND a.taille < '20' AND a.classe = 'unknown' AND c.proband = 't' GROUP BY a.nom, d.gene_symbol HAVING COUNT(nom_c) > 7 ORDER BY a.nom;";
+		# $query = "SELECT a.nom as var, d.gene_symbol, d.refseq, a.nom_g, a.type_adn FROM variant a, variant2patient b, patient c, gene d WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = d.refseq AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND a.taille < '20' AND a.classe = 'unknown' AND c.proband = 't' GROUP BY a.nom, d.gene_symbol HAVING COUNT(nom_c) > 7 ORDER BY a.nom;";
+		$query = "SELECT a.nom as var, d.gene_symbol, d.refseq, a.nom_g, a.type_adn FROM variant a, variant2patient b, patient c, gene d WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = d.refseq AND b.num_pat = c.numero AND b.id_pat = c.identifiant AND a.taille < '20' AND a.classe = 'unknown' AND c.proband = 't' GROUP BY a.nom, d.refseq, a.nom_g, a.type_adn HAVING COUNT(nom_c) > 7 ORDER BY a.nom;";
 		$sth = $dbh->prepare($query);
 		$res = $sth->execute();
 		my ($p, $r) = (0, 0);
@@ -225,38 +226,38 @@ if ($user->isValidator() == 1) {
 					}
 
 				}
-				else {#indels => VEP
-					my $tempfile = File::Temp->new(UNLINK => 1);
-					if ($result->{'nom_g'} =~ /chr(.+)$/o) {
-						print $tempfile "$1\n";
-					}
-					else {print "pb with variant $result->{'nom_g'} with VEP"}
-					if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
-						delete $ENV{PATH};
-						my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --port 3337 --cache --compress "gunzip -c" --gmaf --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`); ###VEP81;
-						if ($result->{'gene'}[1] =~ /(N[MR]_\d+)/o) {
-							my @good_line = grep(/$1/, @results);
-							my $not_good_alt = 0;
-							if ($good_line[0] =~ /GMAF=([ATCG-]+):([\d\.]+);*/o) {#1000g
-								my ($nuc, $score) = ($1, $2);
-								if ($nuc eq '-') {
-									if ($score > $af_cutoff) {
-										&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'VUCS Class F');$j++;$p++;
-									}
-									else {&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'VUCS Class U');$j++;$r++;}
-								}
-								else {$not_good_alt = 1}
-							}
-							elsif ($good_line[0] =~ /ExAC_AF=([\d\.e-]+);*/o && $not_good_alt == 0) {
-								if ($1 > $af_cutoff) {
-									&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'VUCS Class F');$j++;$p++;
-								}
-								else {&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'VUCS Class U');$j++;$r++;}
-							}
-						}
-					}
-					else {print "pb with vtemp file for VEP"}
-				}
+				# else {#indels => VEP
+				# 	my $tempfile = File::Temp->new(UNLINK => 1);
+				# 	if ($result->{'nom_g'} =~ /chr(.+)$/o) {
+				# 		print $tempfile "$1\n";
+				# 	}
+				# 	else {print "pb with variant $result->{'nom_g'} with VEP"}
+				# 	if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
+				# 		delete $ENV{PATH};
+				# 		my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --port 3337 --cache --compress "gunzip -c" --gmaf --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`); ###VEP81;
+				# 		if ($result->{'gene'}[1] =~ /(N[MR]_\d+)/o) {
+				# 			my @good_line = grep(/$1/, @results);
+				# 			my $not_good_alt = 0;
+				# 			if ($good_line[0] =~ /GMAF=([ATCG-]+):([\d\.]+);*/o) {#1000g
+				# 				my ($nuc, $score) = ($1, $2);
+				# 				if ($nuc eq '-') {
+				# 					if ($score > $af_cutoff) {
+				# 						&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'VUCS Class F');$j++;$p++;
+				# 					}
+				# 					else {&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'VUCS Class U');$j++;$r++;}
+				# 				}
+				# 				else {$not_good_alt = 1}
+				# 			}
+				# 			elsif ($good_line[0] =~ /ExAC_AF=([\d\.e-]+);*/o && $not_good_alt == 0) {
+				# 				if ($1 > $af_cutoff) {
+				# 					&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'VUCS Class F');$j++;$p++;
+				# 				}
+				# 				else {&update($result->{'var'}, $result->{'gene_symbol'}, $result->{'refseq'}, 'VUCS Class U');$j++;$r++;}
+				# 			}
+				# 		}
+				# 	}
+				# 	else {print "pb with vtemp file for VEP"}
+				# }
 			}
 		}
 
