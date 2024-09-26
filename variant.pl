@@ -185,7 +185,8 @@ my $USMA = {
 
 if ($res->{'type_prot'} eq 'missense' && exists($USMA->{$usma_gene})) {
 	#print $q->start_li(),
-	print $q->a({'href' => "https://neuro-2.iurc.montp.inserm.fr/cgi-bin/USMA/USMA.fcgi?gene=$usma_gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'USMA'), "\n";
+	# print $q->a({'href' => "https://neuro-2.iurc.montp.inserm.fr/cgi-bin/USMA/USMA.fcgi?gene=$usma_gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'USMA'), "\n";
+	print $q->a({'href' => "https://usma.chu-montpellier.fr/cgi-bin/USMA/USMA.fcgi?gene=$usma_gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'USMA'), "\n";
 }
 elsif ($res->{'type_prot'} eq 'missense' && $gene eq 'CFTR') {
 	print $q->a({'href' => "https://cftr.iurc.montp.inserm.fr/cgi-bin/cysma/cysma.cgi?gene=$gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'CYSMA'), "\n";

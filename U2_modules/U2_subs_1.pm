@@ -569,6 +569,13 @@ sub check_gene { #checks gene param
 	else {&standard_error('4', $q)}
 }
 
+sub check_genome {
+	my ($q) = shift;
+	if ($q->param('genome') =~ /(hg[13][98])/o) {
+		return $1;
+	}
+}
+
 sub create_image_file_name {
 	my ($gene, $ng) = @_;
 	if ($ng =~ /g\.(\d+).*(_\d+).*(del|dup|ins).*/o) {
@@ -1410,8 +1417,8 @@ sub nas_connexion {
 
 # in ajax.pl
 sub seal_connexion {
-	my ($link, $q) = @_;
-	my $SEAL_IP = $config->SEAL_IP();
+	my ($link, $ssh_ip, $q) = @_;
+	# my $SEAL_IP = $config->SEAL_IP();
 	my $SEAL_USER = $config->SEAL_USER();
 	my $SEAL_PASSWORD = $config->SEAL_PASSWORD();
 	# print STDERR "$SEAL_USER:$SEAL_PASSWORD\@$SEAL_IP\n";
@@ -1424,7 +1431,7 @@ sub seal_connexion {
 	# $ENV{PATH} = '/dev/null';
 	open my $def, '<', '/dev/null' or die "unable to open /dev/null";
 	my $ctl_dir = tempdir(CLEANUP => 1, TMPDIR => 1) or die $!;
-	my $ssh = Net::OpenSSH->new("$SEAL_USER:$SEAL_PASSWORD\@$SEAL_IP", default_stdin_fh => $def,default_stdout_fh => $def, ctl_dir => $ctl_dir);
+	my $ssh = Net::OpenSSH->new("$SEAL_USER:$SEAL_PASSWORD\@$ssh_ip", default_stdin_fh => $def,default_stdout_fh => $def, ctl_dir => $ctl_dir);
 	$ssh->error() and die "$link Can't ssh to SEAL: " . $ssh->error() . $q->br() . "If you see this page, please contact youradmin and keep the error message.";
 	return $ssh;
 }

@@ -66,6 +66,7 @@ my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
 my $SEAL_URL = $config->SEAL_URL();
+my $SEAL_HG38_URL = $config->SEAL_HG38_URL();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'jquery-ui-1.12.1.min.css');
 
@@ -242,11 +243,11 @@ my $js = "
 			\$(\"html\").css(\"cursor\", \"default\");
 		});
 	}
-  function Send2SEAL(sample, vcf_path, analysis, filter) {
+  function Send2SEAL(sample, vcf_path, analysis, genome, filter, seal_url) {
     \$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
-			data: {sample: sample, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#\' + analysis + \'_run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'},
+			data: {sample: sample, genome: genome, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#\' + analysis + \'_run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'},
 			beforeSend: function() {
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
 				\$(\".w3-button\").css(\"cursor\", \"progress\");
@@ -255,7 +256,7 @@ my $js = "
 			}
 		})
 		.done(function() {
-			\$(\"#seal\" + analysis).html('VCF file successfully queued on SEAL server. Connect to <a href=\"".$SEAL_URL."\" target=\"_blank\">SEAL</a> to check its status.');
+			\$(\"#seal\" + analysis).html('VCF file successfully queued on SEAL server. Connect to <a href=\"' + seal_url+ '\" target=\"_blank\">SEAL</a> to check its status.');
 			\$(\".ui-dialog\").css(\"cursor\", \"default\");
 			\$(\".w3-button\").css(\"cursor\", \"default\");
 			\$(\"html\").css(\"cursor\", \"default\");
@@ -560,6 +561,7 @@ if ($result) {
 		my $analysis_count = 0;
 		while (my $result_done = $sth4->fetchrow_hashref()) {
 			my $genome_version = $result_done->{'manifest_name'} =~ /hg38/ ? 'hg38' : 'hg19';
+			my $url_seal = $genome_version eq 'hg38'? $SEAL_HG38_URL : $SEAL_URL;
 			my ($analysis, $id_tmp, $num_tmp, $manifest) = ($result_done->{'type_analyse'}, $result_done->{'id_pat'}, $result_done->{'num_pat'}, $result_done->{'manifest_name'});
 			my $nenufaar = 0;
 			if ($NENUFAAR_ANALYSIS =~ /$analysis/) {$nenufaar = 1}
@@ -950,11 +952,11 @@ if ($result) {
 
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "search_controls.pl?step=3&iv=1&run=$res_manifest->{'run_id'}&sample=$id_tmp$num_tmp&analysis=$analysis", 'target' => '_blank'}, "Sample tracking: get private SNPs").$q->end_li();
 						# ajax call to send the MobiDL VCF file to SEAL
-						if ($genome_version eq 'hg19') {
-							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
-								$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "'.$analysis.'", "'.$res_manifest->{'filter'}.'");', 'value' => 'Send2SEAL'}).$q->end_li();
-							$raw_data .= $q->end_li().$q->end_ul();
-						}
+						# if ($genome_version eq 'hg19') {
+						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
+								$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf", "'.$analysis.'", "'.$genome_version.'",  "'.$res_manifest->{'filter'}.'", "'.$url_seal.'");', 'value' => 'Send2SEAL'}).$q->end_li();
+						$raw_data .= $q->end_li().$q->end_ul();
+						# }
 
 						$filter = $res_manifest->{'filter'}; #in case of bug of code l190 we rebuild $filter
 						$raw_filter = $q->span({'class' => 'green'}, 'PASS');
