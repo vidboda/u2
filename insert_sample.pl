@@ -134,7 +134,7 @@ elsif ($q->param('sample') && ($q->param('family') && $q->param('family') =~ /^(
 }
 else {&insert_error('ID')}
 #get last name and name and check if exists
-if (($q->param('last_name') && decode($enc,$q->param('last_name')) =~ /([A-Z-\s\.a-z']+)\s*\(?(ep\.|ep\/|née|ép\.|ép\/|njf|ep.\/)*/o)) {
+if (($q->param('last_name') && decode($enc,$q->param('last_name')) =~ /([A-Z-\s\.a-z']+)\s*\(?(ep\.|ep\/|nÃ©e|Ã©p\.|Ã©p\/|njf|ep.\/)*/o)) {
 	$last_name = $1;
 	if ($last_name =~ /(.+)\s$/o) {$last_name = $1}
 	if ($q->param('first_name')) {
