@@ -100,8 +100,8 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 				{-language => 'javascript',
 				-src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
 				{-language => 'javascript',
-				-src => $JS_DEFAULT, 'defer' => 'defer'}],		
-                        -encoding => 'UTF-8');
+				-src => $JS_DEFAULT, 'defer' => 'defer'}],	
+                -encoding => 'utf8');
 
 my $user = U2_modules::U2_users_1->new();
 
@@ -137,25 +137,36 @@ else {&insert_error('ID')}
 if (($q->param('last_name') && decode($enc,$q->param('last_name')) =~ /([A-Z-\s\.a-z']+)\s*\(?(ep\.|ep\/|née|ép\.|ép\/|njf|ep.\/)*/o)) {
 	$last_name = $1;
 	if ($last_name =~ /(.+)\s$/o) {$last_name = $1}
-	# if ($q->param('first_name')) {
-	# 	my $coded_fname;
+	# if ($q->param('first_name') && $q->param('first_name') =~ /^([\w-\s$ACCENTS]+)$/) {
+	if ($q->param('first_name') && $step == 1) {
+		# $first_name = $1;
+		# if ($first_name =~ /(.+)\s$/o) {$first_name = $1}
+		my $coded_fname;
 	# 	print STDERR $q->param('first_name')."\n";
-	# 	if (ref(guess_encoding($q->param('first_name'))) =~ /utf8/o) {$coded_fname = decode($enc, uri_decode($q->param('first_name')));print STDERR "$enc-$coded_fname\n"}
-	# 	else {$coded_fname = uri_decode($q->param('first_name'))}
+		# if (ref(guess_encoding($q->param('first_name'))) =~ /utf8/o) {$coded_fname = decode($enc, uri_decode($q->param('first_name')));print STDERR "$enc-".uri_decode($q->param('first_name'))."\n"}
+		# else {print STDERR "$coded_fname\n";$coded_fname = uri_decode($q->param('first_name'))}
+		$coded_fname =  decode($enc, uri_decode($q->param('first_name')));
 
 	# 	# if ($coded_fname =~ /^([\w-\s$ACCENTS]+)$/o) {print STDERR "in\n"}
 	# 	# else {print STDERR "out:$coded_fname:\n"}
 
-
-	# 	if ($q->param('first_name') && $coded_fname =~ /^([\w-\s$ACCENTS]+)$/o) {$first_name = $1;}
-	# 	else {print STDERR "$ACCENTS\n'".$q->param('first_name')."'-$coded_fname"; &insert_error('first name')}
-		
+		print STDERR "in:$coded_fname:\n";
+		if ($q->param('first_name') && $coded_fname =~ /^([\w-\s$ACCENTS]+)$/o) {$first_name = $1;}
+		else {print STDERR "$ACCENTS\n'".$q->param('first_name')."'-$coded_fname"; &insert_error('first name')}
+		print STDERR "out:$first_name:\n";
 	# 	# &insert_error('first name');
 	# 	#code until october 2013
 	# 	#my $decoded_name = decode($enc, uri_decode($q->param('first_name')));
 	# 	#if ($q->param('first_name') && $coded_fname =~ /^([\w-\s$ACCENTS]+)$/o) {$first_name = $1}
 	# 	#else {&insert_error('first name')}
-	# }
+	}
+	if ($q->param('first_name') =~ /^(.+)$/o && $step != 1) {
+		$first_name = $1;
+	}
+	elsif ($step != 1) {
+		print STDERR "$ACCENTS\n'".$q->param('first_name')."'-$first_name";
+		&insert_error('first name')
+	}
 	#check if exists
 	my ($id, $num) = U2_modules::U2_subs_1::sample2idnum($sample, $q);
 	my $query = "SELECT last_name, first_name FROM patient WHERE numero = '$num' AND identifiant = '$id';";
@@ -200,7 +211,7 @@ if ($step == 1) {
 			$q->li("Sample ID: $sample")."\n".
 			$q->li("Family ID: $family")."\n".
 			$q->li("Last Name: $last_name")."\n".
-			$q->li("Name: $first_name")."\n".
+			$q->li("Name: ".$first_name)."\n".
 		$q->end_ul()."\n".
 		$q->span('I need a couple of additional information. Please fill in the form below:'), $q);
 	print $q->br(), $q->start_div({'align' => 'center'});
