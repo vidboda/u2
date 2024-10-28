@@ -779,7 +779,7 @@ sub create_variant_vv {
 			# UPDATE and return no error 
 			my $update = "UPDATE variant SET nom_g_38 = '$nom_g_38', nom_g = '$nom_g' WHERE refseq = '$acc_no' AND nom = '$cdna'";
 			$error .= "NEWVAR: $update\n";
-			$dbh->do($update) or die "Update impossible, there must be a mistake somewhere $!";
+			$dbh->do($update) or die "Update impossible, there must be a mistake somewhere $!, $update";
 			return ($error, $type_segment, $classe, $cdna);
 		}
 		else {
@@ -793,7 +793,7 @@ sub create_variant_vv {
 	# print STDERR "$insert\n";
 	$error .= "NEWVAR: $insert\n";
 	#print $q->td({'colspan' => '7'}, $insert);exit;
-	$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!";
+	$dbh->do($insert) or die "Variant already recorded, there must be a mistake somewhere $!, $insert";
 	return ($error, $type_segment, $classe, $cdna);
 	#if ($id ne '') {
 	#	$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, nom_gene, type_analyse, statut, allele, denovo) VALUES ('$cdna', '$number', '$id', '{\"$gene\",\"$acc_no\"}', '$technique', '$status', '$allele', '$denovo');\n";

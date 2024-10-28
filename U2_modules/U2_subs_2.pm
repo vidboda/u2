@@ -1107,7 +1107,7 @@ sub danger_panel {
 
 sub cnil_disclaimer {
 	my $q = shift;
-	return info_panel('Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement.'.$q->br().'Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites "sensibles" au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.', $q);
+	return info_panel('Les donn&eacute;es collect&eacute;es dans la zone de texte libre doivent &ecirc;tre pertinentes, ad&eacute;quates et non excessives au regard de la finalit&eacute; du traitement.'.$q->br().'Elles ne doivent pas comporter d\'appr&eacute;ciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des donn&eacute;es dites "sensibles" au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative &agrave; l\'informatique, aux fichiers et aux libert&eacute;s.', $q);
 }
 
 # in add_analysis.pl, add_clinical_exome.pl
