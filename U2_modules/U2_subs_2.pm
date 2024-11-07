@@ -52,7 +52,10 @@ my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 my $HOME_IP = $config->HOME_IP();
 my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
-$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
+# $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
+my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
+# my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+
 
 #hg38 transition variable for postgresql 'start_g' segment field
 my ($postgre_start_g, $postgre_end_g) = ('start_g_38', 'end_g_38');  #hg38 style
@@ -192,23 +195,27 @@ sub get_miniseq_id {
 
 sub get_alignment_path {
 	my ($id, $number, $analysis, $dbh) = @_;
-	my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
+	my ($instrument, $instrument_path) = ('miseq', 'RUNS/MISEQ');
 	my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
 	my $res_manifest = $dbh->selectrow_hashref($query_manifest);
 	
-	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq'}
+	# if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq'}
+	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'RUNS/MINISEQ'}
 	elsif ($analysis =~ /NextSeq-.+/o) {$instrument = 'nextseq';$instrument_path = $CLINICAL_EXOME_BASE_DIR}
-	my ($alignment_dir, $additional_path) = ('', '');
+	# my ($alignment_dir, $additional_path) = ('', '');
+	my $alignment_dir = '';
 	my $run = $res_manifest->{'run_id'};
 
 	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
 	if ($genome eq 'hg38') {
-		my $alignment_file = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
+		# my $alignment_file = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
+		my $alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
 		my $file_type = 'cram';
 		return ($alignment_file, $file_type, 'hg38');
 	}
 	elsif ($instrument eq 'miseq') {
-		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
+		# $alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
+		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/CompletedJobInfo.xml`;
 		#print $alignment_dir;
 		$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = "/Data/Intensities/BaseCalls/$1";
 		#print $alignment_dir;
@@ -216,7 +223,8 @@ sub get_alignment_path {
 	elsif($instrument eq 'miniseq') {
 		# my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
 		# if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
-		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/CompletedJobInfo.xml`;
+		# $alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/CompletedJobInfo.xml`;
+		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/CompletedJobInfo.xml`;
 		$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 		$alignment_dir = $1;
 		$alignment_dir =~ s/\\/\//og;
@@ -230,7 +238,8 @@ sub get_alignment_path {
 
 	my ($file, $file_type);
 	if ($instrument ne 'nextseq') {
-		my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$alignment_dir`;
+		# my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$alignment_dir`;
+		my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/$alignment_dir`;
 		#print "ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$alignment_dir -- $bam_list";
 		#print $run;
 		# create a hash which looks like {"illumina_run_id" => 0}
@@ -249,11 +258,15 @@ sub get_alignment_path {
 	else {
 		my ($ana, $ana_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run");
 		$file = "$id$number/$ana_id/$id$number";
-		if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.bam") {$file_type = 'bam'}
-		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.crumble.cram") {$file_type = 'crumble.cram'}
-		elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
+		# if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.bam") {$file_type = 'bam'}
+		# elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.crumble.cram") {$file_type = 'crumble.cram'}
+		# elsif (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
+		if (-e "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/$id$number/$ana_id/$id$number.bam") {$file_type = 'bam'}
+		elsif (-e "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/$id$number/$ana_id/$id$number.crumble.cram") {$file_type = 'crumble.cram'}
+		elsif (-e "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/$id$number/$ana_id/$id$number.cram") {$file_type = 'cram'}
 	}
-	return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$file", $file_type), 'hg19';
+	# return ("$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$file", $file_type), 'hg19';
+	return ("$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/$file", $file_type), 'hg19';
 }
 
 sub get_interval {
@@ -314,22 +327,20 @@ sub add_filter_button {
 }
 
 
-sub genotype_line_optimised { #prints a line in the genotype table
+sub genotype_line_optimised { # prints a line in the genotype table
 	my ($var, $mini, $maxi, $q, $dbh, $list, $main_acc, $nb, $acc_g, $global) = @_;
 	my $gris = 0;
 	if ($mini != -1 || $maxi != -1) {$gris = &is_in_interval($var, $mini, $maxi, $q)}
 	my ($gene, $acc) = ($var->{'gene_symbol'}, $var->{'refseq'});
 
-
-	#print a same variant only once but prints all the identifying analyses
+	# print a same variant only once but prints all the identifying analyses
 	if ($list->{$var->{'nom'}} && $list->{$var->{'nom'}} >= 1) {return $var->{'nom'}}
 	else {
 		my $type_analyse;
 		my ($firstname, $lastname) = ($var->{'first_name'}, $var->{'last_name'});
 		$firstname =~ s/'/''/og;
 		$lastname =~ s/'/''/og;
-		my $query_analyse = "SELECT a.type_analyse FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name ILIKE '$firstname' AND b.last_name ILIKE '$lastname' AND a.refseq = '$acc' AND nom_c = '$var->{'nom'}';";# AND num_pat = '$var->{'num_pat'}' AND id_pat = '$var->{'id_pat'}';";
-		#print $query_analyse;exit;
+		my $query_analyse = "SELECT a.type_analyse FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name ILIKE '$firstname' AND b.last_name ILIKE '$lastname' AND a.refseq = '$acc' AND nom_c = '$var->{'nom'}';";
 		my $sth_analyse = $dbh->prepare($query_analyse);
 		my $res_analyse = $sth_analyse->execute();
 		my $display = 1;
@@ -339,10 +350,10 @@ sub genotype_line_optimised { #prints a line in the genotype table
 
 		my $color = U2_modules::U2_subs_1::color_by_classe($var->{'classe'}, $dbh);
 
-		#get usual name for exon/intron
+		#g et usual name for exon/intron
 		my $nom_seg = $var->{'nom_seg'};
 
-		#for LR
+		# for LR
 		my $bg_lr = 'transparent';
 		if ($var->{'num_segment'} ne $var->{'num_segment_end'} && $var->{'nom'} =~ /(del|dup|ins)/o) {#Large rearrangement
 			my $query_nom = "SELECT nom FROM segment WHERE refseq = '$acc' AND type = '$var->{'type_segment_end'}' AND numero = '$var->{'num_segment_end'}';";
@@ -351,44 +362,37 @@ sub genotype_line_optimised { #prints a line in the genotype table
 			$bg_lr = "#DDDDDD" if $var->{'nom'} =~ /del/o;
 		}
 
-		#define what will be printed depending on type of variant
+		# define what will be printed depending on type of variant
 		my $intermed = "";
 		if ($var->{'nom_ivs'} && $var->{'nom_ivs'} ne '') {$intermed = $var->{'nom_ivs'}}
 		elsif  ($var->{'nom_prot'} && $var->{'nom_prot'} ne '') {$intermed = $var->{'nom_prot'}}
 		if ($var->{'taille'} > 100) {$intermed .= " - ".$q->strong("(".U2_modules::U2_subs_2::create_lr_name($var, $dbh).")")}
 
 
-		#prepare for hemizygous
+		# prepare for hemizygous
 		my $bg_col_hemi = 'transparent';
-		#my $color_hemi = '#FF6600'; #old ushvam
-		if ($var->{'statut'} eq 'hemizygous') {$bg_col_hemi = '#DDDDDD';}#$color_hemi = '#DDDDDD';$bg_col_hemi = '#DDDDDD';}
-		#elsif ($var->{'allele'} eq '2') {$color_hemi = '#990000'}
+		if ($var->{'statut'} eq 'hemizygous') {$bg_col_hemi = '#DDDDDD';}
 
-		#check acc no
+		# check acc no
 		my $var_name = $var->{'nom'};
 		if ($main_acc ne $acc) {$var_name = "$acc:$var_name"}
 
 		my ($neutral_class, $rs_class, $common_class, $nopass_class, $utr5_class, $afterstop_class, $deepintron_class, $firstseen_class, $r8_class) = ('neutral_no_hide', 'rs_no_hide', 'common_no_hide', 'nopass_no_hide', 'utr5_no_hide', 'afterstop_no_hide', 'deepintron_no_hide', 'firstseen_no_hide', 'r8_no_hide');
-		#, $doc_class , 'doc_no_hide'
-		#we tag line if neutral
+		# we tag line if neutral
 		if ($var->{'classe'} eq 'neutral') {$neutral_class = 'neutral_hide'}
 		if ($var->{'classe'} eq 'R8') {$r8_class = 'r8_hide'}
 
 
-		#idem for rs and common
+		# idem for rs and common
 		if (($var->{'snp_id'}) && ($var->{'classe'} eq 'neutral' || $var->{'classe'} eq 'unknown')) {
 			$rs_class = 'rs_hide';
-			#old fashion now common is copied into variant table for optimisation
-			#my $common_query = "SELECT common FROM restricted_snp WHERE rsid = '$var->{'snp_id'}';";
-			#my $common_res = $dbh->selectrow_hashref($common_query);
-			#if ($common_res && $common_res->{'common'} == 1) {$common_class = 'common_hide'}
 			if ($var->{snp_common} && $var->{snp_common} == 1) {$common_class = 'common_hide'}
 		}
 
 		if (($var->{'classe'} eq 'neutral' || $var->{'classe'} eq 'unknown')) {
-			#for pass_hide
+			# for pass_hide
 			if ($var->{'msr_filter'} &&  $var->{'msr_filter'} ne 'PASS' && $var->{'msr_filter'} ne '' && $type_analyse !~  /SANGER/o) {$nopass_class = 'nopass_hide'}
-			#for 5UTR, efter stop codon and intron > 30 bp from exon
+			# for 5UTR, efter stop codon and intron > 30 bp from exon
 			if ($var->{'type_segment'} eq '5UTR' && $var->{'taille'} < 50) {$utr5_class = 'utr5_hide'}
 			elsif ($var->{'nom'} =~ /c\.\*.+/o) {$afterstop_class = 'afterstop_hide'}
 			elsif ($var->{'type_segment'} eq 'intron' && $var->{'taille'} < 50 && $var->{'nom'} =~ /c\.[\d]+[+-](\d+)_?[\d]*[+-]?(\d*)[a-zA-Z].+/o) {
@@ -396,34 +400,28 @@ sub genotype_line_optimised { #prints a line in the genotype table
 				elsif ($2 && ($1 > 30 && $2 > 30)) {$deepintron_class = 'deepintron_hide'}
 			}
 
-			#filter for variants seen only once: there - modified for 3 times
+			# filter for variants seen only once: there - modified for 3 times
 			my $query_first = "SELECT COUNT(DISTINCT(a.num_pat)) as compte FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND a.refseq = '$acc' AND a.nom_c = '$var->{'nom'}' AND b.proband = 't';";
 			my $res_first = $dbh->selectrow_hashref($query_first);
 
 			if ($res_first->{'compte'} > 3) {$firstseen_class = 'firstseen_hide'}
 		}
 
-		#et pour doc < 10
-		#if (($type_analyse !~ /SANGER/) && ($type_analyse =~ /454/) && ($var->{'depth'} < 10)) {$doc_class = 'doc_hide'}
-		#if ($var->{'depth'} && $var->{'depth'} < 10) {$doc_class = 'doc_hide'}
-		# 'onmouseover' => 'this.style.backgroundColor=\'#e4edf9\'', 'onmouseout' => 'this.style.backgroundColor=\'\''
 		print $q->start_Tr({'class' => "table_line bright $neutral_class $rs_class $common_class $nopass_class $utr5_class $afterstop_class $deepintron_class $firstseen_class $r8_class"}), "\n";
-		#For global view
+		# For global view
 		if ($global eq 't') {print $q->td({'class' => 'italique gras pointer', 'onclick' => "window.open('patient_genotype.pl?sample=".$var->{'id_pat'}.$var->{'num_pat'}."&gene=$gene')", 'title' => "Jump to $gene full genotype"}, $gene), "\n"}
 
 		if ($global ne 't' && ($type_analyse =~ /Mi/o || $type_analyse =~ /Next/o) && $var->{'nom_g'} !~ /chrM:.+/o) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
 			my ($chr_38, $pos1_38, $pos2_38) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g_38'}, 'evs');
 			my $igv_padding = 40;
-			#my $igv_search = "chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding);
 			print $q->start_td(),
-				# "<input type='button' onclick=\"igv.browser.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')\" title='Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table' value='$nom_seg' class='pointer w3-button w3-ripple w3-blue w3-padding-small w3-tiny'/>",
 				"<input type='button' onclick=\"if (typeof browser_hg19 != 'undefined') {browser_hg19.search('chr$chr:".($pos1-$igv_padding)."-".($pos2+$igv_padding)."')};if (typeof browser_hg38 != 'undefined') {browser_hg38.search('chr$chr_38:".($pos1_38-$igv_padding)."-".($pos2_38+$igv_padding)."')};\" title='Click to see in IGV loaded tracks; if no track is loaded, click on a NGS analysis type button in the validation table' value='$nom_seg' class='pointer w3-button w3-ripple w3-blue w3-padding-small w3-tiny'/>",
 			$q->end_td(), "\n";
 		}
 		else {print $q->td($nom_seg), "\n";}
 
-		#We use class and not id because of homozygous variants
+		# We use class and not id because of homozygous variants
 		if (!$var->{'depth'}) {$var->{'depth'} = ''}
 		foreach my $key (keys(%{$var})) {if (!$var->{$key}) {$var->{$key} = ''}}
 

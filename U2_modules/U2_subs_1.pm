@@ -71,7 +71,7 @@ our $NUM_ONTARGET_READS = 1170000;
 our $NUM_ONTARGET_READS_152 = 1290900;
 our $NUM_ONTARGET_READS_158 = 1434612;
 our $NUM_ONTARGET_READS_149 = 1342425;
-our $TITV = 2.3;
+our $TITV = 2.1;
 our $MDOC = 150;
 our $PC50X = 95;
 our $Q30 = 80;
@@ -124,7 +124,8 @@ my $config_file = U2_modules::U2_init_1->getConfFile();
 my $config = U2_modules::U2_init_1->initConfig();
 $config->file($config_file);# or die $!;
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
-my $RS_BASE_DIR = $config->RS_BASE_DIR();
+# my $RS_BASE_DIR = $config->RS_BASE_DIR();
+my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
 my $PATIENT_IDS = $config->PATIENT_IDS();
 my $PATIENT_FAMILY_IDS = $config->PATIENT_FAMILY_IDS();
 my $PATIENT_PHENOTYPE = $config->PATIENT_PHENOTYPE();
@@ -710,7 +711,8 @@ sub check_illumina_run_id {
 # used in ajax.pl
 sub check_illumina_vcf_path {
 	my ($q) = shift;
-	if ($q->param('vcf_path') =~ /^$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR\/data\/([\w\/]+.vcf)$/) {return $1}
+	if ($q->param('vcf_path') =~ /^$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR\/data\/([\w\/]+.vcf)$/) {return $1}
+	# if ($q->param('vcf_path') =~ /^$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR\/data\/([\w\/]+.vcf)$/) {return $1}
 	else {&standard_error('28', $q)}
 }
 

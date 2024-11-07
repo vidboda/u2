@@ -119,7 +119,8 @@ my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')),
 my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 my $filter = U2_modules::U2_subs_1::check_filter($q);
 my $step = U2_modules::U2_subs_1::check_step($q);
-if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
+# if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
+if ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\/Labos\//o && $step == 1) {
 
 	my ($dfn, $rp, $usher) = &assign_values($filter);
 	my $filter_subquery = '';
@@ -179,7 +180,8 @@ if ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 1) {
 			$q->end_form(),
 		$q->end_div(), $q->br(), $q->br(), "\n";
 }
-elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) {
+elsif ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\/Labos\//o && $step == 2) {
+	# elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) {
 	my $align_file = $q->param('align_file');
 	my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 	my $cov_report_sh = $cov_report_dir.'covreport.sh';
@@ -201,14 +203,20 @@ elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) 
 
 	if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
 		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
-    # print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
-		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/DS_data/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
+		# U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/DS_data/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
+		# # attempt to trigger autoFS
+		# open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
+		# sleep 3;
+		# close HANDLE;
+		# mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
+		# move($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
+		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
 		# attempt to trigger autoFS
-		open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
+		open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/touch.txt";
 		sleep 3;
 		close HANDLE;
-		mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
-		move($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
+		mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
+		move($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number) or die $!;
 	}
 	else {
 		print $q->span('Failed to generate coverage file');

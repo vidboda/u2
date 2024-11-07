@@ -94,17 +94,17 @@ print $q->header(-type => 'text/html', -'cache-control' => 'no-cache'),
 					-content => 'no-cache'}),
 				$q->meta({-http_equiv => 'Expires',
 					-content => '0'})],
-                        -script => [{-language => 'javascript',
-                                -src => $JS_PATH.'jquery-1.7.2.min.js', 'defer' => 'defer'},
-                                {-language => 'javascript',
-                                -src => $JS_PATH.'jquery.fullsize.pack.js', 'defer' => 'defer'},
-				{-language => 'javascript',
-                                -src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
-                                {-language => 'javascript',
-                                -src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
-                                {-language => 'javascript',
-                                -src => $JS_DEFAULT, 'defer' => 'defer'}],
-                        -encoding => 'ISO-8859-1');
+                    -script => [{-language => 'javascript',
+                    -src => $JS_PATH.'jquery-1.7.2.min.js', 'defer' => 'defer'},
+					{-language => 'javascript',
+							-src => $JS_PATH.'jquery.fullsize.pack.js', 'defer' => 'defer'},
+					{-language => 'javascript',
+							-src => $JS_PATH.'jquery.validate.min.js', 'defer' => 'defer'},
+					{-language => 'javascript',
+							-src => $JS_PATH.'jquery.autocomplete.min.js', 'defer' => 'defer'},
+					{-language => 'javascript',
+                            -src => $JS_DEFAULT, 'defer' => 'defer'}],
+                    -encoding => 'ISO-8859-1');
 
 my $user = U2_modules::U2_users_1->new();
 my $date = U2_modules::U2_subs_1::get_date();
@@ -117,15 +117,20 @@ my $ANALYSIS_NGS_DATA_PATH = $config->ANALYSIS_NGS_DATA_PATH();
 my $ANALYSIS_MISEQ_FILTER = $config->ANALYSIS_MISEQ_FILTER();
 my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
 # specific args for remote login to RS
-my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
-my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
+# my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
+# my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
 # use automount to replace ssh
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
-my $RS_BASE_DIR = $config->RS_BASE_DIR();
-my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
-my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
-$SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
-$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
+# my $RS_BASE_DIR = $config->RS_BASE_DIR();
+# my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
+# my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+# $SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
+# $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
+my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
+my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
+
+
 my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
 # genome version for VV
 my $VVGENOME = $config->VARIANTVALIDATOR_GENOME();
@@ -160,7 +165,7 @@ if ($step && $step == 2) {
 
 	#connect to NAS
 	my $ssh;
-  	opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR);# or $access_method = 'ssh';
+  	# opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR);# or $access_method = 'ssh';
 	my $genome_version = 'hg38';
 
 	### TO BE CHANGED 4 MINISEQ
@@ -168,13 +173,20 @@ if ($step && $step == 2) {
 	### get alignemnt with _ AND subdir with date
 	# MINISEQ change get instrument type
 	# my ($instrument, $instrument_path, $alignment_dir) = ('miseq', 'MiSeqDx/USHER', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
-	my ($instrument, $alignment_dir) = ('miseq', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
+	my ($instrument, $alignment_dir) = ('miseq', "$NAS_CHU_BASE_DIR$NAS_CHU_MINISEQ_BASE_DIR/$run/MobiDL");
 	if ($analysis =~ /MiniSeq-\d+/o) {
 		$instrument = 'miniseq';
 		# $instrument_path='MiniSeq';
-		$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;
-		$alignment_dir = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL";
+		# $SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;
+		$alignment_dir = "$NAS_CHU_BASE_DIR$NAS_CHU_MINISEQ_BASE_DIR/$run/MobiDL";
 	}
+	# my ($instrument, $alignment_dir) = ('miseq', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
+	# if ($analysis =~ /MiniSeq-\d+/o) {
+	# 	$instrument = 'miniseq';
+	# 	# $instrument_path='MiniSeq';
+	# 	$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;
+	# 	$alignment_dir = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL";
+	# }
 
 
 	# create roi hash

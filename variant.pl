@@ -148,18 +148,12 @@ my $var = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
 
 my $maf = '';
 
-
-#old fashion when patient_genotype sent maf but after optimisation 04/09/2014 it was not possible (tried with json but no success)
-#if ($q->param('maf') && $q->param('maf') =~ /([\/:\.\w\s-]+)/o) {$maf = $1; $maf =~ s/_/ /og;}
-
 my $query = "SELECT *, a.nom_prot as protein FROM variant a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene' AND b.refseq = '$acc' AND a.nom = '$var';";
 my $res = $dbh->selectrow_hashref($query);
 
 $var =~ /(\w+\d)/og;
 my $pos_cdna = $1;
 
-#http://omim.org/search?index=entry&start=1&limit=10&search=ush2a&sort=score+desc%2C+prefix_sort+desc
-#http://www.ncbi.nlm.nih.gov/nuccore/
 my $ncbi_url = 'http://www.ncbi.nlm.nih.gov/nuccore/';
 
 print $q->start_div({'class' => 'w3-light-grey'}), $q->span({'id' => 'openNav', 'class' =>'w3-button w3-blue w3-xlarge', 'onclick' => 'w3_open()', 'title' => 'Click here to open the menu of useful external links', 'style' => 'visibility:hidden'}, '&#9776;'), $q->end_div(), "\n";
@@ -167,7 +161,7 @@ print $q->start_div({'class' => 'w3-light-grey'}), $q->span({'id' => 'openNav', 
 print				$q->start_div({'class' => 'w3-sidebar w3-bar-block w3-card w3-animate-left w3-light-grey', 'id' => 'smart_menu', 'style' => 'display:block;z-index:1111;width:15%;'}),
 				$q->span({'class' => 'w3-bar-item w3-button w3-large w3-border-bottom', 'onclick' => 'w3_close()'}, 'Close &times;');
 
-#USMA
+# USMA
 my $usma_gene = $gene;
 if ($gene eq 'ADGRV1') {$usma_gene = 'GPR98'}
 my $USMA = {
@@ -184,7 +178,6 @@ my $USMA = {
 
 
 if ($res->{'type_prot'} eq 'missense' && exists($USMA->{$usma_gene})) {
-	#print $q->start_li(),
 	# print $q->a({'href' => "https://neuro-2.iurc.montp.inserm.fr/cgi-bin/USMA/USMA.fcgi?gene=$usma_gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'USMA'), "\n";
 	print $q->a({'href' => "https://usma.chu-montpellier.fr/cgi-bin/USMA/USMA.fcgi?gene=$usma_gene&variant=".$res->{'protein'}."", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'USMA'), "\n";
 }
@@ -197,9 +190,6 @@ if ($res->{'taille'} < 50) {
 	print $q->a({'href' => "http://evs.gs.washington.edu/EVS/PopStatsServlet?searchBy=chromosome&chromosome=$evs_chr&chromoStart=$evs_pos_start&chromoEnd=$evs_pos_end&x=0&y=0", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'ESP6500'), "\n";
 }
 
-#ExAC http://exac.broadinstitute.org/
-#2017/03/24 exac replaced with gnomad
-#http://gnomad.broadinstitute.org/variant/
 # VIPHL
 # http://hearing.genetics.bgi.com/
 my $viphl_url = "http://hearing.genetics.bgi.com/automatic.html?variantId=";
@@ -220,30 +210,15 @@ if ($res->{'type_adn'} eq 'substitution') {
 
 }
 
-#1kG
-# deprecated 20221013
-#https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=18&from=44109144&to=44109144&gts=rs187587197&mk=44109144:44109144|rs187587197
-# if ($res->{'taille'} < 50) {
-# 	my ($rs, $gts) = ('', '');
-# 	if ($res->{'snp_id'} ne '') {$rs .= "|$res->{'snp_id'}";$gts = "&gts=$res->{'snp_id'}"}
-# 	#print $q->start_li(),
-# 	print $q->a({'href' => "https://www.ncbi.nlm.nih.gov/variation/tools/1000genomes/?chr=$evs_chr&from=$evs_pos_start&to=$evs_pos_end$gts&mk=$evs_pos_start:$evs_pos_end$rs", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, '1000 genomes'), "\n";
-# 	#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/1kG_button.png'}, '1000 genomes'), "\n";
-# 		#, $q->end_a(), $q->end_li(), "\n";
-# }
-
-
-#clinvar
 my $added = '';
 if ($res->{'type_adn'} eq 'deletion' && ($res->{'taille'} > 4 && $res->{'taille'} < 20) && $res->{'seq_mt'} =~ /-/o) {
 	$added = U2_modules::U2_subs_1::get_deleted_sequence($res->{'seq_wt'});
 }
 
 
-#print $q->start_li(),
 print	$q->a({'href' => "http://www.ncbi.nlm.nih.gov/clinvar?term=\"".uri_escape("$gene:$var$added")."\" [Variant name]", 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'Clinvar'), "\n";
 
-#define links for dbsnp, ucsc, pdb
+# define links for dbsnp, ucsc, pdb
 
 my $dbsnp_url = "http://www.ncbi.nlm.nih.gov/snp/$res->{'snp_id'}";
 
@@ -253,40 +228,13 @@ my $ucsc_link = "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=c
 my ($evs_chr_hg38, $evs_pos_start_hg38, $evs_pos_end_hg38) = U2_modules::U2_subs_1::extract_pos_from_genomic($res->{'nom_g_38'}, 'evs');
 my $ucsc_link_hg38 = "http://genome-euro.ucsc.edu/cgi-bin/hgTracks?db=hg38&position=chr$evs_chr_hg38%3A".($evs_pos_start_hg38-10)."-".($evs_pos_end_hg38+10)."&hgS_doOtherUser=submit&hgS_otherUserName=david.baux&hgS_otherUserSessionName=U2&ruler=full&knownGene=full&refGene=full&pubs=pack&lovd=pack&hgmd=pack&cons100way=full&snp150=dense&ucscGenePfam=full&omimGene2=full&tgpPhase1=dense&tgpPhase3=dense&evsEsp6500=dense&exac=dense&gnomadVariants=dense&gnomadCoverage=show&dgvPlus=dense&allHg19RS_BW=full&highlight=hg38.chr$evs_chr_hg38%3A$evs_pos_start_hg38-$evs_pos_end_hg38";
 
-# deprecated 20210211
-#http://www.rcsb.org/pdb/chromosome.do?v=hg37&chromosome=chrX&pos=106888516
-#map2pdb
-#my ($map2pdb, $map2pdb_url) = ('', '');
-#if ($res->{'taille'} < 100) {
-#	$map2pdb = $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;").$q->a({'href' => "http://www.rcsb.org/pdb/chromosome.do?v=hg37&chromosome=$evs_chr&pos=$evs_pos_start", 'target' => '_blank'}, 'Map2PDB');
-#	$map2pdb_url = "http://www.rcsb.org/pdb/chromosome.do?v=hg37&chromosome=$evs_chr&pos=$evs_pos_start";
-#}
-#my ($map2pdb_hg38, $map2pdb_hg38_url) = ('', '');
-#if ($res->{'taille'} < 100) {
-#	$map2pdb_hg38 = $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;").$q->a({'href' => "http://www.rcsb.org/pdb/chromosome.do?v=hg38&chromosome=$evs_chr_hg38&pos=$evs_pos_start_hg38", 'target' => '_blank'}, 'Map2PDB');
-#	$map2pdb_hg38_url = "http://www.rcsb.org/pdb/chromosome.do?v=hg38&chromosome=$evs_chr_hg38&pos=$evs_pos_start_hg38";
-#}
-
-# my $varsome_url = "https://varsome.com/variant/hg19/$acc:$var";
-
-
 print	$q->a({'href' => $dbsnp_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'dbSNP'), "\n",
 	$q->a({'href' => $ucsc_link, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg19 UCSC'), "\n",
 	$q->a({'href' => $ucsc_link_hg38, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 UCSC'), "\n";
-	# $q->a({'href' => $varsome_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'VarSome'), "\n";
 if ($res->{'type_adn'} eq 'substitution') {
 	print $q->a({'href' => $viphl_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'VIP-HL'), "\n";
 }
 print $q->end_div();
-	#	$q->a({'href' => $map2pdb_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg19 Map2PDB'), "\n",
-	#$q->a({'href' => $map2pdb_hg38_url, 'target' => '_blank', 'class' => 'w3-bar-item w3-button w3-large w3-hover-blue w3-border-bottom'}, 'hg38 Map2PDB'), "\n",
-
-		#, $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvar_button.png'}), $q->end_a(),
-	#$q->end_li(), "\n";
-#clinvitae
-#print $q->start_li(),
-#		$q->start_a({'href' => "http://clinvitae.invitae.com/#q=$gene&f=".uri_escape("$acc.$res->{'acc_version'}:$var$added")."&source=ARUP,Carver,ClinVar,EmvClass,Invitae,kConFab&classification=1,2,3,4,5,6", 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/clinvitae_button.png'}), $q->end_a(),
-#	$q->end_li(), "\n";
 
 
 print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(' : '),
@@ -296,11 +244,11 @@ print $q->start_p({'class' => 'title'}), $q->start_big(), $q->start_strong(), $q
 if ($user->isPublic == 1) {
 	print $q->start_div({'id' => 'defgen', 'class' => 'w3-modal'}), $q->end_div();
 }
-#fixed image on the right
+# fixed image on the right
 if ($user->isPublic != 1) {print $q->img({'src' => $HTDOCS_PATH.'data/img/class.png', class => 'right ombre'})}
 
 
-##general info
+## general info
 # segment info
 $query = "SELECT nom FROM segment WHERE numero = '$res->{'num_segment'}' AND refseq  ='$acc';";
 my $nom_seg = $dbh->selectrow_hashref($query);
@@ -308,13 +256,11 @@ my $nom_seg = $dbh->selectrow_hashref($query);
 my $toprint = ucfirst($res->{'type_segment'});
 if ($res->{'type_segment'} ne $nom_seg->{'nom'}) {$toprint .= " $nom_seg->{'nom'}"}
 
-#my $warning = "There is an issue with a number of hg38 nomenclatures in MD and U2. Hg38 links and info are disabled until fixed.";
-#print U2_modules::U2_subs_2::danger_panel($warning, $q);
 
 print $q->end_ul(), "\n",
 	$q->start_div({'class' => 'decale'});
 
-#changed 05/12/2016 non main acc no will use NM for mutalyzer instead of NG for main acc-no
+# changed 05/12/2016 non main acc no will use NM for mutalyzer instead of NG for main acc-no
 my $mutalyzer_request = "$res->{'acc_g'}($gene$res->{'mutalyzer_version'}):$var";
 if ($res->{'main'} ne 't') {$mutalyzer_request = "$acc.$res->{'acc_version'}:$var"}
 
@@ -349,29 +295,29 @@ print			$q->end_td(),
 			$q->td('Position VS considered transcript'),
 			$q->end_Tr(), "\n";
 
-#size
+# size
 if ($res->{'taille'} > 1) {print $q->start_Tr(), $q->td('Size:'), $q->td("$res->{'taille'} bp"), $q->td('Size of variant in base pairs'), $q->end_Tr(), "\n"}
 
-#IVS name
+# IVS name
 if ($res->{'nom_ivs'} ne '') {print $q->start_Tr(), $q->td('IVS:'), $q->td("$acc.$res->{'acc_version'}:$res->{'nom_ivs'}"), $q->td('IVS nomenclature for intronic variants'), $q->end_Tr(), "\n"}
 
-#RNA status
+# RNA status
 print $q->start_Tr(), $q->td('RNA impact:'), $q->start_td(), $q->span(), $q->span({'id' => 'type_arn', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_rna_status($res->{'type_arn'}, $dbh).';'}, $res->{'type_arn'});#, $q->span(' (in progress)');
-#check if pdf for splicing
-if (-d $ABSOLUTE_HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/splicing') {#if splicing module
-	#pdfs stored under format: gene_variantwithoutc..pdf
+# check if pdf for splicing
+if (-d $ABSOLUTE_HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/splicing') {#if splicing module
+	# pdfs stored under format: gene_variantwithoutc..pdf
 	my $splicing_var = $var;
 	$splicing_var =~ s/c\.//og;
 	$splicing_var =~ s/>/_/og;
-	if (-f $ABSOLUTE_HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/splicing/'.$gene.'_'.$splicing_var.'.pdf') {#if pdf for variant
-		print $q->span(" (confirmed), check "), $q->a({'href' => $HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/splicing/'.$gene.'_'.$splicing_var.'.pdf', 'target' => "_blank"}, 'analysis');
+	if (-f $ABSOLUTE_HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/splicing/'.$gene.'_'.$splicing_var.'.pdf') {#if pdf for variant
+		print $q->span(" (confirmed), check "), $q->a({'href' => $HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/splicing/'.$gene.'_'.$splicing_var.'.pdf', 'target' => "_blank"}, 'analysis');
 	}
 	else {print $q->span(' (inferred) ')}
 }
 
-#button to change RNA status for referees
+# button to change RNA status for referees
 if ($user->isReferee == 1) {
-	#print button which opens popup which calls ajax
+	# print button which opens popup which calls ajax
 	my $html = &menu_rna_status($res->{'type_arn'}, $q, $dbh);
 	my $js = "
 		function rnaStatusForm() {
@@ -403,16 +349,10 @@ if ($user->isReferee == 1) {
 		};";
 	print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'rna_status_button', 'value' => 'Change RNA status', 'onclick' => 'rnaStatusForm();', 'class' => 'w3-button w3-blue'}), "\n";
 }
-# if ($res->{'taille'} < 10 && $res->{'type_adn'} ne 'indel') {
-# 	if ($res->{'type_adn'} eq 'substitution') {
-# 		print $q->button({'value' => 'Predictions', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&find=dbscSNV&add=spliceai&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"
-# 	}
-# 	else {print $q->button({'value' => 'MaxEntScan', 'onclick' => "window.open('splicing_calc.pl?calc=maxentscan&nom_g=$res->{'nom_g'}')", , 'class' => 'w3-button w3-blue'}), "\n"}
-# }
 
 print $q->end_td(), $q->td('Impact on mRNA, either predicted (inferred) or observed (confirmed)'), $q->end_Tr(), "\n";
 
-#distance from exon/intron junction for exonic variants
+# distance from exon/intron junction for exonic variants
 if ($res->{'type_segment'} eq 'exon') {
 	my ($dist, $site) = U2_modules::U2_subs_1::get_pos_from_intron($res, $dbh);
 	print $q->start_Tr(), $q->td('Position in exon:'), $q->start_td(), "\n";
@@ -423,84 +363,44 @@ if ($res->{'type_segment'} eq 'exon') {
 	print $q->end_td(), $q->td('Distance in bp from nearest splice site (for exonic variants)'), $q->end_Tr(), "\n";
 }
 
-#protein name - domain
+# protein name - domain
 if ($res->{'protein'} ne '') {
 	print $q->start_Tr(), $q->td('Protein:'), $q->start_td(), $q->span({'onclick' => "window.open('$ncbi_url$res->{'acc_p'}', '_blank')", 'class' => 'pointer', 'title' => 'click to open Genbank in new tab'}, $res->{'acc_p'}), $q->span(":$res->{'protein'}");#, $q->br(), "\n";
 
-	#access to missense analyses
-	#TODO: old fashion ushvam to be updated
+	# access to missense analyses
+	# TODO: old fashion ushvam to be updated
 	if ($res->{'type_prot'} eq 'missense' || $res->{'type_prot'} =~ /inframe/) {
 
 		my $one_letter = U2_modules::U2_subs_1::nom_three2one($res->{'protein'});
-		# print $q->span("--$one_letter--");
-		if (-f $ABSOLUTE_HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf") {
-			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');
+		if (-f $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/missense/$gene/$one_letter.pdf") {
+			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');
 		}
 	}
 	else {
 		my $reg_var = $var;
 		$reg_var =~ s/c\.//og;
 		$reg_var =~ s/>/_/og;
-		if (-f $ABSOLUTE_HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/variants/".$gene."_".$reg_var.".pdf") {
-			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/variants/".$gene."_".$reg_var.".pdf", 'target' => "_blank"}, 'analysis');
+		if (-f $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/variants/".$gene."_".$reg_var.".pdf") {
+			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/variants/".$gene."_".$reg_var.".pdf", 'target' => "_blank"}, 'analysis');
 		}
 	}
-	if ($res->{'type_prot'} eq 'missense') {
-		my $missense_js = "
-			function getPonps() {
-				\$.ajax({
-					type: \"POST\",
-					url: \"ajax.pl\",
-					data: {asked: 'ponps', var_prot: '$res->{'protein'}', ensp: '$res->{'ensp'}', nom_g: '$res->{'nom_g'}', acc_no : '$acc', enst: '$res->{'enst'}', nom_c: '$var', gene: '$gene'}
-				})
-				.done(function(msg) {
-					\$('#ponps').html('<ul>'+msg+'</ul>');
-				});
-			};";
-		print $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $missense_js), $q->span('&nbsp;&nbsp;&nbsp;'), $q->start_span({'id' => 'ponps'}), $q->button({'value' => 'Get predictors', 'onclick' => 'getPonps();$(\'#ponps\').html("Please wait...");', 'class' => 'w3-button w3-blue'}), $q->end_span();
-	}
+	# if ($res->{'type_prot'} eq 'missense') {
+	# 	my $missense_js = "
+	# 		function getPonps() {
+	# 			\$.ajax({
+	# 				type: \"POST\",
+	# 				url: \"ajax.pl\",
+	# 				data: {asked: 'ponps', var_prot: '$res->{'protein'}', ensp: '$res->{'ensp'}', nom_g: '$res->{'nom_g'}', acc_no : '$acc', enst: '$res->{'enst'}', nom_c: '$var', gene: '$gene'}
+	# 			})
+	# 			.done(function(msg) {
+	# 				\$('#ponps').html('<ul>'+msg+'</ul>');
+	# 			});
+	# 		};";
+	# 	print $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $missense_js), $q->span('&nbsp;&nbsp;&nbsp;'), $q->start_span({'id' => 'ponps'}), $q->button({'value' => 'Get predictors', 'onclick' => 'getPonps();$(\'#ponps\').html("Please wait...");', 'class' => 'w3-button w3-blue'}), $q->end_span();
+	# }
 	print $q->end_td(), $q->td('Protein HGVS nomenclature'), $q->end_Tr(), "\n";
-
-	# if ($res->{'protein'} =~ /(\d+)_\w{3}(\d+)/og) {
-	# 	print $q->start_Tr(), $q->td('Domain:'), $q->start_td();
-	# 	my ($pos1, $pos2) = ($1, $2);
-	# 	$query = "SELECT nom FROM domaine WHERE nom_prot = '$res->{'short_prot'}' AND ((aa_deb BETWEEN $pos1 AND $pos2) OR (aa_fin BETWEEN $pos1 AND $pos2));";
-	# 	my $sth_dom = $dbh->prepare($query);
-	# 	my $res_dom = $sth_dom->execute();
-	# 	if ($res_dom ne '0E0') {
-	# 		my $txt_dom;
-	# 		while (my $result = $sth_dom->fetchrow_hashref()) {
-	# 			$txt_dom .= $result->{'nom'}.", ";
-	# 		}
-	# 		chop($txt_dom);
-	# 		chop($txt_dom);
-	# 		print $q->span($txt_dom), $q->br(), "\n";
-	# 	}
-	# 	else {print $q->span('no domain'), $q->br(), "\n"}
-	# 	print $q->end_td(), $q->td('Domain Name according to UNIPROT'), $q->end_Tr(), "\n";
-	# }
-	# elsif ($res->{'protein'} =~ /(\d+)/og) {
-	# 	print $q->start_Tr(), $q->td('Domain:'), $q->start_td();
-	# 	my $pos = $1;
-	# 	$query = "SELECT nom FROM domaine WHERE nom_prot = '$res->{'short_prot'}' AND $pos BETWEEN aa_deb AND aa_fin;";
-	# 	my $sth_dom = $dbh->prepare($query);
-	# 	my $res_dom = $sth_dom->execute();
-	# 	if ($res_dom ne '0E0') {
-	# 		my $txt_dom;
-	# 		while (my $result = $sth_dom->fetchrow_hashref()) {
-	# 			$txt_dom .= $result->{'nom'}.", ";
-	# 		}
-	# 		chop($txt_dom);
-	# 		chop($txt_dom);
-	# 		print $q->span($txt_dom), $q->br(), "\n";
-	# 	}
-	# 	else {print $q->span('no domain'), $q->br(), "\n"}
-	# 	print $q->end_td(), $q->td('Domain Name according to UNIPROT'), $q->end_Tr(), "\n";
-	# }
 }
 
-#mutalyzer position converter for hg38
-# my $mutalyzer_hg38_pos_conv = $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;").$q->a({'href' => "https://mutalyzer.nl/position-converter?assembly_name_or_alias=GRCh38&description=$res->{'nom_g_38'}", 'target' => '_blank'}, 'Mutalyzer hg38');
 
 if ($res->{'acc_g'} ne 'NG_000000.0') {
 	print $q->start_Tr(),
@@ -510,8 +410,6 @@ if ($res->{'acc_g'} ne 'NG_000000.0') {
 		$q->end_Tr(), "\n";
 }
 
-# $map2pdb $map2pdb_hg38
-
 print $q->start_Tr(),
 		$q->td('hg19 Genomic HGVS:'), "\n",
 		$q->start_td({'id' => 'nom_g'}), $q->span("$res->{'nom_g'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link, 'target' => '_blank'}, 'UCSC'), $q->span("&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/perl/led/engine.pl?research=hg19:$evs_chr:$evs_pos_start", 'target' => '_blank'}, 'LED'), $q->end_td(),
@@ -519,7 +417,6 @@ print $q->start_Tr(),
 		$q->end_Tr(), "\n",
 		$q->start_Tr(),
 			$q->td('hg38 Genomic HGVS:'), "\n",
-			# $q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $mutalyzer_hg38_pos_conv, $q->end_td(),
 			$q->start_td({'id' => 'nom_g_38'}), $q->span("$res->{'nom_g_38'}&nbsp;&nbsp;-&nbsp;&nbsp;"), $q->a({'href' => $ucsc_link_hg38, 'target' => '_blank'}, 'UCSC'), $q->end_td(),
 			$q->td('Absolute genomic HGVS nomenclature (chr), hg38 assembly'),
 		$q->end_Tr(), "\n";
@@ -540,11 +437,6 @@ my $js = "
 		});
 	};";
 
-# print $q->start_Tr(),
-# 		$q->td('Alternatives:'), "\n",
-# 		$q->start_td({'id' => 'mutalyzer_place'}), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'all_nomenclature', 'value' => 'Other nomenclatures', 'onclick' => 'getAllNom();$(\'#mutalyzer_place\').html("Please wait while mutalyzer is checking...");', 'class' => 'w3-button w3-blue'}), $q->end_td(),
-# 		$q->td('Click to retrieve alternative notations for the variant'),
-# 	$q->end_Tr(), "\n";
 
 if ($user->isPublic != 1) {
 	$js = "
@@ -562,7 +454,7 @@ if ($user->isPublic != 1) {
 		print $q->start_Tr(),
 				$q->td('DEFGEN Export:'), "\n",
 				$q->start_td({'id' => 'defgen_export'}), U2_modules::U2_subs_3::defgen_status_html($res->{'defgen_export'}, $q);
-		#need to be validator
+		# need to be validator
 		if ($user->isValidator == 1) {
 				print $q->span('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), $q->script({'type' => 'text/javascript'}, $js), $q->button({'id' => 'defgen_export', 'value' => 'Change status', 'onclick' => 'defgenExport('.$res->{'defgen_export'}.');$(\'#defgen_export\').html("Please wait ...");', 'class' => 'w3-button w3-blue'});
 		}
@@ -573,11 +465,10 @@ if ($user->isPublic != 1) {
 	print $q->start_Tr(),
 			$q->td('U2 Classification:'),
 			$q->start_td(), $q->span({'id' => 'variant_class', 'style' => 'color:'.U2_modules::U2_subs_1::color_by_classe($res->{'classe'}, $dbh).';'}, $res->{'classe'});
-
-		#change class
-	#need to be validator
+	# change class
+	# need to be validator
 	if ($user->isValidator == 1) {
-		#print button which opens popup which calls ajax
+		# print button which opens popup which calls ajax
 		my $html = &menu_class($res->{'classe'}, 'classe', $q, $dbh);
 		$js = "
 			function classForm() {
@@ -737,7 +628,7 @@ print $q->start_Tr(), $q->td('MobiDetails:'), "\n",
   $q->end_Tr();
 
 
-#dbSNP
+# dbSNP
 print $q->start_Tr(), $q->td('dbSNP:'), "\n",
 	$q->start_td();
 if ($res->{'snp_id'} ne '') {
@@ -753,27 +644,8 @@ print $q->end_td(), $q->td('dbSNP related information'), $q->end_Tr(), "\n";#, $
 print $q->start_Tr({'id' => 'ext_data'}), $q->td('DVD & LOVD:'), $q->start_td(), $q->span('loading external data...'), $q->end_td(), $q->td('Links to the DVD and LOVD'), $q->end_Tr(), "\n";
 
 
-#infos on cohort: # of seen, MAFS, 454: mean depth, mean freq, mean f/r
+#i nfos on cohort: # of seen, MAFS, 454: mean depth, mean freq, mean f/r
 if ($user->isPublic != 1) {
-	#my ($maf_454, $maf_sanger, $maf_miseq) = ('NA', 'NA', 'NA');
-	#if ($maf eq '') {
-	#	#MAF 454
-	#	$maf_454 = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, '454-[[:digit:]]+');
-	#	#MAF SANGER
-	#	$maf_sanger = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, 'SANGER');
-	#	#MAF MISEQ
-	#	$maf_miseq = U2_modules::U2_subs_1::maf($dbh, $gene, $acc, $var, $ANALYSIS_ILLUMINA_PG_REGEXP);
-	#	$maf = "MAF 454: $maf_454 / MAF Sanger: $maf_sanger / MAF Illumina: $maf_miseq";
-	#}
-	#else {
-	#	$maf =~ /MAF\s454:\s([\w\.]+)\s\/.+/o;
-	#	$maf_454 = $1;
-	#}
-	#print $q->start_Tr(), $q->td('U2 MAFs:'), $q->td($maf), $q->td('MAFs in Ushvam 2 with different techniques'), $q->end_Tr(), "\n";
-
-	###TO DO mean freq and doc for MiSeq
-
-	#if ($maf_454 ne 'NA') {
 	my $query_454 = "SELECT AVG(a.depth) as a, AVG(a.frequency) as b, AVG(a.wt_f) as c, AVG(a.wt_r) as d, AVG(a.mt_f) as e, AVG(a.mt_r) as f, COUNT(a.nom_c) as g FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND a.type_analyse LIKE '454-%' AND b.gene_symbol = '$gene' AND b.refseq = '$acc' AND a.nom_c = '$var';";
 	my $res_454 = $dbh->selectrow_hashref($query_454);
 	if ($res_454->{'g'} > 0) {
@@ -786,7 +658,6 @@ if ($user->isPublic != 1) {
 			$q->end_ul(),
 			$q->end_td(), $q->td('Metrics related to all occurences within 454 sequencing'), $q->end_Tr(), "\n";
 	}
-	#if ($maf_miseq ne 'NA') {
 	my $query_illu = "SELECT AVG(a.depth) as a, AVG(a.frequency) as b, COUNT(a.nom_c) as c FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND a.type_analyse ~ '$ANALYSIS_ILLUMINA_PG_REGEXP' AND b.gene_symbol = '$gene' AND b.refseq = '$acc' AND a.nom_c = '$var';";
 	my $res_illu = $dbh->selectrow_hashref($query_illu);
 	if ($res_illu->{'c'} > 0) {
@@ -823,8 +694,6 @@ if ($user->isPublic != 1) {
 
 	while (my $result = $sth->fetchrow_hashref()) {
 		if ($result->{'statut'} =~ /homo/o) {$hom += 2}
-		#if ($result->{'filter'} eq 'RP' && $result->{'dfn'} == 1) {next}
-		#elsif ($result->{'filter'} eq 'DFN' && $result->{'rp'} == 1) {next}
 		my $denovo_txt = U2_modules::U2_subs_1::translate_boolean_denovo($result->{'denovo'});
 		$seen .= $q->start_div().$q->span("-$result->{'id_pat'}$result->{'num_pat'} ($result->{'statut'}$denovo_txt)&nbsp;&nbsp;").$q->start_a({'href' => "patient_file.pl?sample=$result->{'id_pat'}$result->{'num_pat'}", 'target' => '_blank'}).$q->span('patient&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->span('&nbsp;&nbsp;&nbsp;').$q->start_a({'href' => "patient_genotype.pl?sample=$result->{'id_pat'}$result->{'num_pat'}&gene=$gene", 'target' => '_blank'}).$q->span('genotype&nbsp;&nbsp;').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_div();
 	}
@@ -834,7 +703,7 @@ if ($user->isPublic != 1) {
 	my $res_filter = $sth->execute();
 	while (my $result = $sth->fetchrow_hashref()) {
 		if ($result->{'filter'} eq 'RP' && $result->{'rp'} == 1) {next}
-		#03/20119 test CIB2/PDZD7 is usher = t and dfn = t
+		# 03/20119 test CIB2/PDZD7 is usher = t and dfn = t
 		elsif ($result->{'filter'} eq 'DFN' && $result->{'dfn'} == 1) {next}
 		elsif ($result->{'filter'} eq 'USH' && $result->{'usher'} == 1) {next}
 		elsif ($result->{'filter'} eq 'DFN-USH' && ($result->{'dfn'} == 1 || $result->{'usher'} == 1)) {next}
@@ -880,7 +749,7 @@ if ($user->isPublic != 1) {
 
 	print $q->start_Tr(), $q->td('Samples:'), $q->start_td(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->button({'id' => 'patient_list', 'value' => 'Sample list', 'onclick' => 'getPatients();', 'class' => 'w3-button w3-blue'}), $q->end_td(), $q->td('Get a list of samples carrying the variant'), "\n";
 }
-#sequence
+# sequence
 if ($res->{'seq_wt'} ne '') {
 	print $q->start_Tr(), $q->td('WT:'), $q->td({'class' => 'txt'}, $res->{'seq_wt'}), $q->td('Wild-type DNA sequence'), $q->end_Tr(), "\n",
 		$q->start_Tr(), $q->td('MT:'), $q->td({'class' => 'txt'}, $res->{'seq_mt'}), $q->td('Mutant DNA sequence'), $q->end_Tr(), "\n";
@@ -900,15 +769,14 @@ print $q->end_table(), $q->end_div();
 #trans:
 
 
-#print LR image
+# print LR image
 
-#check if image already exist, otherwise create it
+# check if image already exist, otherwise create it
 if ($res->{'taille'} > 100) {
 	my $query = "SELECT gi_ng FROM gene WHERE gene_symbol = '$gene' AND refseq = '$acc';";
 	my $res_gi = $dbh->selectrow_hashref($query);
 	my ($image_name, $beg, $end, $type) = U2_modules::U2_subs_1::create_image_file_name($gene, $res->{'nom_ng'});
 	my $name = U2_modules::U2_subs_2::create_lr_name($res, $dbh);
-	#my $data = {$name => $beg."-".$end."-".$type};
 	my $image_absolute_url = $ABSOLUTE_HTDOCS_PATH."data/img/LR/$image_name";
 	my $image_url = $HTDOCS_PATH."data/img/LR/$image_name";
 	my $response;
@@ -917,7 +785,6 @@ if ($res->{'taille'} > 100) {
 	else {
 		my $url = $HOME_IP.'/cgi-bin/u2/draw_del.cgi';
 		my $ua = new LWP::UserAgent(ssl_opts => {verify_hostname => 0});
-		#$ua->ssl_opts('verify_hostname' => 0);
 		my $req = POST $url,
 	       Content_Type => 'form-data',
 	       Content      => [
@@ -930,16 +797,13 @@ if ($res->{'taille'} > 100) {
 				 gene => $gene
 			       ];
 		$response = $ua->request($req);
-		#print Dumper($response);
 		print $ua->ssl_opts('verify_hostname');
 		print $q->img({'src' => $image_url, 'border' => '0'});
 	}
 	print $q->end_p();
 
 }
-
-
-##easy-comment
+## easy-comment
 my $valid_id = "$acc$res->{'acc_version'}$var";
 $valid_id =~ s/>//og;
 $valid_id =~ s/\.//og;
@@ -955,144 +819,11 @@ $js = "jQuery(document).ready(function(){
 
 print $q->br(), $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $js), $q->start_div({'id' => $valid_id, 'class' => 'comments'}), $q->end_div();
 
-#####genome browser
-####http://www.biodalliance.org/
-####my $DALLIANCE_DATA_DIR_URI = '/dalliance_data/hg19/';
-####{name: 'UK10K',
-####			desc: 'UK10K dataset',
-####			tier_type: 'tabix',
-####			payload: 'vcf',
-####			uri: '".$DALLIANCE_DATA_DIR_URI."uk10k/UK10K_COHORT.20160215.sites.vcf.gz'},
-###		#{name: 'ExAC',
-###		#	desc: 'ExAC r0.3',
-###		#	tier_type: 'tabix',
-###		#	payload: 'vcf',
-###		#	noSourceFeatureInfo: true,
-###		#	uri: '".$DALLIANCE_DATA_DIR_URI."exac/ExAC.r0.3.sites.vep.vcf.gz'},
-###		#{name: '112 genes Design',
-###		#	desc: 'Illumina Nextera on 112 genes',
-###		#	tier_type: 'tabix',
-###		#	payload: 'bed',
-###		#	uri: '".$DALLIANCE_DATA_DIR_URI."designs/nextera_targets_sorted.bed.gz'},
-###		#{name: '1000g',
-###		#	desc: '1000 genomes phase 3',
-###		#	tier_type: 'tabix',
-###		#	payload: 'vcf',
-###		#	uri: '".$DALLIANCE_DATA_DIR_URI."1000g_p3/1000GENOMES-phase_3.vcf.gz'},
-###		#{name: 'Kaviar',
-###		#	desc: 'Kaviar dataset',
-###		#	tier_type: 'tabix',
-###		#	payload: 'vcf',
-###		#	uri: '".$DALLIANCE_DATA_DIR_URI."kaviar/Kaviar-160204-Public-hg19-trim.vcf.gz'},
-#my ($padding, $sources) = (50, '');
-#if ($res->{'taille'} > 500) {$padding = sprintf('%.0f', $res->{'taille'}/10)}
-#else {$sources = "{name: 'ClinVar',
-#			desc: 'ClinVar 02/2017',
-#			tier_type: 'tabix',
-#			payload: 'vcf',
-#			uri: '".$DALLIANCE_DATA_DIR_URI."clinvar/clinvar_20170228.vcf.gz'},
-#		{name: 'gnomAD Ex',
-#			desc: 'gnomAD exome dataset',
-#			tier_type: 'tabix',
-#			payload: 'vcf',
-#			uri: '".$DALLIANCE_DATA_DIR_URI."gnomad/hg19_gnomad_exome.sorted.af.vcf.gz'},
-#		{name: 'gnomAD Ge',
-#			desc: 'gnomAD genome dataset',
-#			tier_type: 'tabix',
-#			payload: 'vcf',
-#			uri: '".$DALLIANCE_DATA_DIR_URI."gnomad/hg19_gnomad_genome.sorted.vcf.gz'},
-#		{name: 'dbSNP150',
-#			desc: 'dbSNP150 20170710',
-#			tier_type: 'tabix',
-#			payload: 'vcf',
-#			uri: '".$DALLIANCE_DATA_DIR_URI."dbSNP150/All_20170710.vcf.gz'},
-#		{name: '132 genes Design',
-#			desc: 'Nimblegen SeqCap on 132 genes',
-#			tier_type: 'tabix',
-#			payload: 'bed',
-#			uri: '".$DALLIANCE_DATA_DIR_URI."designs/seqcap_targets_sorted.132.bed.gz'},
-#		";
-#}
-#
-#my ($dal_start, $dal_stop, $highlight_start, $highlight_end) = (($evs_pos_start-$padding), ($evs_pos_end+$padding), $evs_pos_start, $evs_pos_end);
-##if ($highlight_start == $highlight_end) {$highlight_end++}
-#$highlight_end++;
-#
-#
-#my $browser = "
-#	console.log(\"creating browser with coords: chr$evs_chr:$dal_start-$dal_stop\" );
-#	var sources = [
-#		{name: 'Genome',
-#			desc: 'hg19/Grch37',
-#			twoBitURI: '".$DALLIANCE_DATA_DIR_URI."genome/hg19.2bit',
-#			tier_type: 'sequence',
-#			provides_entrypoints: true,
-#			pinned: true},
-#		{name: 'Genes',
-#			desc: 'GENCODE v19',
-#			bwgURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.bb',
-#			stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode-expanded.xml',
-#			collapseSuperGroups: true,
-#			trixURI: '".$DALLIANCE_DATA_DIR_URI."gencode/gencode.v19.annotation.ix'},
-#		$sources
-#		{name: 'Conservation',
-#			desc: 'PhastCons 100 way',
-#			bwgURI: '".$DALLIANCE_DATA_DIR_URI."cons/hg19.100way.phastCons.bw',
-#			noDownsample: true},
-#		{name: 'Repeats',
-#			desc: 'Repeat annotation from RepeatMasker',
-#			bwgURI: '".$DALLIANCE_DATA_DIR_URI."repeats/repeats.bb',
-#			stylesheet_uri: '".$DALLIANCE_DATA_DIR_URI."repeats/bb-repeats2.xml',
-#			forceReduction: -1},
-#
-#	];
-#	var browser = new Browser({
-#		chr:		'$evs_chr',
-#		viewStart:	$dal_start,
-#		viewEnd:	$dal_stop,
-#		cookieKey:	'human-grc_h37',
-#		prefix:		'".$JS_PATH."dalliance_v0.13/',
-#		fullScreen:	false,
-#		noPersist:	true,
-#		noPersistView:	true,
-#		maxHeight:	500,
-#
-#		coordSystem:	{
-#			speciesName: 'Human',
-#			taxon: 9606,
-#			auth: 'GRCh',
-#			version: '37',
-#			ucscName: 'hg19'
-#		},
-#		sources:	sources,
-#		hubs:	['http://ftp.ebi.ac.uk/pub/databases/ensembl/encode/integration_data_jan2011/hub.txt']
-#	});
-#
-#	function highlightRegion(){
-#		console.log(\" xx highlight region chr$evs_chr,$dal_start,$dal_stop\");
-#		browser.highlightRegion('chr$evs_chr',$highlight_start,$highlight_end);
-#		browser.setLocation(\"$evs_chr\",$dal_start,$dal_stop);
-#	}
-#
-#	browser.addInitListener( function(){
-#		console.log(\"dalliance initiated\");
-#		//setTimeout(highlightRegion(),5000);
-#		highlightRegion();
-#		\$(window).scrollTop(0);
-#	});
-#";
-#
-#print $q->br(), $q->script({'type' => 'text/javascript', 'defer' => 'defer'}, $browser), $q->div({'id' => 'svgHolder', 'class' => 'fitin'}, 'Dalliance Browser here'), $q->br(), $q->br(), "\n",
-#	$q->end_div();
-
 my $text = '<br/>Les données collectées dans la zone de texte libre doivent être pertinentes, adéquates et non excessives au regard de la finalité du traitement. Elles ne doivent pas comporter d\'appréciations subjectives, ni directement ou indirectement, permettre l\'identification d\'un patient, ni faire apparaitre des données dites "sensibles" au sens de l\'article 8 de la loi n°78-17 du 6 janvier 1978 relative à l\'informatique, aux fichiers et aux libertés.';
 
 print U2_modules::U2_subs_2::info_panel($text, $q);
 
-#end genome browser
-
-
-##Basic end of USHVaM 2 perl scripts:
+## Basic end of USHVaM 2 perl scripts:
 
 if ($user->isPublic() == 1) {U2_modules::U2_subs_1::public_end_html($q)}
 else {U2_modules::U2_subs_1::standard_end_html($q)}
@@ -1101,9 +832,9 @@ print $q->end_html();
 
 exit();
 
-##End of Basic end
+## End of Basic end
 
-##specific subs for current script
+## specific subs for current script
 
 sub menu_class {
 	my ($classe, $field, $q, $dbh) = @_;

@@ -61,7 +61,6 @@ my $DB_PASSWORD = $config->DB_PASSWORD();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $DATABASES_PATH = $config->DATABASES_PATH();
-# my $DALLIANCE_DATA_DIR_PATH = $config->DALLIANCE_DATA_DIR_PATH();
 my $EXE_PATH = $config->EXE_PATH();
 my $ANALYSIS_ILLUMINA_REGEXP = $config->ANALYSIS_ILLUMINA_REGEXP();
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
@@ -96,7 +95,6 @@ if ($q->param('asked') && $q->param('asked') eq 'exons') {
 		push @values, $result->{'number'};
 	}
 	print $q->popup_menu(-name => 'exons', -id => 'exons', -values => \@values, -labels => $labels, -class => 'w3-select w3-border');
-	#print 'ok';
 }
 
 
@@ -105,319 +103,21 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	my $variant = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
 
 	my $query = "SELECT a.nom, b.gene_symbol as gene, b.refseq as acc, a.nom_g_38, a.snp_id, a.type_adn, a.type_segment, b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g = '$variant';";
-	# my $query = "SELECT b.dfn, b.usher, b.ns_gene FROM variant a, gene b WHERE a.refseq = b.refseq AND a.nom_g = '$variant';";
 	my $res = $dbh->selectrow_hashref($query);
 	my ($text, $semaph) = ('', 0);
-	#$q->strong('MAFs &amp; databases:').
-
-	# if ($res->{'snp_id'} ne '') {
-	# 	# my $test_ncbi = U2_modules::U2_subs_1::test_ncbi();
-	# 	$text .= $q->start_Tr() . $q->td('Pubmed related articles:') . $q->start_td() . $q->start_div({'class' => 'w3-container'});
-	# 	# if ($test_ncbi == 1) {
-	# 	my $pubmedids = U2_modules::U2_subs_1::run_litvar($res->{'snp_id'});
-	# 	# print STDERR ref($pubmedids);
-	# 	if (ref($pubmedids) ne 'ARRAY' && exists $pubmedids->{'message'} && $pubmedids->{'message'} =~ /LitVar Error/) {$text .= $q->span("Error while querying litvar: $pubmedids->{'message'}")}
-	# 	elsif ($pubmedids->[0] eq '') {
-	# 		$text .= $q->span('No PubMed ID retrieved');
-	# 	}
-	# 	else {
-	# 		#$text .= $pubmedids->[0]{'pmids'}[0];
-	# 		$text .= $q->button({'class' => 'w3-button w3-ripple w3-blue w3-border w3-border-blue', 'value' => 'show Pubmed IDs', 'onclick' => '$("#pubmed").show();'}) .
-	# 		$q->start_div({'class' => 'w3-modal', 'id' => 'pubmed'}) . "\n" .
-	# 			$q->start_div({'class' => 'w3-modal-content w3-display-middle', 'style' => 'z-index:1500'}) . "\n" .
-	# 				"<header class = 'w3-container w3-teal'>" . "\n" .
-	# 					$q->span({'onclick' => '$("#pubmed").hide();', 'class' => 'w3-button w3-display-topright w3-large'}, '&times') . "\n" .
-	# 					$q->h2('PubMed IDs of articles citing this variant:') . "\n" .
-	# 				'</header>' . "\n" .
-	# 				$q->start_div({'class' => 'w3-container'}) . "\n" .
-	# 					$q->start_ul() . "\n";
-	# 		my $pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';
-	# 		if ($user->isLocalUser() == 1) {$pubmed_url = 'https://www.ncbi.nlm.nih.gov/pubmed/';}
-	# 		foreach my $pmid (@{$pubmedids->[0]{'pmids'}}) {
-	# 			$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid, 'target' => '_blank'}, $pmid) . $q->end_li() . "\n"
-	# 			#$text .= $q->start_li() . $q->a({'href' => $pubmed_url.$pmid->{'pmid'}, 'target' => '_blank'}, $pmid->{'pmid'}) . $q->end_li() . "\n"
-	# 			#print $pmid->{'pmid'}
-	# 		}
-	# 		$text .= $q->end_ul() . "\n" . $q->br() . $q->br() .
-	# 				$q->end_div() . "\n" .
-	# 			$q->end_div() . "\n" .
-	# 		$q->end_div() . "\n";
-	# 	}
-	# 	#}
-	# 	# else {$text .= $q->span('Litvar service unavailable')}
-	# 	$text .= $q->end_div() . $q->end_td() . $q->start_td() . $q->span('Pubmed text mining using ') . $q->a({'href' => 'https://www.ncbi.nlm.nih.gov/CBBresearch/Lu/Demo/LitVar/index.html', 'target' => '_blank'}, 'LitVar') . $q->end_Tr() . "\n";
-	# }
-	#
-	# my $chr = my $position = my $ref = my $alt = '';
-	# $text .= $q->start_Tr() . $q->td('MAFs & databases:') . $q->start_td() . $q->start_ul() . "\n";
 	$text .= $q->start_Tr() . $q->td('DVD & LOVD:') . $q->start_td() . $q->start_ul() . "\n";
-
-
-	#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
-	# if ($variant =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):$U2_modules::U2_subs_1::HGVS_CHR_TAG\.(\d+)([ATGC])>([ATGC])/o) {
-	# 	####NEW NEW STYLE with dbNSFP 04/2018 for substitutions
-	# 	#print $tempfile "$1 $2 $2 $3/$4 +\n";
-	# 	$chr = $1; $position = $2; $ref = $3; $alt = $4;
-	# 	$chr =~ s/chr//og;
-	# 	if ($res->{'nom_g_38'} ne '') {
-	# 		#$res->{'nom_g_38'} =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o;
-	# 		$res->{'nom_g_38'} =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):$U2_modules::U2_subs_1::HGVS_CHR_TAG\.(\d+)([ATGC])>([ATGC])/o;
-	# 		my $chr38 = $1; my $position38 = $2; my $ref38 = $3; my $alt38 = $4;
-	# 		#my $chrfull = $chr;
-	# 		$chr38 =~ s/chr//og;
-	# 		#print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.chr$chr.gz $chr:$position-$position";
-	# 		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V3_PATH/dbNSFP3.5a_variant.chr$chr38.gz $chr38:$position38-$position38`);
-	# 		$text .=  &dbnsfp2html(\@dbnsfp, $ref38, $alt38, 120, 138, 136, 142, 239, 76, 78);#1kg, ESPEA, ESPAA, ExAC, clinvar, CADD raw, CADD phred
-	# 		if ($#dbnsfp > -1) {$semaph = 1}
-	# 	}
-	# 	if ($semaph == 0) {
-	# 		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$position-$position`);
-	# 		$text .=  &dbnsfp2html(\@dbnsfp, $ref, $alt, 83, 93, 92, 101, 115, 59, 61);
-	# 		if ($#dbnsfp > -1) {$semaph = 1}
-
-	# 	}
-	# 	#Intervar new API 06/2019
-	# 	#http://wintervar.wglab.org/api_new.php?queryType=position&build=hg19_updated.v.201904&chr=1&pos=115828756&ref=G&alt=A
-	# 	if ($res->{'type_segment'} eq 'exon' && $res->{'nom_g_38'} !~ /chrM.+./o) {
-	# 		my $ua = new LWP::UserAgent();
-	# 		$ua->timeout(3);
-	# 		my $response = $ua->get("http://wintervar.wglab.org/api_new.php?queryType=position&build=hg19_updated.v.201904&chr=$chr&pos=$position&ref=$ref&alt=$alt");
-	# 		if ($response->is_success()) {
-	# 			my $intervar_result = decode_json($response->decoded_content());
-	# 			$text .= $q->li("Intervar: $intervar_result->{'Intervar'}");
-	# 		}
-	# 		#else {$text .= $q->li($response->status_line())}
-	# 	}
-	# 	elsif ($res->{'type_segment'} =~ /UTR/o) {
-	# 		my $uORF_file = 'stop-removing_all_possible_annotated_sorted.txt.gz';
-	# 		if ($res->{'type_segment'} eq '5UTR') {$uORF_file = 'uAUG-creating_all_possible_annotated_sorted.txt.gz'}
-	# 		my @uorf = split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$uORF_file $chr:$position-$position`);
-	# 		foreach (@uorf) {
-	# 			my @current = split(/\t/, $_);
-	# 			if (($current[2] eq $ref) && ($current[3] eq $alt)) {
-	# 				$text .= $q->start_li().
-	# 						$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
-	# 						$q->span(" AF (allele $alt):  $current[7]").
-	# 					$q->end_li()."\n";
-	# 			}
-	# 		}
-	# 	}
-	# }
-	# my $gnomad = 0;
-	# if ($variant =~ /chr(.+)$/o && $semaph == 0) {
-	# 	###NEW style using VEP 4 TGP and ESP
-	# 	#####removed 01/10/2018 replaced wit myvariant.info
-	# 	######my $tempfile = File::Temp->new(UNLINK => 1);
-	# 	#####my $network = 'offline';
-	# 	#####print $tempfile "$1\n";$network = 'port 3337';
-	# 	#####if ($tempfile->filename() =~ /(\/tmp\/\w+)/o) {
-	# 	#####	delete $ENV{PATH};
-	# 		#my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 -o STDOUT`); ###VEP75
-
-	# 	if (U2_modules::U2_subs_1::test_myvariant() == 1) {
-	# 		#use myvariant.info REST API  http://myvariant.info/
-	# 		#my $myvarinput = $variant;
-	# 		#if ($myvarinput =~ /($chr.+[delup]{3})(.+)$/o) {$myvarinput = $1}
-	# 		my $myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'all', $user->getEmail());
-
-	# 		#$text .= ref($myvariant->{'gnomad_exome'}->{'af'}).$myvariant->{'gnomad_exome'}->{'af'}->{'af'};
-	# 		# print STDERR Dumper($myvariant);
-
-	# 		if (ref($myvariant) && ref($myvariant->{'gnomad_exome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_exome'}->{'af'}->{'af'} ne '') {
-	# 			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD exome') . $q->span(" AF: ".$myvariant->{'gnomad_exome'}->{'af'}->{'af'}) . $q->end_li();
-	# 			($semaph, $gnomad) = (1, 1);
-	# 		}
-	# 		#,gnomad_genome.af.af,cadd.esp.af,dbnsfp.1000gp3.af,clinvar.rcv.accession,cadd.rawscore
-	# 		#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'gnomad_genome.af.af', $user->getEmail());
-	# 		if (ref($myvariant) && ref($myvariant->{'gnomad_genome'}->{'af'}) eq 'HASH' && $myvariant->{'gnomad_genome'}->{'af'}->{'af'} ne '') {
-	# 			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD genome') . $q->span(" AF: ".$myvariant->{'gnomad_genome'}->{'af'}->{'af'}) . $q->end_li();
-	# 			($semaph, $gnomad) = (1, 1);
-	# 		}
-	# 		#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'dbnsfp.1000gp3.af', $user->getEmail());
-	# 		if (ref($myvariant) && ref($myvariant->{'dbnsfp'}->{'1000gp3'}) eq 'HASH' && $myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'} ne '') {
-	# 			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1K genome') . $q->span(" AF: ".$myvariant->{'dbnsfp'}->{'1000gp3'}->{'af'}) . $q->end_li();
-	# 			$semaph = 1;
-	# 		}
-	# 		#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.esp.af', $user->getEmail());
-	# 		if (ref($myvariant) && ref($myvariant->{'cadd'}->{'esp'}) eq 'HASH' && $myvariant->{'cadd'}->{'esp'}->{'af'} ne '') {
-	# 			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP') . $q->span(" AF: ".$myvariant->{'cadd'}->{'esp'}->{'af'}) . $q->end_li();
-	# 			$semaph = 1;
-	# 		}
-	# 		#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'cadd.rawscore', $user->getEmail());
-	# 		if (ref($myvariant) && ref($myvariant->{'cadd'}) eq 'HASH' && $myvariant->{'cadd'}->{'rawscore'} ne '') {
-	# 			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD') . $q->span(" raw: ".$myvariant->{'cadd'}->{'rawscore'}) . $q->end_li();
-	# 		}
-	# 		#$myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession', $user->getEmail());->{'rcv'}->{'accession'}
-	# 		if (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'HASH' && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
-	# 			#print $myvariant->{'clinvar'}->{'rcv'};
-	# 			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar ') . $q->span(": ".$myvariant->{'clinvar'}->{'rcv'}->{'clinical_significance'}) . $q->end_li();
-	# 		}
-	# 		elsif (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'ARRAY' && $myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'} ne '') {
-	# 			#print $myvariant->{'clinvar'}->{'rcv'};
-	# 			$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar ') . $q->span(": ".$myvariant->{'clinvar'}->{'rcv'}->[0]->{'clinical_significance'}) . $q->end_li();
-	# 		}
-	# 	}
-
-
-	# 		#####removed 01/10/2018 replaced wit myvariant.info
-	# 		#####my @results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz --plugin CADD,$DATABASES_PATH/CADD/whole_genome_SNVs.tsv.gz,$DATABASES_PATH/CADD/InDels.tsv.gz  -o STDOUT`); ###VEP81;
-	# 		#for unknwon reasons VEP78 does not work anymore with indels (error) and VEP 81 with substitutions (does not retrieve gmaf esp_maf) - FINALLY works with assembly v75
-
-	# 		#if ($version == 78) {
-	# 		#	@results = split('\n', `$DATABASES_PATH/variant_effect_predictor_78/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`); ###VEP78
-	# 		#}
-	# 		#else {
-	# 		#	@results = split('\n', `$DATABASES_PATH/variant_effect_predictor_81/variant_effect_predictor.pl --fasta $DATABASES_PATH/.vep/homo_sapiens/75/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa --$network --cache --compress "gunzip -c" --gmaf --maf_esp --refseq --no_progress -q --fork 4 --no_stats --dir $DATABASES_PATH/.vep/ --force -i $1 --plugin ExAC,$DALLIANCE_DATA_DIR_PATH/exac/ExAC.r0.3.sites.vep.vcf.gz -o STDOUT`); ###VEP81
-	# 		#
-	# 		#}
-
-	# 		#####if ($res->{'acc'} =~ /(N[MR]_\d+)/o) {
-	# 		#####	my @good_line = grep(/$1/, @results);
-	# 		#####	my $not_good_alt = 0;
-	# 		#####	#print "--$alt--";
-	# 		#####	if ($good_line[0] =~ /GMAF=([ATCG-]+):([\d\.]+);*/o) {
-	# 		#####		my ($nuc, $score) = ($1, $2);
-	# 		#####		#print $q->li("$nuc $ref $alt");
-	# 		#####		#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
-	# 		#####		#if (($ref ne '' && ($nuc =~ /[ATGC]/o  && ($nuc eq $alt || $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
-	# 		#####		if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
-	# 		#####			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').$q->span(" phase 1 AF (allele $nuc): $score").$q->end_li();$semaph = 1;
-	# 		#####		}
-	# 		#####		else {$not_good_alt = 1}
-	# 		#####	}
-	# 		#####	if ($good_line[0] =~ /EA_MAF=([ATCG-]+):([\d\.]+);*/o) {
-	# 		#####		my ($nuc, $score) = ($1, $2);
-	# 		#####		#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
-	# 		#####		if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
-	# 		#####			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').$q->span("  EA AF (allele $nuc): ".sprintf('%.4f', $score)).$q->end_li();$semaph = 1;
-	# 		#####		}
-	# 		#####		else {$not_good_alt = 1}
-	# 		#####	}
-	# 		#####	if ($good_line[0] =~ /AA_MAF=([ATCG-]+):([\d\.]+);*/o) {
-	# 		#####		my ($nuc, $score) = ($1, $2);
-	# 		#####		#if (($ref ne '' && (($nuc =~ /[ATGC]/o && $nuc eq $alt) || ($nuc =~ /[ATGC]/o && $nuc eq $ref))) || ($nuc !~ /[ATGC]/o)) {
-	# 		#####		if (($network eq 'offline' && ($nuc eq $alt || $nuc eq $ref)) || ($network eq 'port 3337')) {
-	# 		#####			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').$q->span("  AA AF (allele $nuc): ".sprintf('%.4f', $score)).$q->end_li();$semaph = 1;
-	# 		#####		}
-	# 		#####		else {$not_good_alt = 1}
-	# 		#####	}
-	# 		#####	if ($good_line[0] =~ /ExAC_AF=([\d\.e-]+);*/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').$q->span(" AF: $1").$q->end_li();$semaph = 1;}}
-	# 		#####	if ($good_line[0] =~ /CLIN_SIG=(\w+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/SNP/\')', 'class' => 'pointer'}, 'Clinical significance (dbSNP): ').$q->span($1).$q->end_li();}}
-	# 		#####	if ($good_line[0] =~ /CADD_RAW=([\d\.]+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD raw: ').$q->span($1).$q->end_li();}}
-	# 		#####	if ($good_line[0] =~ /CADD_PHRED=(\d+)/o) {if ($not_good_alt == 0) {$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu/\')', 'class' => 'pointer'}, 'CADD PHRED: ').$q->span($1).$q->end_li();}}
-	# 		######print $q->li($good_line[0]);
-	# 		#####}
-	# 		#####else {$text .= $q->li("$res->{'acc'} not matching.");$semaph = 1;}
-	# 		#MCAP results for missense
-	# 		#if ($variant =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
-	# 		#	my ($chr, $pos, $ref, $alt) = ($1, $2, $3, $4);
-	# 		#	my @mcap =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/mcap/mcap_v1_0.txt.gz $chr:$pos-$pos`);
-	# 		#	foreach (@mcap) {
-	# 		#		my @current = split(/\t/, $_);
-	# 		#		if (/\t$ref\t$alt\t/) {
-	# 		#			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://bejerano.stanford.edu/mcap/\')', 'class' => 'pointer'}, 'M-CAP score: '.sprintf('%.4f', $current[4])).$q->end_li(), "\n";
-	# 		#		}
-	# 		#	}
-	# 		#}
-	# 		#####if ($#results == -1) {
-	# 		#####	print "There may be an issue with port 3337 of Ensembl server mandatory for indel analysis. Please retry later.";
-	# 		#####	$semaph = 1;
-	# 		#####}
-	# 		#print $#results;
-	# 		#foreach(@results) {print "$_<br/>"}
-	# 	#####}
-	# }
-	# elsif ($variant =~ /chr(.+)$/o && $text =~ /not seen in Clinvar/o) { #clinvar empty in dbNSFP - check myvariant
-	# 	my $myvariant = U2_modules::U2_subs_1::run_myvariant($variant, 'clinvar.rcv.accession,clinvar.rcv.clinical_significance', $user->getEmail());
-
-
-	# 	if (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'HASH' && $myvariant->{'clinvar'}->{'rcv'}->{'accession'} ne '') {
-	# 		#print $myvariant->{'clinvar'}->{'rcv'};
-	# 		$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar ') . $q->span(": ".$myvariant->{'clinvar'}->{'rcv'}->{'clinical_significance'}) . $q->end_li();
-	# 		$text =~ s/<li><span class="pointer" onclick="window.open\('https:\/\/www\.ncbi\.nlm\.nih\.gov\/clinvar\/'\)">ClinVar<\/span><span>.+not seen in Clinvar<\/span><\/li>//o;
-	# 		#$text =~ s/<li><span class="pointer"  onclick="window.open\('https:\/\/www\.ncbi\.nlm\.nih\.gov\/clinvar\/'\)">ClinVar<\/span><span>.+not seen in Clinvar<\/span><\/li>//o;
-	# 	}
-	# 	elsif (ref($myvariant) && ref($myvariant->{'clinvar'}->{'rcv'}) eq 'ARRAY' && $myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'} ne '') {
-	# 		#print $myvariant->{'clinvar'}->{'rcv'};
-	# 		$text .= $q->start_li() . $q->span({'onclick' => 'window.open(\'http://www.ncbi.nlm.nih.gov/clinvar?term='.$myvariant->{'clinvar'}->{'rcv'}->[0]->{'accession'}.'\')', 'class' => 'pointer'}, 'Clinvar ') . $q->span(": ".$myvariant->{'clinvar'}->{'rcv'}->[0]->{'clinical_significance'}) . $q->end_li();
-	# 		$text =~ s/<li><span class="pointer" onclick="window.open\('https:\/\/www\.ncbi\.nlm\.nih\.gov\/clinvar\/'\)">ClinVar<\/span><span>.+not seen in Clinvar<\/span><\/li>//o;
-	# 	}
-	# }
-	#else {print "pb with variant $variant with VEP"}
-	#my ($chr, $pos1, $wt, $mt) = ($1, $2, $3, $4);
-	#print $tempfile "$chr $pos1 $pos1 $wt/$mt +\n";
-	#print $tempfile "$1 $2 $2 $3/$4 +\n";
-	#$variant =~ /chr(.+)$/o;
-	#print $tempfile "$1\n";
-
-	#get gnomAD via tabix
-	#if ($chr ne '') {
-	#	$chr =~ s/chr//og;
-	#	my @gnomad =  split(/\n/, `$EXE_PATH/tabix $DALLIANCE_DATA_DIR_PATH/gnomad/gnomad.exomes.r2.0.1.sites.vcf.gz $chr:$position-$position`);
-	#	foreach (@gnomad) {
-	#		my @current = split(/\t/, $_);
-	#		if (/\t$ref\t$alt\t/) {
-	#			$current[7] =~ /;AF=([\d\.e-]+);AN/og;
-	#			my $af = $1;
-	#			$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD').$q->span(" AF: $af").$q->span().$q->end_li()."\n";
-	#		}
-	#	}
-	#}
-	#get gnomAD via tabix v2 using annovar database (lighter)
-	#TO DO: small sub for gnomad treatment DONE
-	# if ($chr ne '' && $gnomad == 0) {
-	# 	$chr =~ s/chr//og;
-	# 	my $text_size = length($text);
-	# 	$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz", 'exome', $chr, $position, $ref, $alt, $q);
-	# 	$text .= U2_modules::U2_subs_2::gnomadAF("$EXE_PATH/tabix", "$DATABASES_PATH/gnomad/hg19_gnomad_genome_sorted.txt.gz", 'genome', $chr, $position, $ref, $alt, $q);
-	# 	if (length($text) > $text_size) {$semaph = 1}
-	# 	#my @gnomad =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/gnomad/hg19_gnomad_exome_sorted.txt.gz $chr:$position-$position`);
-	# 	#foreach (@gnomad) {
-	# 	#	my @current = split(/\t/, $_);
-	# 	#	if (/\t$ref\t$alt\t/) {
-	# 	#		#my $af = $current[5];
-	# 	#		$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD Exome').$q->span(" AF: $current[5]").$q->span().$q->end_li()."\n";
-	# 	#	}
-	# 	#}
-	# 	#@gnomad =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH/gnomad/hg19_gnomad_genome_sorted.txt.gz $chr:$position-$position`);
-	# 	#foreach (@gnomad) {
-	# 	#	my @current = split(/\t/, $_);
-	# 	#	if (/\t$ref\t$alt\t/) {
-	# 	#		#my $af = $current[5];
-	# 	#		$text .= $q->start_li().$q->span({'onclick' => 'window.open(\'http://gnomad.broadinstitute.org/\')', 'class' => 'pointer'}, 'gnomAD Genome').$q->span(" AF: $current[5]").$q->span().$q->end_li()."\n";
-	# 	#	}
-	# 	#}
-	# }
-
-	# if ($semaph == 0) {$text .= $q->li('No MAF retrieved.')}
-
-
-
-
 	####TEMP COMMENT connexion to DVD really slow comment for the moment
 	if ($res->{'ns_gene'} == 1 && ($res->{'dfn'} == 1 || $res->{'usher'} == 1)) {
-		#my $url = 'https://vvd.eng.uiowa.edu';    #does not seem to exist anymore 20210210
-		#if ($res->{'dfn'} == 1 || $res->{'usher'} == 1) {$url = 'https://deafnessvariationdatabase.org'}#OtoDB university of Iowa deafness and usher genes
 		my $url = 'https://deafnessvariationdatabase.org';
-		#ping dvd to ensure host is reachable
-		#my $p = Net::Ping->new("tcp", 2);
-		#$text.= "ping ".$p->ping('deafnessvariationdatabase.org');
-		#if ($p->ping('deafnessvariationdatabase.org')) {
-			#$text.= 'ping ok';
-
-		#my ($chr, $pos) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'clinvar');#clinvar style but for OtoDB!!
 
 		if ($res->{'type_adn'} eq 'substitution') {
 			my $no_chr_var = U2_modules::U2_subs_1::extract_dvd_var($variant);
 			my $iowa_url = "$url/variant/".uri_encode($no_chr_var);
-			# my $iowa_url = "$url/variant/$no_chr_var";
 			my $ua = LWP::UserAgent->new(ssl_opts => { verify_hostname => 0, });
 			$ua->timeout(3);
 			my $fetch = $ua->get($iowa_url);
 			if ($fetch->is_success()) {
-				# print STDERR $iowa_url;
 				my $content = $fetch->content();
-				# if ($content !~ /Unable\sto\sfind\svariant/o) {$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'Iowa DB') . $q->end_li() . "\n"}
 				if ($content !~ /is\snot\sin\sthe\sDVD/o) {$text .= $q->start_li() . $q->a({'href' => $iowa_url, 'target' => '_blank'}, 'DVD') . $q->end_li() . "\n"}
 				else {$text .= $q->li('Not recorded in the DVD')}
 			}
@@ -432,48 +132,19 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 		}
 	}
 
-	###my $var = $res->{'nom'};
-	###$var =~ s/\+/\\\+/og;
-	###$var =~ s/\./\\\./og;
-	###my $ua = new LWP::UserAgent();
-	###$ua->timeout(3);
-	###my $response = $ua->get("$url/api?version=8_2&type=hg19coord&method=IO&format=json&terms=$chr:$pos");
-	#http://vvd.eng.uiowa.edu/api?terms=chr1:94461749 - deprecated
-
-	###if ($response->is_success()) {
-		###$text.= $response->decoded_content() . "\n";
-		###my @dvd = split(/\n/, $response->decoded_content());
-		###my @good_line = grep (/$var/, @dvd);
-		##print "$dvd[0]-$var";
-		###my @split_dvd = split(/\t/, $good_line[0]);
-		###if ($split_dvd[57] && $split_dvd[57] ne 'NULL') {$text .= $q->start_li() . $q->span({'onclick' => "window.open('$url/sources')", 'class' => 'pointer'}, 'OtoDB').$q->span(" MAF: $split_dvd[57]") . $q->end_li()} #otoscope_all_af
-		##print $split_dvd[0];
-		###if ($split_dvd[0] && $split_dvd[0] =~ /(\d+)/o) {$text .= $q->start_li() . $q->a({'href' => "$url/variant/$1?full", 'target' => '_blank'}, 'Iowa DB full description') . $q->end_li()}
-	###}
-
-
-			#else {print $response}
-		#}
-		#$p->close();
-	#}
 	####END TEMP COMMENT
 
-
 	#then we add LOVD here!!!
-	#print $text;exit;
 
 	my ($evs_chr, $evs_pos_start, $evs_pos_end) = U2_modules::U2_subs_1::extract_pos_from_genomic($variant, 'evs');
 
 	my $url = "http://www.lovd.nl/search.php?build=hg19&position=chr$evs_chr:".$evs_pos_start."_".$evs_pos_end;
-	# my $lovd_gene = $res->{'gene'} == 'ADGRV1' ? 'GPR98' : $res->{'gene'};
 	my $lovd_gene = $res->{'gene'};
 	if ($lovd_gene eq 'DFNB31') {$lovd_gene = 'WHRN'}
 	elsif ($lovd_gene eq 'CLRN1') {$lovd_gene = 'USH3A'}
 	elsif ($lovd_gene eq 'ADGRV1') {$lovd_gene = 'GPR98'}
 
-	my $local_url = "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/api/rest.php/variants/$lovd_gene?search_Variant/DNA=$res->{'nom'}";
-	# print STDERR "$local_url\n";
-	#$text .= $url;
+	my $local_url = "$HOME_IP/lovd/Usher_montpellier/api/rest.php/variants/$lovd_gene?search_Variant/DNA=$res->{'nom'}";
 	my $ua = new LWP::UserAgent();
 	$ua->timeout(10);
 	my $response = $ua->get($url);
@@ -483,57 +154,44 @@ if ($q->param('asked') && $q->param('asked') eq 'ext_data') {
 	#"hg_build"	"g_position"	"gene_id"	"nm_accession"	"DNA"	"variant_id"	"url"
 	#"hg19"	"chr1:215847440"	"USH2A"	"NM_206933.2"	"c.13811+2T>G"	"USH2A_00751"	"https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=USH2A&action=search_all&search_Variant%2FDBID=USH2A_00751"
 	#my $response = $ua->request($req);https://grenada.lumc.nl/LOVD2/Usher_montpellier/variants.php?select_db=MYO7A&action=search_all&search_Variant%2FDBID=MYO7A_00018
-  # LOVD2 is now hosted at home, then cannot be retrived anymore by the serach script, then we should always propose the link
+  	# LOVD2 is now hosted at home, then cannot be retrived anymore by the search script, then we should always propose the link
 
-  # my $lovd_semaph = 0;
 	if($response->is_success()) {
 		my $escape_var = $res->{'nom'};
 		$escape_var =~ s/\+/\\\+/og;
 		if ($escape_var =~ /^(c\..+d[ue][lp])[ATGC]+/o) {$escape_var = $1}
 
-		# if ($response->decoded_content() =~ /"$escape_var".+"(https[^"]+Usher_montpellier\/[^"]+)"/g) {$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD USHbases').$q->end_li();}
-		# if ($response->decoded_content() =~ /"(https:\/\/grenada\.lumc\.nl\/LOVD2\/Usher_montpellier\/[^"]+)"$/o) {print $q->start_a({'href' => $1, 'target' => '_blank'}), $q->img({'src' => $HTDOCS_PATH.'data/img/buttons/LOVD_button.png'}), $q->end_a();}
-		# elsif ($response->decoded_content() =~ /"$escape_var".+"(http[^"]+shared\/[^"]+)"/g) {$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD').$q->end_li();}
-		# print STDERR $response->decoded_content()."\n";
-		# print STDERR $escape_var."\n";
 		if ($response->decoded_content() =~ /"$escape_var".+"(http[^"]+)"/g) {
 			my @matches = $response->decoded_content() =~ /"$escape_var".+"(http[^"]+)"/g;
 			$text .= $q->start_li().$q->strong('LOVD matches: ').$q->start_ul();
 			my $i = 1;
 			foreach (@matches) {
-				# if ($_ =~ /https.+Usher_montpellier\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD USHbases') . $q->end_li()}
 				if ($_ =~ /https.+Usher_montpellier\//g) {next;}
 				elsif ($_ =~ /http.+databases\.lovd\.nl\/shared\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 shared') . $q->end_li()}
 				elsif ($_ =~ /http.+databases\.lovd\.nl\/whole_genome\//g) {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, 'LOVD3 whole genome') . $q->end_li()}
 				else {$text .= $q->start_li() . $q->a({'href' => $_, 'target' => '_blank'}, "Link $i") . $q->end_li();$i++;}
 			}
-			#$text .= $q->start_li().$q->a({'href' => $1, 'target' => '_blank'}, 'LOVD').$q->end_li();
 		}
-		# else {$lovd_semaph = 1}
 	}
-	# else {$lovd_semaph = 1}
-	# if ($lovd_semaph == 1) {
+
 	if (grep /$res->{'gene'}/, @U2_modules::U2_subs_1::LOVD) {
     my $response = $ua->get($local_url);
     if($response->is_success() && $response->decoded_content() =~ /Variant\/DBID:$lovd_gene\_(\d+)/g) {
-        # print STDERR "$response\n";
-        $text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=".$lovd_gene."&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FdbSNP=&search_Variant%2FReference=&search_Variant%2FReported_effect=&search_Variant%2FFrequency=&search_Variant%2FUSMA=&search_Variant%2FHSF=&search_Variant%2FRestriction_site=&search_Variant%2FDBID=".$lovd_gene."_$1", 'target' => '_blank'}, 'LOVD2 USHbases') . $q->end_li();
+        $text .= $q->start_li() . $q->a({'href' => "$HOME_IP/lovd/Usher_montpellier/variants.php?select_db=".$lovd_gene."&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FdbSNP=&search_Variant%2FReference=&search_Variant%2FReported_effect=&search_Variant%2FFrequency=&search_Variant%2FUSMA=&search_Variant%2FHSF=&search_Variant%2FRestriction_site=&search_Variant%2FDBID=".$lovd_gene."_$1", 'target' => '_blank'}, 'LOVD2 USHbases') . $q->end_li();
     }
     else {
   		$res->{'nom'} =~ /(\w+\d)/og;
   		my $pos_cdna = $1;
-  		$text .= $q->start_li() . $q->a({'href' => "https://ushvamdev.iurc.montp.inserm.fr/lovd/Usher_montpellier/variants.php?select_db=".$lovd_gene."&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
+  		$text .= $q->start_li() . $q->a({'href' => "$HOME_IP/lovd/Usher_montpellier/variants.php?select_db=".$lovd_gene."&action=search_unique&order=Variant%2FDNA%2CASC&hide_col=&show_col=&limit=100&search_Variant%2FLocation=&search_Variant%2FExon=&search_Variant%2FDNA=$pos_cdna&search_Variant%2FRNA=&search_Variant%2FProtein=&search_Variant%2FDomain=&search_Variant%2FInheritance=&search_Variant%2FRemarks=&search_Variant%2FReference=&search_Variant%2FRestriction_site=&search_Variant%2FFrequency=&search_Variant%2FDBID=", 'target' => '_blank'}, 'LOVD USHbases?') . $q->end_li();
     }
 	}
 	else {
 		$text .= $q->start_li() . $q->a({'href' => "http://grenada.lumc.nl/LSDB_list/lsdbs/$res->{'gene'}", 'target' => '_blank'}, 'LOVD?') . $q->end_li();
 	}
   $text .= $q->end_ul() . $q->end_li();
-	# }
 
 	$text .= $q->end_ul() .  $q->end_td() . $q->td('Links to the DVD and LOVD') . $q->end_Tr() . "\n";
 	print $text;
-	###END NEW style using VEP
 }
 
 if ($q->param('asked') && $q->param('asked') eq 'class') {
@@ -552,9 +210,7 @@ if ($q->param('asked') && $q->param('asked') eq 'class') {
 	if (U2_modules::U2_subs_1::is_class_pathogenic($class) == 1){
 		$update = "UPDATE variant SET $field = '$class', defgen_export = 't' WHERE nom = '$variant' AND refseq = '$acc';";
 	}
-	#print $update;
 	$dbh->do($update);
-	#print ($class, U2_modules::U2_subs_1::color_by_classe($class, $dbh));
 }
 if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 	print $q->header();
@@ -564,8 +220,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 	my $main = U2_modules::U2_subs_1::check_acc($q, $dbh);
 	my $nom_c = U2_modules::U2_subs_1::check_nom_c($q, $dbh);
 	$nom_c =~ s/\+/\\\+/g;
-	#print $nom_c.'--';
-	#test mutalyzer
+	# test mutalyzer
 	if (U2_modules::U2_subs_1::test_mutalyzer() != 1) {U2_modules::U2_subs_1::standard_error('23', $q)}
 
 	my $soap = SOAP::Lite->uri('http://mutalyzer.nl/2.0/services')->proxy('https://mutalyzer.nl/services/?wsdl');
@@ -575,26 +230,17 @@ if ($q->param('asked') && $q->param('asked') eq 'var_nom') {
 			SOAP::Data->name('build')->value('hg19'),
 			SOAP::Data->name('variant')->value($variant));
 
-
-	#print Dumper($call);exit;
-
 	if (!$call->result()) {print "mutalyzer fault";}
-	#else {print $call->{'string'};exit;}
-	#exit;
 	my $return = $q->start_ul();
 	foreach ($call->result()->{'string'}) {
 		my $tab_ref;
 		if (ref($_) eq 'ARRAY') {$tab_ref = $_}
 		else {$tab_ref->[0] = $_}
 
-		#if (Dumper($_) =~ /\[/og) {$tab_ref = $_} ## multiple results: tab ref
-		#else {$tab_ref->[0] = $_}
-
 		foreach (@{$tab_ref}) {
-			#print "$_--$nom_c--";
 			if (/$main/ || /X[MR]_.+/o || /$nom_c/) {next}
 			if ($i == 0) {$return .= $q->li("Alternative nomenclatures found as follow:")}
-			#https://mutalyzer.nl/check?name=NM_001142763.1%3Ac.1319A%3EC
+			# https://mutalyzer.nl/check?name=NM_001142763.1%3Ac.1319A%3EC
 			if ($_ =~ /[\+-]/g) {$return .= $q->li($_)}
 			else {$return .= $q->start_li().$q->span("$_ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").$q->start_a({'href' => 'https://v2.mutalyzer.nl/check?name='.uri_escape($_), 'target' => '_blank'}).$q->span('Mutalyzer').$q->img({'src' => $HTDOCS_PATH.'data/img/link_small.png', 'border' => '0', 'width' =>'15'}).$q->end_a().$q->end_li()."\n"}
 			$i++;
@@ -613,10 +259,9 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 
 	my $print_ngs = '';
 	if ($depth) {
-		#$info .= "--$current_analysis--";
 		if ($current_analysis =~ /454-/o) {
 			$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($depth).$q->span(" Freq: ").$q->strong($frequency).$q->end_li().$q->start_li().$q->span("wt f: ").$q->strong($wt_f).$q->span(", wt r: ").$q->strong($wt_r).$q->end_li().$q->start_li().$q->span("mt f: ").$q->strong($mt_f).$q->span(", mt r: ").$q->strong($mt_r).$q->end_li().$q->end_ul().$q->end_li();
-			#check if Illumina also??
+			# check if Illumina also??
 			if ($analyses =~ /$ANALYSIS_ILLUMINA_REGEXP/) {
 				my @matches = $analyses =~ /$ANALYSIS_ILLUMINA_REGEXP/g;
 				foreach (@matches) {
@@ -626,7 +271,6 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 
 		}
 		if ($current_analysis =~ /$ANALYSIS_ILLUMINA_REGEXP/) {
-			#$print_ngs = "DOC MiSeq: <strong>$depth</strong> Freq: <strong>$frequency</strong><br/>MSR filter:<strong>$msr_filter</strong><br/>";
 			$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($depth).$q->span(" Freq: ").$q->strong($frequency).$q->end_li().$q->start_li().$q->span("MSR filter: ").$q->strong($msr_filter).$q->end_li().$q->end_ul().$q->end_li();
 			my @matches = $analyses =~ /$ANALYSIS_ILLUMINA_REGEXP/g;
 			if ($#matches > 0) {
@@ -638,106 +282,91 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 			if ($analyses =~ /(454-\d+)/o) {
 				my $query_ngs = "SELECT depth, frequency, wt_f, wt_r, mt_f, mt_r FROM variant2patient a, patient b WHERE a.num_pat = b.numero AND a.id_pat = b.identifiant AND b.first_name = '$first_name' AND b.last_name = '$last_name' AND a.refseq = '$acc' AND nom_c = '$nom_c' AND type_analyse = '$1';";
 				my $res_ngs = $dbh->selectrow_hashref($query_ngs);
-				#$print_ngs .= "DOC 454: <strong>$res_ngs->{'depth'}</strong> Freq: <strong>$res_ngs->{'frequency'}</strong><br/>wt f: $res_ngs->{'wt_f'}, wt r: $res_ngs->{'wt_r'}<br/>mt f: $res_ngs->{'mt_f'}, mt r: $res_ngs->{'mt_r'}<br/>";
 				$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($res_ngs->{'depth'}).$q->span(" Freq: ").$q->strong($res_ngs->{'frequency'}).$q->end_li().$q->start_li().$q->span("wt f: ").$q->strong($res_ngs->{'wt_f'}).$q->span(", wt r: ").$q->strong($res_ngs->{'wt_r'}).$q->end_li().$q->start_li().$q->span("mt f: ").$q->strong($res_ngs->{'mt_f'}).$q->span(", mt r: ").$q->strong($res_ngs->{'mt_r'}).$q->end_li().$q->end_ul().$q->end_li();
 			}
 		}
 	}
-	#below test json unsuccessfull
-	#qq {{"success": "login is successful", "userid": "$ userID"}}:
-	#my $json = qq{{'txt': "<big>$print_ngs $MAF<br/><span id = \"maf_$nb\"></span></big>", "maf_url": $maf_url}};
-	#my $json = encode_json({ aaData => $data, iTotalRecords => $count, iTotalDisplayRecords => $count, sEcho => int($params->{sEcho}) });
-	#my $json = encode_json({ 'txt' => "<big>$print_ngs $MAF<br/><span id = \"maf_$nb\"></span></big>", 'maf_url' => $maf_url});
-	#print $q->header(-type => "application/json",-charset => "utf-8");
-	#print $json;
 	$info .= $q->end_ul();
 	print $info;
-	#print "<big>$info$print_ngs $MAF<br/><span id = \"maf_$nb\"></span></big>";
-
-
 }
-if ($q->param('asked') && $q->param('asked') eq 'ponps') {
-	print $q->header();
-	my $text = $q->start_ul();
+# if ($q->param('asked') && $q->param('asked') eq 'ponps') {
+# 	print $q->header();
+# 	my $text = $q->start_ul();
 
-	my ($aa_ref, $aa_alt) = U2_modules::U2_subs_1::decompose_nom_p($q->param('var_prot'));
+# 	my ($aa_ref, $aa_alt) = U2_modules::U2_subs_1::decompose_nom_p($q->param('var_prot'));
 
-	my ($i, $j) = (0, 0);
+# 	my ($i, $j) = (0, 0);
 
-	my $var_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
-	#if ($var_g =~ /chr([\dXYM]+):g\.(\d+)([ATGC])>([ATGC])/o) {
-	if ($var_g =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):$U2_modules::U2_subs_1::HGVS_CHR_TAG\.(\d+)([ATGC])>([ATGC])/) {
-		my ($chr, $pos1, $ref, $alt) = ($1, $2, $3, $4);
+# 	my $var_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
+# 	if ($var_g =~ /chr($U2_modules::U2_subs_1::CHR_REGEXP):$U2_modules::U2_subs_1::HGVS_CHR_TAG\.(\d+)([ATGC])>([ATGC])/) {
+# 		my ($chr, $pos1, $ref, $alt) = ($1, $2, $3, $4);
 
-		#NEW style 04/2018 replacment of VEP with dbNSFP
+# 		#NEW style 04/2018 replacment of VEP with dbNSFP
+# 		$chr =~ s/chr//og;
+# 		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1`);
+# 		#my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:207634224-207634224`);
 
-		$chr =~ s/chr//og;
-		#print "$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1";
-		my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:$pos1-$pos1`);
-		#my @dbnsfp =  split(/\n/, `$EXE_PATH/tabix $DATABASES_PATH$DBNSFP_V2 $chr:207634224-207634224`);
+# 		#print $#dbnsfp.'-'.$dbnsfp[0];
+# 		if ($dbnsfp[0] eq '') {print 'No values in dbNSFP v2.9 for this variant.';exit;}
+# 		#if ($#dbnsfp < 2) {print 'No values in dbNSFP v2.9 for this variant.';exit;}
+# 		foreach (@dbnsfp) {
+# 			my @current = split(/\t/, $_);
+# 			if (($current[2] eq $ref) && ($current[3] eq $alt) && ($current[4] eq $aa_ref) && ($current[5] eq $aa_alt)) {
+# 				my $sift = U2_modules::U2_subs_2::most_damaging($current[26], 'min');
+# 				if (U2_modules::U2_subs_1::sift_color($sift) eq '#FF0000') {$i++}
+# 				if ($sift ne '') {$j++}
+# 				my $polyphen = U2_modules::U2_subs_2::most_damaging($current[32], 'max');
+# 				if (U2_modules::U2_subs_1::pph2_color2($polyphen) eq '#FF0000') {$i++}
+# 				if ($polyphen ne '') {$j++}
+# 				my $fathmm = U2_modules::U2_subs_2::most_damaging($current[44], 'min');
+# 				if (U2_modules::U2_subs_1::fathmm_color($fathmm) eq '#FF0000') {$i++}
+# 				if ($fathmm ne '') {$j++}
+# 				my $metalr = U2_modules::U2_subs_2::most_damaging($current[50], 'max');
+# 				if (U2_modules::U2_subs_1::metalr_color($metalr) eq '#FF0000') {$i++}
+# 				if ($metalr ne '') {$j++}
+# 				#my $ea_maf = my $aa_maf = my $exac_maf = my $1kg_maf = -1;
+# 				my $ea_maf = sprintf('%.4f', $current[93]);
+# 				my $aa_maf = sprintf('%.4f', $current[92]);
+# 				my $exac_maf = sprintf('%.4f', $current[101]);
+# 				my $onekg_maf = sprintf('%.4f', $current[83]);
+# 				if (max($ea_maf, $aa_maf, $exac_maf, $onekg_maf) > -1) {
+# 					$j++;
+# 					if (max($ea_maf, $aa_maf, $exac_maf, $onekg_maf) < 0.005) {$i++}
+# 				}
+# 				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) =~ /Pathogenic/) {$i++}
+# 				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) ne 'not seen in Clinvar') {$j++}
 
-		#print $#dbnsfp.'-'.$dbnsfp[0];
-		if ($dbnsfp[0] eq '') {print 'No values in dbNSFP v2.9 for this variant.';exit;}
-		#if ($#dbnsfp < 2) {print 'No values in dbNSFP v2.9 for this variant.';exit;}
-		foreach (@dbnsfp) {
-			my @current = split(/\t/, $_);
-			if (($current[2] eq $ref) && ($current[3] eq $alt) && ($current[4] eq $aa_ref) && ($current[5] eq $aa_alt)) {
-				my $sift = U2_modules::U2_subs_2::most_damaging($current[26], 'min');
-				if (U2_modules::U2_subs_1::sift_color($sift) eq '#FF0000') {$i++}
-				if ($sift ne '') {$j++}
-				my $polyphen = U2_modules::U2_subs_2::most_damaging($current[32], 'max');
-				if (U2_modules::U2_subs_1::pph2_color2($polyphen) eq '#FF0000') {$i++}
-				if ($polyphen ne '') {$j++}
-				my $fathmm = U2_modules::U2_subs_2::most_damaging($current[44], 'min');
-				if (U2_modules::U2_subs_1::fathmm_color($fathmm) eq '#FF0000') {$i++}
-				if ($fathmm ne '') {$j++}
-				my $metalr = U2_modules::U2_subs_2::most_damaging($current[50], 'max');
-				if (U2_modules::U2_subs_1::metalr_color($metalr) eq '#FF0000') {$i++}
-				if ($metalr ne '') {$j++}
-				#my $ea_maf = my $aa_maf = my $exac_maf = my $1kg_maf = -1;
-				my $ea_maf = sprintf('%.4f', $current[93]);
-				my $aa_maf = sprintf('%.4f', $current[92]);
-				my $exac_maf = sprintf('%.4f', $current[101]);
-				my $onekg_maf = sprintf('%.4f', $current[83]);
-				if (max($ea_maf, $aa_maf, $exac_maf, $onekg_maf) > -1) {
-					$j++;
-					if (max($ea_maf, $aa_maf, $exac_maf, $onekg_maf) < 0.005) {$i++}
-				}
-				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) =~ /Pathogenic/) {$i++}
-				if (U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[115]) ne 'not seen in Clinvar') {$j++}
+# 				$text .= $q->start_li().
+# 							$q->span({'onclick' => 'window.open(\'http://sift.bii.a-star.edu.sg\')', 'class' => 'pointer'}, 'SIFT').
+# 							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::sift_color($sift)}, $sift).$q->end_li()."\n".
+# 						$q->end_li()."\n".
+# 						$q->start_li().
+# 							$q->span({'onclick' => 'window.open(\'http://genetics.bwh.harvard.edu/pph2/\')', 'class' => 'pointer'}, 'Polyphen2').
+# 							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::pph2_color2($polyphen)}, $polyphen).$q->end_li()."\n".
+# 						$q->end_li()."\n".
+# 						$q->start_li().
+# 							$q->span({'onclick' => 'window.open(\'http://fathmm.biocompute.org.uk/\')', 'class' => 'pointer'}, 'FATHMM').
+# 							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::fathmm_color($fathmm)}, $fathmm).$q->end_li()."\n".
+# 						$q->end_li()."\n".
+# 						$q->start_li().
+# 							$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'MetaLR').
+# 							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::metalr_color($metalr)}, $metalr).$q->end_li()."\n".
+# 						$q->end_li()."\n";
+# 				my ($ratio, $class) = (0, 'one_quarter');
+# 				if ($j != 0) {
+# 					$ratio = sprintf('%.2f', ($i)/($j));
+# 					if ($ratio >= 0.25 && $ratio < 0.5) {$class = 'two_quarter'}
+# 					elsif ($ratio >= 0.5 && $ratio < 0.75) {$class = 'three_quarter'}
+# 					elsif ($ratio >= 0.75) {$class = 'four_quarter'}
 
-				$text .= $q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://sift.bii.a-star.edu.sg\')', 'class' => 'pointer'}, 'SIFT').
-							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::sift_color($sift)}, $sift).$q->end_li()."\n".
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://genetics.bwh.harvard.edu/pph2/\')', 'class' => 'pointer'}, 'Polyphen2').
-							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::pph2_color2($polyphen)}, $polyphen).$q->end_li()."\n".
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://fathmm.biocompute.org.uk/\')', 'class' => 'pointer'}, 'FATHMM').
-							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::fathmm_color($fathmm)}, $fathmm).$q->end_li()."\n".
-						$q->end_li()."\n".
-						$q->start_li().
-							$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'MetaLR').
-							$q->span(" score: ").$q->span({'style' => 'color:'.U2_modules::U2_subs_1::metalr_color($metalr)}, $metalr).$q->end_li()."\n".
-						$q->end_li()."\n";
-				my ($ratio, $class) = (0, 'one_quarter');
-				if ($j != 0) {
-					$ratio = sprintf('%.2f', ($i)/($j));
-					if ($ratio >= 0.25 && $ratio < 0.5) {$class = 'two_quarter'}
-					elsif ($ratio >= 0.5 && $ratio < 0.75) {$class = 'three_quarter'}
-					elsif ($ratio >= 0.75) {$class = 'four_quarter'}
-
-					$text .= $q->start_li().$q->span({'class' => $class}, 'MD experimental pathogenic ratio: ').$q->span({'class' => $class}, "$ratio, ($i/$j)").$q->end_li();
-				}
-			}
-		}
-	}
-	$text .= $q->end_ul();
-	print $text;
-
-}
+# 					$text .= $q->start_li().$q->span({'class' => $class}, 'MD experimental pathogenic ratio: ').$q->span({'class' => $class}, "$ratio, ($i/$j)").$q->end_li();
+# 				}
+# 			}
+# 		}
+# 	}
+# 	$text .= $q->end_ul();
+# 	print $text;
+# }
 
 if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 	print $q->header();
@@ -758,7 +387,6 @@ if ($q->param('asked') && $q->param('asked') eq 'var_list') {
 
 	my $query = "SELECT nom, $name as nom2, classe FROM variant WHERE refseq = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' ORDER BY nom_g $order;";
 	if ($user->isPublic == 1) {$query = "SELECT nom, $name as nom2, classe FROM variant WHERE refseq = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' AND (nom) NOT IN (SELECT nom_c FROM variant2patient WHERE refseq = '$acc_no') ORDER BY nom_g $order;"}
-	#print $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $html = $q->start_ul();
@@ -825,7 +453,6 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 
 	$query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.refseq), a.nom_c, a.refseq, c.gene_symbol FROM variant2patient a, variant b, gene c WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' AND $sort_type = '$sort_value')\nSELECT a.nom, a.classe, a.refseq, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, tmp b WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.gene_symbol = '$gene' GROUP BY a.classe, a.nom, a.refseq, a.nom_prot, a.nom_ivs, a.nom_g ORDER BY $order;";
 	if ($sort_type eq 'all') {
-		# $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.refseq), a.nom_c, a.refseq, b.gene_symbol FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene')\nSELECT a.nom, a.classe, a.refseq, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, variant2patient b, gene c WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' GROUP BY a.classe, a.nom, a.nom_gene, a.nom_prot, a.nom_ivs ORDER BY $order;";
     $query = "WITH tmp AS (SELECT DISTINCT(a.nom_c, a.num_pat, a.id_pat, a.refseq), a.nom_c, a.refseq, b.gene_symbol FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND b.gene_symbol = '$gene')\nSELECT a.nom, a.classe, a.refseq, a.nom_prot, a.nom_ivs, COUNT(b.nom_c) as allel FROM variant a, tmp b, gene c WHERE a.nom = b.nom_c AND a.refseq = b.refseq AND b.refseq = c.refseq AND c.gene_symbol = '$gene' GROUP BY a.nom_g, a.classe, a.nom, a.refseq, a.nom_prot, a.nom_ivs ORDER BY $order;";
 	}
 	#print $query;
@@ -860,15 +487,13 @@ if ($q->param('asked') && $q->param('asked') eq 'var_all') {
 
 if ($q->param('asked') && $q->param('asked') eq 'change_filter') {
 
-	#not called by ajax but it was a good place to put it
+	# not called by ajax but it was a good place to put it
 	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	my $new_filter = U2_modules::U2_subs_1::check_filter($q);
 	my $update = "UPDATE miseq_analysis SET filter = '$new_filter' WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
-	#print $update;
 	$dbh->do($update);
-	#print "Location: patient_file.pl?sample=$id$number";
 	print $q->redirect("patient_file.pl?sample=$id$number")
 }
 
@@ -896,11 +521,9 @@ if ($q->param('asked') && $q->param('asked') eq 'req_class') {
 if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
-	#print $number;
-	#need to get info on patients (for multiple samples)
+	# need to get info on patients (for multiple samples)
 	my ($list, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
 	my $query = "SELECT DISTINCT(b.nom_c), a.*, a.nom_prot as hgvs_prot, b.statut, b.allele, c.nom_prot, c.enst, c.acc_version, c.dfn, c.rp, c.usher, c.gene_symbol FROM variant a, variant2patient b, gene c WHERE a.refseq = b.refseq AND a.nom = b.nom_c AND a.refseq = c.refseq AND (b.id_pat, b.num_pat) IN ($list) AND a.defgen_export = 't';";
-	# print STDERR $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	my $content =  "GENE;VARIANT;A_ENREGISTRER;ETAT;RESULTAT;VARIANT_P;VARIANT_C;ENST;NM;POSITION_GENOMIQUE;CLASSESUR5;CLASSESUR3;COSMIC;RS;REFERENCES;CONSEQUENCES;COMMENTAIRE;CHROMOSOME;GENOME_REFERENCE;NOMENCLATURE_HGVS;LOCALISATION;SEQUENCE_REF;LOCUS;ALLELE1;ALLELE2\r\n";
@@ -932,7 +555,6 @@ if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
 	print $q->header();
 	my $nom_g = U2_modules::U2_subs_1::check_nom_g($q, $dbh);
-	#print $nom_g;
 	my $query = "SELECT a.gene_symbol, a.refseq, a.acc_version, b.nom as var, b.nom_prot as hgvs_prot, b.acmg_class, b.classe, a.enst, b.snp_id, b.type_prot, b.nom_g, b.type_segment, b.num_segment FROM gene a, variant b WHERE a.refseq = b.refseq AND b.nom_g = '$nom_g';";
 	my $res = $dbh->selectrow_hashref($query);
 	#
@@ -953,8 +575,6 @@ if ($q->param('asked') && $q->param('asked') eq 'defgenMD') {
 
 }
 
-
-
 if ($q->param('run_table') && $q->param('run_table') == 1) {
 	print $q->header();
 	my $analysis;
@@ -966,8 +586,6 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 
 	my $content = $q->start_div({'class' => 'w3-container'}).
 			U2_modules::U2_subs_2::info_panel($intro, $q)."\n";
-	#my $ul = $q->p('please click a run id below or click \'global\' for an overview of all runs.').$q->ul().$q->start_li().$q->a({'href' => 'stats_ngs.pl?run=global'}, 'global analysis').$q->end_li();#deprecated
-	#, 'data-order' => '[[ 0, "desc" ]]' defined in js
 	$content .= $q->start_div({'class' => 'container'}).
 		$q->start_table({'class' => 'great_table technical', 'id' => 'illumina_runs_table'}).
 			$q->start_caption().
@@ -986,8 +604,6 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 	my $query;
 	if ($analysis eq 'all') {$query = 'SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse ORDER BY a.type_analyse DESC, a.run_id;'}
 	else {$query = "SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.type_analyse = '$analysis' ORDER BY a.type_analyse DESC, a.run_id;"}
-	#my $dates = "\"date\": [
-	#";
 	my $i = my $j = my $k = my $l = my $m = my $n = my $o = my $p = my $r = my $s = my $t = my $u = my $v = my $w = my $z = 0;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -1035,10 +651,8 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$content .= $q->td("Run $r")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-2') {$content .= $q->td("Run $s")}
 			$content .= $q->td($num_samples->{'a'});
-			#$ul .= $q->end_li();
 			$content .= $q->end_Tr()
 		}
-		#$ul .= $q->end_ul();
 		$content .= $q->end_tbody().$q->end_table().$q->end_div();
 		print $content;
 
@@ -1142,7 +756,6 @@ if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
 	if ($q->param('metric_type') && $q->param('metric_type') =~ /([\w\s%\/]+)/o) {$metric_type = $1}
 	my $percent = '';
 	if ($metric_type =~ /%/) {$percent = ' %'}
-	#my $get_label_tag = $analysis;
 
 	my ($labels, $full_id, $analysis_type) = U2_modules::U2_subs_3::get_labels($analysis, $dbh);
 	my @tags;
@@ -1156,16 +769,13 @@ if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
 	elsif ($#tags+1 > 50) {$width = '1600'}
 	elsif ($#tags+1 > 30) {$width = '1200'}
 
-	#Let $q-Wparam('math_type') !!!!!
 	my $data = U2_modules::U2_subs_3::get_data($analysis, $pg_row, $q->param('math_type'), $floating_depth, $cluster, $dbh);
-	#print $data;
 	my @rgb = ('151,187,205', '88,42,114', '10,5,94', '161,34,34', '220,126,0', '170,146,55', '220,188,0', '76,194,0', '38,113,88', '34,103,100');
 	my $js = "
 		function graph_details() {
 			".U2_modules::U2_subs_2::get_js_graph($labels, $data, $rgb[int rand(10)], 'graph')."
 		}
 	";
-	#print $js;
     my $content =   $q->script({'type' => 'text/javascript'}, $js).
                     $q->start_div({'class' => 'w3-container w3-center w3-card', 'id' => $pg_row})."\n".$q->br().
                             $q->big($metric_type).$q->br().$q->br().$q->span("$math_type: ").
@@ -1186,7 +796,6 @@ if ($q->param('draw_graph') && $q->param('draw_graph') == 1) {
 
 	print $content;
 }
-
 
 if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 	print $q->header();
@@ -1234,7 +843,7 @@ if ($q->param('vs_table') && $q->param('vs_table') == 1) {
 		$q->end_div();
 
 		if ($round == 1) {
-		#create table
+		# create table
 		$content .= $q->end_div()."\n".$q->br();
 	}
 	print $content;
@@ -1259,7 +868,7 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 	my ($id_mother, $number_mother) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('mother')), $q);
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
 	if ($id_father.$number_father eq $id_mother.$number_mother) {print "Please choose different samples for mother and father.";exit;}
-	#check if everybody has the same analysis
+	# check if everybody has the same analysis
 	my $query_check_analysis = "SELECT COUNT(num_pat) as a FROM miseq_analysis WHERE type_analyse = '$analysis' AND (id_pat || num_pat) IN ('$id$number','$id_father$number_father','$id_mother$number_mother');";
 	my $res = $dbh->selectrow_hashref($query_check_analysis);
 	if ($res->{'a'} != 3) {print 'Sorry the analyses types for the 3 samples do not match.';exit;}
@@ -1267,19 +876,19 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 	my $query = "SELECT a.nom_c, b.gene_symbol, b.refseq, a.depth FROM variant2patient a, gene b WHERE a.refseq = b.refseq AND a.type_analyse  = '$analysis' AND a.id_pat = '$id' AND a.num_pat = '$number' AND a.statut NOT IN ('homozygous', 'heteroplasmic', 'homoplasmic') AND a.allele = 'unknown';";
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
-	my ($i, $j, $k, $l, $m) = (0, 0, 0, 0, 0);#counter for changing alleles
+	my ($i, $j, $k, $l, $m) = (0, 0, 0, 0, 0);# counter for changing alleles
 	my $denovo = '';
 	my $content;
 	while (my $result = $sth->fetchrow_hashref()) {
-		if ($result->{'depth'} > 30) {#if bad coverage in CI, possibly also in parents and error prone
+		if ($result->{'depth'} > 30) {# if bad coverage in CI, possibly also in parents and error prone
 			$l++;
 			my $query_assign = "SELECT allele, statut, id_pat, num_pat FROM variant2patient WHERE nom_c = '$result->{'nom_c'}' AND refseq = '$result->{'refseq'}' AND (id_pat || num_pat) IN ('$id_father$number_father', '$id_mother$number_mother') AND  type_analyse  = '$analysis';";
 			my $sth_assign = $dbh->prepare($query_assign);
 			my $res_assign = $sth_assign->execute();
 			if ($res_assign ne '0E0') {
-				my $allele = 2;#default mother
-				if ($res_assign == 2) {#fat & mot
-					#next if both het/hom, if one het one hom => assign to hom
+				my $allele = 2;# default mother
+				if ($res_assign == 2) {# fat & mot
+					# next if both het/hom, if one het one hom => assign to hom
 					my ($fat_allele, $mom_allele);
 					while (my $result_assign = $sth_assign->fetchrow_hashref()) {
 						if ($result_assign->{'id_pat'}.$result_assign->{'num_pat'} eq $id_father.$number_father) {$fat_allele = $result_assign->{'statut'}}
@@ -1292,7 +901,7 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 				else {
 					while (my $result_assign = $sth_assign->fetchrow_hashref()) {
 						if ($result_assign->{'id_pat'}.$result_assign->{'num_pat'} eq $id_father.$number_father) {
-							#father
+							# father
 							$allele = 1;
 							$j++;
 						}
@@ -1301,16 +910,14 @@ if ($q->param('asked') && $q->param('asked') eq 'parents') {
 				my $update = "UPDATE variant2patient SET allele = '$allele' WHERE id_pat = '$id' AND num_pat = '$number' AND refseq = '$result->{'refseq'}' AND nom_c = '$result->{'nom_c'}';";
 				$dbh->do($update);
 				$i++;
-				#$content .= $result->{'nom_gene'}[0]." - ".$result->{'nom_gene'}[1]." - ".$result->{'nom_c'}." - ".$allele."\n";
 			}
 			else {
-				#not in mother nor in father
-				#denovo?
-				#remove neutral from list
+				# not in mother nor in father
+				# denovo?
+				# remove neutral from list
 				$k++;
 				my $query_class = "SELECT classe FROM variant WHERE refseq = '$result->{'refseq'}}' AND nom = '$result->{'nom_c'}';";
 				my $res_classe = $dbh->selectrow_hashref($query_class);
-				#print $res_classe->{'classe'}."\n";
 				if ($res_classe->{'classe'} eq 'neutral' || $res_classe->{'classe'} eq 'R8' || $res_classe->{'classe'} eq 'VUCS Class F' || $res_classe->{'classe'} eq 'VUCS Class U' || $res_classe->{'classe'} eq 'artefact') {next}
 				$denovo .= $result->{'gene_symbol'}." - ".$result->{'refseq'}." - ".$result->{'nom_c'}." - ".$res_classe->{'classe'}.$q->br();
 			}
@@ -1338,7 +945,9 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	my $experiment_tag = '';
 	if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
 	if ($analysis =~ /-157$/o) {$experiment_tag = '_157'}
-	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
+	# if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
+	# print STDERR $q->param ('align_file')."\n";
+	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/chu-ngs\//o) {
 		my $align_file = $q->param('align_file');
 		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
 		my $cov_report_sh = $cov_report_dir.'covreport.sh';
@@ -1346,15 +955,16 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter$experiment_tag.txt -f $filter`;
 
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
-			# print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
-      		print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
-			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\n".$HOME_IP."ushvam2/DS_data/covreport/$id$number/$id$number-$analysis-".$filter."_coverage.pdf\n");
+      		# print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
+			# /var/www/html/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport
+			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
+			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\n".$HOME_IP."ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport/$id$number/$id$number-$analysis-".$filter."_coverage.pdf\n");
 			# attempt to trigger autoFS
-			open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
+			open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/touch.txt";
 			sleep 3;
 			close HANDLE;
-			mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
-			copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
+			mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
+			copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number) or die $!;
       		unlink $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf";
 		}
 		else {
@@ -1362,8 +972,6 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
       print $q->span('Failed to generate coverage file');
 		}
 	}
-	#my $align_file = $q->param ('align_file');
-
 }
 
 if ($q->param('asked') && $q->param('asked') eq 'disease') {
@@ -1377,7 +985,6 @@ if ($q->param('asked') && $q->param('asked') eq 'disease') {
 	print $q->span({'class' => 'pointer', 'onclick' => "window.open('patients.pl?phenotype=$new_disease', '_blank')"}, $new_disease);
 }
 if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
-	# print STDERR Dumper($q);
 	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	my $family_id = U2_modules::U2_subs_1::check_family_id($q);
@@ -1389,8 +996,6 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	my $genome = U2_modules::U2_subs_1::check_genome($q);
 	my $seal_ready = '';
 	open F, "$DATABASES_PATH/seal_json_2023.token" or die $!;
-	# my ($sample_field, $family_field, $run_field, $teams_field, $bed_field) = (0, 0, 0, 0, 0);
-	# my $seal_id = $id.$number.'_LRM';
 	my $bed_id = $U2_modules::U2_subs_1::SEAL_BED_IDS->{$bed};
 	# new format 20221124
 	# LRM vcf removed 20240918
@@ -1463,7 +1068,6 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	print G $seal_ready;
 	close G;
 	print STDERR $seal_ready."\n";
-	exit 0;
 	# send file to seal
 	my $SEAL_IP = $config->SEAL_IP();
 	my $SEAL_HG38_IP = $config->SEAL_HG38_IP();
@@ -1490,43 +1094,43 @@ sub miseq_details {
 	return $q->start_li().$q->strong("$miseq_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($res_ngs->{'depth'}).$q->span(" Freq: ").$q->strong($res_ngs->{'frequency'}).$q->end_li().$q->start_li().$q->span("MSR filter: ").$q->strong($res_ngs->{'msr_filter'}).$q->end_li().$q->end_ul().$q->end_li();
 }
 
-sub dbnsfp2html {
-	my ($dbnsfp, $ref, $alt, $onekg, $espea, $espaa, $exac_maf, $clinvar, $caddraw, $caddphred) = @_;
-	foreach (@{$dbnsfp}) {
-		my @current = split(/\t/, $_);
-		if (($current[2] eq $ref) && ($current[3] eq $alt)) {
-			my $text = $q->start_li().
-						$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
-						$q->span(" AF (allele $alt): ".sprintf('%.4f', $current[$onekg])).
-					$q->end_li()."\n".
-					$q->start_li().
-						$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
-						$q->span(" EA AF (allele $alt): ".sprintf('%.4f', $current[$espea])).
-					$q->end_li()."\n".
-					$q->start_li().
-						$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
-						$q->span(" AA AF (allele $alt): ".sprintf('%.4f', $current[$espaa])).
-					$q->end_li()."\n".
-					$q->start_li().
-						$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').
-						$q->span(" adjusted AF (allele $alt): ".sprintf('%.4f', $current[$exac_maf])).
-					$q->end_li()."\n".
-					$q->start_li().
-						$q->span({'onclick' => 'window.open(\'https://www.ncbi.nlm.nih.gov/clinvar/\')', 'class' => 'pointer'}, 'ClinVar').
-						$q->span(" (allele $alt): ".U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[$clinvar])).
-					$q->end_li()."\n".
-					$q->start_li().
-						$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD raw:').
-						$q->span(" (allele $alt): ".sprintf('%.4f', $current[$caddraw])).
-					$q->end_li()."\n".
-					$q->start_li().
-						$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD phred:').
-						$q->span(" (allele $alt): $current[$caddphred]").
-					$q->end_li()."\n";
-			return $text
-		}
-	}
-}
+# sub dbnsfp2html {
+# 	my ($dbnsfp, $ref, $alt, $onekg, $espea, $espaa, $exac_maf, $clinvar, $caddraw, $caddphred) = @_;
+# 	foreach (@{$dbnsfp}) {
+# 		my @current = split(/\t/, $_);
+# 		if (($current[2] eq $ref) && ($current[3] eq $alt)) {
+# 			my $text = $q->start_li().
+# 						$q->span({'onclick' => 'window.open(\'http://www.1000genomes.org/about\')', 'class' => 'pointer'}, '1000 genomes').
+# 						$q->span(" AF (allele $alt): ".sprintf('%.4f', $current[$onekg])).
+# 					$q->end_li()."\n".
+# 					$q->start_li().
+# 						$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
+# 						$q->span(" EA AF (allele $alt): ".sprintf('%.4f', $current[$espea])).
+# 					$q->end_li()."\n".
+# 					$q->start_li().
+# 						$q->span({'onclick' => 'window.open(\'http://evs.gs.washington.edu/EVS/#tabs-6\')', 'class' => 'pointer'}, 'ESP6500').
+# 						$q->span(" AA AF (allele $alt): ".sprintf('%.4f', $current[$espaa])).
+# 					$q->end_li()."\n".
+# 					$q->start_li().
+# 						$q->span({'onclick' => 'window.open(\'http://exac.broadinstitute.org/\')', 'class' => 'pointer'}, 'ExAC').
+# 						$q->span(" adjusted AF (allele $alt): ".sprintf('%.4f', $current[$exac_maf])).
+# 					$q->end_li()."\n".
+# 					$q->start_li().
+# 						$q->span({'onclick' => 'window.open(\'https://www.ncbi.nlm.nih.gov/clinvar/\')', 'class' => 'pointer'}, 'ClinVar').
+# 						$q->span(" (allele $alt): ".U2_modules::U2_subs_2::dbnsfp_clinvar2text($current[$clinvar])).
+# 					$q->end_li()."\n".
+# 					$q->start_li().
+# 						$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD raw:').
+# 						$q->span(" (allele $alt): ".sprintf('%.4f', $current[$caddraw])).
+# 					$q->end_li()."\n".
+# 					$q->start_li().
+# 						$q->span({'onclick' => 'window.open(\'http://cadd.gs.washington.edu\')', 'class' => 'pointer'}, 'CADD phred:').
+# 						$q->span(" (allele $alt): $current[$caddphred]").
+# 					$q->end_li()."\n";
+# 			return $text
+# 		}
+# 	}
+# }
 
 sub u22defgen_status {
 	my $u2_status = shift;

@@ -57,11 +57,10 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $HOME_IP = $config->HOME_IP();
-#do not exactly need home, just IP
+# do not exactly need home, just IP
 $HOME_IP =~ /(https*:\/\/[\w\.-]+)\/.+/o;
 $HOME_IP = $1;
 my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
-#my $REF_GENE_URI = $config->REF_GENE_URI();
 my $CURRENT_BED = $config->CURRENT_BED();
 
 #my @styles = ($CSS_DEFAULT, $CSS_PATH.'igv.css');
@@ -147,7 +146,7 @@ my $user = U2_modules::U2_users_1->new();
 
 U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
-##end of Basic init
+## end of Basic init
 
 my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 
@@ -156,22 +155,21 @@ my ($gene, $second) = U2_modules::U2_subs_1::check_gene($q, $dbh);
 
 # get all ids for a patient given a gene
 
-#get the name
+# get the name
 
 my ($first_name, $last_name, $DoB) = U2_modules::U2_subs_2::get_patient_name($id, $number, $dbh);
 
 
 print $q->start_p({'class' => 'center'}), $q->start_big(), $q->span("Sample "), $q->strong({'onclick' => "window.location = 'patient_file.pl?sample=$id$number'", 'class' => 'pointer'}, $id.$number), $q->span(": Results for "), $q->strong("$first_name $last_name"), $q->span(" in "), $q->start_strong(), $q->em({'onclick' => "gene_choice('$gene');", 'class' => 'pointer', 'title' => 'click to get somewhere'}, $gene), $q->span(" ($second)"), $q->end_strong(), $q->end_big(), $q->end_p(), "\n";
 
-#defines gene strand
+# defines gene strand
 
 my ($direction, $main_acc, $acc_g, $acc_v) = U2_modules::U2_subs_2::get_direction($gene, $dbh);
 
 
-#prints filtering options
+# prints filtering options
 my $text = $q->strong("Default isoform: ").$q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$main_acc.$acc_v", 'target' => '_blank'}, "$main_acc.$acc_v");
 print U2_modules::U2_subs_2::info_panel($text, $q);
-#print $q->start_p(), $q->strong("Default isoform: "), $q->a({'href' => "http://www.ncbi.nlm.nih.gov/nuccore/$main_acc.$acc_v", 'target' => '_blank'}, "$main_acc.$acc_v"), $q->end_p(),
 print 	$q->start_table({'class' => 'zero_table width_general w3-small'}),
 		$q->start_Tr(), $q->start_td({'class' => 'zero_td'});
 
@@ -180,21 +178,20 @@ U2_modules::U2_subs_2::print_filter($q);
 
 print $q->end_td(), "\n";
 
-#get rid of '
+# get rid of '
 $last_name =~ s/'/''/og;
 $first_name =~ s/'/''/og;
 
-#reports technical table
+# reports technical table
 print $q->start_td({'class' => 'zero_td right_general'});
 U2_modules::U2_subs_2::print_validation_table($first_name, $last_name, $DoB, $gene, $q, $dbh, $user, '');
 print $q->end_td(), $q->end_Tr(), $q->end_table();
 
-#defines an interval for putative large deletions as genomic positions
+# defines an interval for putative large deletions as genomic positions
 
 my ($mini, $maxi) = U2_modules::U2_subs_2::get_interval($first_name, $last_name, $gene, $dbh);
 
-#print $q->p('Click on an exon/intron number and watch IGV move!!!');
-#begin table
+# begin table
 
 print $q->br(), $q->start_div({'class' => 'patient_file_frame hidden print_hidden w3-small', 'id' => 'details', 'onmouseover' => "\$(this).hide();\$(this).html(\'<img src = \"".$HTDOCS_PATH."data/img/loading.gif\"  class = \"loading\"/>loading...\')"}), $q->img({'src' => $HTDOCS_PATH."data/img/loading.gif", 'class' => 'loading'}), $q->span('loading...'), $q->end_div(), $q->br(), $q->start_div({'align' => 'center'}), $q->start_table({'class' => 'geno w3-small'}), $q->caption("Genotype table:"),
 	$q->start_Tr(), "\n",
@@ -212,22 +209,18 @@ print $q->br(), $q->start_div({'class' => 'patient_file_frame hidden print_hidde
 
 
 my ($list, $list_context, $first_name, $last_name) = U2_modules::U2_subs_3::get_sampleID_list($id, $number, $dbh) or die "No sample info $!";
-#get vars for specific gene/sample
+# get vars for specific gene/sample
 
-# my $query = "SELECT b.nom, b.nom_gene, b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d WHERE a.nom_c = b.nom AND a.nom_gene = b.nom_gene AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.nom_gene = d.nom_gene AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND (a.id_pat, a.num_pat) IN ($list) AND a.nom_gene[1] = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
 my $query = "SELECT b.nom, e.gene_symbol, e.refseq , b.classe, b.type_segment, b.type_segment_end, b.num_segment, b.num_segment_end, b.nom_ivs, b.nom_prot, b.snp_id, b.snp_common, b.taille, b.type_adn, b.nom_g, b.nom_g_38, a.msr_filter, a.num_pat, a.id_pat, a.depth, a.frequency, a.wt_f, a.wt_r, a.mt_f, a.mt_r, a.allele, a.statut, a.denovo, a.type_analyse, c.first_name, c.last_name, d.nom as nom_seg FROM variant2patient a, variant b, patient c, segment d, gene e WHERE a.nom_c = b.nom AND a.refseq = b.refseq AND a.refseq = e.refseq AND a.num_pat = c.numero AND a.id_pat = c.identifiant AND b.refseq = d.refseq AND b.type_segment = d.type AND b.num_segment = d.numero AND b.classe <> 'artefact' AND (a.id_pat, a.num_pat) IN ($list) AND e.gene_symbol = '$gene' ORDER BY num_segment, b.nom_g $direction, type_analyse;";
-# print "$query\n";
 
 
 my $nb_var = 0;
 my $list;
 my $sth = $dbh->prepare($query);
 my $res = $sth->execute();
-#my $analysis = 'non_ngs';
 
 if ($res ne '0E0') {
 	while (my $result = $sth->fetchrow_hashref()) {
-		#if ($analysis eq 'non_ngs' && $result->{'type_analyse'} =~ /^Mi.+/o) {$analysis = $result->{'type_analyse'}}
 		my $nom = U2_modules::U2_subs_2::genotype_line_optimised($result, $mini, $maxi, $q, $dbh, $list, $main_acc, $nb_var, $acc_g, 'f');
 		$list->{$nom}++;
 		if ($list->{$nom} == 1) {$nb_var ++}
@@ -253,11 +246,6 @@ my $chr = U2_modules::U2_subs_1::get_chr_from_gene($gene, $dbh);
 if ($chr ne 'M') {
 	my $igv_script = '
 	function load_igv(genome, url, indexurl, label) {
-	/// $(document).ready(function () {
-		// var igv_div = $(\'#igv_div\');
-		// check if igv broser already exists and do nothing if so
-		// alert(typeof \'browser_\' + genome);
-		// if (typeof \'browser_\' + genome == "undefined") {
 		var igv_div = document.getElementById(\'igv_div_\' + genome);
 		options = {
 			showNavigation: true,
@@ -265,15 +253,15 @@ if ($chr ne 'M') {
 			reference: {
 				id: genome,
 				name: \'Human (\' + genome + \')\',
-				fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
-				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
-				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
+				fastaURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
+				indexURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
+				compressedIndexURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
 			},
 			locus: "'.$gene.'",
 			tracks: [			
 				{
 					name: \'Refseq Genes\',
-					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
+					url: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
 					order: 1000000,
 					indexed: false
 				},
@@ -296,7 +284,7 @@ if ($chr ne 'M') {
 				},
 				{
 					name: "MANE transcripts",
-					url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/MANE.GRCh38.v1.0.refseq.bb\',
+					url: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/MANE.GRCh38.v1.0.refseq.bb\',
 					indexed: false,
 					label: "MANE transcripts",
 				},
@@ -305,60 +293,16 @@ if ($chr ne 'M') {
 		igv.createBrowser(igv_div, options).then(function (browser) {
 			console.log("Created IGV browser");
 			return window[\'browser_\' + genome] = browser;
-			/// igv.browser = browser;
 		});
-		// }
 	}
-	// });
 	';
-  # my $igv_script = '
-	# // function load_igv() {
-  #   // https://www.delftstack.com/howto/javascript/javascript-wait-for-function-to-finish/
-  #   var igv_promise = new Promise((resolve,reject)=>{
-  # 		var div = $("#igv_div"),
-  # 		options = {
-  # 			showNavigation: true,
-  # 			showRuler: true,
-  # 			genome: "hg19",
-  # 			locus: "'.$gene.'"
-  # 		};
-  #
-  # 		igv.createBrowser(div, options)
-  #       .then(function (browser) {
-  # 			  igv.browser = browser;
-  # 		  });
-  #     console.log("igv.browser created");
-  #     resolve(igv.browser);
-  #   });
-	# // }
-	# ';
-	## print $q->div({'id' => 'igv_div', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;'},), $q->script({'type' => 'text/javascript'}, $igv_script);
 	print $q->start_div({'id' => 'igv_div_hg19', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;display: none;'}), $q->end_div(),
 		$q->script({'type' => 'text/javascript'}, $igv_script),
 		$q->div({'id' => 'igv_div_hg38', 'class' => 'container', 'style' => 'padding:5px; border:1px solid lightgray;display: none;'});
 }
-#tracks: [
-#		{
-#		    name: "Genes",
-#		    type: "annotation",
-#		    format: "bed",
-#		    sourceType: "file",
-#		    url: "'.$REF_GENE_URI.'",
-#		    indexURL: "'.$REF_GENE_URI.'.tbi",
-#		    order: Number.MAX_VALUE,
-#		    visibilityWindow: 300000000,
-#		    displayMode: "EXPANDED"
-#		}
-#	    ]
 
 
-#}
-#, {
-#			    url: \''.$bam_path.'\',
-#			    name: \''.$id.$number.'-'.$analysis.'-'.$gene.'\'
-#			}
-
-##Basic end of USHVaM 2 perl scripts:
+## Basic end of USHVaM 2 perl scripts:
 
 U2_modules::U2_subs_1::standard_end_html($q);
 
@@ -366,6 +310,6 @@ print $q->end_html();
 
 exit();
 
-##End of Basic end
+## End of Basic end
 
-##specific subs for current script
+## specific subs for current script

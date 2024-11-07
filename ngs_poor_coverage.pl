@@ -64,6 +64,10 @@ my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
 my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
+my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
+my $NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_MISEQ_BASE_DIR;
 #my $REF_GENE_URI = $config->REF_GENE_URI();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css', $CSS_PATH.'datatables.min.css', $CSS_PATH.'jquery-ui-1.12.1.min.css');
@@ -139,44 +143,53 @@ my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
 my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id, $ali_path, $index_ext, $file_type, $file_ext);
 
 if ($q->param('type') && $q->param('type') eq 'ce') {
-	#1st get poor coverage file
+	# 1st get poor coverage file
 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
 	$ali_path = "$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number;
-	#create roi hash
+	# create roi hash
 	$interval = U2_modules::U2_subs_3::build_roi($dbh);
 }
 elsif ($q->param('type') && $q->param('type') =~ /(MiSeq-\d+)/o) {
-	#1st get poor coverage file
-	#MiSeq
+	# 1st get poor coverage file
+	# MiSeq
 	my $nenufaar_ana_tmp = $1;
-	# look for mobidl analysis
-	if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
-        # print STDERR "MobiDL\n";
-		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
-		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
+	# # look for mobidl analysis
+	# if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
+	# 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
+	# 	$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
+    # }
+	# else { # get nenufaar analysis
+	# 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
+	# 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+	# 	$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
+	# }
+	if (-e "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
+		$ali_path = "$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
     }
 	else { # get nenufaar analysis
-		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
-		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
+		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/nenufaar/$run_id");
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+		$ali_path = "$NGS_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 	}
 	$nenufaar_ana = $nenufaar_ana_tmp;
 }
 elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
-	#1st get poor coverage file
-	#MiniSeq
+	# 1st get poor coverage file
+	# MiniSeq
+	$NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_MINISEQ_BASE_DIR;
 	my $nenufaar_ana_tmp = $1;
 	# look for mobidl analysis
-	if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
+	if (-e "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
         # print STDERR "MobiDL\n";
-		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
-		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
+		$ali_path = "$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
     }
     else { # get nenufaar analysis
-		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
-		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-		$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
+		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/nenufaar/$run_id");
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+		$ali_path = "$NGS_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 	}
 	$nenufaar_ana = $nenufaar_ana_tmp;
 }
@@ -306,10 +319,10 @@ $(document).ready(function () {
 		reference: {
             	id: \''.$genome_version.'\',
             	name: \'Human ('.$genome_version.')\',
-            	fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz\',
-				indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz.fai\',
-				compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz.gzi\',
-				cytobandURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/'.$cytoband_file.'\'
+            	fastaURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz\',
+				indexURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz.fai\',
+				compressedIndexURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/'.$genome_version.'/'.$genome_version.'.fa.gz.gzi\',
+				cytobandURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/'.$genome_version.'/'.$cytoband_file.'\'
             },
 	    tracks: [
 			{
@@ -322,7 +335,7 @@ $(document).ready(function () {
 			},
 			{
                 name: \'Refseq Genes\',
-                url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/'.$genome_version.'/refGene.txt.gz\',
+                url: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/'.$genome_version.'/refGene.txt.gz\',
                 order: 1000000,
                 indexed: false
             }
