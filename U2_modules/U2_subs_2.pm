@@ -1346,10 +1346,11 @@ sub get_raw_data {
 	#Mean region coverage depth:,
 	my ($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads, $pass_metrics, $q30, $x50, $tstv, $doc, $ontarget_reads);
 
-	if ($instrument eq 'miseq') {
-		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
-	}
-	elsif ($instrument eq 'miniseq' && $genome_version eq 'hg19') {
+	# if ($instrument eq 'miseq') {
+	# 	($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30:,', 'Target coverage at 50X:,', 'SNV Ts/Tv ratio:,', 'Mean region coverage depth:,', 'Padded target aligned reads:,');
+	# }
+	# els
+	if ($instrument eq 'miniseq' && $genome_version eq 'hg19') {
 		($q30_expr, $x50_expr, $tstv_expr, $doc_expr, $num_reads) = ('Percent Q30,', 'Target coverage at 50X,', 'SNV Ts/Tv ratio,', 'Mean region coverage depth,', 'Targeted aligned reads,');
 	}
 	if ($genome_version eq 'hg19') {
@@ -1361,7 +1362,7 @@ sub get_raw_data {
 	}
 	else {
 		$pass_metrics = get_multiqc_value("$dir/$sample/panelCapture/".$sample."_multiqc_data/multiqc_data.json", 'report_general_stats_data', $sample, 'reduced');
-		# print STDERR "RUN: $dir - SAMPLE: $sample\n";
+		print STDERR "RUN: $dir - SAMPLE: $sample\n";
 		# print STDERR Dumper($pass_metrics)."\n";
 		if (ref $pass_metrics eq ref {}) {
 			$x50 = $pass_metrics->{'PCT_TARGET_BASES_50X'};

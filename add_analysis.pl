@@ -607,7 +607,8 @@ if ($user->isAnalyst() == 1) {
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
 							# build form
-							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $genome_version);
+							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/", $ssh, $summary_file, $instrument, $genome_version);
+							# print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $genome_version);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
 						}
 					}

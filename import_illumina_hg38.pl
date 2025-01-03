@@ -126,7 +126,7 @@ my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 # my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
 # $SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
 # $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
-my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
+my $NAS_CHU_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$config->NAS_CHU_BASE_DIR();
 my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
 my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
 
@@ -173,7 +173,7 @@ if ($step && $step == 2) {
 	### get alignemnt with _ AND subdir with date
 	# MINISEQ change get instrument type
 	# my ($instrument, $instrument_path, $alignment_dir) = ('miseq', 'MiSeqDx/USHER', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
-	my ($instrument, $alignment_dir) = ('miseq', "$NAS_CHU_BASE_DIR$NAS_CHU_MINISEQ_BASE_DIR/$run/MobiDL");
+	my ($instrument, $alignment_dir) = ('miseq', "$NAS_CHU_BASE_DIR$NAS_CHU_MISEQ_BASE_DIR/$run/MobiDL");
 	if ($analysis =~ /MiniSeq-\d+/o) {
 		$instrument = 'miniseq';
 		# $instrument_path='MiniSeq';
@@ -248,7 +248,7 @@ if ($step && $step == 2) {
 		# 	}
 		# }
 
-
+		# print STDERR "$alignment_dir/$sampleid/panelCapture/".$sampleid."_multiqc_data/multiqc_data.json\n";
 		my $metrics = U2_modules::U2_subs_2::get_multiqc_value("$alignment_dir/$sampleid/panelCapture/".$sampleid."_multiqc_data/multiqc_data.json", 'report_general_stats_data', $sampleid, 'full');
 		# print STDERR Dumper($metrics)."\n";
 		my $metrics_insert = U2_modules::U2_subs_2::get_multiqc_value("$alignment_dir/$sampleid/panelCapture/".$sampleid."_multiqc_data/multiqc_data.json", 'report_saved_raw_data', $sampleid, 'full');
