@@ -313,19 +313,19 @@ my $DATABASES_PATH = $config->DATABASES_PATH();
 $HOME_IP =~ /(https*:\/\/[\w\.-]+)\//o;
 $HOME_IP = $1;
 #specific args for remote login to RS
-my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
+# my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
 # my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
-my $SSH_RACKSTATION_NEXTSEQ_BASE_DIR = $config->SSH_RACKSTATION_NEXTSEQ_BASE_DIR();
+# my $SSH_RACKSTATION_NEXTSEQ_BASE_DIR = $config->SSH_RACKSTATION_NEXTSEQ_BASE_DIR();
 #my $SSH_RACKSTATION_IP = $config->SSH_RACKSTATION_IP();
 #my $validator = U2_modules::U2_users_1::isValidator($user);
 #SSH style params for remote ftp
 # my $SSH_RACKSTATION_IP = $config->SSH_RACKSTATION_IP();
 # my $SSH_RACKSTATION_LOGIN = $config->SSH_RACKSTATION_LOGIN();
 # my $SSH_RACKSTATION_PASSWORD = $config->SSH_RACKSTATION_PASSWORD();
-my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
+# my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 # my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
-my $SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR();
-my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
+# my $SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR();
+# my $RS_BASE_DIR = $config->RS_BASE_DIR(); #RS mounted using autofs - meant to replace ssh and ftps in future versions
 #for nenufarised only analysis
 my $NENUFAAR_ANALYSIS = $config->NENUFAAR_ANALYSIS();
 my $CLINICAL_EXOME_SHORT_BASE_DIR = $config->CLINICAL_EXOME_SHORT_BASE_DIR();
@@ -548,8 +548,8 @@ if ($result) {
         		# print $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp."\n";
 				if (-d $ABSOLUTE_HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp || $nenufaar == 1 || $result_done->{'manifest_name'} =~ /hg38/o) {
 					# reinitialize in case of changed because of MiniSeq analysis
-					$SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
-					$SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
+					# $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
+					# $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
 					my $partial_path = $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH.$analysis.'/'.$id_tmp.$num_tmp.'/'.$id_tmp.$num_tmp;
 					my ($raw_data, $alignment_file, $alignment_file_suffix, $alignment_http);
 					my $width = '500';
@@ -576,9 +576,12 @@ if ($result) {
 						$run_id = $res_manifest->{'run_id'};
 						my ($nenufaar_ana, $nenufaar_id);
 						if ($nenufaar == 1) {
-							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
+							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_BASE_DIR/$run_id");
 							if ($nenufaar_ana =~ /$CLINICAL_EXOME_ANALYSES/) {$library = $nenufaar_ana}
-							$partial_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp.final";
+							$partial_path = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_BASE_DIR/$run_id/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp.final";
+							# ($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
+							# if ($nenufaar_ana =~ /$CLINICAL_EXOME_ANALYSES/) {$library = $nenufaar_ana}
+							# $partial_path = "$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id_tmp$num_tmp/$nenufaar_id/$id_tmp$num_tmp.final";
 						}
 						$raw_data = $q->start_ul({'class' => 'w3-ul w3-padding-small w3-hoverable'}).
 								$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
@@ -614,7 +617,8 @@ if ($result) {
 						if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_MINISEQ_BASE_DIR;}
 						elsif ($nenufaar == 1) {
 							if ($analysis =~ /NextSeq/o) {
-								$instrument = 'nextseq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_NEXTSEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR;
+								$instrument = 'nextseq';
+								# $SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_NEXTSEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR = $SSH_RACKSTATION_NEXTSEQ_FTP_BASE_DIR;
 							}
 						}
 						# my ($alignment_dir, $ftp_dir);
@@ -653,8 +657,10 @@ if ($result) {
 						}
 						elsif($instrument eq 'nextseq'){
 							#### TO BE FIXED WITH NAS_CHU PATH
-							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
-							$http_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
+							# $alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
+							# $http_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
+							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
+							$http_dir = "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
 						}
 						my $alignment_list;
 						$alignment_list = `ls $alignment_dir`;
@@ -882,8 +888,8 @@ if ($result) {
 						if ($nenufaar == 1) {
 							#### TO BE FIXED WITH NAS_CHU PATH
 							my ($ce_nenufaar_path, $link_ce_nenufaar_path) = (
-								"$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}",
-								"$HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}"
+								"$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}",
+								"$HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_BASE_DIR/$res_manifest->{'run_id'}"
 							);
 							if (-e "$ce_nenufaar_path/multiqc_report.html") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).

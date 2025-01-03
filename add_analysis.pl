@@ -66,15 +66,15 @@ my $ANALYSIS_ILLUMINA_WG_REGEXP = $config->ANALYSIS_ILLUMINA_WG_REGEXP();
 my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
 # specific args for remote login to RS
 
-my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
-my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
+# my $SSH_RACKSTATION_BASE_DIR = $config->SSH_RACKSTATION_BASE_DIR();
+# my $SSH_RACKSTATION_MINISEQ_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_BASE_DIR();
 # use automount to replace ssh
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
-my $RS_BASE_DIR = $config->RS_BASE_DIR();
-my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
-my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
-$SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
-$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
+# my $RS_BASE_DIR = $config->RS_BASE_DIR();
+# my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
+# my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+# $SSH_RACKSTATION_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_FTP_BASE_DIR;
+# $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 # NAS_CHU
 my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
 my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
@@ -389,7 +389,8 @@ if ($user->isAnalyst() == 1) {
 			# my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 			my $instrument = 'miseq';
 			# if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
-			if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$SSH_RAW_DATA_BASE_DIR = $SSH_RAW_DATA_MINISEQ_BASE_DIR;$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
+			# if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$SSH_RAW_DATA_BASE_DIR = $SSH_RAW_DATA_MINISEQ_BASE_DIR;$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
+			if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$SSH_RAW_DATA_BASE_DIR = $SSH_RAW_DATA_MINISEQ_BASE_DIR;}
 			# but first get manifets name for validation purpose
 			my ($manifest, $filtered) = U2_modules::U2_subs_2::get_filtering_and_manifest($analysis, $dbh);
 			my $ssh;
@@ -460,7 +461,8 @@ if ($user->isAnalyst() == 1) {
 					}
 					else {next}
 				}
-				my ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Copying Remaining Files To Network', "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/SampleSheet.csv", 'enrichment_summary.csv');
+				# my ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Copying Remaining Files To Network', "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/SampleSheet.csv", 'enrichment_summary.csv');
+				my ($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RAW_DATA_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
 				if ($instrument eq 'miniseq') {
 					# DNA Enrichment workflow
 					# 2024 check to CopyComplete.txt
@@ -475,10 +477,10 @@ if ($user->isAnalyst() == 1) {
 				# $genome_version = 'hg38';
 				############
 
-				if ($genome_version eq 'hg38') {
-					# redirect $alignment_dir to MobiDL
-					$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL";
-				}
+				# if ($genome_version eq 'hg38') {
+				# 	# redirect $alignment_dir to MobiDL
+				# 	$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL";
+				# }
 
 				if ($value == 0) {
 					# run does not need to be NS run - if classified, will not be considered next time
@@ -486,13 +488,14 @@ if ($user->isAnalyst() == 1) {
 					# look for 'Copying Remaining Files To Network' in AnalysisLog.txt
 					my $test_file = '';
 					# if ($instrument eq 'miniseq' && -f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CopyComplete.txt") {$test_file = 'ok'}
-					if ($instrument eq 'miniseq' && -f "$location") {$test_file = 'ok'}
+					if (-f "$location") {$test_file = 'ok'}
+					# if ($instrument eq 'miniseq' && -f "$location") {$test_file = 'ok'}
 					# elsif (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
 					# 		$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`
 					# }
-					elsif (-f "$SSH_RAW_DATA_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
-							$test_file = `grep -e '$sentence' $SSH_RAW_DATA_BASE_DIR/$run$additional_path/AnalysisLog.txt`
-					}
+					# elsif (-f "$SSH_RAW_DATA_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
+					# 		$test_file = `grep -e '$sentence' $SSH_RAW_DATA_BASE_DIR/$run$additional_path/AnalysisLog.txt`
+					# }
                     if ($test_file ne '') {
 
 

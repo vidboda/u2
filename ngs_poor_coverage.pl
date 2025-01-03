@@ -58,12 +58,12 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
-my $RS_BASE_DIR = $config->RS_BASE_DIR();
+# my $RS_BASE_DIR = $config->RS_BASE_DIR();
 my $CLINICAL_EXOME_SHORT_BASE_DIR = $config->CLINICAL_EXOME_SHORT_BASE_DIR();
 my $CLINICAL_EXOME_BASE_DIR = $config->CLINICAL_EXOME_BASE_DIR();
 my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
-my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
-my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
+# my $SSH_RACKSTATION_FTP_BASE_DIR = $config->SSH_RACKSTATION_FTP_BASE_DIR();
+# my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
 my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
 my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
 my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
@@ -144,9 +144,9 @@ my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id, $ali_p
 
 if ($q->param('type') && $q->param('type') eq 'ce') {
 	# 1st get poor coverage file
-	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id");
-	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-	$ali_path = "$RS_BASE_DIR/data/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number;
+	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_BASE_DIR/$run_id");
+	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
+	$ali_path = "$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_BASE_DIR/$run_id/$id$number/$nenufaar_id/".$id.$number;
 	# create roi hash
 	$interval = U2_modules::U2_subs_3::build_roi($dbh);
 }
