@@ -825,7 +825,7 @@ if ($result) {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'covreport_link'.$analysis}).
 										$q->a({'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$res_manifest->{'filter'}."_coverage.pdf"}, 'Download CovReport').
 										$q->span("&nbsp;&nbsp;OR&nbsp;&nbsp;").
-										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$ABSOLUTE_HTDOCS_PATH$alignment_http.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
+										$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$alignment_file.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
 									$q->end_li();
 						}
 						else {
