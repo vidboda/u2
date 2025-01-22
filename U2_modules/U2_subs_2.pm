@@ -1516,7 +1516,6 @@ sub get_multiqc_value {
 		 
 		LABEL: foreach my $label (keys %{$pass_metrics}) {
 			foreach my $cell (@{$content->{$section}}) {
-				if ($label eq 'pct_duplication') {print STDERR Dumper($cell);}
 				foreach my $key (keys %{$cell}) {
 					if ($pass_metrics->{$label}[1] eq '') {
 						if ($key eq "$sample.hc" && ($label eq 'tstv' || $label eq 'number_of_SNPs' || $label eq 'number_of_indels')) {
