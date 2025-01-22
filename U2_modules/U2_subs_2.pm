@@ -1362,7 +1362,7 @@ sub get_raw_data {
 	}
 	else {
 		$pass_metrics = get_multiqc_value("$dir/$sample/panelCapture/".$sample."_multiqc_data/multiqc_data.json", 'report_general_stats_data', $sample, 'reduced');
-		print STDERR "RUN: $dir - SAMPLE: $sample\n";
+		# print STDERR "RUN: $dir - SAMPLE: $sample\n";
 		# print STDERR Dumper($pass_metrics)."\n";
 		if (ref $pass_metrics eq ref {}) {
 			$x50 = $pass_metrics->{'PCT_TARGET_BASES_50X'};
@@ -1507,13 +1507,16 @@ sub get_multiqc_value {
 			'MEAN_BAIT_COVERAGE' => ['mean_doc', ''],
 			'ON_TARGET_BASES' => ['ontarget_bases', ''],
 			'MEAN_TARGET_COVERAGE' => ['mean_target_doc', ''],
-			'PCT_EXC_DUPE' => ['duplicates', ''],
+			# 'PCT_EXC_DUPE' => ['duplicates', ''], picard, we prefer fastp
+			'pct_duplication' => ['duplicates', ''],
 			'PCT_TARGET_BASES_20X' => ['twentyx_doc', ''],
 			'PCT_TARGET_BASES_50X' => ['fiftyx_doc', ''],
 		};
 		my $sample_regexp = $sample."_S";
+		 
 		LABEL: foreach my $label (keys %{$pass_metrics}) {
 			foreach my $cell (@{$content->{$section}}) {
+				if ($label eq 'pct_duplication') {print STDERR Dumper($cell);}
 				foreach my $key (keys %{$cell}) {
 					if ($pass_metrics->{$label}[1] eq '') {
 						if ($key eq "$sample.hc" && ($label eq 'tstv' || $label eq 'number_of_SNPs' || $label eq 'number_of_indels')) {
@@ -1522,8 +1525,14 @@ sub get_multiqc_value {
 							if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
 							next LABEL;
 						}
-						elsif ($key eq $sample) {
-							if ($label eq 'PCT_EXC_DUPE' || $label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label}*100)}
+						elsif ($key =~ /^$sample_regexp/g && $label eq 'pct_duplication') {
+							if ($label eq 'pct_duplication') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label})}
+							if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
+							next LABEL;
+						}
+						elsif ($key eq $sample && ($label eq 'PF_READS_ALIGNED' || $label eq 'PF_ALIGNED_BASES' || $label eq 'MEAN_BAIT_COVERAGE' || $label eq 'ON_TARGET_BASES' || $label eq 'MEAN_BAIT_COVERAGE' || $label eq 'MEAN_TARGET_COVERAGE' || $label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X')) {
+							# if ($label eq 'PCT_EXC_DUPE' || $label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label}*100)}
+							if ($label eq 'PCT_TARGET_BASES_20X' || $label eq 'PCT_TARGET_BASES_50X') {$pass_metrics->{$label}[1] = sprintf('%.2f', $cell->{$key}->{$label}*100)}
 							else {$pass_metrics->{$label}[1] = sprintf('%.0f', $cell->{$key}->{$label})}
 							if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
 							next LABEL;
@@ -1548,7 +1557,7 @@ sub get_multiqc_value {
 			'MEDIAN_INSERT_SIZE' => ['insert_size_median', ''],
 			'STANDARD_DEVIATION' => ['insert_size_sd', ''],
 		};
-		my $sample_regexp = $sample."_S";
+		# my $sample_regexp = $sample."_S";
 		foreach my $label (keys %{$pass_metrics}) {
 			$pass_metrics->{$label}[1] = sprintf('%.0f', $content->{'report_saved_raw_data'}->{'multiqc_picard_insertSize'}->{$sample.'_FR'}->{$label} );
 			if ($pass_metrics->{$label}[1] eq 'nan') {$pass_metrics->{$label}[1] = 0}
