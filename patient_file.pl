@@ -630,8 +630,8 @@ if ($result) {
 							$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
 							# $ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
 							# $alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
-							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
 							$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
+							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/Data/Intensities/BaseCalls/$alignment_dir";
 						}
 						elsif($instrument eq 'miniseq'){
 							my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run_id);
@@ -644,8 +644,8 @@ if ($result) {
 								$alignment_dir =~ s/\\/\//og;
 								# $ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run_id$additional_path/$alignment_dir";
 								# $alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id$additional_path/$alignment_dir";
-								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id$additional_path/$alignment_dir";
 								$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id$additional_path/$alignment_dir";
+								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id$additional_path/$alignment_dir";
 							}
 							else {
 								# redirect $alignment_dir to MobiDL
