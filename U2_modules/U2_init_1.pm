@@ -107,7 +107,7 @@ sub initConfig {
 		'SEAL_HG38_URL' => {ARGCOUNT => 1},
 		'SEAL_IP' => {ARGCOUNT => 1},
 		'SEAL_HG38_IP' => {ARGCOUNT => 1},
-		'SEAL_RS_IURC' => {ARGCOUNT => 1},
+		'SEAL_NAS_CHU' => {ARGCOUNT => 1},
 		'SEAL_USER' => {ARGCOUNT => 1},
 		'SEAL_PASSWORD' => {ARGCOUNT => 1},
 		'SEAL_VCF_PATH' => {ARGCOUNT => 1},

@@ -711,7 +711,7 @@ sub check_illumina_run_id {
 # used in ajax.pl
 sub check_illumina_vcf_path {
 	my ($q) = shift;
-	if ($q->param('vcf_path') =~ /^$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR\/data\/([\w\/]+.vcf)$/) {return $1}
+	if ($q->param('vcf_path') =~ /^$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR\/([\w\/]+.vcf)$/) {return $1}
 	# if ($q->param('vcf_path') =~ /^$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR\/data\/([\w\/]+.vcf)$/) {return $1}
 	else {&standard_error('28', $q)}
 }

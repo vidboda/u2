@@ -67,7 +67,7 @@ my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $NENUFAAR_ANALYSIS = $config->NENUFAAR_ANALYSIS();
 my $DBNSFP_V2 = $config->DBNSFP_V2();
 my $DBNSFP_V3_PATH = $config->DBNSFP_V3_PATH();
-my $SEAL_RS_IURC = $config->SEAL_RS_IURC();
+my $SEAL_NAS_CHU = $config->SEAL_NAS_CHU();
 my $SEAL_VCF_PATH = $config->SEAL_VCF_PATH();
 my $TMP_DIR = $config->TMP_DIR();
 
@@ -1060,14 +1060,15 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 			if ($proband eq 'yes') {s/"index":/"index": true/}
 			else {s/"index":/"index": false/}
 		}
-		if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_RS_IURC$mobidl_vcf_path"/}
+		if (/"vcf_path":/o) {s/"vcf_path": ""/"vcf_path": "$SEAL_NAS_CHU$mobidl_vcf_path"/}
 		$seal_ready .= $_;
 	}
 	close F;
 	open G, ">".$TMP_DIR."MobiDL_seal_json.token" or die $!;
 	print G $seal_ready;
 	close G;
-	print STDERR $seal_ready."\n";
+	# print STDERR $seal_ready."\n";
+	# exit;
 	# send file to seal
 	my $SEAL_IP = $config->SEAL_IP();
 	my $SEAL_HG38_IP = $config->SEAL_HG38_IP();

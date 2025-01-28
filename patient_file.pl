@@ -929,8 +929,13 @@ if ($result) {
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "search_controls.pl?step=3&iv=1&run=$res_manifest->{'run_id'}&sample=$id_tmp$num_tmp&analysis=$analysis", 'target' => '_blank'}, "Sample tracking: get private SNPs").$q->end_li();
 						# ajax call to send the MobiDL VCF file to SEAL
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
-								$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$ABSOLUTE_HTDOCS_PATH.$alignment_http.'.vcf", "'.$analysis.'", "'.$genome_version.'",  "'.$res_manifest->{'filter'}.'", "'.$url_seal.'");', 'value' => 'Send2SEAL'}).$q->end_li();
+								$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$alignment_dir.'/'.$id_tmp.$num_tmp.'.vcf", "'.$analysis.'", "'.$genome_version.'",  "'.$res_manifest->{'filter'}.'", "'.$url_seal.'");', 'value' => 'Send2SEAL'}).$q->end_li();
 						$raw_data .= $q->end_li().$q->end_ul();
+						# print STDERR "$ABSOLUTE_HTDOCS_PATH\n";
+						# print STDERR "$alignment_http\n";
+						# print STDERR "$alignment_dir\n";
+						# print STDERR "$http_dir\n";
+						# print STDERR 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$alignment_dir.'/'.$id_tmp.$num_tmp.'.vcf", "'.$analysis.'", "'.$genome_version.'",  "'.$res_manifest->{'filter'}.'", "'.$url_seal.'");';
 
 						$filter = $res_manifest->{'filter'}; # in case of bug of code l190 we rebuild $filter
 						$raw_filter = $q->span({'class' => 'green'}, 'PASS');
