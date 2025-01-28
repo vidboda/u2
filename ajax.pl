@@ -996,7 +996,7 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	my $genome = U2_modules::U2_subs_1::check_genome($q);
 	my $seal_ready = '';
 	open F, "$DATABASES_PATH/seal_json_2023.token" or die $!;
-	my $bed_id = $U2_modules::U2_subs_1::SEAL_BED_IDS->{$bed};
+	# my $bed_id = $U2_modules::U2_subs_1::SEAL_BED_IDS->{$bed};
 	# new format 20221124
 	# LRM vcf removed 20240918
 	# while(<F>) {
@@ -1046,12 +1046,12 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		elsif (/"family"/o) {$family_field = 1}
 		elsif (/"bed"/o) {$bed_field = 1}
 		elsif (/"run"/o) {$run_field = 1}
-		elsif (/"rfilterun"/o) {$filter_field = 1}
+		elsif (/"filter"/o) {$filter_field = 1}
 		if (/"userid":/o) {s/"userid": 4,/"userid": $user_id,/;}
-		if (/"filter":/o && $filter_field == 1) {s/"id": 7/"id": $filter_id/; $filter_field = 0}
+		if (/"id":/o && $filter_field == 1) {s/"id": 7/"id": $filter_id/; $filter_field = 0}
 		if (/"name":/o && $family_field == 1) {s/"name": ""/"name": "$family_id"/; $family_field = 0}
 		elsif (/"name":/o && $run_field == 1) {s/"name": ""/"name": "$run_id"/; $run_field = 0}
-		elsif (/"id":/o && $bed_field == 1 && $bed_id) {s/"id": 0/"id": $bed_id/; $bed_field = 0}
+		elsif (/"name":/o && $bed_field == 1 && $bed) {s/"name": ""/"name": "$bed"/; $bed_field = 0}
 		elsif (/"affected":/o) {
 			if ($disease ne 'HEALTHY') {s/"affected": ,/"affected": true,/}
 			else {s/"affected": ,/"affected": false,/}
