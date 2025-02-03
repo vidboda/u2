@@ -311,7 +311,10 @@ if ($step && $step == 2) {
 				$var_dp = $format_list[$dp_index];
 				if ($vf_index ne '') {$var_vf = $format_list[$vf_index]}
 				if (!$var_vf) {
-					# HC only, need to compute vaf 
+					# HC only, need to compute vaf
+					if ($var_dp == 0) {
+						$message .= "$id$number: WARNING DP=0 for $var_chr-$var_pos-$var_ref-$var_alt\n";next VCF;
+					}
 					my @ad_values = split(/,/, $format_list[$ad_index]);
 					$var_vf = sprintf('%.2f', (pop(@ad_values)/$var_dp));
 				}
