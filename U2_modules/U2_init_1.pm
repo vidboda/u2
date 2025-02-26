@@ -95,7 +95,7 @@ sub initConfig {
 		'RS_BASE_DIR' => {ARGCOUNT => 1},
 		'EMAIL_SMTP' => {ARGCOUNT => 1},
 		'EMAIL_PORT' => {ARGCOUNT => 1},
-		'EMAIL_PASSWORD' => {ARGCOUNT => 1},
+		# 'EMAIL_PASSWORD' => {ARGCOUNT => 1},
 		'EMAIL_CLASS' => {ARGCOUNT => 3},
 		'NENUFAAR_ANALYSIS' => {ARGCOUNT => 1},
 		'DBNSFP_V2' => {ARGCOUNT => 1},

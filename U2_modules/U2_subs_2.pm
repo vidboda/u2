@@ -571,7 +571,7 @@ sub send_manual_mail {
 	my $ADMIN_EMAIL_DEST = $config->ADMIN_EMAIL_DEST();
 	my $EMAIL_SMTP = $config->EMAIL_SMTP();
 	my $EMAIL_PORT = $config->EMAIL_PORT();
-	my $EMAIL_PASSWORD = $config->EMAIL_PASSWORD();
+	# my $EMAIL_PASSWORD = $config->EMAIL_PASSWORD();
 	my $mailer = Net::SMTP->new (
 		$EMAIL_SMTP,
 		Hello   =>      $EMAIL_SMTP,
@@ -582,7 +582,8 @@ sub send_manual_mail {
 	$mailer->auth(
 		Authen::SASL->new(
 			mechanism => 'PLAIN LOGIN',
-			callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
+			callback  => { user => $ADMIN_EMAIL }
+			# callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
 		)
 	);
 	# $mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);# or print STDERR  "Auth Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
@@ -628,19 +629,23 @@ sub send_general_mail {
 	my $ADMIN_EMAIL_DEST = $config->ADMIN_EMAIL_DEST();
 	my $EMAIL_SMTP = $config->EMAIL_SMTP();
 	my $EMAIL_PORT = $config->EMAIL_PORT();
-	my $EMAIL_PASSWORD = $config->EMAIL_PASSWORD();
+	# print STDERR "$EMAIL_SMTP\n";
+	# print STDERR "$EMAIL_PORT\n";
+	# my $EMAIL_PASSWORD = $config->EMAIL_PASSWORD();
+	# my $mailer = Net::SMTP->new($EMAIL_SMTP) or die $!;
 	my $mailer = Net::SMTP->new (
 		$EMAIL_SMTP,
 		Hello   =>      $EMAIL_SMTP,
-		Port    =>      $EMAIL_PORT);
-	$mailer->starttls();
+		Port    =>      $EMAIL_PORT) or die $!;
+	# $mailer->starttls() or die $!;
 	#$mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);# or print STDERR  "Auth Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
-	$mailer->auth(
-		Authen::SASL->new(
-			mechanism => 'PLAIN LOGIN',
-			callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
-		)
-	);
+	# $mailer->auth(
+	# 	Authen::SASL->new(
+	# 		mechanism => 'PLAIN LOGIN',
+	# 		# callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
+	# 		callback  => { user => $ADMIN_EMAIL }
+	# 	)
+	# );
 	$mailer->mail($ADMIN_EMAIL);
 	$mailer->to($user->getEmail());
 	$mailer->data();
@@ -648,7 +653,7 @@ sub send_general_mail {
 	$mailer->datasend($text);
 
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
-	$mailer->dataend() or print STDERR " End Pb with gmail before sending: ".$mailer->message();
+	$mailer->dataend() or print STDERR "Pb with mail server before sending: ".$mailer->message();
 	$mailer->quit();
 }
 
@@ -661,7 +666,7 @@ sub request_variant_classification {
 	my $ADMIN_EMAIL_DEST = $config->ADMIN_EMAIL_DEST();
 	my $EMAIL_SMTP = $config->EMAIL_SMTP();
 	my $EMAIL_PORT = $config->EMAIL_PORT();
-	my $EMAIL_PASSWORD = $config->EMAIL_PASSWORD();
+	# my $EMAIL_PASSWORD = $config->EMAIL_PASSWORD();
 	my $EMAIL_CLASS = $config->EMAIL_CLASS();
 	#print $EMAIL_CLASS;
 	#my @dest = split(/\s/, $EMAIL_CLASS);
@@ -677,7 +682,8 @@ sub request_variant_classification {
 	$mailer->auth(
 		Authen::SASL->new(
 			mechanism => 'PLAIN LOGIN',
-			callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
+			callback  => { user => $ADMIN_EMAIL }
+			# callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
 		)
 	);
 	$mailer->mail($ADMIN_EMAIL);
