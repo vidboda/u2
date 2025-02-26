@@ -203,24 +203,15 @@ elsif ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 2) {
 
 	if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
 		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
-		# U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/DS_data/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
-		# # attempt to trigger autoFS
-		# open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."DS_data/covreport/touch.txt";
-		# sleep 3;
-		# close HANDLE;
-		# mkdir($ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number);
-		# move($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."DS_data/covreport/".$id.$number) or die $!;
-		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
-		# attempt to trigger autoFS
-		# open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/touch.txt";
-		# sleep 3;
-		# close HANDLE;
+
+		# U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
+
 		mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
 		move($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number) or die $!;
 	}
 	else {
 		print $q->span('Failed to generate coverage file');
-		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport failed for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nUnfortunately, your custom CovReport generation failed. You can forward this message to David for debugging.\nGene list:\n$HOME/ushvam2/CovReport/tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt");
+		# U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport failed for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nUnfortunately, your custom CovReport generation failed. You can forward this message to David for debugging.\nGene list:\n$HOME/ushvam2/CovReport/tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt");
 	}
 
 }
