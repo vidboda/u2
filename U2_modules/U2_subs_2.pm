@@ -578,14 +578,14 @@ sub send_manual_mail {
 		Port    =>      $EMAIL_PORT);#, Debug => 1) or print STDERR  "Init Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
 		#User    =>      $ADMIN_EMAIL,
 		#Password=>      $EMAIL_PASSWORD);
-	$mailer->starttls();
-	$mailer->auth(
-		Authen::SASL->new(
-			mechanism => 'PLAIN LOGIN',
-			callback  => { user => $ADMIN_EMAIL }
-			# callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
-		)
-	);
+	# $mailer->starttls();
+	# $mailer->auth(
+	# 	Authen::SASL->new(
+	# 		mechanism => 'PLAIN LOGIN',
+	# 		callback  => { user => $ADMIN_EMAIL }
+	# 		# callback  => { user => $ADMIN_EMAIL, pass => $EMAIL_PASSWORD }
+	# 	)
+	# );
 	# $mailer->auth($ADMIN_EMAIL, $EMAIL_PASSWORD);# or print STDERR  "Auth Pb with gmail $ADMIN_EMAIL $EMAIL_PASSWORD";
 	$mailer->mail($ADMIN_EMAIL);
 	$mailer->to($ADMIN_EMAIL_DEST);
@@ -615,7 +615,7 @@ sub send_manual_mail {
 	#	$mailer->datasend($new_var);
 	#}
 	$mailer->datasend("\n\nBest regards.\n\nThe most advanced variant database system, USHVaM2\n\n");
-	$mailer->dataend() or print STDERR " End Pb with gmail before sending: ".$mailer->message();
+	$mailer->dataend() or print STDERR " End Pb with mail before sending: ".$mailer->message();
 	$mailer->quit();
 }
 
