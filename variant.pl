@@ -804,12 +804,13 @@ if ($res->{'taille'} > 100) {
 
 }
 ## easy-comment
-my $valid_id = "$acc$res->{'acc_version'}$var";
+my $valid_id = "$acc$var";
 $valid_id =~ s/>//og;
 $valid_id =~ s/\.//og;
 $valid_id =~ s/\+//og;
 $valid_id =~ s/\?//og;
 $valid_id =~ s/\*//og;
+print "ez-comment id: $valid_id";
 $js = "jQuery(document).ready(function(){
    \$(\"#$valid_id\").EasyComment({
       path:\"/javascript/u2/easy-comment/\"
