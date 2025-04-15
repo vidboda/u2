@@ -604,7 +604,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 	my $query;
 	if ($analysis eq 'all') {$query = 'SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse ORDER BY a.type_analyse DESC, a.run_id;'}
 	else {$query = "SELECT DISTINCT(a.run_id), a.type_analyse, b.filtering_possibility FROM miseq_analysis a, valid_type_analyse b WHERE a.type_analyse = b.type_analyse AND b.type_analyse = '$analysis' ORDER BY a.type_analyse DESC, a.run_id;"}
-	my $i = my $j = my $k = my $l = my $m = my $n = my $o = my $p = my $r = my $s = my $t = my $u = my $v = my $w = my $z = 0;
+	my $i = my $j = my $k = my $l = my $m = my $n = my $o = my $p = my $r = my $s = my $t = my $u = my $v = my $w = my $z = my $a = 0;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
 	if ($res ne '0E0') {
@@ -625,6 +625,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-158') {$v++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-149') {$w++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-157') {$z++;}
+			elsif ($result->{'type_analyse'} eq 'MiniSeq-157-Twist') {$a++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$p++;}
 			elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$r++;}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-2') {$s++;}
@@ -647,6 +648,7 @@ if ($q->param('run_table') && $q->param('run_table') == 1) {
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-158') {$content .= $q->td("Run $v")}
       		elsif ($result->{'type_analyse'} eq 'MiniSeq-149') {$content .= $q->td("Run $w")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-157') {$content .= $q->td("Run $z")}
+			elsif ($result->{'type_analyse'} eq 'MiniSeq-157-Twist') {$content .= $q->td("Run $a")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-3') {$content .= $q->td("Run $p")}
 			elsif ($result->{'type_analyse'} eq 'NextSeq-ClinicalExome') {$content .= $q->td("Run $r")}
 			elsif ($result->{'type_analyse'} eq 'MiniSeq-2') {$content .= $q->td("Run $s")}
