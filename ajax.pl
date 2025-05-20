@@ -946,7 +946,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 	my $user = U2_modules::U2_users_1->new();
 	my $experiment_tag = '';
 	if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
-	if ($analysis =~ /-157$/o) {$experiment_tag = '_157'}
+	if ($analysis =~ /-157$/o || $analysis =~ /-157-Twist$/o) {$experiment_tag = '_157'}
 	# if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
 	# print STDERR $q->param ('align_file')."\n";
 	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/chu-ngs\//o) {
