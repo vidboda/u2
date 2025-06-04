@@ -125,6 +125,7 @@ if ($step == 1) { #insert form and possibility to create variants.
 
 
 	$query = "SELECT nom, $name as nom2, classe FROM variant WHERE refseq = '$acc_no' AND num_segment = '$num_seg' AND type_segment = '$type' ORDER BY nom_g $order;";
+	print STDERR "$query\n";
 	my $sth = $dbh->prepare($query);
 	$res = $sth->execute();
 

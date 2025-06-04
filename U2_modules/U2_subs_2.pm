@@ -355,7 +355,7 @@ sub genotype_line_optimised { # prints a line in the genotype table
 
 		# for LR
 		my $bg_lr = 'transparent';
-		if ($var->{'num_segment'} ne $var->{'num_segment_end'} && $var->{'nom'} =~ /(del|dup|ins)/o) {#Large rearrangement
+		if ($var->{'num_segment'} ne $var->{'num_segment_end'} && $var->{'nom'} =~ /(del|dup|ins|conv)/o) {#Large rearrangement
 			my $query_nom = "SELECT nom FROM segment WHERE refseq = '$acc' AND type = '$var->{'type_segment_end'}' AND numero = '$var->{'num_segment_end'}';";
 			my $res_nom = $dbh->selectrow_hashref($query_nom);
 			$nom_seg .= " => $res_nom->{'nom'}";
