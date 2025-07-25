@@ -140,6 +140,7 @@ if ($genome_version eq 'hg38') {
 my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 
 my $run_id = U2_modules::U2_subs_1::check_illumina_run_id($q);
+my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run_id);
 my ($interval, $poor_coverage_absolute_path, $nenufaar_ana, $nenufaar_id, $ali_path, $index_ext, $file_type, $file_ext);
 
 if ($q->param('type') && $q->param('type') eq 'ce') {
@@ -155,18 +156,9 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiSeq-\d+)/o) {
 	# MiSeq
 	my $nenufaar_ana_tmp = $1;
 	# # look for mobidl analysis
-	# if (-e "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
-	# 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
-	# 	$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
-    # }
-	# else { # get nenufaar analysis
-	# 	($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id");
-	# 	$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number."_poor_coverage.txt";
-	# 	$ali_path = "$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
-	# }
-	if (-e "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
-		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
-		$ali_path = "$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
+	if (-e "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
+		$ali_path = "$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id$number/panelCapture/".$id.$number;
     }
 	else { # get nenufaar analysis
 		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/nenufaar/$run_id");
@@ -181,10 +173,10 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 	$NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_MINISEQ_BASE_DIR;
 	my $nenufaar_ana_tmp = $1;
 	# look for mobidl analysis
-	if (-e "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
+	if (-e "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
         # print STDERR "MobiDL\n";
-		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
-		$ali_path = "$NGS_BASE_DIR/$run_id/MobiDL/$id$number/panelCapture/".$id.$number;
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
+		$ali_path = "$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id$number/panelCapture/".$id.$number;
     }
     else { # get nenufaar analysis
 		($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/nenufaar/$run_id");

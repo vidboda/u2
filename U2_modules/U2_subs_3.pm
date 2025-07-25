@@ -15,6 +15,9 @@ my $config = U2_modules::U2_init_1->initConfig();
 $config->file($config_file);# or die $!;
 my $ANALYSIS_ILLUMINA_PG_REGEXP = $config->ANALYSIS_ILLUMINA_PG_REGEXP();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
+my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
+my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
 my $PYTHON = $config->PYTHON_PATH();
 # my $PYTHON3 = $config->PYTHON3_PATH();
 our $HG19TOHG38CHAIN = 'hg19ToHg38.over.chain.gz';
@@ -140,6 +143,21 @@ sub direct_submission_prepare {
 		else {return '';}
 	}
 	else {return '';}
+}
+
+sub get_mobidl_analysis_date {
+	my $run = shift;
+	my $path = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.$NAS_CHU_MINISEQ_BASE_DIR.$run."/MobiDL";
+	if ($run =~ /^\d{6}_M0/o) { # MiSeq run
+		my $path = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.$NAS_CHU_MISEQ_BASE_DIR.$run."/MobiDL";
+	}
+	# first test if the dir is MobiDL/YYYYMMDD/panelCaptureComplete.txt or MobiDL/panelCaptureComplete.txt
+	return '' if -f "$path/panelCaptureComplete.txt";
+	# if YYYYMMDD get the latest
+	opendir(D, "$path") || die "Can't open directory $path: $!\n";
+	my @list = grep {/\d{6}/o} sort(readdir(D));
+	closedir(D);
+	return pop(@list)."/";
 }
 
 sub get_detailed_pos {

@@ -689,12 +689,12 @@ sub check_analysis {
 	}
 	else {&standard_error('12', $q)}
 }
-# in ajax.pl, U2_subs2
+# in ajax.pl, U2_subs2, ngs_poor_coverage
 sub get_genome_from_analysis {
 	my ($analysis, $dbh) = @_;
 	my $res =  $dbh->selectrow_hashref("SELECT manifest_name FROM valid_type_analyse WHERE type_analyse = '$analysis';");
 	if ($res->{'manifest_name'} =~ /hg38/o) {return 'hg38'}
-	else {return ''}
+	else {return 'hg19'}
 }
 
 #used in add_analysis.pl, ajax.pl

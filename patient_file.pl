@@ -574,6 +574,7 @@ if ($result) {
 						my $query_manifest = "SELECT * FROM miseq_analysis WHERE num_pat = '$num_tmp' AND id_pat = '$id_tmp' AND type_analyse = '$analysis';";
 						my $res_manifest = $dbh->selectrow_hashref($query_manifest);
 						$run_id = $res_manifest->{'run_id'};
+						my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run_id);
 						my ($nenufaar_ana, $nenufaar_id);
 						if ($nenufaar == 1) {
 							($nenufaar_ana, $nenufaar_id) = U2_modules::U2_subs_3::get_nenufaar_id("$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_BASE_DIR/$run_id");
@@ -637,7 +638,6 @@ if ($result) {
 							my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run_id);
 							if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run_id"}
 							if ($genome_version eq 'hg19') {
-								# $alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id$additional_path/CompletedJobInfo.xml`;
 								$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment_?[0-9]*.+<" $ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id$additional_path/CompletedJobInfo.xml`;
 								$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 								$alignment_dir = $1;
@@ -649,16 +649,12 @@ if ($result) {
 							}
 							else {
 								# redirect $alignment_dir to MobiDL
-								# $ftp_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id_tmp$num_tmp/panelCapture";
-								# $alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/MobiDL/$id_tmp$num_tmp/panelCapture";
-								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id_tmp$num_tmp/panelCapture";
-								$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$id_tmp$num_tmp/panelCapture";
+								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id_tmp$num_tmp/panelCapture";
+								$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id_tmp$num_tmp/panelCapture";
 							}
 						}
 						elsif($instrument eq 'nextseq'){
 							#### TO BE FIXED WITH NAS_CHU PATH
-							# $alignment_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
-							# $http_dir = "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
 							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
 							$http_dir = "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
 						}
@@ -745,8 +741,6 @@ if ($result) {
 								$q->end_li();
 						}
 						else {
-							# $q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp.vcf", 'target' => '_blank'}, 'Get original vcf file').
-							# $q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.vcf&genome='.$genome_version}, 'Open VCF in IGV (on configurated computers only)').
 							$raw_data .= 	$q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
 									$q->a({'href' => "$alignment_http.vcf", 'target' => '_blank'}, 'Get original vcf file').
 								$q->end_li().
@@ -754,9 +748,6 @@ if ($result) {
 									$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$alignment_http.'.vcf&genome='.$genome_version}, 'Open VCF in IGV (on configurated computers only)').
 								$q->end_li();
 						}
-						# $q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp.$alignment_ext", 'target' => '_blank'}, 'Download '.uc($alignment_ext).' file')
-						# $q->a({'href' => "sftp://$SSH_RACKSTATION_LOGIN:$SSH_RACKSTATION_PASSWORD\@$SSH_RACKSTATION_IP$alignment_ftp$alignment_suffix$alignment_index_ext", 'target' => '_blank'}, 'Download indexed '.uc($alignment_ext).' file').
-						# $q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$HTDOCS_PATH.$RS_BASE_DIR.$alignment_ftp.'.'.$alignment_ext.'&genome='.$genome_version}, 'Open '.uc($alignment_ext).' in IGV (on configurated computers only)').
 
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
 								$q->a({'href' => 'http://localhost:60151/load?file='.$HOME_IP.$alignment_http.'.'.$alignment_ext.'&genome='.$genome_version}, 'Open '.uc($alignment_ext).' in IGV (on configurated computers only)').
@@ -773,8 +764,6 @@ if ($result) {
 											$q->a({'href' => $HTDOCS_PATH.$ANALYSIS_NGS_DATA_PATH."reanalysis/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get NENUFAAR reanalysis summary').
 										$q->end_li()
 						}
-						# my ($panel_nenufaar_path, $partial_panel_nenufaar_path, $link_panel_nenufaar_path, $partial_link_panel_nenufaar_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/nenufaar");
-						# my ($panel_mobidl_path, $partial_panel_mobidl_path, $link_panel_mobidl_path, $partial_link_panel_mobidl_path) = ("$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/MobiDL", "$ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/MobiDL", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/MobiDL", "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$res_manifest->{'run_id'}/MobiDL");
 						my ($panel_nenufaar_path, $partial_panel_nenufaar_path, $link_panel_nenufaar_path, $partial_link_panel_nenufaar_path) = (
 							"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}",
 							"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/nenufaar",
@@ -782,10 +771,10 @@ if ($result) {
 							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/nenufaar"
 						);
 						my ($panel_mobidl_path, $partial_panel_mobidl_path, $link_panel_mobidl_path, $partial_link_panel_mobidl_path) = (
-							"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL",
-							"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL",
-							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL",
-							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL"
+							"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
+							"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
+							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
+							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis"
 						);
 						if (-e "$panel_mobidl_path/$id_tmp$num_tmp/MobiDL.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
@@ -1071,7 +1060,7 @@ if ($result) {
 		print $q->start_div({'class' => 'w3-cell w3-container w3-padding-16 w3-border'}), $q->p({'class' => 'title min_height_50'}, 'Validations and negatives shortcuts:');
 		print U2_modules::U2_subs_1::valid_table($user, $number, $id, $dbh, $q);
 		# complementary analysis pdf
-		if (-f $ABSOLUTE_HTDOCS_PATH."RS_data/data/MobiDL/ushvam2/samples/$id$number.pdf") {
+		if (-f $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/samples/$id$number.pdf") {
 			# print $q->strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open("'.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/samples/'.$id.$number.'.pdf");'}, 'Complementary analysis'), "\n";
 			print $q->strong({'class' => 'w3-button w3-ripple w3-blue w3-hover-teal w3-padding-16 w3-margin', 'onclick' => 'window.open("'.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/samples/'.$id.$number.'.pdf");'}, 'Complementary analysis'), "\n";
 		}

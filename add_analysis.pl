@@ -481,7 +481,7 @@ if ($user->isAnalyst() == 1) {
 				# 	# redirect $alignment_dir to MobiDL
 				# 	$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL";
 				# }
-
+				my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run);
 				if ($value == 0) {
 					# run does not need to be NS run - if classified, will not be considered next time
 					# 1st check MSR analysis is finished:
@@ -564,8 +564,7 @@ if ($user->isAnalyst() == 1) {
 							# reads_pf  | float             | default NULL::float	reads PF (M)	ALTER TABLE illumina_run ADD reads_pf float DEFAULT NULL;
 							# check mutliqc json to find these values
 							# make a sub to parse multiqc json, as it will be useful for sample import
-							# my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
-							my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
+							my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
 
 							if (ref $interop_metrics eq ref {} && $interop_metrics->{'Density'} ne '') {
 								$insert = "INSERT INTO illumina_run (id, complete, cluster_density, cluster_pf, q30pc, reads, reads_pf) VALUES ('$run', 'f', $interop_metrics->{'Density'}, $interop_metrics->{'Cluster PF'}, $interop_metrics->{'%>=Q30'}, $interop_metrics->{'Reads'}, $interop_metrics->{'Reads PF'});";
@@ -607,8 +606,7 @@ if ($user->isAnalyst() == 1) {
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
 							# build form
-							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/", $ssh, $summary_file, $instrument, $genome_version);
-							# print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, $alignment_dir, $ssh, $summary_file, $instrument, $genome_version);
+							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis", $ssh, $summary_file, $instrument, $genome_version);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
 						}
 					}

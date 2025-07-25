@@ -1032,11 +1032,12 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	my $mobidl_vcf_path = '';
 	# print STDERR $vcf_path."\n";
 	# print STDERR $run_id."\n";
+	my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run_id);
 	if ($vcf_path =~ /^(.+$run_id)\/$run_id.+/) {
-		$mobidl_vcf_path = $1."/MobiDL/$id$number/panelCapture/$id$number.vcf"
+		$mobidl_vcf_path = $1."/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.vcf"
 	}
 	elsif ($vcf_path =~ /^(.+$run_id).+/) {
-		$mobidl_vcf_path = $1."/MobiDL/$id$number/panelCapture/$id$number.vcf"
+		$mobidl_vcf_path = $1."/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.vcf"
 	}
 	# print STDERR $mobidl_vcf_path."\n";
 	# exit 0;

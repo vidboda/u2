@@ -378,9 +378,9 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 					reference: {
 						id: genome,
 						name: \'Human (\' + genome + \')\',
-						fastaURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
-						indexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
-						compressedIndexURL: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
+						fastaURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz\',
+						indexURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.fai\',
+						compressedIndexURL: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/\' + genome + \'.fa.gz.gzi\'
 					},
 					tracks: [			
 						{
@@ -393,13 +393,13 @@ if ($q->param('gene') && $q->param('info') eq 'general') {
 						},
 						{
 							name: "MANE transcripts",
-							url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/MANE.GRCh38.v1.0.refseq.bb\',
+							url: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/MANE.GRCh38.v1.0.refseq.bb\',
 							indexed: false,
 							label: "MANE transcripts",
 						},
 						{
 							name: \'Refseq Genes\',
-							url: \''.$HTDOCS_PATH.'RS_data/data/MobiDL/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
+							url: \''.$HTDOCS_PATH.'chu-ngs/Labos/IURC/ushvam2/databases/genomes/\' + genome + \'/refGene.txt.gz\',
 							order: 1000000,
 							indexed: false
 						},
