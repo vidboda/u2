@@ -154,7 +154,7 @@ sub get_mobidl_analysis_date {
 	# first test if the dir is MobiDL/YYYYMMDD/panelCaptureComplete.txt or MobiDL/panelCaptureComplete.txt
 	return '' if -f "$path/panelCaptureComplete.txt";
 	# if YYYYMMDD get the latest
-	opendir(D, "$path") || die "Can't open directory $path: $!\n";
+	opendir(D, "$path") || return '';
 	my @list = grep {/\d{6}/o} sort(readdir(D));
 	closedir(D);
 	return pop(@list)."/";
