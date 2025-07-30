@@ -205,11 +205,11 @@ sub get_alignment_path {
 	# my ($alignment_dir, $additional_path) = ('', '');
 	my $alignment_dir = '';
 	my $run = $res_manifest->{'run_id'};
-
+	my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run);
 	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
 	if ($genome eq 'hg38') {
 		# my $alignment_file = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
-		my $alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
+		my $alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.crumble";
 		my $file_type = 'cram';
 		return ($alignment_file, $file_type, 'hg38');
 	}

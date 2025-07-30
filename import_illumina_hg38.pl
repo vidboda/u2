@@ -147,6 +147,7 @@ if ($step && $step == 2) {
 
 	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'form');
 	my $run = U2_modules::U2_subs_1::check_illumina_run_id($q);
+	my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run);
 
 	my $query = "SELECT filtering_possibility FROM valid_type_analyse WHERE type_analyse = '$analysis';";
 	my $res = $dbh->selectrow_hashref($query);
@@ -173,12 +174,12 @@ if ($step && $step == 2) {
 	### get alignemnt with _ AND subdir with date
 	# MINISEQ change get instrument type
 	# my ($instrument, $instrument_path, $alignment_dir) = ('miseq', 'MiSeqDx/USHER', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
-	my ($instrument, $alignment_dir) = ('miseq', "$NAS_CHU_BASE_DIR$NAS_CHU_MISEQ_BASE_DIR/$run/MobiDL");
+	my ($instrument, $alignment_dir) = ('miseq', "$NAS_CHU_BASE_DIR$NAS_CHU_MISEQ_BASE_DIR/$run/MobiDL/$mobidl_date_analysis");
 	if ($analysis =~ /MiniSeq-\d+/o) {
 		$instrument = 'miniseq';
 		# $instrument_path='MiniSeq';
 		# $SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;
-		$alignment_dir = "$NAS_CHU_BASE_DIR$NAS_CHU_MINISEQ_BASE_DIR/$run/MobiDL";
+		$alignment_dir = "$NAS_CHU_BASE_DIR$NAS_CHU_MINISEQ_BASE_DIR/$run/MobiDL/$mobidl_date_analysis";
 	}
 	# my ($instrument, $alignment_dir) = ('miseq', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
 	# if ($analysis =~ /MiniSeq-\d+/o) {
@@ -655,7 +656,7 @@ if ($step && $step == 2) {
 		print $q->start_li(), $q->a({"href" => "patient_file.pl?sample=$id$number", "target" => "_blank"}, "$id$number"), $q->span(' import validated'), $q->end_li();
 		#print STDERR $valid."\n";
 	}
-
+	if (! -d "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis") {mkdir("$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis")}
 	open F, ">>$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis/".$run."import.log" or print STDERR $!;
 	print F $user->getName()."\n$date\n$run\n$general\n$message\n$new_var\n";
 	close F;
