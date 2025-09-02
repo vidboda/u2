@@ -177,6 +177,10 @@ if ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 1) {
 					$i++;
 				}
 				print $q->end_div(), $q->br(), "\n",
+				$q->start_div({'align' => 'center'}), "\n",
+					$q->label({'for' => 'comments'}, 'Comments (english, no accents):&nbsp;&nbsp;&nbsp;&nbsp;'), $q->br(),
+					$q->textarea({'name' => 'comments', 'rows' => '3', 'cols' => '50'}), $q->br(), "\n",
+				$q->end_div(), $q->br(), "\n",
 				$q->submit({'value' => 'Launch CovReport', 'id' => 'CVsubmit', 'class' => 'w3-btn w3-blue', 'form' => 'covreport_form'}), $q->br(), $q->br(), "\n", $q->br(), "\n",,
 			$q->end_form(),
 		$q->end_div(), $q->br(), $q->br(), "\n";
@@ -184,6 +188,7 @@ if ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 1) {
 elsif ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 2) {
 	# CovReport 2
 	my $align_file = $q->param('align_file');
+	my $comments = $q->param('comments');
 	my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.'/WDL/CovReport2/';
 	my $covreport_jar = $cov_report_dir.'CovReport2.jar';
 	# remove previous file
@@ -217,8 +222,8 @@ elsif ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 2) {
 	# define reference file to use
 	my $refseq_file = $cov_report_dir.'refSeqExons/refSeqExon_'.U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh).'.only_NM.20.txt';
 	# print STDERR "cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config";
-	my $output = `cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config -comments "Panel size: $panel_size kb"`;
-	# print STDERR $output;
+	my $output = `cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config -comments "Panel size: $panel_size kb. $comments"`;
+	print STDERR $output;
 
 	if (-e $cov_report_dir."pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage_".$str.".pdf") {
 		mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
