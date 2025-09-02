@@ -1001,6 +1001,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport2') {
 		my ($select_val, $com) = '';
 
 		my $panel_size = 0;
+		my $filter_txt = $filter;
 		# how to get size: 
 		if ($filter eq 'RP') {$select_val = "AND rp = 't'";$panel_size = 316;}
 		elsif ($filter eq 'DFN') {$select_val = "AND dfn = 't'";$panel_size = 601;$com = '- OTOA E20-28: not covered due to pseudogene homology; TRIOBP E7: low specificity';}
@@ -1008,7 +1009,8 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport2') {
 		elsif ($filter eq 'DFN-USH') {$select_val = "AND (dfn = 't' OR usher = 't')";$panel_size = 716;$com = '- OTOA E20-28: not covered due to pseudogene homology; TRIOBP E7: low specificity';}
 		elsif ($filter eq 'RP-USH') {$select_val = "AND (rp = 't' OR usher = 't')";$panel_size = 410;}
 		elsif ($filter eq 'CHM') {$select_val = "AND gene_symbol = 'CHM'";$panel_size = 9;}
-		elsif ($filter eq 'ALL') {$panel_size = 1014;}
+		elsif ($filter eq 'ALL') {$panel_size = 1014;$filter_txt = 'DFN-RP-USH';}
+		my $comments = "Panel type: $filter_txt, size: $panel_size kb $com";
 		my $query_size = "SELECT sum(abs((a.start_g_38-20) - (a.end_g_38+20)))/1000 as panel_size FROM segment a, gene b WHERE b.refseq = a.refseq AND a.type <> 'intron' AND \"MiniSeq-157\" = 't' AND b.main = 't' AND b.diag = 't' $select_val;";
 		my $res_size = $dbh->selectrow_hashref($query_size);
 		my $panel_size = $res_size->{'panel_size'};
@@ -1024,7 +1026,7 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport2') {
 		# define reference file to use
 		my $refseq_file = $cov_report_dir.'refSeqExons/refSeqExon_'.U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh).'.only_NM.20.txt';
 		# print STDERR "cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config";
-		my $output = `cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config -comments "Sous panel $filter ($panel_size kb) $com"`;
+		my $output = `cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config -comments "$comments"`;
 		# print STDERR $output;
 		if (-e $cov_report_dir."pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage_".$str.".pdf") {
 			# move to /var/www/html/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport
