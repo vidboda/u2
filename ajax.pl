@@ -70,6 +70,7 @@ my $DBNSFP_V3_PATH = $config->DBNSFP_V3_PATH();
 my $SEAL_NAS_CHU = $config->SEAL_NAS_CHU();
 my $SEAL_VCF_PATH = $config->SEAL_VCF_PATH();
 my $TMP_DIR = $config->TMP_DIR();
+my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
 
 my $dbh = DBI->connect(    "DBI:Pg:database=$DB;host=$HOST;",
                         $DB_USER,
@@ -957,22 +958,86 @@ if ($q->param('asked') && $q->param('asked') eq 'covreport') {
 		`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter -bam $align_file -bed u2_beds/$analysis.bed -NM u2_genes/$filter$experiment_tag.txt -f $filter`;
 
 		if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") {
-      		# print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."DS_data/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
 			# /var/www/html/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport
 			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
 			
 			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\n".$HOME_IP."ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport/$id$number/$id$number-$analysis-".$filter."_coverage.pdf\n");
 			
 			# attempt to trigger autoFS
-			open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/touch.txt";
-			sleep 3;
-			close HANDLE;
+			# open HANDLE, ">>".$ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/touch.txt";
+			# sleep 3;
+			# close HANDLE;
 			mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
 			copy($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number) or die $!;
       		unlink $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage.pdf";
 		}
 		else {
 			U2_modules::U2_subs_2::send_general_mail($user, "CovReport failed for $id$number-$analysis-$filter\n\n", "Hi ".$user->getName().",\nUnfortunately, your CovReport generation failed. You can forward this message to David for debugging.\n");
+      		print $q->span('Failed to generate coverage file');
+		}
+	}
+}
+
+if ($q->param('asked') && $q->param('asked') eq 'covreport2') {
+	print $q->header();
+	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
+	my $analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'filtering');
+	my $filter = U2_modules::U2_subs_1::check_filter($q);
+	my $user = U2_modules::U2_users_1->new();
+	my $experiment_tag = '';
+	if ($analysis =~ /-149$/o) {$experiment_tag = '_149'}
+	if ($analysis =~ /-157$/o || $analysis =~ /-157-Twist$/o) {$experiment_tag = '_157'}
+	# if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/RS_data\/data\//o) {
+	# print STDERR $q->param ('align_file')."\n";
+	if ($q->param ('align_file') =~ /\/var\/www\/html\/ushvam2\/chu-ngs\//o) {
+		my $align_file = $q->param('align_file');
+		my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.'/WDL/CovReport2/';
+		my $covreport_jar = $cov_report_dir.'CovReport2.jar';
+		# generate a random string for this file
+		my @set = ('0' ..'9', 'A' .. 'F');
+		my $str = join '' => map $set[rand @set], 1 .. 8;
+		my $gene_list_file = $cov_report_dir."tmp_dir/$str.txt";
+		# live define gene list
+		my ($select_val, $com) = '';
+
+		my $panel_size = 0;
+		# how to get size: 
+		if ($filter eq 'RP') {$select_val = "AND rp = 't'";$panel_size = 316;}
+		elsif ($filter eq 'DFN') {$select_val = "AND dfn = 't'";$panel_size = 601;$com = '- OTOA E20-28: not covered due to pseudogene homology; TRIOBP E7: low specificity';}
+		elsif ($filter eq 'USH') {$select_val = "AND usher = 't'";$panel_size = 120;}
+		elsif ($filter eq 'DFN-USH') {$select_val = "AND (dfn = 't' OR usher = 't')";$panel_size = 716;$com = '- OTOA E20-28: not covered due to pseudogene homology; TRIOBP E7: low specificity';}
+		elsif ($filter eq 'RP-USH') {$select_val = "AND (rp = 't' OR usher = 't')";$panel_size = 410;}
+		elsif ($filter eq 'CHM') {$select_val = "AND gene_symbol = 'CHM'";$panel_size = 9;}
+		elsif ($filter eq 'ALL') {$panel_size = 1014;}
+		my $query_size = "SELECT sum(abs((a.start_g_38-20) - (a.end_g_38+20)))/1000 as panel_size FROM segment a, gene b WHERE b.refseq = a.refseq AND a.type <> 'intron' AND \"MiniSeq-157\" = 't' AND b.main = 't' AND b.diag = 't' $select_val;";
+		my $res_size = $dbh->selectrow_hashref($query_size);
+		my $panel_size = $res_size->{'panel_size'};
+		my $query_nm = "SELECT CONCAT(refseq, '.', acc_version) as full_refseq FROM gene WHERE \"$analysis\" = 't' AND main = 't' AND diag = 't' $select_val;";
+		my $sth_nm = $dbh->prepare($query_nm);
+		my $res_nm = $sth_nm->execute();
+		open(F, ">".$gene_list_file) or die $!;
+		while (my $result = $sth_nm->fetchrow_hashref()) {
+				# create a gene list
+				print F $result->{'full_refseq'}."\n";
+		}
+		close F;
+		# define reference file to use
+		my $refseq_file = $cov_report_dir.'refSeqExons/refSeqExon_'.U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh).'.only_NM.20.txt';
+		# print STDERR "cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config";
+		my $output = `cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config -comments "Sous panel $filter ($panel_size kb) $com"`;
+		# print STDERR $output;
+		if (-e $cov_report_dir."pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage_".$str.".pdf") {
+			# move to /var/www/html/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport
+			mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
+			print STDERR $cov_report_dir."pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage_".$str.".pdf\n";
+			move($cov_report_dir."pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage_".$str.".pdf", $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf") or die $!;
+			unlink $gene_list_file;
+			print $q->start_span().$q->a({ 'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_span();
+			
+			U2_modules::U2_subs_2::send_general_mail($user, "CovReport ready for $id$number-$analysis-$filter", "Hi ".$user->getName().",\nYou can download the CovReport file here:\n".$HOME_IP."ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport/$id$number/$id$number-$analysis-".$filter."_coverage.pdf\n");
+		}
+		else {
+			U2_modules::U2_subs_2::send_general_mail($user, "CovReport failed for $id$number-$analysis-$filter\n\n", "Hi ".$user->getName().",\nUnfortunately, your CovReport generation failed. You can forward this message to David for debugging. $output\n");
       		print $q->span('Failed to generate coverage file');
 		}
 	}

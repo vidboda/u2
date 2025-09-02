@@ -220,7 +220,7 @@ my $js = "
 		\$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
-			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, asked: 'covreport'},
+			data: {sample: sample, analysis: analysis, align_file: align_file, filter: filter, asked: 'covreport2'},
 			beforeSend: function() {
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
 				\$(\".w3-button\").css(\"cursor\", \"progress\");

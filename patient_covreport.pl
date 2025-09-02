@@ -56,6 +56,7 @@ my $JS_DEFAULT = $config->JS_DEFAULT();
 my $HTDOCS_PATH = $config->HTDOCS_PATH();
 my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $PERL_SCRIPTS_HOME = $config->PERL_SCRIPTS_HOME();
+my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'fullsize/fullsize.css', $CSS_PATH.'jquery.alerts.css');
 
@@ -136,7 +137,7 @@ if ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 1) {
 	elsif ($filter eq 'RP-USH') {$filter_subquery = "((rp = '$rp' AND dfn = '$dfn') OR usher = '$usher') AND"}
 	elsif ($filter eq 'CHM') {$filter_subquery = "gene_symbol = 'CHM' AND "}
 
-	my $query = "SELECT gene_symbol, refseq, diag FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND gene_symbol <> 'CEVA' AND ns_gene = 't' ORDER BY gene_symbol;";
+	my $query = "SELECT gene_symbol, refseq, diag, acc_version FROM gene WHERE $filter_subquery \"$analysis\" = 't' AND main = 't' AND gene_symbol <> 'CEVA' AND ns_gene = 't' ORDER BY gene_symbol;";
 	# print STDERR $query;
 	my $sth = $dbh->prepare($query);
 	my $res = $sth->execute();
@@ -166,10 +167,10 @@ if ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 1) {
 					}
 					print $q->start_div({'class' => 'w3-quarter'}), "\n";
 					if ($result->{'diag'} == 1) {
-						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'refseq'}, 'id' => $result->{'refseq'}, 'form' => 'covreport_form' , 'checked' => 'true'}), "\n";
+						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'refseq'}.'.'.$result->{'acc_version'}, 'id' => $result->{'refseq'}, 'form' => 'covreport_form' , 'checked' => 'true'}), "\n";
 					}
 					else {
-						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'refseq'}, 'id' => $result->{'refseq'}, 'form' => 'covreport_form'}), "\n";
+						print $q->input({'class' => 'w3-check', 'type' => 'checkbox', 'name' => 'transcript', 'value' => $result->{'refseq'}.'.'.$result->{'acc_version'}, 'id' => $result->{'refseq'}, 'form' => 'covreport_form'}), "\n";
 					}
 					print		$q->label({'for' => $result->{'refseq'}}, $result->{'gene_symbol'}),
 						$q->end_div(), "\n";
@@ -181,38 +182,91 @@ if ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 1) {
 		$q->end_div(), $q->br(), $q->br(), "\n";
 }
 elsif ($q->param ('align_file') =~ /\/ushvam2\/chu-ngs\//o && $step == 2) {
-	# elsif ($q->param ('align_file') =~ /\/ushvam2\/RS_data\/data\//o && $step == 2) {
+	# CovReport 2
 	my $align_file = $q->param('align_file');
-	my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
-	my $cov_report_sh = $cov_report_dir.'covreport.sh';
-	#remove previous file
+	my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.'/WDL/CovReport2/';
+	my $covreport_jar = $cov_report_dir.'CovReport2.jar';
+	# remove previous file
 	if (-f $cov_report_dir."CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
 		unlink $cov_report_dir."CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf"
 	}
 	# set up a gene list file with the genes of interest and launch covreport
 	my @transcripts = $q->param('transcript');
-	mkdir $cov_report_dir."tmp_dir_$id$number-$analysis-$filter-custom";
-	open(F, ">".$cov_report_dir."tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt") or die $!;
+	# mkdir $cov_report_dir."tmp_dir";
+	# generate a random string for this file
+	my @set = ('0' ..'9', 'A' .. 'F');
+	my $str = join '' => map $set[rand @set], 1 .. 8;
+	my $gene_list_file = $cov_report_dir."tmp_dir/$str.txt";
+	open(F, ">".$gene_list_file) or die $!;
+	my $query_size_list = "SELECT sum(abs((a.start_g_38-20) - (a.end_g_38+20)))/1000 as panel_size FROM segment a, gene b WHERE b.refseq = a.refseq AND a.type <> 'intron' AND \"MiniSeq-157\" = 't' AND b.main = 't' AND b.diag = 't' AND b.refseq IN (";
 	foreach (@transcripts) {
 		# create a gene list
 		print F "$_\n";
+		# sql query formatting
+		if (/^(NM_\d+)\.\d$/o) {
+			$query_size_list .= "'$1', ";
+		}
 	}
 	close F;
-	print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter\n";
-	`cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter`;
+	$query_size_list = substr($query_size_list, 0, -2);
+	$query_size_list .= ")";
+	# print STDERR $query_size_list."\n";
+	my $res_size = $dbh->selectrow_hashref($query_size_list);
+	my $panel_size = $res_size->{'panel_size'};
+	# get approx. size of query
+	# define reference file to use
+	my $refseq_file = $cov_report_dir.'refSeqExons/refSeqExon_'.U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh).'.only_NM.20.txt';
+	# print STDERR "cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config";
+	my $output = `cd $cov_report_dir && /bin/java -jar $covreport_jar -i $align_file -r $refseq_file -g $gene_list_file -p $id$number-$analysis-$filter -config $cov_report_dir/covreport/CovReport2.config -comments "Panel size: $panel_size kb"`;
+	# print STDERR $output;
 
-	if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
+	if (-e $cov_report_dir."pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage_".$str.".pdf") {
+		mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
+		move($cov_report_dir."pdf-results/".$id.$number."-".$analysis."-".$filter."_coverage_".$str.".pdf", $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") or die $!;
+		unlink $gene_list_file;
 		print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
 
 		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
-
-		mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
-		move($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number) or die $!;
 	}
 	else {
 		print $q->span('Failed to generate coverage file');
-		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport failed for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nUnfortunately, your custom CovReport generation failed. You can forward this message to David for debugging.\nGene list:\n$HOME/ushvam2/CovReport/tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt");
+		U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport failed for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nUnfortunately, your custom CovReport generation failed. You can forward this message to David for debugging.\nGene list:\n$HOME/ushvam2/CovReport/tmp_dir/".$str.".txt");
 	}
+
+
+
+	# # CovReport 1
+	# my $align_file = $q->param('align_file');
+	# my $cov_report_dir = $ABSOLUTE_HTDOCS_PATH.'CovReport/';
+	# my $cov_report_sh = $cov_report_dir.'covreport.sh';
+	# # remove previous file
+	# if (-f $cov_report_dir."CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
+	# 	unlink $cov_report_dir."CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf"
+	# }
+	# # set up a gene list file with the genes of interest and launch covreport
+	# my @transcripts = $q->param('transcript');
+	# mkdir $cov_report_dir."tmp_dir_$id$number-$analysis-$filter-custom";
+	# open(F, ">".$cov_report_dir."tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt") or die $!;
+	# foreach (@transcripts) {
+	# 	# create a gene list
+	# 	print F "$_\n";
+	# }
+	# close F;
+	# print STDERR "cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter\n";
+	# `cd $cov_report_dir && /bin/sh $cov_report_sh -out $id$number-$analysis-$filter-custom -bam $align_file -bed u2_beds/$analysis.bed -NM tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt -f $filter`;
+
+	# if (-e $ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf") {
+	# 	print $q->start_div({'class' => 'w3-center'}), $q->start_p().$q->a({'class' => 'w3-btn w3-blue', 'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number."/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", 'target' => '_blank'}, 'Download CovReport').$q->end_p(), $q->end_div();
+
+	# 	U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport ready for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nYou can download the custom CovReport file here:\n$HOME/ushvam2/chu-ngs/Labos/IURC/ushvam2/covreport/$id$number/$id$number-$analysis-".$filter."-custom_coverage.pdf\n");
+
+	# 	mkdir($ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number);
+	# 	move($ABSOLUTE_HTDOCS_PATH."CovReport/CovReport/pdf-results/".$id.$number."-".$analysis."-".$filter."-custom_coverage.pdf", $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/covreport/".$id.$number) or die $!;
+	# }
+	# else {
+	# 	print $q->span('Failed to generate coverage file');
+	# 	U2_modules::U2_subs_2::send_general_mail($user, "Custom CovReport failed for $id$number-$analysis-$filter\n\n", "\nHi ".$user->getName().",\nUnfortunately, your custom CovReport generation failed. You can forward this message to David for debugging.\nGene list:\n$HOME/ushvam2/CovReport/tmp_dir_$id$number-$analysis-$filter-custom/$id$number-$analysis-$filter-genelist.txt");
+	# }
 
 }
 
