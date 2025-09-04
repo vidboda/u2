@@ -1015,6 +1015,10 @@ if ($result) {
 							$homo_thresh = $U2_modules::U2_subs_1::NB_HOMOZYGOUS_VARS_157;
 							$mean_ab_thresh = $U2_modules::U2_subs_1::MEAN_AB_157;
 						}
+						elsif ($analysis =~ /-157-Twist/o)  {
+							$homo_thresh = $U2_modules::U2_subs_1::NB_HOMOZYGOUS_VARS_157_TWIST;
+							$mean_ab_thresh = $U2_modules::U2_subs_1::MEAN_AB_157_TWIST;
+						}
 						if ($homo_thresh > 0 && $mean_ab_thresh > 0) {
 							my $query_homo = "SELECT COUNT(nom_c) AS homoz FROM variant2patient WHERE (id_pat, num_pat) IN ($list) AND type_analyse = '$analysis' AND frequency > 0.8;"; # statut = 'homozygous'
 							my $res_homo = $dbh->selectrow_hashref($query_homo);
