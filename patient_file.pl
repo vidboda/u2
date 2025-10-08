@@ -1015,7 +1015,7 @@ if ($result) {
 							$homo_thresh = $U2_modules::U2_subs_1::NB_HOMOZYGOUS_VARS_157;
 							$mean_ab_thresh = $U2_modules::U2_subs_1::MEAN_AB_157;
 						}
-						elsif ($analysis =~ /-157-Twist/o)  {
+						if ($analysis =~ /-157-Twist/o)  {
 							$homo_thresh = $U2_modules::U2_subs_1::NB_HOMOZYGOUS_VARS_157_TWIST;
 							$mean_ab_thresh = $U2_modules::U2_subs_1::MEAN_AB_157_TWIST;
 						}
