@@ -89,8 +89,8 @@ our $MEAN_AB_149 = 0.58;
 our $NB_HOMOZYGOUS_VARS_157 = 400;
 our $MEAN_AB_157 = 0.58;
 # Values to estimate contamination - NS157-Twist
-our $NB_HOMOZYGOUS_VARS_157 = 420;
-our $MEAN_AB_157 = 0.60;
+our $NB_HOMOZYGOUS_VARS_157_TWIST = 420;
+our $MEAN_AB_157_TWIST = 0.60;
 
 #threshold values for POMPS
 our $SIFT_THRESHOLD = 0.05;
