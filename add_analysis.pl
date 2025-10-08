@@ -331,7 +331,7 @@ U2_modules::U2_subs_1::standard_begin_html($q, $user->getName(), $dbh);
 
 if ($user->isAnalyst() == 1) {
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
-
+	my $defgen_id = U2_modules::U2_subs_1::get_defgen_id($id, $number, $q, $dbh);
 	my $step = U2_modules::U2_subs_1::check_step($q);
 
 	if ($step == 1) {# form to create analysis
@@ -388,8 +388,6 @@ if ($user->isAnalyst() == 1) {
 			# MINISEQ change get instrument type
 			# my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 			my $instrument = 'miseq';
-			# if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq';$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
-			# if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$SSH_RAW_DATA_BASE_DIR = $SSH_RAW_DATA_MINISEQ_BASE_DIR;$SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;$SSH_RACKSTATION_FTP_BASE_DIR=$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR}
 			if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$SSH_RAW_DATA_BASE_DIR = $SSH_RAW_DATA_MINISEQ_BASE_DIR;}
 			# but first get manifets name for validation purpose
 			my ($manifest, $filtered) = U2_modules::U2_subs_2::get_filtering_and_manifest($analysis, $dbh);
@@ -399,9 +397,6 @@ if ($user->isAnalyst() == 1) {
 
 			# we're in!!!
 			my $run_list;
-			# opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR) or die $!;
-			# while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
-			# closedir(DIR);
 			opendir (DIR, $SSH_RAW_DATA_BASE_DIR) or die $!;
 			while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
 			closedir(DIR);
@@ -430,12 +425,9 @@ if ($user->isAnalyst() == 1) {
 				my $additional_path = '';
 				if ($instrument eq 'miseq'){
 					if (-f "$SSH_RAW_DATA_BASE_DIR/$run/CompletedJobInfo.xml") {
-					# if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml") {
 						$alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RAW_DATA_BASE_DIR/$run/CompletedJobInfo.xml`;
-						# $alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $SSH_RACKSTATION_FTP_BASE_DIR/$run/CompletedJobInfo.xml`;
 						$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = $1;
 						$alignment_dir = "$SSH_RAW_DATA_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
-						# $alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/Data/Intensities/BaseCalls/$alignment_dir";
 					}
 					else {next}
 				}
@@ -446,28 +438,22 @@ if ($user->isAnalyst() == 1) {
 					# MN_00265 => $run/$alignment_dir
 					# MN01379 => $run/$run/$alignment_dir
 					# not needed anymore since LRMv4?
-					# my $miniseq = U2_modules::U2_subs_2::get_miniseq_id($run);					
-					# if ($miniseq eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
 					if (-f "$SSH_RAW_DATA_BASE_DIR$run$additional_path/CompletedJobInfo.xml") {
-					# if (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml") {
 						$alignment_dir = `grep -Eo "A(lignment|nalysis)Folder>.+\\Alignment_?[0-9]*.+<" $SSH_RAW_DATA_BASE_DIR$run$additional_path/CompletedJobInfo.xml`;
-						# $alignment_dir = `grep -Eo "A(lignment|nalysis)Folder>.+\\Alignment_?[0-9]*.+<" $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/CompletedJobInfo.xml`;
 						$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 						$alignment_dir = $1;
 						$alignment_dir =~ s/\\/\//og;
-						# $alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/$alignment_dir"
 						$alignment_dir = "$SSH_RAW_DATA_BASE_DIR$run$additional_path/$alignment_dir";
 						# print STDERR "$alignment_dir;\n";
 					}
 					else {next}
 				}
-				# my ($sentence, $location, $stat_file, $samplesheet, $summary_file) = ('Copying Remaining Files To Network', "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt", 'EnrichmentStatistics.xml', "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/SampleSheet.csv", 'enrichment_summary.csv');
 				my ($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RAW_DATA_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
-				if ($instrument eq 'miniseq') {
-					# DNA Enrichment workflow
-					# 2024 check to CopyComplete.txt
-					($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RAW_DATA_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
-                }
+				# if ($instrument eq 'miniseq') {
+				# 	# DNA Enrichment workflow
+				# 	# 2024 check to CopyComplete.txt
+				# 	($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RAW_DATA_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
+                # }
 				# unknown in U2
 				my $genome_version = `grep -o 'hg38' $samplesheet | head -1`;
 				chomp($genome_version);
@@ -476,39 +462,24 @@ if ($user->isAnalyst() == 1) {
 				############ for dev purpose REMOVE WHEN READY
 				# $genome_version = 'hg38';
 				############
-
-				# if ($genome_version eq 'hg38') {
-				# 	# redirect $alignment_dir to MobiDL
-				# 	$alignment_dir = "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL";
-				# }
 				my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run);
 				if ($value == 0) {
 					# run does not need to be NS run - if classified, will not be considered next time
 					# 1st check MSR analysis is finished:
 					# look for 'Copying Remaining Files To Network' in AnalysisLog.txt
 					my $test_file = '';
-					# if ($instrument eq 'miniseq' && -f "$SSH_RACKSTATION_FTP_BASE_DIR/$run/CopyComplete.txt") {$test_file = 'ok'}
 					if (-f "$location") {$test_file = 'ok'}
-					# if ($instrument eq 'miniseq' && -f "$location") {$test_file = 'ok'}
-					# elsif (-f "$SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
-					# 		$test_file = `grep -e '$sentence' $SSH_RACKSTATION_FTP_BASE_DIR/$run$additional_path/AnalysisLog.txt`
-					# }
-					# elsif (-f "$SSH_RAW_DATA_BASE_DIR/$run$additional_path/AnalysisLog.txt"){
-					# 		$test_file = `grep -e '$sentence' $SSH_RAW_DATA_BASE_DIR/$run$additional_path/AnalysisLog.txt`
-					# }
                     if ($test_file ne '') {
-
 
 						# my $cluster_density = U2_modules::U2_subs_2::getMultiqcValue($run, 'interop_runsummary', 'Density');
 						# if ($cluster_density eq 'no multiqc') {next}
 						# exit();
 
-
 						# automatic library preparation?
-						# my $robot = 'f';
-						my $robot = `grep -i -E 'Experiment Name,.+ROBOT' $samplesheet`;
-						if ($robot ne '') {$robot = 't'}
-						else {$robot = 'f'}
+						my $robot = 't';
+						# my $robot = `grep -i -E 'Experiment Name,.+ROBOT' $samplesheet`;
+						# if ($robot ne '') {$robot = 't'}
+						# else {$robot = 'f'}
 
 						# get genome version as
 						# hg19 => DNA Enrichment
@@ -583,9 +554,10 @@ if ($user->isAnalyst() == 1) {
 				# seek for patient
 				# we grep for patient ID in the samplesheets
 				# if succeeded, we must check whether this run is already recorded for the patient
-				if (`grep -e '$id$number' $samplesheet` ne '') {
+				
+				if (`grep -e '$defgen_id' $samplesheet` ne '') {
 					$semaph = 1;
-					$query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
+					$query = "SELECT num_pat, id_pat, defgen_num FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 					$res = $dbh->selectrow_hashref($query);
 					if ($res) {print $link;U2_modules::U2_subs_1::standard_error('14', $q);}
 					else {
@@ -600,8 +572,11 @@ if ($user->isAnalyst() == 1) {
 							# search for other patients in the samplesheet
 							my $char = ',';
 							my $patient_list;
-							my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
+							# my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
+							# import from defgen IDs
+							my $regexp = '^'.$PATIENT_IDS.'[A-Z]{0-2}[0-9]+'.$char;
 							$patient_list = `grep -Eo "$regexp" $samplesheet`;
+
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};

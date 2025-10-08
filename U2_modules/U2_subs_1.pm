@@ -558,6 +558,14 @@ sub sample2idnum { #transform a sample into an id and a number
 	if ($sample =~ /^$PATIENT_IDS\s*(\d+)$/o) {return($1, $2)}
 	else {&standard_error('2', $q)}
 }
+#used in import_illumina.pl, add_analysis.pl
+sub get_defgen_id { # get the defgen id from id and number
+	my ($id, $number, $q, $dbh) = @_;
+	my $query = "SELECT defgen_num FROM patient WHERE identifiant = '$id' AND numero = '$number';";
+	my $res = $dbh->selectrow_hashref($query);
+	if ($res->{'defgen_num'} ne '0E0') {return ($res->{'defgen_num'})}
+	else {&standard_error('30', $q)}
+}
 
 sub check_gene { #checks gene param
 	my ($q, $dbh) = @_;
@@ -790,7 +798,8 @@ sub standard_error { #returns an error and ends script
 		26	=>	'Mutalyzer issue',
 		27	=>	'Family ID',
 		28	=>	'Illumina VCF path',
-		29	=>	'proband'
+		29	=>	'proband',
+		30	=>	'defgen ID'
 	);
 	print $q->start_p(), $q->span('USHVaM 2 encountered an error and cannot proceed further.'), $q->br(), $q->span("The error is linked to the $error_code{$code}."), $q->br(), $q->span('Please contact your admin.'), $q->end_p();
 	&standard_end_html($q, $HTDOCS_PATH);

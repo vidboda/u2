@@ -1122,22 +1122,42 @@ sub check_ngs_samples {
 	my $query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; # num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 	my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
 	my $count_hash = 0;
+	my $defgen = 't'; # coming up with a defgen ID instead of aliases
 	foreach my $totest (keys(%{$patients})) {
-		$totest =~ /^$PATIENT_IDS\s*(\d+)$/o;
-		$query .= "(num_pat = '$2' AND id_pat = '$1') ";
-		$query2 .= "(numero = '$2' AND identifiant = '$1') ";
+		if ($totest =~ /^$PATIENT_IDS\s*(\d+)$/o) {
+			$query .= "(num_pat = '$2' AND id_pat = '$1') ";
+			$query2 .= "(numero = '$2' AND identifiant = '$1') ";
+			$defgen = 'f';
+		}
+		elsif ($totest =~ /^$PATIENT_IDS\s*(\d+)$/o) {
+			$query2 .= "defgen_num = '$1.$2' ";
+		}		
 		$count_hash++;
-		if ($count_hash < keys(%{$patients})) {$query .= "OR ";$query2 .= "OR ";}
+		if ($count_hash < keys(%{$patients})) {
+			if ($defgen == 'f') {$query .= "OR "}
+			$query2 .= "OR ";
+		}
 	}
-	$query .= ") GROUP BY num_pat, id_pat;";
+	if ($defgen == 'f') {$query .= ") GROUP BY num_pat, id_pat;"}
 	$query2 .= ";";
 	my $sth = $dbh->prepare($query2);
 	my $res = $sth->execute();
 	# modify hash
-
+	my $count_query = 0;
 	while (my $result = $sth->fetchrow_hashref()) {
 		$patients->{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
+		# when coming from defgen
+		if ($defgen == 'f') {
+			$query .= "(num_pat = '$2' AND id_pat = '$1') ";
+			$count_query++;
+			if ($count_query < $res) {$query .= "OR "}
+		}
 	}
+	if ($defgen == 'f') {
+		$query .= ") GROUP BY num_pat, id_pat;";
+	}
+	print STDERR "$query\n";
+	print STDERR "$query2\n";
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	# cleanup hash
