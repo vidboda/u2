@@ -299,9 +299,10 @@ if ($step && $step == 2) {
 				if ($k%500 == 0) {print STDERR "\n".U2_modules::U2_subs_1::get_log_date()." [INFO] $k VCF lines treated\n";}
 				my @list = split(/\t/);
 				my $message_tmp;
-
 				my ($var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $null, $var_filter) = (shift(@list), shift(@list), shift(@list), shift(@list), shift(@list), shift(@list), shift(@list));
 				my ($var_dp, $var_vf);
+				# blocking VV chr2, 29065060, .;rs139768554;rs35753661, C, CGCT
+				# print STDERR "$var_chr, $var_pos, $rs_id, $var_ref, $var_alt\n";
 
 				my @format_list = split(/:/, pop(@list));
 
