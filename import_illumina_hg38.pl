@@ -195,13 +195,21 @@ if ($step && $step == 2) {
 	my $interval = U2_modules::U2_subs_3::build_roi($dbh, $postgre_start_g, $postgre_end_g);
   	my ($general, $message) = ('', '');
   	print $q->p('  Samples imported:'), $q->start_ul();
-	while (my ($sampleid, $filter) = each(%sample_hash)) {
+	# while (my ($sampleid, $filter) = each(%sample_hash)) {
+	while (my ($sampleid, $table) = each(%sample_hash)) {
+		my ($alias, $filter) = (shift(@{$table}), shift(@{$table}));
+		my ($alias_id, $alias_num) = U2_modules::U2_subs_1::sample2idnum($alias, $q);
 
 		my $vcf = "$sampleid.vcf";
 		my $sample_path = "$alignment_dir/$sampleid";
 
-
 		my ($id, $number) = U2_modules::U2_subs_1::sample2idnum($sampleid, $q);
+		
+		# we need to know wether $sampleid is an alias (SUXXX, RXXX, CHMXXX) or a defgen ID (CSGXXX, CADXXX...)
+		my $sample_type = U2_modules::U2_subs_1::get_sample_type($sampleid, $q);
+		my ($query_id, $query_num) = ($id, $number);
+		if ($sample_type eq 'defgen_id') {($query_id, $query_num) = ($alias_id, $alias_num)}
+		
 		my $insert;
 		print STDERR "\n".U2_modules::U2_subs_1::get_log_date()." [INFO] Initiating $id$number\n";
 		# loop on genes
@@ -210,7 +218,7 @@ if ($step && $step == 2) {
 		my $res = $sth->execute();
 
 		while (my $result = $sth->fetchrow_hashref()) {
-			$insert .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$number', '$id', '$result->{'refseq'}', '$analysis', '$date', '".$user->getName()."','t');";
+			$insert .= "INSERT INTO analyse_moleculaire (num_pat, id_pat, refseq, type_analyse, date_analyse, analyste, technical_valid) VALUES ('$query_num', '$query_id', '$result->{'refseq'}', '$analysis', '$date', '".$user->getName()."','t');";
 		}
 		#######UNCOMMENT WHEN DONE!!!!!!!
 		$dbh->do($insert);
@@ -257,7 +265,7 @@ if ($step && $step == 2) {
 
 		$metrics = { %$metrics, %$metrics_insert };
 
-		my ($fields, $values) = ("num_pat, id_pat, type_analyse, run_id, filter, ", "'$number', '$id', '$analysis', '$run', '$filter', ");
+		my ($fields, $values) = ("num_pat, id_pat, type_analyse, run_id, filter, ", "'$query_num', '$query_id', '$analysis', '$run', '$filter', ");
 
 
 		foreach my $label (keys(%{$metrics})) {
@@ -270,10 +278,11 @@ if ($step && $step == 2) {
 		$values =~ s/, $//o;
 		$insert = "INSERT INTO miseq_analysis ($fields) VALUES ($values);\n";
 
+		#######UNCOMMENT WHEN DONE!!!!!!!
 		$dbh->do($insert);
-		#print "$insert\n";
+		# print STDERR "$insert\n";
 		print STDERR U2_modules::U2_subs_1::get_log_date()." [INFO] Metrics and database analyses tables done, initiating VCF import\n";
-
+		# exit;
 		# VCF
 		$insert = '';
 		my ($var_chr, $var_pos, $rs_id, $var_ref, $var_alt, $var_vf, $var_dp, $var_filter, $null, $format);
@@ -370,7 +379,7 @@ if ($step && $step == 2) {
 				}
 				# }
 				if ($var_chr eq 'X') {
-					my $query_hemi = "SELECT sexe FROM patient WHERE numero = '$number' AND identifiant = '$id';";
+					my $query_hemi = "SELECT sexe FROM patient WHERE numero = '$query_num' AND identifiant = '$query_id';";
 					my $res_hemi = $dbh->selectrow_hashref($query_hemi);
 					if ($res_hemi->{'sexe'} eq 'M' && $var_chr eq 'X') {($status, $allele) = ('hemizygous', '2')}
 				}
@@ -380,7 +389,7 @@ if ($step && $step == 2) {
 				my $genomic_var = &U2_modules::U2_subs_3::build_hgvs_from_illumina($var_chr, $var_pos, $var_ref, $var_alt);
 				# print STDERR "Genomic var: $genomic_var\n";
 				my $first_genomic_var = $genomic_var;
-       			my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $genome_version, $number, $id, $analysis, $dbh);
+       			my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($genomic_var, $genome_version, $query_num, $query_id, $analysis, $dbh);
 				# print STDERR "Direct submission 1: $genomic_var\n";
        			if ($nom_c_i ne '') {
 					# get gene from insert then check
@@ -393,7 +402,7 @@ if ($step && $step == 2) {
 							# need to get individual values from direct submission
 
 							######## UNCOMMENT WHEN READY
-							$isth->execute($nom_c_i, $number, $id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
+							$isth->execute($nom_c_i, $query_num, $query_id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
 							########
 
 							$j++;
@@ -415,7 +424,7 @@ if ($step && $step == 2) {
 				if ($genomic_var =~ /(chr$U2_modules::U2_subs_1::CHR_REGEXP:g\..+\d+)([ATGC])>([ATCG])/o) {
 					my $inv_genomic_var = $1.$3.">".$2;
 					# print STDERR "Inv genomic var (inside inv): $inv_genomic_var\n";
-					my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($inv_genomic_var, $genome_version, $number, $id, $analysis, $dbh);
+					my ($nom_c_i, $nom_gene_i, $acc_no_i) = &U2_modules::U2_subs_3::direct_submission_prepare($inv_genomic_var, $genome_version, $query_num, $query_id, $analysis, $dbh);
 					# print STDERR "Direct submission 2: $inv_genomic_var-l400\n";
 					# print STDERR "Direct submission 2: $nom_c_i-l401\n";
 					if ($nom_c_i ne '') {
@@ -427,7 +436,7 @@ if ($step && $step == 2) {
 							if ($res_verif->{'gene_symbol'} eq $nom_gene_i) {
 							# print STDERR "execute: $nom_c_i-$nom_gene_i\n";
 								######## UNCOMMENT WHEN READY
-								$isth->execute($nom_c_i, $number, $id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
+								$isth->execute($nom_c_i, $query_num, $query_id, $acc_no_i, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter);
 								########
 								$j++;
 								next VCF;
@@ -460,7 +469,7 @@ if ($step && $step == 2) {
 					my ($hashvar, $tmp_message);
 					my ($vvkey, $nm_list, $tag) = ('', '', '');
 					# print STDERR "Run VV results\n";
-					($tmp_message, $insert, $hashvar, $nm_list, $tag) = &run_vv_results($vv_results, $genome_version, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
+					($tmp_message, $insert, $hashvar, $nm_list, $tag) = &run_vv_results($vv_results, $genome_version, $query_id, $query_num, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf, $var_filter, $dbh);
 					# print STDERR "End Run VV results\n";
 					# print STDERR "tmp_message: $tmp_message\n";
 					# print STDERR "insert: $insert\n";
@@ -511,7 +520,7 @@ if ($step && $step == 2) {
 							# get new cdna
 							my ($tmp_message, $hashvar_tmp);
 							# print STDERR "Run VV l489\n";
-							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $genome_version, $id, $number, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf,$var_filter, $dbh);
+							($tmp_message, $insert, $hashvar_tmp, $nm_list, $tag) = &run_vv_results($vv_results, $genome_version, $query_id, $query_num, $var_chr, $var_pos, $var_ref, $var_alt, $analysis, $status, $allele, $var_dp, $var_vf,$var_filter, $dbh);
 							# print STDERR "End Run VV l491\n";
 							if ($tmp_message ne '') {$message .= $tmp_message;next VCF}# should not happen
 							elsif ($insert ne '') {# should not happen
@@ -617,11 +626,11 @@ if ($step && $step == 2) {
 							# bug 210726 - 2 differents variants in LRM VCF give the very same HGVS hgvs_genomic_description
 							# SU7542 17-4439727-T-TG and 17-4439731-G-GG both give c.1607+13dupG, 7542, SU, {SPNS2,NM_001124758}
 							# then we should check whether the variant is not already inserted
-							my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse = '$analysis' AND nom_c = '$var_final' AND refseq = '$acc_no';";
+							my $last_check = "SELECT nom_c FROM variant2patient WHERE id_pat = '$query_id' AND num_pat = '$query_num' AND type_analyse = '$analysis' AND nom_c = '$var_final' AND refseq = '$acc_no';";
 							my $res_last_check = $dbh->selectrow_hashref($last_check);
 							# print STDERR "Last check: $res_last_check\n";
 							if (!$res_last_check || $res_last_check eq '0E0') {
-								$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$number', '$id', '$acc_no', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
+								$insert = "INSERT INTO variant2patient (nom_c, num_pat, id_pat, refseq, type_analyse, statut, allele, depth, frequency, msr_filter) VALUES ('$var_final', '$query_num', '$query_id', '$acc_no', '$analysis', '$status', '$allele', '$var_dp', '$var_vf', '$var_filter');";
 								# print STDERR $insert."\n";
 								$dbh->do($insert) or die "Variant already recorded for the patient, there must be a mistake somewhere $!";
 								$i++;$j++;
@@ -650,10 +659,10 @@ if ($step && $step == 2) {
 		close F;
 		print STDERR "\n".U2_modules::U2_subs_1::get_log_date()." [INFO] VCF treated\n";
 		$general .= "Insertion for $id$number:\n\n- $j/$k variants (".(sprintf('%.2f', ($j/$k)*100))."%) have been automatically inserted,\nincluding $i new variants that have been successfully created\n\n";
-		my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$id' AND num_pat = '$number' AND type_analyse= '$analysis';";
+		my $valid = "UPDATE miseq_analysis SET valid_import = 't' WHERE id_pat = '$query_id' AND num_pat = '$query_num' AND type_analyse= '$analysis';";
 		$dbh->do($valid);
 		# print STDERR "$id$number VCF imported.\n";
-		print $q->start_li(), $q->a({"href" => "patient_file.pl?sample=$id$number", "target" => "_blank"}, "$id$number"), $q->span(' import validated'), $q->end_li();
+		print $q->start_li(), $q->a({"href" => "patient_file.pl?sample=$query_id$query_num", "target" => "_blank"}, "$query_id$query_num"), $q->span(' import validated'), $q->end_li();
 		#print STDERR $valid."\n";
 	}
 	if (! -d "$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis") {mkdir("$ABSOLUTE_HTDOCS_PATH$ANALYSIS_NGS_DATA_PATH$analysis")}

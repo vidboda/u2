@@ -552,13 +552,21 @@ sub check_proband {
 	if ($q->param('proband') =~ /(yes|no)/og) {return $1}
 	else {&standard_error('29', $q)}
 }
-#used in import_illumina.pl, add_analysis.pl
+# used in import_illumina.pl, add_analysis.pl
 sub sample2idnum { #transform a sample into an id and a number
 	my ($sample, $q) = @_;
 	if ($sample =~ /^$PATIENT_IDS\s*(\d+)$/o) {return($1, $2)}
+	elsif ($sample =~ /^$PATIENT_IDS\s*(\w+)$/o) {return($1, $2)}
 	else {&standard_error('2', $q)}
 }
-#used in import_illumina.pl, add_analysis.pl
+# used in import_illumina_hg38.pl
+sub get_sample_type { # to know wether we are using an alias (SUXXX, RXXX, CHMXXX) or a defgen_id (CADXXX, CSGXXX...)
+	my ($sample, $q) = @_;
+	if ($sample =~ /^(SU|R|CHM)\d+$/o) {return 'alias'}
+	elsif ($sample =~ /^(C|A|D)[A-Z]{0,2}[0-9]+$/o) {return 'defgen_id'}
+	else {&standard_error('2', $q)}
+}
+# used in import_illumina.pl, add_analysis.pl
 sub get_defgen_id { # get the defgen id from id and number
 	my ($id, $number, $q, $dbh) = @_;
 	my $query = "SELECT defgen_num FROM patient WHERE identifiant = '$id' AND numero = '$number';";
@@ -787,7 +795,7 @@ sub standard_error { #returns an error and ends script
 		15	=>	'segment information',
 		16	=>	'unknown status',
 		17	=>	'class error',
-		18	=>	'fact that I cannot retrieve the patient ID in the MiSeq runs',
+		18	=>	'fact that I cannot retrieve the patient ID in the NGS runs',
 		19	=>	'manifest file name',
 		20	=>	'filter name',
 		21	=>	'run ID',

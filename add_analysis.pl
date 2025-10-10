@@ -555,9 +555,9 @@ if ($user->isAnalyst() == 1) {
 				# we grep for patient ID in the samplesheets
 				# if succeeded, we must check whether this run is already recorded for the patient
 				
-				if (`grep -e '$defgen_id' $samplesheet` ne '') {
+				if (`grep -e '$defgen_id' $samplesheet` ne '' || `grep -e '$id$number' $samplesheet` ne '') {
 					$semaph = 1;
-					$query = "SELECT num_pat, id_pat, defgen_num FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
+					$query = "SELECT num_pat, id_pat FROM miseq_analysis WHERE type_analyse = '$analysis' AND num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
 					$res = $dbh->selectrow_hashref($query);
 					if ($res) {print $link;U2_modules::U2_subs_1::standard_error('14', $q);}
 					else {
@@ -574,14 +574,13 @@ if ($user->isAnalyst() == 1) {
 							my $patient_list;
 							# my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
 							# import from defgen IDs
-							my $regexp = '^'.$PATIENT_IDS.'[A-Z]{0-2}[0-9]+'.$char;
+							my $regexp = '^'.$PATIENT_IDS.'[A-Z]{0,2}[0-9]+'.$char;
 							$patient_list = `grep -Eo "$regexp" $samplesheet`;
-
 							$patient_list =~ s/\n//og;
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
 							# build form
-							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis", $ssh, $summary_file, $instrument, $genome_version);
+							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $defgen_id, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis", $ssh, $summary_file, $instrument, $genome_version);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
 						}
 					}
