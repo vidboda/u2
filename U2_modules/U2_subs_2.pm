@@ -1141,7 +1141,7 @@ sub check_ngs_samples {
 	# modify hash
 	my $count_query = 0;
 	while (my $result = $sth->fetchrow_hashref()) {
-		
+		if (not defined $result->{'defgen_num'}) {$result->{'defgen_num'} = 'No Defgen ID'}
 		# replace keys idnum with idnum-defgen_id
 		$patients->{$result->{'identifiant'}.$result->{'numero'}.'-'.$result->{'defgen_num'}} = delete $patients->{$result->{'identifiant'}.$result->{'numero'}};
 		if (exists $patients->{$result->{'defgen_num'}}) { # new hash structure idnum-defgen_id -> [defgen_id,1] or idnum-defgen_id -> [idnum,1] to retain info in samplesheet (either idnum of defgen_id)
@@ -1208,7 +1208,7 @@ sub print_panel_criteria {
 
 sub build_ngs_form {
 	my ($id, $number, $defgen_id, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $genome_version) = @_;
-
+	# print STDERR "$defgen_id\n";
 	my $info =  "In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).".$q->br()."Please select those you are interested in";
 	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
 	$info .= ".";
@@ -1236,11 +1236,12 @@ sub build_ngs_form {
 
 	my $i = 2;
 	foreach my $sample (sort keys(%{$patients})) {
+		# print STDERR "$sample\n";
 		if (($sample ne "$id$number-$defgen_id") && ($patients->{$sample}[1] == 1)) {# other eligible patients
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-quarter w3-large w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_".$patients->{$sample}[0], 'checked' => 'checked', 'form' => "illumina_form_$run"}, "&nbsp;&nbsp;$sample")."\n".
-						$q->input({'type' => 'hidden', 'name' => $i.'_sample_compl', 'value' => "$id$number", 'form' => "illumina_form_$run"})."\n";
+						$q->input({'type' => 'hidden', 'name' => $i.'_sample_compl', 'value' => substr($sample, 0, index($sample, '-')), 'form' => "illumina_form_$run"})."\n";
 			if ($filtered == '1') {
 				$form .=   $q->end_div().
 						$q->start_div({'class' => 'w3-quarter w3-large'}).
@@ -1258,8 +1259,8 @@ sub build_ngs_form {
 		elsif (($sample ne "$id$number-$defgen_id") && ($patients->{$sample}[1] == 0)) {# unknown patient
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
-						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_".$patients->{$sample}[0], 'disabled' => 'disabled', 'form' => "illumina_form_$run"}, "&nbsp;&nbsp;$sample")."\n".
-						$q->input({'type' => 'hidden', 'name' => $i.'_sample_compl', 'value' => "$id$number", 'form' => "illumina_form_$run"})."\n";
+						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_".$patients->{$sample}[0], 'disabled' => 'disabled', 'form' => "illumina_form_$run"}, "&nbsp;&nbsp;$sample")."\n";
+						# $q->input({'type' => 'hidden', 'name' => $i.'_sample_compl', 'value' => $patients->{$sample}[0], 'form' => "illumina_form_$run"})."\n";
 					$q->end_div().
 					$q->div({'class' => 'w3-rest w3-medium'}, " not yet recorded in U2. Please proceed if you want to import Illumina data.")."\n".
 				$q->end_div();

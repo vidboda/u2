@@ -571,7 +571,9 @@ sub get_defgen_id { # get the defgen id from id and number
 	my ($id, $number, $q, $dbh) = @_;
 	my $query = "SELECT defgen_num FROM patient WHERE identifiant = '$id' AND numero = '$number';";
 	my $res = $dbh->selectrow_hashref($query);
-	if ($res->{'defgen_num'} ne '0E0') {return ($res->{'defgen_num'})}
+	# if (defined $res->{'defgen_num'}) {print STDERR "-".Dumper($res)."-\n";}
+	if (defined $res->{'defgen_num'} && $res->{'defgen_num'} ne '0E0') {return ($res->{'defgen_num'})}
+	elsif (not defined $res->{'defgen_num'}) {return 'No Defgen ID'}
 	else {&standard_error('30', $q)}
 }
 

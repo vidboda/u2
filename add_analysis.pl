@@ -4,6 +4,7 @@ use strict;
 #use CGI; #in startup.pl
 #use DBI;
 #use AppConfig qw(:expand :argcount);
+use Data::Dumper;
 use URI::Encode qw(uri_encode uri_decode);
 use Net::OpenSSH;
 use U2_modules::U2_users_1;
@@ -577,8 +578,11 @@ if ($user->isAnalyst() == 1) {
 							my $regexp = '^'.$PATIENT_IDS.'[A-Z]{0,2}[0-9]+'.$char;
 							$patient_list = `grep -Eo "$regexp" $samplesheet`;
 							$patient_list =~ s/\n//og;
+							# print STDERR "$patient_list\n";
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
+							# print STDERR Dumper(%patients)."\n";
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
+							# print STDERR Dumper(%patients)."\n";
 							# build form
 							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $defgen_id, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis", $ssh, $summary_file, $instrument, $genome_version);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
