@@ -1160,7 +1160,10 @@ sub check_ngs_samples {
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	# cleanup hash
+	print STDERR Dumper($patients);
 	while (my $result = $sth->fetchrow_hashref()) {
+		if (not defined $result->{'defgen_num'}) {$result->{'defgen_num'} = 'No Defgen ID'}
+		print STDERR $result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}."\n";
 		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}}[1] = 2} # remove patients with that type of analysis already recorded
 		elsif (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}}[1] = 2} # remove patients with that type of analysis already recorded
 	}
