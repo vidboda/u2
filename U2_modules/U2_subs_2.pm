@@ -1119,30 +1119,50 @@ sub cnil_disclaimer {
 sub check_ngs_samples {
 	my ($patients, $analysis, $dbh) = @_;
 	# select patients/analysis not already recorded for this type of run (e.g. MiSeq-28), $query AND who is already basically recorded in U2, $query2
-	my $query = "SELECT num_pat, id_pat FROM analyse_moleculaire WHERE type_analyse = '$analysis' AND ("; # num_pat = '$number' AND id_pat = '$id' GROUP BY num_pat, id_pat;";
-	my $query2 = "SELECT numero, identifiant FROM patient WHERE ";
+	my $query = "SELECT a.num_pat, a.id_pat, b.defgen_num FROM analyse_moleculaire a, patient b WHERE a.id_pat = b.identifiant AND a.num_pat = b.numero AND a.type_analyse = '$analysis' AND (";
+	my $query2 = "SELECT numero, identifiant, defgen_num FROM patient WHERE ";
 	my $count_hash = 0;
 	foreach my $totest (keys(%{$patients})) {
-		$totest =~ /^$PATIENT_IDS\s*(\d+)$/o;
-		$query .= "(num_pat = '$2' AND id_pat = '$1') ";
-		$query2 .= "(numero = '$2' AND identifiant = '$1') ";
+		# print STDERR "$totest\n";
+		if ($totest =~ /^$PATIENT_IDS\s*(\d+)$/o) {
+			$query2 .= "(numero = '$2' AND identifiant = '$1') ";
+		}
+		elsif ($totest =~ /^$PATIENT_IDS([A-Z]{0,2}[0-9]+)$/o) {
+			$query2 .= "defgen_num = '$1$2' ";
+		}		
 		$count_hash++;
-		if ($count_hash < keys(%{$patients})) {$query .= "OR ";$query2 .= "OR ";}
+		if ($count_hash < keys(%{$patients})) {
+			$query2 .= "OR ";
+		}
 	}
-	$query .= ") GROUP BY num_pat, id_pat;";
 	$query2 .= ";";
 	my $sth = $dbh->prepare($query2);
 	my $res = $sth->execute();
 	# modify hash
-
+	my $count_query = 0;
 	while (my $result = $sth->fetchrow_hashref()) {
-		$patients->{$result->{'identifiant'}.$result->{'numero'}} = 1; #tag existing patients
+		if (not defined $result->{'defgen_num'}) {$result->{'defgen_num'} = 'No Defgen ID'}
+		# replace keys idnum with idnum-defgen_id
+		$patients->{$result->{'identifiant'}.$result->{'numero'}.'-'.$result->{'defgen_num'}} = delete $patients->{$result->{'identifiant'}.$result->{'numero'}};
+		if (exists $patients->{$result->{'defgen_num'}}) { # new hash structure idnum-defgen_id -> [defgen_id,1] or idnum-defgen_id -> [idnum,1] to retain info in samplesheet (either idnum of defgen_id)
+			delete $patients->{$result->{'defgen_num'}};
+			$patients->{$result->{'identifiant'}.$result->{'numero'}.'-'.$result->{'defgen_num'}} = [$result->{'defgen_num'}, 1];
+		}
+		else {
+			$patients->{$result->{'identifiant'}.$result->{'numero'}.'-'.$result->{'defgen_num'}} = [$result->{'identifiant'}.$result->{'numero'}, 1];
+		}
+		# $patients->{$result->{'identifiant'}.$result->{'numero'}.'-'.$result->{'defgen_num'}} = 1; #tag existing patients
+		$query .= "(a.id_pat = '".$result->{'identifiant'}."' AND a.num_pat = '".$result->{'numero'}."') ";
+		$count_query++;
+		if ($count_query < $res) {$query .= "OR "}
 	}
+	$query .= ") GROUP BY a.num_pat, a.id_pat, b.defgen_num;";
 	$sth = $dbh->prepare($query);
 	$res = $sth->execute();
 	# cleanup hash
 	while (my $result = $sth->fetchrow_hashref()) {
-		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}} = 2} # remove patients with that type of analysis already recorded
+		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}}[1] = 2} # remove patients with that type of analysis already recorded
+		elsif (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}}[1] = 2} # remove patients with that type of analysis already recorded
 	}
 	return $patients;
 }
@@ -1187,8 +1207,8 @@ sub print_panel_criteria {
 }
 
 sub build_ngs_form {
-	my ($id, $number, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $genome_version) = @_;
-
+	my ($id, $number, $defgen_id, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $genome_version) = @_;
+	# print STDERR "$defgen_id\n";
 	my $info =  "In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).".$q->br()."Please select those you are interested in";
 	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
 	$info .= ".";
@@ -1210,15 +1230,18 @@ sub build_ngs_form {
 			$q->input({'type' => 'hidden', 'name' => 'step', 'value' => $step, form => "illumina_form_$run"})."\n".
 			$q->input({'type' => 'hidden', 'name' => 'analysis', 'value' => $analysis, form => "illumina_form_$run"})."\n".
 			$q->input({'type' => 'hidden', 'name' => 'run_id', 'value' => $run, form => "illumina_form_$run"})."\n".
-			$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => "1_$id$number", form => "illumina_form_$run"})."\n";
-	if ($filter ne '') {$form .=  $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", form => "illumina_form_$run"})."\n"}
+			$q->input({'type' => 'hidden', 'name' => 'sample', 'value' => '1_'.$patients->{"$id$number-$defgen_id"}[0], form => "illumina_form_$run"})."\n".
+			$q->input({'type' => 'hidden', 'name' => '1_sample_compl', 'value' => "$id$number", form => "illumina_form_$run"})."\n";
+	if ($filter ne '') {$form .=  $q->input({'type' => 'hidden', 'name' => '1_filter', 'value' => "$filter", 'form' => "illumina_form_$run"})."\n"}
 
 	my $i = 2;
 	foreach my $sample (sort keys(%{$patients})) {
-		if (($sample ne $id.$number) && ($patients->{$sample} == 1)) {# other eligible patients
+		# print STDERR "$sample\n";
+		if (($sample ne "$id$number-$defgen_id") && ($patients->{$sample}[1] == 1)) {# other eligible patients
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-quarter w3-large w3-left-align'}).
-						$q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_$sample", 'checked' => 'checked', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample");
+						$q->input({'type' => 'checkbox', 'name' => "sample", 'class' => 'sample_checkbox', 'value' => $i."_".$patients->{$sample}[0], 'checked' => 'checked', 'form' => "illumina_form_$run"}, "&nbsp;&nbsp;$sample")."\n".
+						$q->input({'type' => 'hidden', 'name' => $i.'_sample_compl', 'value' => substr($sample, 0, index($sample, '-')), 'form' => "illumina_form_$run"})."\n";
 			if ($filtered == '1') {
 				$form .=   $q->end_div().
 						$q->start_div({'class' => 'w3-quarter w3-large'}).
@@ -1229,22 +1252,23 @@ sub build_ngs_form {
 				$form .=   $q->end_div();
 			}
 			else {$form .=   $q->end_div();}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $patients->{$sample}[0], $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
 			else {$form .=  &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
-		elsif (($sample ne $id.$number) && ($patients->{$sample} == 0)) {# unknown patient
+		elsif (($sample ne "$id$number-$defgen_id") && ($patients->{$sample}[1] == 0)) {# unknown patient
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
-						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
+						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_".$patients->{$sample}[0], 'disabled' => 'disabled', 'form' => "illumina_form_$run"}, "&nbsp;&nbsp;$sample")."\n";
+						# $q->input({'type' => 'hidden', 'name' => $i.'_sample_compl', 'value' => $patients->{$sample}[0], 'form' => "illumina_form_$run"})."\n";
 					$q->end_div().
 					$q->div({'class' => 'w3-rest w3-medium'}, " not yet recorded in U2. Please proceed if you want to import Illumina data.")."\n".
 				$q->end_div();
 		}
-		elsif (($sample ne $id.$number) && ($patients->{$sample} == 2)) {# patient with a run already recorded
+		elsif (($sample ne "$id$number-$defgen_id") && ($patients->{$sample}[1] == 2)) {# patient with a run already recorded
 			$form .=  $q->start_div({'class' => 'w3-row w3-section w3-bottombar w3-border-light-grey w3-hover-border-blue'}).
 					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
-						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_$sample", 'disabled' => 'disabled', form => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
+						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_".$patients->{$sample}[0], 'disabled' => 'disabled', 'form' => "illumina_form_$run"}, "&nbsp;&nbsp;$sample").
 					$q->end_div().
 					$q->div({'class' => 'w3-rets w3-medium'}, " has already a run recorded as $analysis.")."\n".$q->end_div();
 		}
@@ -1255,13 +1279,13 @@ sub build_ngs_form {
 				$form .=   $q->div({'class' => 'w3-quarter w3-large'}, "Filter:").
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, "$filter")."\n";
 			}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $sample, $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
+			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $patients->{$sample}[0], $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
 		$i++;
 	}
-	$form .= $q->submit({'value' => 'Import', 'class' => 'w3-button w3-ripple w3-blue w3-hover-white', form => "illumina_form_$run"}).
+	$form .= $q->submit({'value' => 'Import', 'class' => 'w3-button w3-ripple w3-blue w3-hover-white', 'form' => "illumina_form_$run"}).
 		$q->br().$q->br()."\n".
 		$q->end_form().
 		$q->end_div().
@@ -1574,13 +1598,14 @@ sub get_multiqc_value {
 
 
 
-#in add_clinical_exome.pl, import_illumina.pl
+#in add_clinical_exome.pl, import_illumina_hg38.pl
 
 sub build_sample_hash {
 	my ($q, $analysis, $filtered) = @_;
-	#samples are grouped under the same name, and are like X_SUXXX
-	#filters arrive independantly, as X_filter
-	#X is the linker between both
+	# samples are grouped under the same name, and are like X_SUXXX or X_CADXX, X_CSGXXX...
+	# filters arrive independantly, as X_filter
+	# suah as aliases, in X_sample_compl
+	# X is the linker between both
 
 	my @false_list = $q->param('sample');
 	my %list;
@@ -1589,12 +1614,12 @@ sub build_sample_hash {
 	}
 	if ($filtered == 1) {
 		foreach my $key (keys(%list)) {
-			if ($q->param($list{$key}.'_filter') =~ /^$ANALYSIS_MISEQ_FILTER$/) {$list{$key} = $1}
+			if ($q->param($list{$key}.'_filter') =~ /^$ANALYSIS_MISEQ_FILTER$/) {$list{$key} = [$q->param($list{$key}.'_sample_compl'), $1]}
 			else {U2_modules::U2_subs_1::standard_error('20', $q)}
 		}
 	}
 	else {
-		foreach my $key (keys(%list)) {$list{$key} = 'ALL'}
+		foreach my $key (keys(%list)) {$list{$key} = [$q->param($list{$key}.'_sample_compl'), 'ALL']}
 	}
 	return %list
 }

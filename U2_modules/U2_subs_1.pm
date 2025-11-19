@@ -552,11 +552,29 @@ sub check_proband {
 	if ($q->param('proband') =~ /(yes|no)/og) {return $1}
 	else {&standard_error('29', $q)}
 }
-#used in import_illumina.pl, add_analysis.pl
+# used in import_illumina.pl, add_analysis.pl
 sub sample2idnum { #transform a sample into an id and a number
 	my ($sample, $q) = @_;
 	if ($sample =~ /^$PATIENT_IDS\s*(\d+)$/o) {return($1, $2)}
+	elsif ($sample =~ /^$PATIENT_IDS\s*(\w+)$/o) {return($1, $2)}
 	else {&standard_error('2', $q)}
+}
+# used in import_illumina_hg38.pl
+sub get_sample_type { # to know wether we are using an alias (SUXXX, RXXX, CHMXXX) or a defgen_id (CADXXX, CSGXXX...)
+	my ($sample, $q) = @_;
+	if ($sample =~ /^(SU|R|CHM)\d+$/o) {return 'alias'}
+	elsif ($sample =~ /^(C|A|D)[A-Z]{0,2}[0-9]+$/o) {return 'defgen_id'}
+	else {&standard_error('2', $q)}
+}
+# used in import_illumina.pl, add_analysis.pl
+sub get_defgen_id { # get the defgen id from id and number
+	my ($id, $number, $q, $dbh) = @_;
+	my $query = "SELECT defgen_num FROM patient WHERE identifiant = '$id' AND numero = '$number';";
+	my $res = $dbh->selectrow_hashref($query);
+	# if (defined $res->{'defgen_num'}) {print STDERR "-".Dumper($res)."-\n";}
+	if (defined $res->{'defgen_num'} && $res->{'defgen_num'} ne '0E0') {return ($res->{'defgen_num'})}
+	elsif (not defined $res->{'defgen_num'}) {return 'No Defgen ID'}
+	else {&standard_error('30', $q)}
 }
 
 sub check_gene { #checks gene param
@@ -779,7 +797,7 @@ sub standard_error { #returns an error and ends script
 		15	=>	'segment information',
 		16	=>	'unknown status',
 		17	=>	'class error',
-		18	=>	'fact that I cannot retrieve the patient ID in the MiSeq runs',
+		18	=>	'fact that I cannot retrieve the patient ID in the NGS runs',
 		19	=>	'manifest file name',
 		20	=>	'filter name',
 		21	=>	'run ID',
@@ -790,7 +808,8 @@ sub standard_error { #returns an error and ends script
 		26	=>	'Mutalyzer issue',
 		27	=>	'Family ID',
 		28	=>	'Illumina VCF path',
-		29	=>	'proband'
+		29	=>	'proband',
+		30	=>	'defgen ID'
 	);
 	print $q->start_p(), $q->span('USHVaM 2 encountered an error and cannot proceed further.'), $q->br(), $q->span("The error is linked to the $error_code{$code}."), $q->br(), $q->span('Please contact your admin.'), $q->end_p();
 	&standard_end_html($q, $HTDOCS_PATH);
