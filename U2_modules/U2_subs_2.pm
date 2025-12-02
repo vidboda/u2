@@ -1167,6 +1167,10 @@ sub check_ngs_samples {
 		if (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}}[1] = 2} # remove patients with that type of analysis already recorded
 		elsif (exists($patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}})) {$patients->{$result->{'id_pat'}.$result->{'num_pat'}.'-'.$result->{'defgen_num'}}[1] = 2} # remove patients with that type of analysis already recorded
 	}
+	# case of defegn ID only patients, not recorede in U2
+	foreach my $sample (keys(%{$patients})) {
+		if ($patients->{$sample} == 0) {$patients->{$sample} = [0, 0]}
+	}
 	return $patients;
 }
 
@@ -1264,7 +1268,7 @@ sub build_ngs_form {
 					$q->start_div({'class' => 'w3-large w3-quarter w3-left-align'}).
 						$q->input({'type' => 'checkbox', 'name' => "sample", 'value' => $i."_".$patients->{$sample}[0], 'disabled' => 'disabled', 'form' => "illumina_form_$run"}, "&nbsp;&nbsp;$sample")."\n";
 						# $q->input({'type' => 'hidden', 'name' => $i.'_sample_compl', 'value' => $patients->{$sample}[0], 'form' => "illumina_form_$run"})."\n";
-					$q->end_div().
+					$form .= $q->end_div().
 					$q->div({'class' => 'w3-rest w3-medium'}, " not yet recorded in U2. Please proceed if you want to import Illumina data.")."\n".
 				$q->end_div();
 		}
