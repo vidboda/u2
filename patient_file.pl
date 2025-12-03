@@ -665,7 +665,6 @@ if ($result) {
 						}
 						my $alignment_list;
 						$alignment_list = `ls $alignment_dir`;
-						print STDERR "$alignment_list\n";
 						my ($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.bam', 'bam', '.bai');
 						if ($nenufaar == 0) {
 							# create a hash which looks like {"illumina_run_id" => 0}
