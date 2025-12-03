@@ -623,7 +623,7 @@ if ($result) {
 							}
 						}
 						# my ($alignment_dir, $ftp_dir);
-						my ($alignment_dir, $http_dir);
+						my ($alignment_dir, $http_dir, $mobidl_id);
 						my $additional_path = '';
 						if ($instrument eq 'miseq'){
 							# $alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/CompletedJobInfo.xml`;
@@ -649,8 +649,13 @@ if ($result) {
 							}
 							else {
 								# redirect $alignment_dir to MobiDL
-								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id_tmp$num_tmp/panelCapture";
-								$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$id_tmp$num_tmp/panelCapture";
+								$mobidl_id = $id_tmp.$num_tmp;
+								if (!-d "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$mobidl_id") {
+									# by defgen ID
+									$mobidl_id = $result->{'defgen_num'}
+								}
+								$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$mobidl_id/panelCapture";
+								$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$mobidl_id/panelCapture";
 							}
 						}
 						elsif($instrument eq 'nextseq'){
@@ -660,23 +665,23 @@ if ($result) {
 						}
 						my $alignment_list;
 						$alignment_list = `ls $alignment_dir`;
-
+						print STDERR "$alignment_list\n";
 						my ($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.bam', 'bam', '.bai');
 						if ($nenufaar == 0) {
 							# create a hash which looks like {"illumina_run_id" => 0}
 							my %files = map {$_ => '0'} split(/\s/, $alignment_list);
 							foreach my $file_name (keys(%files)) {
-								if ($file_name =~ /$id_tmp$num_tmp(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
+								if ($file_name =~ /$mobidl_id(_S\d+)\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
 									($alignment_file_suffix, $alignment_ext) = ($1, $2);
 									$alignment_ext =~ s/^\.//o;
-									$alignment_file = "$alignment_dir/$id_tmp$num_tmp$alignment_file_suffix";
-									$alignment_http = "$http_dir/$id_tmp$num_tmp$alignment_file_suffix";
+									$alignment_file = "$alignment_dir/$mobidl_id$alignment_file_suffix";
+									$alignment_http = "$http_dir/$mobidl_id$alignment_file_suffix";
 								}
-								elsif ($file_name =~ /$id_tmp$num_tmp\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
+								elsif ($file_name =~ /$mobidl_id\.?(c?r?u?m?b?l?e?\.c?[br]am)$/) {
 									$alignment_ext = $1;
 									$alignment_ext =~ s/^\.//o;
-									$alignment_file = "$alignment_dir/$id_tmp$num_tmp";
-									$alignment_http = "$http_dir/$id_tmp$num_tmp";
+									$alignment_file = "$alignment_dir/$mobidl_id";
+									$alignment_http = "$http_dir/$mobidl_id";
 								}
 							}
 						}
@@ -689,6 +694,7 @@ if ($result) {
 							elsif (-e "$alignment_file.crumble.cram") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.crumble.cram', 'crumble.cram', '.crai')}
 							elsif (-e "$alignment_file.cram") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.cram', 'cram', '.crai')}
 						}
+						print STDERR "$alignment_file\n";
 						if ($alignment_ext eq 'cram') {$alignment_suffix = '.'.$alignment_ext;$alignment_index_ext = '.crai'}
 						elsif ($alignment_ext eq 'crumble.cram') {$alignment_suffix = '.'.$alignment_ext;$alignment_index_ext = '.crai'}
 						$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Aligned bases: $res_manifest->{'aligned_bases'}").
