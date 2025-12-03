@@ -623,7 +623,8 @@ if ($result) {
 							}
 						}
 						# my ($alignment_dir, $ftp_dir);
-						my ($alignment_dir, $http_dir, $mobidl_id);
+						my ($alignment_dir, $http_dir);
+						my $mobidl_id = $id_tmp.$num_tmp;
 						my $additional_path = '';
 						if ($instrument eq 'miseq'){
 							# $alignment_dir = `grep -Eo "AlignmentFolder>.+\\Alignment[0-9]*<" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR$SSH_RACKSTATION_FTP_BASE_DIR/$run_id/CompletedJobInfo.xml`;
@@ -649,7 +650,6 @@ if ($result) {
 							}
 							else {
 								# redirect $alignment_dir to MobiDL
-								$mobidl_id = $id_tmp.$num_tmp;
 								if (!-d "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$mobidl_id") {
 									# by defgen ID
 									$mobidl_id = $result->{'defgen_num'}
@@ -782,9 +782,9 @@ if ($result) {
 							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
 							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis"
 						);
-						if (-e "$panel_mobidl_path/$id_tmp$num_tmp/MobiDL.pdf") {
+						if (-e "$panel_mobidl_path/$mobidl_id/MobiDL.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
-											$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/MobiDL.pdf", 'target' => '_blank'}, 'Get autoMobiDL reanalysis summary').
+											$q->a({'href' => "$link_panel_mobidl_path/$mobidl_id/MobiDL.pdf", 'target' => '_blank'}, 'Get autoMobiDL reanalysis summary').
 										$q->end_li()
 						}
 						if (-e "$panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf") {
@@ -835,22 +835,22 @@ if ($result) {
 											$q->a({'href' => "$link_panel_mobidl_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report').
 										$q->end_li();
 
-							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/panelCapture/coverage/".$id_tmp.$num_tmp."_poor_coverage.xlsx") {
+							if (-e "$panel_mobidl_path/$mobidl_id = $mobidl_id = $id_tmp.$num_tmp;;/panelCapture/coverage/".$mobidl_id = $id_tmp.$num_tmp;."_poor_coverage.xlsx") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/panelCapture/coverage/".$id_tmp.$num_tmp."_poor_coverage.xlsx", 'target' => '_blank'}, 'Download poor coverage file (Excel)').
+												$q->a({'href' => "$link_panel_mobidl_path/$mobidl_id = $mobidl_id = $id_tmp.$num_tmp;;/panelCapture/coverage/".$mobidl_id = $id_tmp.$num_tmp;."_poor_coverage.xlsx", 'target' => '_blank'}, 'Download poor coverage file (Excel)').
 											$q->end_li();
 							}
-							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/panelCapture/coverage/".$id_tmp.$num_tmp."_poor_coverage.tsv") {
+							if (-e "$panel_mobidl_path/$mobidl_id = $mobidl_id = $id_tmp.$num_tmp;;/panelCapture/coverage/".$mobidl_id = $id_tmp.$num_tmp;."_poor_coverage.tsv") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/panelCapture/coverage/".$id_tmp.$num_tmp."_poor_coverage.tsv", 'target' => '_blank'}, 'View poor coverage file (tsv)').
+												$q->a({'href' => "$link_panel_mobidl_path/$mobidl_id = $mobidl_id = $id_tmp.$num_tmp;;/panelCapture/coverage/".$mobidl_id = $id_tmp.$num_tmp;."_poor_coverage.tsv", 'target' => '_blank'}, 'View poor coverage file (tsv)').
 											$q->end_li();
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-												$q->a({'href' => "ngs_poor_coverage.pl?type=$analysis&sample=$id_tmp$num_tmp&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, "Display $analysis poor coverage table").
+												$q->a({'href' => "ngs_poor_coverage.pl?type=$analysis&sample=$mobidl_id = $mobidl_id = $id_tmp.$num_tmp;;&run_id=$res_manifest->{'run_id'}", 'target' => '_blank'}, "Display $analysis poor coverage table").
 											$q->end_li();
 							}
-							if (-e "$panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp/CaptainAchab/achab_excel/".$id_tmp.$num_tmp."_newHope_achab.html") {
+							if (-e "$panel_mobidl_path/$mobidl_id = $mobidl_id = $id_tmp.$num_tmp;;/CaptainAchab/$mobidl_id = $mobidl_id = $id_tmp.$num_tmp;;/CaptainAchab/achab_excel/".$mobidl_id = $id_tmp.$num_tmp;."_newHope_achab.html") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-												$q->a({'href' => "$link_panel_mobidl_path/$id_tmp$num_tmp/CaptainAchab/$id_tmp$num_tmp/CaptainAchab/achab_excel/".$id_tmp.$num_tmp."_newHope_achab.html", 'target' => '_blank'}, 'Open Achab new hope').
+												$q->a({'href' => "$link_panel_mobidl_path/$mobidl_id = $mobidl_id = $id_tmp.$num_tmp;;/CaptainAchab/$mobidl_id = $id_tmp.$num_tmp;/CaptainAchab/achab_excel/".$id_tmp.$num_tmp."_newHope_achab.html", 'target' => '_blank'}, 'Open Achab new hope').
 											$q->end_li();
 							}
 						}
