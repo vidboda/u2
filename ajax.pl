@@ -1065,6 +1065,7 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	my $vcf_path = U2_modules::U2_subs_1::check_illumina_vcf_path($q);
 	my $bed = U2_modules::U2_subs_1::check_filter($q);
 	my $genome = U2_modules::U2_subs_1::check_genome($q);
+	my $mobidl_id = $q->param('mobidl_id');
 	my $seal_ready = '';
 	open F, "$DATABASES_PATH/seal_json_2023.token" or die $!;
 	# my $bed_id = $U2_modules::U2_subs_1::SEAL_BED_IDS->{$bed};
@@ -1101,15 +1102,15 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	# print STDERR $run_id."\n";
 	my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run_id);
 	if ($vcf_path =~ /^(.+$run_id)\/$run_id.+/) {
-		$mobidl_vcf_path = $1."/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.vcf"
+		$mobidl_vcf_path = $1."/MobiDL/$mobidl_date_analysis$mobidl_id/panelCapture/$mobidl_id.vcf"
 	}
 	elsif ($vcf_path =~ /^(.+$run_id).+/) {
-		$mobidl_vcf_path = $1."/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.vcf"
+		$mobidl_vcf_path = $1."/MobiDL/$mobidl_date_analysis$mobidl_id/panelCapture/$mobidl_id.vcf"
 	}
 	# print STDERR $mobidl_vcf_path."\n";
 	# exit 0;
 	my $user_id = $genome eq 'hg38' ? 2 : 4;
-	my $filter_id = $genome eq 'hg38' ? 2 : 7;
+	my $filter_id = $genome eq 'hg38' ? 6 : 7;
 	open F, "$DATABASES_PATH/seal_json_2023.token" or die $!;
 	my ($sample_field, $family_field, $run_field, $teams_field, $bed_field, $filter_field) = (0, 0, 0, 0, 0, 0);
 	my $seal_id = $id.$number.'_MobiDL';

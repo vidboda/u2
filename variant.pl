@@ -370,7 +370,6 @@ if ($res->{'protein'} ne '') {
 	# access to missense analyses
 	# TODO: old fashion ushvam to be updated
 	if ($res->{'type_prot'} eq 'missense' || $res->{'type_prot'} =~ /inframe/) {
-
 		my $one_letter = U2_modules::U2_subs_1::nom_three2one($res->{'protein'});
 		if (-f $ABSOLUTE_HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/missense/$gene/$one_letter.pdf") {
 			print $q->span(", check "), $q->a({'href' => $HTDOCS_PATH."chu-ngs/Labos/IURC/ushvam2/missense/$gene/$one_letter.pdf", 'target' => "_blank"}, 'analysis');

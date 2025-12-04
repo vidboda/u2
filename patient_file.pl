@@ -235,11 +235,11 @@ my $js = "
 			\$(\"html\").css(\"cursor\", \"default\");
 		});
 	}
-  function Send2SEAL(sample, vcf_path, analysis, genome, filter, seal_url) {
+  function Send2SEAL(sample, vcf_path, analysis, genome, filter, seal_url, mobidl_id) {
     \$.ajax({
 			type: \"POST\",
 			url: \"ajax.pl\",
-			data: {sample: sample, genome: genome, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#\' + analysis + \'_run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'},
+			data: {sample: sample, genome: genome, mobidl_id: mobidl_id, vcf_path: vcf_path, family_id: \$(\'#family_id\').text(), run_id:\$(\'#\' + analysis + \'_run_id\').text(), phenotype:\$(\"#current_phenotype\").text(), proband:\$(\"#proband\").text() , filter: filter, asked: 'send2SEAL'},
 			beforeSend: function() {
 				\$(\".ui-dialog\").css(\"cursor\", \"progress\");
 				\$(\".w3-button\").css(\"cursor\", \"progress\");
@@ -923,7 +923,7 @@ if ($result) {
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).$q->a({'href' => "search_controls.pl?step=3&iv=1&run=$res_manifest->{'run_id'}&sample=$id_tmp$num_tmp&analysis=$analysis", 'target' => '_blank'}, "Sample tracking: get private SNPs").$q->end_li();
 						# ajax call to send the MobiDL VCF file to SEAL
 						$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue', 'id' => 'seal'.$analysis}).
-								$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id_tmp.$num_tmp.'", "'.$alignment_dir.'/'.$id_tmp.$num_tmp.'.vcf", "'.$analysis.'", "'.$genome_version.'",  "'.$res_manifest->{'filter'}.'", "'.$url_seal.'");', 'value' => 'Send2SEAL'}).$q->end_li();
+								$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => 'Send2SEAL("'.$id.$number.'", "'.$alignment_dir.'/'.$mobidl_id.'.vcf", "'.$analysis.'", "'.$genome_version.'",  "'.$res_manifest->{'filter'}.'", "'.$url_seal.'", "'.$mobidl_id.'");', 'value' => 'Send2SEAL'}).$q->end_li();
 						$raw_data .= $q->end_li().$q->end_ul();
 						# print STDERR "$ABSOLUTE_HTDOCS_PATH\n";
 						# print STDERR "$alignment_http\n";
