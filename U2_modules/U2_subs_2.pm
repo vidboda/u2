@@ -211,6 +211,13 @@ sub get_alignment_path {
 		# my $alignment_file = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
 		my $alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.crumble";
 		my $file_type = 'cram';
+		if (!-f "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.crumble") {
+			# defgen id
+			my $query_defgen = "SELECT defgen_num FROM patient WHERE numero = '$number' AND identifiant = '$id';";
+			my $res_defgen = $dbh->selectrow_hashref($query_defgen);
+			my $defgen_id = $res_defgen->{'defgen_num'};
+			$alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis$defgen_id/panelCapture/$defgen_id.crumble";
+		}
 		return ($alignment_file, $file_type, 'hg38');
 	}
 	elsif ($instrument eq 'miseq') {
