@@ -518,7 +518,6 @@ if ($q->param('asked') && $q->param('asked') eq 'req_class') {
 	print 'Request done.';
 }
 
-
 if ($q->param('asked') && $q->param('asked') eq 'defgen') {
 	print $q->header();
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);

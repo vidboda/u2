@@ -218,6 +218,7 @@ sub acmg_color_by_classe {
 sub get_defgen_allele {
 	my $u2_allele = shift;
 	if ($u2_allele eq 'unknown') {return ('unknown', 'unknown')}
+	elsif ($u2_allele eq 'both') {return ('yes', 'yes')}
 	elsif ($u2_allele == '1') {return ('yes', 'no')}
 	elsif ($u2_allele == '1') {return ('no', 'yes')}
 	elsif ($u2_allele == '1') {return ('yes', 'yes')}
