@@ -1109,7 +1109,7 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	# print STDERR $mobidl_vcf_path."\n";
 	# exit 0;
 	my $user_id = $genome eq 'hg38' ? 2 : 4;
-	my $filter_id = $genome eq 'hg38' ? 6 : 7;
+	my $filter_id = $genome eq 'hg38' ? 8 : 7;
 	open F, "$DATABASES_PATH/seal_json_2023.token" or die $!;
 	my ($sample_field, $family_field, $run_field, $teams_field, $bed_field, $filter_field) = (0, 0, 0, 0, 0, 0);
 	my $seal_id = $id.$number.'_MobiDL';
