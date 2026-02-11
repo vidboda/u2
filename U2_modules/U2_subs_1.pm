@@ -1253,7 +1253,7 @@ sub test_vv {
 sub run_vv {
 	my ($genome, $nm, $var, $mode) = @_;
 	my $ua = LWP::UserAgent->new();
-
+	$ua->timeout(500);
 	my $vv_api_url = &test_vv($ua);
 
 	if ($vv_api_url ne 'no VV available') {
