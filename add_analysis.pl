@@ -79,9 +79,11 @@ my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 # NAS_CHU
 my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
 my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
-my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
+my $NAS_CHU_AVITI_BASE_DIR = $config->NAS_CHU_AVITI_BASE_DIR();
 my $SSH_RAW_DATA_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.$NAS_CHU_MISEQ_BASE_DIR;
 my $SSH_RAW_DATA_MINISEQ_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.$NAS_CHU_MINISEQ_BASE_DIR;
+my $SSH_RAW_DATA_AVITI_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.$NAS_CHU_AVITI_BASE_DIR;
 # end
 
 my @styles = ($CSS_PATH.'font-awesome.min.css', $CSS_PATH.'w3.css', $CSS_DEFAULT, $CSS_PATH.'form.css', $CSS_PATH.'jquery-ui-1.12.1.min.css', $CSS_PATH.'jquery.alerts.css');
@@ -238,7 +240,7 @@ my $js = "
 	function associate_gene() {
 		var gjb2 = /DFNB1/;
 		var gjb6 = /GJB6/;
-		var filtered = /Min?i?Seq-1./;
+		var filtered = /(Min?i?Seq|Aviti)-/;
 		var simple = /Min?i?Seq-(3|2|28)/;
 		var bigger = /NextSeq-ClinicalExome/;
 		var biggest = /xome/;
@@ -281,6 +283,9 @@ my $js = "
 			\$(\"#analysis_form\").attr(\"action\", \"\");
 		}
 	}
+	\$(document).ready(function() {
+		associate_gene();
+    });
 	";
 
 
@@ -379,7 +384,7 @@ if ($user->isAnalyst() == 1) {
 		elsif ($step == 3) {$analysis = U2_modules::U2_subs_1::check_analysis($q, $dbh, 'basic')}
 		my $link = $q->start_p().$q->a({'href' => "patient_file.pl?sample=$id$number"}, $id.$number).$q->end_p();
 
-		if ($analysis =~ /Min?i?Seq-\d+/o && $step == 2) {
+		if ($analysis =~ /(Min?i?Seq|Aviti)-\d+/o && $step == 2) {
 			# Illumina panel experiment
 			# will ssh to RackStation
 			# check paths and find patient in samplesheet (and check analysis type using valid_type_analysis)
@@ -390,6 +395,7 @@ if ($user->isAnalyst() == 1) {
 			# my ($instrument, $instrument_path) = ('miseq', 'MiSeqDx/USHER');
 			my $instrument = 'miseq';
 			if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$SSH_RAW_DATA_BASE_DIR = $SSH_RAW_DATA_MINISEQ_BASE_DIR;}
+			if ($analysis =~ /Aviti-\d+/o) {$instrument = 'aviti';$SSH_RAW_DATA_BASE_DIR = $SSH_RAW_DATA_AVITI_BASE_DIR;}
 			# but first get manifets name for validation purpose
 			my ($manifest, $filtered) = U2_modules::U2_subs_2::get_filtering_and_manifest($analysis, $dbh);
 			my $ssh;
@@ -398,6 +404,7 @@ if ($user->isAnalyst() == 1) {
 
 			# we're in!!!
 			my $run_list;
+			# print STDERR "$SSH_RAW_DATA_BASE_DIR\n";
 			opendir (DIR, $SSH_RAW_DATA_BASE_DIR) or die $!;
 			while(my $under_dir = readdir(DIR)) {$run_list .= $under_dir." "}
 			closedir(DIR);
@@ -419,7 +426,7 @@ if ($user->isAnalyst() == 1) {
 			# now create unknown runs in U2 AND seek for our patient
 			my ($semaph, $ok) = (0, 0);
 			while (my ($run, $value) = each %runs) {
-				if ($run !~ /^\d{6}_[A-Z]{1}\d{5}_\d{4}_0{9}-[A-Z0-9]{5}$/o && $run !~ /^\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10}$/o) {next}
+				if ($run !~ /^\d{6}_[A-Z]{1}\d{5}_\d{4}_0{9}-[A-Z0-9]{5}$/o && $run !~ /^\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10}$/o && $run !~ /\d{8}_AV253403_\w+/o) {next}
 				### TO BE CHANGED 4 MINISEQ
 				### path to alignment dir under run root
 				my $alignment_dir = '';
@@ -432,7 +439,7 @@ if ($user->isAnalyst() == 1) {
 					}
 					else {next}
 				}
-				elsif($instrument eq 'miniseq'){
+				elsif ($instrument eq 'miniseq'){
 					# print STDERR "$run\n";
 					# print STDERR "$SSH_RAW_DATA_BASE_DIR$run$additional_path/CompletedJobInfo.xml\n";
 					# depending on instrument, alignment_dir will vary
@@ -450,6 +457,17 @@ if ($user->isAnalyst() == 1) {
 					else {next}
 				}
 				my ($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RAW_DATA_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
+				my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run);
+				my $ns_tag = '';
+				if ($instrument eq 'aviti') {
+					if ($mobidl_date_analysis eq '') {next}
+					# get NS folder
+					opendir(D, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis");
+					($ns_tag) = grep {/^NS/o} sort(readdir(D));
+					closedir(D);
+					$location = "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis/panelcaptureComplete.txt";
+					$samplesheet = "$SSH_RAW_DATA_BASE_DIR/$run/RunManifest.csv";
+				}
 				# if ($instrument eq 'miniseq') {
 				# 	# DNA Enrichment workflow
 				# 	# 2024 check to CopyComplete.txt
@@ -457,13 +475,15 @@ if ($user->isAnalyst() == 1) {
                 # }
 				# unknown in U2
 				my $genome_version = `grep -o 'hg38' $samplesheet | head -1`;
+				if ($instrument eq 'aviti') {
+					$genome_version = `grep 'NS_' $samplesheet | grep -o 'hg38' | head -1`
+				}
 				chomp($genome_version);
 				if ($genome_version eq '') {$genome_version = 'hg19'}
 
 				############ for dev purpose REMOVE WHEN READY
 				# $genome_version = 'hg38';
 				############
-				my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run);
 				if ($value == 0) {
 					# run does not need to be NS run - if classified, will not be considered next time
 					# 1st check MSR analysis is finished:
@@ -495,13 +515,13 @@ if ($user->isAnalyst() == 1) {
 						if ($genome_version eq 'hg19') {
 							# DONE import cluster stats from enrichment_stats.xml and put it into illumina_run
 							# modify database before -done added:
-							# noc_pf   | usmallint             | default NULL::smallint	NumberOfClustersPF
-							# noc_raw  | usmallint             | default NULL::smallint	NumberOfClustersRaw
-							# nodc     | usmallint             | default NULL::smallint	NumberOfDuplicateClusters
-							# nouc     | usmallint             | default NULL::smallint	NumberOfUnalignedClusters
-							# nouc_pf  | usmallint             | default NULL::smallint	NumberOfUnalignedClustersPF
-							# nouic    | usmallint             | default NULL::smallint	NumberOfUnindexedClusters
-							# nouic_pf | usmallint             | default NULL::smallint	NumberOfUnindexedClustersPF
+							# noc_pf   | integer             | default NULL::smallint	NumberOfClustersPF
+							# noc_raw  | integer             | default NULL::smallint	NumberOfClustersRaw
+							# nodc     | integer             | default NULL::smallint	NumberOfDuplicateClusters
+							# nouc     | integer             | default NULL::smallint	NumberOfUnalignedClusters
+							# nouc_pf  | integer             | default NULL::smallint	NumberOfUnalignedClustersPF
+							# nouic    | integer             | default NULL::smallint	NumberOfUnindexedClusters
+							# nouic_pf | integer             | default NULL::smallint	NumberOfUnindexedClustersPF
 							# in illumina_run
 							# with a grep -Eo ex:
 							# my $alignment_dir = $ssh->capture("grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $SSH_RACKSTATION_BASE_DIR/$run/CompletedJobInfo.xml");
@@ -528,7 +548,7 @@ if ($user->isAnalyst() == 1) {
 							# import cluster stats from Illumina InterOp for runs treated with MobiDL
 							# modify database before:
 							# from summary.csv file
-							# cluster_density   | usmallint             | default NULL::smallint	ALTER TABLE illumina_run ADD cluster_density usmallint DEFAULT NULL;
+							# cluster_density   | usmallint             | default NULL::smallint	ALTER TABLE illumina_run ADD cluster_density integer DEFAULT NULL;
 							# cluster_pf  		| float             | default NULL::float	ALTER TABLE illumina_run ADD cluster_pf float DEFAULT NULL;
 							# q30pc			    | float           		| default NULL::float	%Q30 (mean read1-read4)	ALTER TABLE illumina_run ADD q30pc float DEFAULT NULL;
 							# from index-summary.csv
@@ -536,14 +556,22 @@ if ($user->isAnalyst() == 1) {
 							# reads_pf  | float             | default NULL::float	reads PF (M)	ALTER TABLE illumina_run ADD reads_pf float DEFAULT NULL;
 							# check mutliqc json to find these values
 							# make a sub to parse multiqc json, as it will be useful for sample import
-							my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
-
-							if (ref $interop_metrics eq ref {} && $interop_metrics->{'Density'} ne '') {
-								$insert = "INSERT INTO illumina_run (id, complete, cluster_density, cluster_pf, q30pc, reads, reads_pf) VALUES ('$run', 'f', $interop_metrics->{'Density'}, $interop_metrics->{'Cluster PF'}, $interop_metrics->{'%>=Q30'}, $interop_metrics->{'Reads'}, $interop_metrics->{'Reads PF'});";
-								# print STDERR "$insert\n";
+							if ($instrument eq 'aviti') {
+								# noc_pf   | integer  PFCount
+								# noc_raw  | integer  PolonyCount
+								my ($polony_count, $pf_count) = U2_modules::U2_subs_2::get_aviti_metrics("$SSH_RAW_DATA_BASE_DIR/$run/AvitirunStats.json");
+								$insert = "INSERT INTO illumina_run (id, complete, noc_raw, noc_pf) VALUES ('$run', 'f', $polony_count, $pf_count);";
 							}
-							else {					
-								$insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
+							else {
+								my $interop_metrics = U2_modules::U2_subs_2::get_multiqc_value("$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis".$run."_multiqc_data/multiqc_data.json", 'interop_runsummary', '', 'interop');
+
+								if (ref $interop_metrics eq ref {} && $interop_metrics->{'Density'} ne '') {
+									$insert = "INSERT INTO illumina_run (id, complete, cluster_density, cluster_pf, q30pc, reads, reads_pf) VALUES ('$run', 'f', $interop_metrics->{'Density'}, $interop_metrics->{'Cluster PF'}, $interop_metrics->{'%>=Q30'}, $interop_metrics->{'Reads'}, $interop_metrics->{'Reads PF'});";
+									# print STDERR "$insert\n";
+								}
+								else {					
+									$insert = "INSERT INTO illumina_run VALUES ('$run', 'f');";
+								}
 							}
 							# print STDERR "\n$insert\n";
 							# exit
@@ -573,18 +601,22 @@ if ($user->isAnalyst() == 1) {
 							# search for other patients in the samplesheet
 							my $char = ',';
 							my $patient_list;
-							# my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
-							# import from defgen IDs
 							my $regexp = '^'.$PATIENT_IDS.'[A-Z]{0,2}[0-9]+'.$char;
-							$patient_list = `grep -Eo "$regexp" $samplesheet`;
+							if ($instrument eq 'aviti') {
+								$patient_list = `grep "$ns_tag" $samplesheet | grep -Eo "$regexp"`;
+							}
+							else {
+								# my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
+								# import from defgen IDs
+								$patient_list = `grep -Eo "$regexp" $samplesheet`;
+							}
 							$patient_list =~ s/\n//og;
-							# print STDERR "$patient_list\n";
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							# print STDERR Dumper(%patients)."\n";
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
 							# print STDERR Dumper(%patients)."\n";
 							# build form
-							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $defgen_id, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis", $ssh, $summary_file, $instrument, $genome_version);
+							print U2_modules::U2_subs_2::build_ngs_form($id, $number, $defgen_id, $analysis, $run, $filtered, \%patients, $import_script, '2', $q, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis$ns_tag", $ssh, $summary_file, $instrument, $genome_version);
 							print $q->br().U2_modules::U2_subs_2::print_panel_criteria($q, $analysis);
 						}
 					}

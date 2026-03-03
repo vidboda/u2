@@ -1235,7 +1235,6 @@ sub build_ngs_form {
 	my $filter = '';
 	if ($filtered == '1') {$filter = U2_modules::U2_subs_1::check_filter($q)}
 
-
 	$form .= $q->start_div({'align' => 'center'}).
 		$q->start_div({'class' => 'w3-container w3-card-4 w3-light-grey w3-text-blue w3-margin', 'style' => 'width:50%'}).
 			$q->h3({'class' => 'w3-center w3-padding-16'}, 'Import '.ucfirst($analysis).' data')."\n".
@@ -1266,7 +1265,7 @@ sub build_ngs_form {
 				$form .=   $q->end_div();
 			}
 			else {$form .=   $q->end_div();}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $patients->{$sample}[0], $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
+			if ($analysis =~ /Min?i?Seq-\d+/o || $instrument eq 'aviti'){$form .= &get_raw_data($data_dir, $patients->{$sample}[0], $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
 			else {$form .=  &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
@@ -1293,7 +1292,7 @@ sub build_ngs_form {
 				$form .=   $q->div({'class' => 'w3-quarter w3-large'}, "Filter:").
 					$q->div({'class' => 'w3-quarter w3-large w3-left-align'}, "$filter")."\n";
 			}
-			if ($analysis =~ /Min?i?Seq-\d+/o){$form .=  &get_raw_data($data_dir, $patients->{$sample}[0], $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
+			if ($analysis =~ /Min?i?Seq-\d+/o || $instrument eq 'aviti'){$form .= &get_raw_data($data_dir, $patients->{$sample}[0], $ssh, $summary_file, $instrument, $q, $analysis, $genome_version)}
 			else {$form .= &get_raw_data_ce($sample, $run, $data_dir, $q)}
 			$form .=   $q->end_div();
 		}
@@ -1451,6 +1450,27 @@ sub get_raw_detail {
 }
 
 # in add_analysis.pl
+
+sub get_aviti_metrics {
+	my $runstats_file = shift;
+	my $json_text =  do {
+		# from https://stackoverflow.com/questions/15653419/parsing-json-file-using-perl
+		if (-e $runstats_file) {
+			open(my $json_fh, "<:encoding(UTF-8)", $runstats_file)
+				or die("Can't open \"$runstats_file\": $!\n");
+			local $/;
+			<$json_fh>
+		}
+		else {
+			# print STDERR "$runstats_file\n";
+			return 'no multiqc';
+		}
+	};
+	my $content = decode_json($json_text);
+	if (exists $content->{"RunStats"}->{"PolonyCount"} && exists $content->{"RunStats"}->{"PFCount"}) {
+		return ($content->{"RunStats"}->{"PolonyCount"}, $content->{"RunStats"}->{"PFCount"});
+	}
+}
 
 sub get_multiqc_value {
 	my ($multiqc_file, $section, $sample, $call) = @_;
