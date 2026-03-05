@@ -1471,7 +1471,7 @@ sub get_aviti_metrics {
 
 sub get_multiqc_value {
 	my ($multiqc_file, $section, $sample, $call) = @_;
-	print STDERR "$multiqc_file\n";
+	# print STDERR "$multiqc_file\n";
 	my $json_text = do {
 		# from https://stackoverflow.com/questions/15653419/parsing-json-file-using-perl
 		# my $multiqc_file = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json";
