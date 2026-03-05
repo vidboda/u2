@@ -275,7 +275,7 @@ if ($chr ne 'M') {
 		if (genome === "hg38") {
 			options.tracks.push(
 				{
-				    name: "MiniSeq-157 (Twist) capture regions",
+				    name: "NS-157 (Twist) capture regions",
 				    type: "annotation",
 				    format: "bed",
 				    sourceType: "file",

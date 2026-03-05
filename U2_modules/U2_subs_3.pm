@@ -164,6 +164,15 @@ sub get_mobidl_analysis_date {
 	return pop(@list)."/";
 }
 
+sub get_ns_tag {
+	my $path = shift;
+	# print STDERR "$path\n";
+	opendir(D, "$path");
+	my ($ns_tag) = grep {/^NS/o} sort(readdir(D));
+	closedir(D);
+	return $ns_tag
+}
+
 sub get_detailed_pos {
 	my ($pos1, $pos2) = @_;
 	$pos1 =~ /(\d+)_(\d+)/o;
@@ -257,6 +266,7 @@ sub get_labels {
 		if ($result->{'id_pat'} && $result->{'id_pat'} ne '') {$labels .= "\"$result->{'id_pat'}$result->{'num_pat'}\", ";$run_id = '';$run_type = $result->{'type_analyse'};}
 		elsif ($result->{'run_id'} =~ /^(\d+)_\w+-(\w+)$/o) {$labels .= "\"$1_$2";$result->{'type_analyse'} =~ /-(\d+)/o;$labels .= "_$1\", ";$run_id .= "$result->{'run_id'},"}
 		elsif ($result->{'run_id'} =~ /^(\d+)_\w+_\d+_(\w+)$/o) {$labels .= "\"$1_$2";$result->{'type_analyse'} =~ /-(\d+)/o;$labels .= "_$1\", ";$run_id .= "$result->{'run_id'},"}
+		elsif ($result->{'run_id'} =~ /^(\d+_\w+)_.+/o) {$labels .= "\"$1";$result->{'type_analyse'} =~ /-(\d+)/o;$labels .= "_$1\", ";$run_id .= "$result->{'run_id'},"}
 	}
 	chop($labels);
 	chop($labels);
@@ -273,6 +283,7 @@ sub get_data_mean {
 		if ($table eq 'illumina_run') {$query = "SELECT AVG($type) AS a FROM $table a, miseq_analysis b WHERE a.id = b.run_id AND b.type_analyse = '$run';"}
 	}
 	else {$query = "SELECT AVG($type) AS a FROM $table WHERE run_id = '$run';"}
+	# print STDERR "$query\n";
 	my $res = $dbh->selectrow_hashref($query);
 	return sprintf('%.'.$num.'f', $res->{'a'});
 }

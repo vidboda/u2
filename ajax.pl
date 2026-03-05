@@ -272,7 +272,7 @@ if ($q->param('asked') && $q->param('asked') eq 'var_info') {
 
 		}
 		if ($current_analysis =~ /$ANALYSIS_ILLUMINA_REGEXP/) {
-			$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($depth).$q->span(" Freq: ").$q->strong($frequency).$q->end_li().$q->start_li().$q->span("MSR filter: ").$q->strong($msr_filter).$q->end_li().$q->end_ul().$q->end_li();
+			$info .= $q->start_li().$q->strong("$current_analysis values:").$q->start_ul().$q->start_li().$q->span("DOC: ").$q->strong($depth).$q->span(" Freq: ").$q->strong($frequency).$q->end_li().$q->start_li().$q->span("filter: ").$q->strong($msr_filter).$q->end_li().$q->end_ul().$q->end_li();
 			my @matches = $analyses =~ /$ANALYSIS_ILLUMINA_REGEXP/g;
 			if ($#matches > 0) {
 				foreach (@matches) {

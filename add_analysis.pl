@@ -462,9 +462,10 @@ if ($user->isAnalyst() == 1) {
 				if ($instrument eq 'aviti') {
 					if ($mobidl_date_analysis eq '') {next}
 					# get NS folder
-					opendir(D, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis");
-					($ns_tag) = grep {/^NS/o} sort(readdir(D));
-					closedir(D);
+					$ns_tag = U2_modules::U2_subs_3::get_ns_tag("$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis");
+					# opendir(D, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis");
+					# ($ns_tag) = grep {/^NS/o} sort(readdir(D));
+					# closedir(D);
 					$location = "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis/panelcaptureComplete.txt";
 					$samplesheet = "$SSH_RAW_DATA_BASE_DIR/$run/RunManifest.csv";
 				}

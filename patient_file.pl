@@ -339,6 +339,7 @@ my $SEAL_HG38_URL = $config->SEAL_HG38_URL();
 my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
 my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
 my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
+my $NAS_CHU_AVITI_BASE_DIR = $config->NAS_CHU_AVITI_BASE_DIR();
 my $NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_MISEQ_BASE_DIR;
 
 
@@ -615,7 +616,13 @@ if ($result) {
 						# 	}
 						# }
 						my $instrument = 'miseq';
+						my $ns_tag = '';
 						if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_MINISEQ_BASE_DIR;}
+						elsif ($analysis =~ /Aviti-\d+/o) {
+							$instrument = 'aviti';
+							$NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_AVITI_BASE_DIR;
+							$ns_tag = U2_modules::U2_subs_3::get_ns_tag("$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis");
+						}
 						elsif ($nenufaar == 1) {
 							if ($analysis =~ /NextSeq/o) {
 								$instrument = 'nextseq';
@@ -658,6 +665,14 @@ if ($result) {
 								$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$mobidl_id/panelCapture";
 							}
 						}
+						elsif($instrument eq 'aviti'){
+							if (!-d "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$ns_tag/$mobidl_id") {
+								# by defgen ID
+								$mobidl_id = $result->{'defgen_num'}
+							}
+							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$ns_tag/$mobidl_id/panelCapture";
+							$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$ns_tag/$mobidl_id/panelCapture";
+						}
 						elsif($instrument eq 'nextseq'){
 							#### TO BE FIXED WITH NAS_CHU PATH
 							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$CLINICAL_EXOME_SHORT_BASE_DIR/$run_id";
@@ -693,7 +708,7 @@ if ($result) {
 							elsif (-e "$alignment_file.crumble.cram") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.crumble.cram', 'crumble.cram', '.crai')}
 							elsif (-e "$alignment_file.cram") {($alignment_suffix, $alignment_ext, $alignment_index_ext) = ('.cram', 'cram', '.crai')}
 						}
-						print STDERR "$alignment_file\n";
+						# print STDERR "$alignment_file\n";
 						if ($alignment_ext eq 'cram') {$alignment_suffix = '.'.$alignment_ext;$alignment_index_ext = '.crai'}
 						elsif ($alignment_ext eq 'crumble.cram') {$alignment_suffix = '.'.$alignment_ext;$alignment_index_ext = '.crai'}
 						$raw_data .= $q->li({'class' => 'w3-padding-small'}, "Aligned bases: $res_manifest->{'aligned_bases'}").
@@ -775,12 +790,30 @@ if ($result) {
 							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/nenufaar/$res_manifest->{'run_id'}",
 							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/nenufaar"
 						);
-						my ($panel_mobidl_path, $partial_panel_mobidl_path, $link_panel_mobidl_path, $partial_link_panel_mobidl_path) = (
+						# my ($panel_mobidl_path, $partial_panel_mobidl_path, $link_panel_mobidl_path, $partial_link_panel_mobidl_path) = (
+						# 	"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
+						# 	"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
+						# 	"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
+						# 	"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis"
+						# );
+						# if ($instrument eq 'aviti') {
+						# 	my ($panel_mobidl_path, $partial_panel_mobidl_path, $link_panel_mobidl_path, $partial_link_panel_mobidl_path) = (
+						# 		"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis$ns_tag",
+						# 		"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis$ns_tag",
+						# 		"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis$ns_tag",
+						# 		"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis$ns_tag"
+						# 	);
+						# }
+						my ($panel_mobidl_path, $link_panel_mobidl_path) = (
 							"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
-							"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
-							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis",
 							"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis"
 						);
+						if ($instrument eq 'aviti') {
+							($panel_mobidl_path, $link_panel_mobidl_path) = (
+								"$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis$ns_tag",
+								"$HTDOCS_PATH$NGS_BASE_DIR/$res_manifest->{'run_id'}/MobiDL/$mobidl_date_analysis$ns_tag"
+							);
+						}
 						if (-e "$panel_mobidl_path/$mobidl_id/MobiDL.pdf") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}, ).
 											$q->a({'href' => "$link_panel_mobidl_path/$mobidl_id/MobiDL.pdf", 'target' => '_blank'}, 'Get autoMobiDL reanalysis summary').
@@ -791,10 +824,15 @@ if ($result) {
 											$q->a({'href' => "$link_panel_nenufaar_path/$id_tmp$num_tmp/$id_tmp$num_tmp.pdf", 'target' => '_blank'}, 'Get autoNENUFAAR reanalysis summary').
 										$q->end_li()
 						}
-						# print STDERR "$panel_mobidl_path/$res_manifest->{'run_id'}_MobiCNV.xlsx";
+						# print STDERR "$panel_mobidl_path/$res_manifest->{'run_id'}_".$ns_tag."_MobiCNV.xlsx";
 						if (-e "$panel_mobidl_path/$res_manifest->{'run_id'}_MobiCNV.xlsx") {
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
 											$q->a({'href' => "$link_panel_mobidl_path/$res_manifest->{'run_id'}_MobiCNV.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
+										$q->end_li();
+						}
+						elsif (-e "$panel_mobidl_path/$res_manifest->{'run_id'}_".$ns_tag."_MobiCNV.xlsx") {
+							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+											$q->a({'href' => "$link_panel_mobidl_path/$res_manifest->{'run_id'}_".$ns_tag."_MobiCNV.xlsx", 'target' => '_blank'}, 'Download MobiCNV Excel file').
 										$q->end_li();
 						}
 						elsif (-e "$partial_panel_nenufaar_path/$res_manifest->{'run_id'}.xlsx") {
@@ -829,10 +867,14 @@ if ($result) {
 									$q->button({'class' => 'w3-button w3-ripple w3-tiny w3-blue w3-rest w3-hover-light-grey', 'onclick' => "window.open(encodeURI('patient_covreport.pl?sample=$id_tmp$num_tmp&analysis=$analysis&align_file=$alignment_file.$alignment_ext&filter=$res_manifest->{'filter'}&step=1'),'_self');", 'value' => 'Chose genes for CovReport'}).
 								$q->end_li();
 						}
-						if (-e "$panel_mobidl_path/$res_manifest->{'run_id'}_multiqc.html") {
+						if (-e "$panel_mobidl_path/$res_manifest->{'run_id'}_multiqc.html" || -e "$panel_mobidl_path/".$ns_tag."_multiqc.html") {
+							my $multiqc = $instrument eq 'aviti' ? $ns_tag."_multiqc.html" : "$res_manifest->{'run_id'}_multiqc.html";
 							$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
-											$q->a({'href' => "$link_panel_mobidl_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report').
+											$q->a({'href' => "$link_panel_mobidl_path/$multiqc", 'target' => '_blank'}, 'View MultiQC run report').
 										$q->end_li();
+							# $raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).
+							# 				$q->a({'href' => "$link_panel_mobidl_path/$res_manifest->{'run_id'}_multiqc.html", 'target' => '_blank'}, 'View MultiQC run report').
+							# 			$q->end_li();
 
 							if (-e "$panel_mobidl_path/$mobidl_id/panelCapture/coverage/".$mobidl_id."_poor_coverage.xlsx") {
 								$raw_data .= $q->start_li({'class' => 'w3-padding-small w3-hover-blue'}).

@@ -129,6 +129,7 @@ my $ABSOLUTE_HTDOCS_PATH = $config->ABSOLUTE_HTDOCS_PATH();
 my $NAS_CHU_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$config->NAS_CHU_BASE_DIR();
 my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
 my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
+my $NAS_CHU_AVITI_BASE_DIR = $config->NAS_CHU_AVITI_BASE_DIR();
 
 
 my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
@@ -168,6 +169,7 @@ if ($step && $step == 2) {
 	my $ssh;
   	# opendir (DIR, $SSH_RACKSTATION_FTP_BASE_DIR);# or $access_method = 'ssh';
 	my $genome_version = 'hg38';
+	my $ns_tag = ''; # for aviti runs
 
 	### TO BE CHANGED 4 MINISEQ
 	###< AnalysisFolder>D:\Illumina\MiniSeq Sequencing Temp\160620_MN00265_0001_A000H02LJN\Alignment_8\20160621_155804</AnalysisFolder>
@@ -180,6 +182,11 @@ if ($step && $step == 2) {
 		# $instrument_path='MiniSeq';
 		# $SSH_RACKSTATION_BASE_DIR = $SSH_RACKSTATION_MINISEQ_BASE_DIR;
 		$alignment_dir = "$NAS_CHU_BASE_DIR$NAS_CHU_MINISEQ_BASE_DIR/$run/MobiDL/$mobidl_date_analysis";
+	}
+	elsif ($analysis =~ /Aviti-\d+/o) {
+		$instrument = 'aviti';
+		$ns_tag = U2_modules::U2_subs_3::get_ns_tag("$NAS_CHU_BASE_DIR$NAS_CHU_AVITI_BASE_DIR/$run/MobiDL/$mobidl_date_analysis");
+		$alignment_dir = "$NAS_CHU_BASE_DIR$NAS_CHU_AVITI_BASE_DIR/$run/MobiDL/$mobidl_date_analysis$ns_tag";
 	}
 	# my ($instrument, $alignment_dir) = ('miseq', "$SSH_RACKSTATION_FTP_BASE_DIR/$run/MobiDL");
 	# if ($analysis =~ /MiniSeq-\d+/o) {
@@ -259,9 +266,7 @@ if ($step && $step == 2) {
 
 		# print STDERR "$alignment_dir/$sampleid/panelCapture/".$sampleid."_multiqc_data/multiqc_data.json\n";
 		my $metrics = U2_modules::U2_subs_2::get_multiqc_value("$alignment_dir/$sampleid/panelCapture/".$sampleid."_multiqc_data/multiqc_data.json", 'report_general_stats_data', $sampleid, 'full');
-		# print STDERR Dumper($metrics)."\n";
 		my $metrics_insert = U2_modules::U2_subs_2::get_multiqc_value("$alignment_dir/$sampleid/panelCapture/".$sampleid."_multiqc_data/multiqc_data.json", 'report_saved_raw_data', $sampleid, 'full');
-		# print STDERR Dumper($metrics_insert)."\n";
 
 		$metrics = { %$metrics, %$metrics_insert };
 

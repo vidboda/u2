@@ -67,6 +67,7 @@ my $CLINICAL_EXOME_ANALYSES = $config->CLINICAL_EXOME_ANALYSES();
 my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
 my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
 my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
+my $NAS_CHU_AVITI_BASE_DIR = $config->NAS_CHU_AVITI_BASE_DIR();
 my $NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_MISEQ_BASE_DIR;
 #my $REF_GENE_URI = $config->REF_GENE_URI();
 
@@ -184,6 +185,19 @@ elsif ($q->param('type') && $q->param('type') =~ /(MiniSeq-\d+)/o) {
 		$ali_path = "$NGS_BASE_DIR/$run_id/nenufaar/$run_id/$id$number/$nenufaar_id/".$id.$number;
 	}
 	$nenufaar_ana = $nenufaar_ana_tmp;
+}
+elsif ($q->param('type') && $q->param('type') =~ /(Aviti-\d+)/o) {
+	# 1st get poor coverage file
+	# AVITI
+	$NGS_BASE_DIR = $NAS_CHU_BASE_DIR.$NAS_CHU_AVITI_BASE_DIR;
+	my $ns_tag = U2_modules::U2_subs_3::get_ns_tag("$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis");
+	my $nenufaar_ana = $1;
+	# look for mobidl analysis
+	if (-e "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$ns_tag/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv") {
+        # print STDERR "MobiDL\n";
+		$poor_coverage_absolute_path = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$ns_tag/$id$number/panelCapture/coverage/".$id.$number."_poor_coverage.tsv";
+		$ali_path = "$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$ns_tag/$id$number/panelCapture/".$id.$number;
+    }
 }
 else {
 	U2_modules::U2_subs_1::standard_error ('16', $q);

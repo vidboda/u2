@@ -54,7 +54,9 @@ my $ANALYSIS_MINISEQ2 = $config->ANALYSIS_MINISEQ2();
 my $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $config->SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR();
 # $SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR = $ABSOLUTE_HTDOCS_PATH.$RS_BASE_DIR.$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR;
 my $NAS_CHU_BASE_DIR = $config->NAS_CHU_BASE_DIR();
-# my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+my $NAS_CHU_MISEQ_BASE_DIR = $config->NAS_CHU_MISEQ_BASE_DIR();
+my $NAS_CHU_MINISEQ_BASE_DIR = $config->NAS_CHU_MINISEQ_BASE_DIR();
+my $NAS_CHU_AVITI_BASE_DIR = $config->NAS_CHU_AVITI_BASE_DIR();
 
 
 #hg38 transition variable for postgresql 'start_g' segment field
@@ -195,43 +197,39 @@ sub get_miniseq_id {
 
 sub get_alignment_path {
 	my ($id, $number, $analysis, $dbh) = @_;
-	my ($instrument, $instrument_path) = ('miseq', 'RUNS/MISEQ');
+	my ($instrument, $instrument_path) = ('miseq', $NAS_CHU_MISEQ_BASE_DIR);
 	my $query_manifest = "SELECT run_id FROM miseq_analysis WHERE num_pat = '$number' AND id_pat = '$id' AND type_analyse = '$analysis';";
 	my $res_manifest = $dbh->selectrow_hashref($query_manifest);
 	
-	# if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'MiniSeq'}
-	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = 'RUNS/MINISEQ'}
+	if ($analysis =~ /MiniSeq-\d+/o) {$instrument = 'miniseq';$instrument_path = $NAS_CHU_MINISEQ_BASE_DIR}
 	elsif ($analysis =~ /NextSeq-.+/o) {$instrument = 'nextseq';$instrument_path = $CLINICAL_EXOME_BASE_DIR}
+	elsif ($analysis =~ /Aviti-\d+/o) {$instrument = 'aviti';$instrument_path = $NAS_CHU_AVITI_BASE_DIR}
 	# my ($alignment_dir, $additional_path) = ('', '');
 	my $alignment_dir = '';
 	my $run = $res_manifest->{'run_id'};
 	my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run);
+	my $ns_tag = $instrument eq 'aviti' ? U2_modules::U2_subs_3::get_ns_tag("$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis") : '';
 	my $genome = U2_modules::U2_subs_1::get_genome_from_analysis($analysis, $dbh);
 	if ($genome eq 'hg38') {
-		# my $alignment_file = "$HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/MobiDL/$id$number/panelCapture/$id$number.crumble";
-		my $alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.crumble";
+		my $alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR$instrument_path/$run/MobiDL/$mobidl_date_analysis$ns_tag/$id$number/panelCapture/$id$number.crumble";
 		my $file_type = 'cram';
-		if (!-f "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis$id$number/panelCapture/$id$number.crumble") {
+		if (!-f "$ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR$instrument_path/$run/MobiDL/$mobidl_date_analysis$ns_tag/$id$number/panelCapture/$id$number.crumble") {
 			# defgen id
 			my $query_defgen = "SELECT defgen_num FROM patient WHERE numero = '$number' AND identifiant = '$id';";
 			my $res_defgen = $dbh->selectrow_hashref($query_defgen);
 			my $defgen_id = $res_defgen->{'defgen_num'};
-			$alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis$defgen_id/panelCapture/$defgen_id.crumble";
+			$alignment_file = "$HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/MobiDL/$mobidl_date_analysis$ns_tag/$defgen_id/panelCapture/$defgen_id.crumble";
 		}
 		return ($alignment_file, $file_type, 'hg38');
 	}
 	elsif ($instrument eq 'miseq') {
-		# $alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/CompletedJobInfo.xml`;
 		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment[0-9]*<\" $ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/CompletedJobInfo.xml`;
 		#print $alignment_dir;
 		$alignment_dir =~ /\\(Alignment\d*)<$/o;$alignment_dir = "/Data/Intensities/BaseCalls/$1";
 		#print $alignment_dir;
 	}
 	elsif($instrument eq 'miniseq') {
-		# my $instrument = U2_modules::U2_subs_2::get_miniseq_id($run);
-		# if ($instrument eq $ANALYSIS_MINISEQ2) {$additional_path = "/$run"}
-		# $alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/CompletedJobInfo.xml`;
-		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/CompletedJobInfo.xml`;
+		$alignment_dir = `grep -Eo \"AlignmentFolder>.+\\Alignment_?[0-9]*.+<\" $ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR$instrument_path/$run/CompletedJobInfo.xml`;
 		$alignment_dir =~ /\\(Alignment_?\d*.+)<$/o;
 		$alignment_dir = $1;
 		$alignment_dir =~ s/\\/\//og;
@@ -245,8 +243,7 @@ sub get_alignment_path {
 
 	my ($file, $file_type);
 	if ($instrument ne 'nextseq') {
-		# my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run$additional_path/$alignment_dir`;
-		my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR/$instrument_path/$run/$alignment_dir`;
+		my $file_list = `ls $ABSOLUTE_HTDOCS_PATH$NAS_CHU_BASE_DIR$instrument_path/$run/$alignment_dir`;
 		#print "ls $ABSOLUTE_HTDOCS_PATH$RS_BASE_DIR/data/$instrument_path/$run/$alignment_dir -- $bam_list";
 		#print $run;
 		# create a hash which looks like {"illumina_run_id" => 0}
@@ -418,7 +415,7 @@ sub genotype_line_optimised { # prints a line in the genotype table
 		# For global view
 		if ($global eq 't') {print $q->td({'class' => 'italique gras pointer', 'onclick' => "window.open('patient_genotype.pl?sample=".$var->{'id_pat'}.$var->{'num_pat'}."&gene=$gene')", 'title' => "Jump to $gene full genotype"}, $gene), "\n"}
 
-		if ($global ne 't' && ($type_analyse =~ /Mi/o || $type_analyse =~ /Next/o) && $var->{'nom_g'} !~ /chrM:.+/o) {
+		if ($global ne 't' && ($type_analyse =~ /Aviti-/o || $type_analyse =~ /Mi/o || $type_analyse =~ /Next/o) && $var->{'nom_g'} !~ /chrM:.+/o) {
 			my ($chr, $pos1, $pos2) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g'}, 'evs');
 			my ($chr_38, $pos1_38, $pos2_38) = U2_modules::U2_subs_1::extract_pos_from_genomic($var->{'nom_g_38'}, 'evs');
 			my $igv_padding = 40;
@@ -1474,6 +1471,7 @@ sub get_aviti_metrics {
 
 sub get_multiqc_value {
 	my ($multiqc_file, $section, $sample, $call) = @_;
+	print STDERR "$multiqc_file\n";
 	my $json_text = do {
 		# from https://stackoverflow.com/questions/15653419/parsing-json-file-using-perl
 		# my $multiqc_file = "$SSH_RACKSTATION_MINISEQ_FTP_BASE_DIR/$run/MobiDL/".$run."_multiqc_data/multiqc_data.json";
@@ -1576,7 +1574,7 @@ sub get_multiqc_value {
 			'PCT_TARGET_BASES_20X' => ['twentyx_doc', ''],
 			'PCT_TARGET_BASES_50X' => ['fiftyx_doc', ''],
 		};
-		my $sample_regexp = $sample."_S";
+		my $sample_regexp = $sample."_[RS]";
 		 
 		LABEL: foreach my $label (keys %{$pass_metrics}) {
 			foreach my $cell (@{$content->{$section}}) {
