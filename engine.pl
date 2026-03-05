@@ -102,7 +102,6 @@ sub main {
 	$keyword->{'^Enumber-?\d*[delupins]*$'} = 'LR';
 	$keyword->{'[Rr][Nn][Aa]'} = 'RNA';
 
-	##TODO add analyse_moleculaire
 	if ($q->param('search') && $q->param('search') =~ /([\w\.\>\-\+\(\)\*:\?_']+)/o) {
 		$recherche = $1;
 		$original = $recherche;
@@ -133,6 +132,11 @@ sub main {
 					}
 				}
 			}
+		}
+		# defgen query
+		if ($recherche =~ /^[A-Za-z]{3}\d{6}$/o) {
+			$query = "SELECT numero, identifiant, famille, proband, first_name, last_name FROM patient WHERE defgen_num = '$recherche'";
+			$motif = 'defgen_id';
 		}
 		#exit;
 		#print $motif;
@@ -265,7 +269,7 @@ sub print_results {
 	if ($res ne '0E0') {
 		if ($res == 1 && $call == 1) {#only one result => redirect
 			my $result = $dbh->selectrow_hashref($query);
-			if ($motif eq 'patient_name' || $motif eq 'familyID') {$url = "patient_file.pl?sample=$result->{'identifiant'}$result->{'numero'}"}
+			if ($motif eq 'patient_name' || $motif eq 'familyID' || $motif eq 'defgen_id') {$url = "patient_file.pl?sample=$result->{'identifiant'}$result->{'numero'}"}
 			else {$url = "variant.pl?gene=$result->{'gene_symbol'}&accession=$result->{'refseq'}&nom_c=".uri_escape($result->{'nom'})}
 			#print $url;
 			$q->redirect("$url");
