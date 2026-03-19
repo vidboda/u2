@@ -426,7 +426,7 @@ if ($user->isAnalyst() == 1) {
 			# now create unknown runs in U2 AND seek for our patient
 			my ($semaph, $ok) = (0, 0);
 			while (my ($run, $value) = each %runs) {
-				if ($run !~ /^\d{6}_[A-Z]{1}\d{5}_\d{4}_0{9}-[A-Z0-9]{5}$/o && $run !~ /^\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10}$/o && $run !~ /\d{8}_AV253403_\w+/o) {next}
+				if ($run !~ /^\d{6}_[A-Z]{1}\d{5}_\d{4}_0{9}-[A-Z0-9]{5}$/o && $run !~ /^\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10}$/o && $run !~ /\d{8}_AV253403_[\w-]+/o) {next}
 				### TO BE CHANGED 4 MINISEQ
 				### path to alignment dir under run root
 				my $alignment_dir = '';
