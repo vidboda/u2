@@ -672,6 +672,7 @@ if ($result) {
 							}
 							$alignment_dir = "$ABSOLUTE_HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$ns_tag/$mobidl_id/panelCapture";
 							$http_dir = "$HTDOCS_PATH$NGS_BASE_DIR/$run_id/MobiDL/$mobidl_date_analysis$ns_tag/$mobidl_id/panelCapture";
+							# print "$alignment_dir\n";
 						}
 						elsif($instrument eq 'nextseq'){
 							#### TO BE FIXED WITH NAS_CHU PATH
