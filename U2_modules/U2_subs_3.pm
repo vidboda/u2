@@ -156,7 +156,7 @@ sub get_mobidl_analysis_date {
 		$path = $ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR.$NAS_CHU_AVITI_BASE_DIR.$run."/MobiDL";
 	}
 	# first test if the dir is MobiDL/YYYYMMDD/panelCaptureComplete.txt or MobiDL/panelCaptureComplete.txt
-	return '' if -f "$path/panelCaptureComplete.txt";
+	return '' if -f "$path/panelCaptureLog.txt";
 	# if YYYYMMDD get the latest
 	opendir(D, "$path") || return '';
 	my @list = grep {/\d{8}/o} sort(readdir(D));
@@ -166,7 +166,6 @@ sub get_mobidl_analysis_date {
 
 sub get_ns_tag {
 	my $path = shift;
-	# print STDERR "$path\n";
 	opendir(D, "$path");
 	my ($ns_tag) = grep {/^NS/o} sort(readdir(D));
 	closedir(D);

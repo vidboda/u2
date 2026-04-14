@@ -427,6 +427,7 @@ if ($user->isAnalyst() == 1) {
 			my ($semaph, $ok) = (0, 0);
 			while (my ($run, $value) = each %runs) {
 				if ($run !~ /^\d{6}_[A-Z]{1}\d{5}_\d{4}_0{9}-[A-Z0-9]{5}$/o && $run !~ /^\d{6}_[A-Z]{2}\d{5}_\d{4}_[A-Z0-9]{10}$/o && $run !~ /\d{8}_AV253403_[\w-]+/o) {next}
+				if ($run =~ /BioTS/o || $run =~ /fluidics/o || $run =~ /install/o) {next}
 				### TO BE CHANGED 4 MINISEQ
 				### path to alignment dir under run root
 				my $alignment_dir = '';
@@ -459,6 +460,7 @@ if ($user->isAnalyst() == 1) {
 				my ($location, $stat_file, $samplesheet, $summary_file) = ("$SSH_RAW_DATA_BASE_DIR/$run$additional_path/CopyComplete.txt", 'EnrichmentStatistics.xml', "$alignment_dir/SampleSheetUsed.csv", 'summary.csv');
 				my $mobidl_date_analysis = U2_modules::U2_subs_3::get_mobidl_analysis_date($run);
 				my $ns_tag = '';
+				# print STDERR "$instrument\n";
 				if ($instrument eq 'aviti') {
 					if ($mobidl_date_analysis eq '') {next}
 					# get NS folder
@@ -466,7 +468,10 @@ if ($user->isAnalyst() == 1) {
 					# opendir(D, "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis");
 					# ($ns_tag) = grep {/^NS/o} sort(readdir(D));
 					# closedir(D);
-					$location = "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis/panelcaptureComplete.txt";
+					# $location = "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/$mobidl_date_analysis/panelcaptureComplete.txt";
+					$location = "$SSH_RAW_DATA_BASE_DIR/$run/MobiDL/MobiDLComplete.txt";
+					# the file must be set to 2
+					if (`grep '2' $location` eq '') {next}
 					$samplesheet = "$SSH_RAW_DATA_BASE_DIR/$run/RunManifest.csv";
 				}
 				# if ($instrument eq 'miniseq') {
@@ -490,8 +495,8 @@ if ($user->isAnalyst() == 1) {
 					# 1st check MSR analysis is finished:
 					# look for 'Copying Remaining Files To Network' in AnalysisLog.txt
 					my $test_file = '';
-					if (-f "$location") {$test_file = 'ok'}
-                    if ($test_file ne '') {
+					if (-f "$location") { # $test_file = 'ok'}
+                    # if ($test_file ne '') {
 
 						# my $cluster_density = U2_modules::U2_subs_2::getMultiqcValue($run, 'interop_runsummary', 'Density');
 						# if ($cluster_density eq 'no multiqc') {next}
@@ -593,6 +598,7 @@ if ($user->isAnalyst() == 1) {
 					else {
 						# we can proceed
 						# validate analysis type
+						# print STDERR "$ns_tag\n";
 						my $test_samplesheet = `grep -e '$manifest' $samplesheet`;
 						if ($test_samplesheet ne '') {
 							$ok = 1;
@@ -601,17 +607,21 @@ if ($user->isAnalyst() == 1) {
 							if ($genome_version eq 'hg38') {$import_script = 'import_illumina_hg38.pl'}
 							# search for other patients in the samplesheet
 							my $char = ',';
-							my $patient_list;
+							my $patient_list = '';
 							my $regexp = '^'.$PATIENT_IDS.'[A-Z]{0,2}[0-9]+'.$char;
 							if ($instrument eq 'aviti') {
+								# print STDERR "grep '$ns_tag' $samplesheet | grep -Eo '$regexp'\n";
 								$patient_list = `grep "$ns_tag" $samplesheet | grep -Eo "$regexp"`;
+								# print STDERR "$ns_tag\n";
 							}
 							else {
 								# my $regexp = '^'.$PATIENT_IDS.'[0-9]+'.$char;
 								# import from defgen IDs
 								$patient_list = `grep -Eo "$regexp" $samplesheet`;
 							}
+							# print STDERR "$patient_list\n";
 							$patient_list =~ s/\n//og;
+							# print STDERR "$patient_list\n";
 							my %patients = map {$_ => 0} split(/$char/, $patient_list);
 							# print STDERR Dumper(%patients)."\n";
 							%patients = %{U2_modules::U2_subs_2::check_ngs_samples(\%patients, $analysis, $dbh)};
