@@ -1056,6 +1056,7 @@ if ($q->param('asked') && $q->param('asked') eq 'disease') {
 }
 if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	print $q->header();
+	# print STDERR Dumper($q)."\n";
 	my ($id, $number) = U2_modules::U2_subs_1::sample2idnum(uc($q->param('sample')), $q);
 	my $family_id = U2_modules::U2_subs_1::check_family_id($q);
 	my $disease = U2_modules::U2_subs_1::check_phenotype($q);
@@ -1109,7 +1110,7 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 	# print STDERR $mobidl_vcf_path."\n";
 	# exit 0;
 	my $user_id = $genome eq 'hg38' ? 2 : 4;
-	my $filter_id = $genome eq 'hg38' ? 8 : 7;
+	my $filter_id = $genome eq 'hg38' ? 5 : 7;
 	open F, "$DATABASES_PATH/seal_json_2023.token" or die $!;
 	my ($sample_field, $family_field, $run_field, $teams_field, $bed_field, $filter_field) = (0, 0, 0, 0, 0, 0);
 	my $seal_id = $id.$number.'_MobiDL';
