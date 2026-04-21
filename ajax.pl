@@ -1105,7 +1105,14 @@ if ($q->param('asked') && $q->param('asked') eq 'send2SEAL') {
 		$mobidl_vcf_path = $1."/MobiDL/$mobidl_date_analysis$mobidl_id/panelCapture/$mobidl_id.vcf"
 	}
 	elsif ($vcf_path =~ /^(.+$run_id).+/) {
-		$mobidl_vcf_path = $1."/MobiDL/$mobidl_date_analysis$mobidl_id/panelCapture/$mobidl_id.vcf"
+		my $prefix_path = $1;
+		if ($run_id =~ /^\d{8}_AV/o) { # aviti run
+			my $ns_tag = U2_modules::U2_subs_3::get_ns_tag($ABSOLUTE_HTDOCS_PATH.$NAS_CHU_BASE_DIR."/".$prefix_path."/MobiDL/$mobidl_date_analysis");
+			$mobidl_vcf_path = $prefix_path."/MobiDL/$mobidl_date_analysis$ns_tag/$mobidl_id/panelCapture/$mobidl_id.vcf"
+		}
+		else {
+			$mobidl_vcf_path = $prefix_path."/MobiDL/$mobidl_date_analysis$mobidl_id/panelCapture/$mobidl_id.vcf"
+		}
 	}
 	# print STDERR $mobidl_vcf_path."\n";
 	# exit 0;
