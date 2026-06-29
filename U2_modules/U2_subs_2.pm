@@ -1219,7 +1219,7 @@ sub print_panel_criteria {
 
 sub build_ngs_form {
 	my ($id, $number, $defgen_id, $analysis, $run, $filtered, $patients, $script, $step, $q, $data_dir, $ssh, $summary_file, $instrument, $genome_version) = @_;
-	# print STDERR "$defgen_id\n";
+	# print STDERR "DATA DIR: $data_dir\n";
 	my $info =  "In addition to $id$number, I have found ".(keys(%{$patients})-1)." other patients eligible for import in U2 for this run ($run).".$q->br()."Please select those you are interested in";
 	if ($filtered == 1) {$info .= " and specify your filtering options for each of them"}
 	$info .= ".";

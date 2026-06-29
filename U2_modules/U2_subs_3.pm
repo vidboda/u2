@@ -159,7 +159,7 @@ sub get_mobidl_analysis_date {
 	return '' if -f "$path/panelCaptureLog.txt";
 	# if YYYYMMDD get the latest
 	opendir(D, "$path") || return '';
-	my @list = grep {/\d{8}/o} sort(readdir(D));
+	my @list = grep {/^\d{8}$/o} sort(readdir(D));
 	closedir(D);
 	return pop(@list)."/";
 }
